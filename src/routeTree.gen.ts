@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppStudyPlanRouteImport } from './routes/app.study-plan'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppSearchRouteImport } from './routes/app.search'
 import { Route as AppQuizzesRouteImport } from './routes/app.quizzes'
 import { Route as AppProgressRouteImport } from './routes/app.progress'
 import { Route as AppProgramRouteImport } from './routes/app.program'
@@ -55,6 +56,11 @@ const AppStudyPlanRoute = AppStudyPlanRouteImport.update({
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSearchRoute = AppSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => AppRoute,
 } as any)
 const AppQuizzesRoute = AppQuizzesRouteImport.update({
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/app/program': typeof AppProgramRoute
   '/app/progress': typeof AppProgressRoute
   '/app/quizzes': typeof AppQuizzesRouteWithChildren
+  '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
   '/app/': typeof AppIndexRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByTo {
   '/app/program': typeof AppProgramRoute
   '/app/progress': typeof AppProgressRoute
   '/app/quizzes': typeof AppQuizzesRouteWithChildren
+  '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
   '/app': typeof AppIndexRoute
@@ -208,6 +216,7 @@ export interface FileRoutesById {
   '/app/program': typeof AppProgramRoute
   '/app/progress': typeof AppProgressRoute
   '/app/quizzes': typeof AppQuizzesRouteWithChildren
+  '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
   '/app/': typeof AppIndexRoute
@@ -234,6 +243,7 @@ export interface FileRouteTypes {
     | '/app/program'
     | '/app/progress'
     | '/app/quizzes'
+    | '/app/search'
     | '/app/settings'
     | '/app/study-plan'
     | '/app/'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/app/program'
     | '/app/progress'
     | '/app/quizzes'
+    | '/app/search'
     | '/app/settings'
     | '/app/study-plan'
     | '/app'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/app/program'
     | '/app/progress'
     | '/app/quizzes'
+    | '/app/search'
     | '/app/settings'
     | '/app/study-plan'
     | '/app/'
@@ -330,6 +342,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/app/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/search': {
+      id: '/app/search'
+      path: '/search'
+      fullPath: '/app/search'
+      preLoaderRoute: typeof AppSearchRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/quizzes': {
@@ -515,6 +534,7 @@ interface AppRouteChildren {
   AppProgramRoute: typeof AppProgramRoute
   AppProgressRoute: typeof AppProgressRoute
   AppQuizzesRoute: typeof AppQuizzesRouteWithChildren
+  AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudyPlanRoute: typeof AppStudyPlanRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -534,6 +554,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProgramRoute: AppProgramRoute,
   AppProgressRoute: AppProgressRoute,
   AppQuizzesRoute: AppQuizzesRouteWithChildren,
+  AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStudyPlanRoute: AppStudyPlanRoute,
   AppIndexRoute: AppIndexRoute,

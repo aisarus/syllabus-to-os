@@ -20,6 +20,7 @@ import {
   Target,
   Presentation,
   FileInput,
+  Search,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useApp } from "@/lib/app-context";
