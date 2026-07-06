@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useApp } from "@/lib/app-context";
 import { useData, store } from "@/lib/store";
-import { Plus, Trash2, Search } from "lucide-react";
+import { Plus, Trash2, Search, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/app/notes")({
   component: NotesPage,
@@ -19,6 +19,7 @@ function NotesPage() {
   const [search, setSearch] = useState("");
 
   const note = selected ? data.notes.find((n) => n.id === selected) : null;
+  const material = note?.materialId ? data.materials.find((m) => m.id === note.materialId) : null;
 
   const filtered = data.notes.filter((n) => {
     const q = search.toLowerCase();
@@ -43,8 +44,7 @@ function NotesPage() {
                 setSelected(n.id);
               }}
             >
-              <Plus className="h-4 w-4 me-1" />
-              {t.createNote}
+              <Plus className="h-4 w-4 me-1" />{t.createNote}
             </Button>
           </>
         }
@@ -98,6 +98,25 @@ function NotesPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <Select
+                value={note.materialId ?? "_none"}
+                onValueChange={(v) => store.updateNote(note.id, { materialId: v === "_none" ? undefined : v })}
+              >
+                <SelectTrigger><SelectValue placeholder={t.linkedMaterial} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none">— {t.none} —</SelectItem>
+                  {data.materials.map((m) => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {material && (
+                <Link
+                  to="/app/materials/$materialId"
+                  params={{ materialId: material.id }}
+                  className="text-xs text-primary inline-flex items-center gap-1 hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" />{t.source}: {material.title}
+                </Link>
+              )}
               <Input
                 placeholder={t.tags}
                 value={note.tags.join(", ")}

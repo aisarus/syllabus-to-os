@@ -17,7 +17,7 @@ export const Route = createFileRoute("/app/flashcards")({
 function CardForm({ onDone }: { onDone: () => void }) {
   const { t } = useApp();
   const data = useData();
-  const [f, setF] = useState({ front: "", back: "", courseId: "_none" });
+  const [f, setF] = useState({ front: "", back: "", courseId: "_none", materialId: "_none" });
   return (
     <div className="space-y-3">
       <div><Label>{t.front}</Label><Input value={f.front} onChange={(e) => setF({ ...f, front: e.target.value })} /></div>
@@ -32,12 +32,26 @@ function CardForm({ onDone }: { onDone: () => void }) {
           </SelectContent>
         </Select>
       </div>
+      <div>
+        <Label>{t.linkedMaterial}</Label>
+        <Select value={f.materialId} onValueChange={(v) => setF({ ...f, materialId: v })}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_none">— {t.none} —</SelectItem>
+            {data.materials.map((m) => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="flex justify-end gap-2">
         <Button variant="ghost" onClick={onDone}>{t.cancel}</Button>
         <Button
           onClick={() => {
             if (!f.front || !f.back) return;
-            store.createCard({ front: f.front, back: f.back, courseId: f.courseId === "_none" ? undefined : f.courseId });
+            store.createCard({
+              front: f.front, back: f.back,
+              courseId: f.courseId === "_none" ? undefined : f.courseId,
+              materialId: f.materialId === "_none" ? undefined : f.materialId,
+            });
             onDone();
           }}
         >{t.save}</Button>
@@ -96,7 +110,9 @@ function FlashcardsPage() {
   const data = useData();
   const [open, setOpen] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const [matFilter, setMatFilter] = useState("all");
   const dueCount = data.flashcards.filter((c) => c.dueAt <= Date.now()).length;
+  const filtered = data.flashcards.filter((c) => matFilter === "all" || c.materialId === matFilter);
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -119,6 +135,16 @@ function FlashcardsPage() {
         }
       />
 
+      <div className="mb-4">
+        <Select value={matFilter} onValueChange={setMatFilter}>
+          <SelectTrigger className="w-[220px]"><SelectValue placeholder={t.linkedMaterial} /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">— {t.linkedMaterial} —</SelectItem>
+            {data.materials.map((m) => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
       <Dialog open={reviewing} onOpenChange={setReviewing}>
         <DialogContent>
           <DialogHeader><DialogTitle>{t.reviewMode}</DialogTitle></DialogHeader>
@@ -126,13 +152,13 @@ function FlashcardsPage() {
         </DialogContent>
       </Dialog>
 
-      {data.flashcards.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">
           {t.empty}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {data.flashcards.map((c) => (
+          {filtered.map((c) => (
             <div key={c.id} className="rounded-lg border border-border bg-surface p-4">
               <div className="text-xs text-muted-foreground uppercase mb-1">{c.status}</div>
               <Input value={c.front} onChange={(e) => store.updateCard(c.id, { front: e.target.value })} />
