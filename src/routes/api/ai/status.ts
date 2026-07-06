@@ -8,7 +8,7 @@ export const Route = createFileRoute("/api/ai/status")({
         const configured = isGeminiConfigured();
         return Response.json({
           ok: true,
-          provider: "lovable-ai",
+          provider: "lovable-ai-gateway",
           configured,
           model: configured ? getGeminiModelName() : null,
         });
