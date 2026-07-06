@@ -724,6 +724,7 @@ export function importJSON(json: string): { ok: true } | { ok: false; error: str
       quizAttempts: arr<QuizAttempt>(parsed.quizAttempts),
       assignments: arr<Assignment>(parsed.assignments),
       materials: arr<Material>(parsed.materials),
+      materialChunks: arr<MaterialChunk>(parsed.materialChunks),
       materialOutputs: arr<MaterialOutput>(parsed.materialOutputs),
       presentationOutlines: arr<PresentationOutline>(parsed.presentationOutlines),
       calendarEvents: arr<CalendarEvent>(parsed.calendarEvents),
