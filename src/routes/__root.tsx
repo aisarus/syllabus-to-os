@@ -1,6 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Outlet, Link, createRootRouteWithContext, useRouter, HeadContent, Scripts,
+  Outlet,
+  Link,
+  createRootRouteWithContext,
+  useRouter,
+  HeadContent,
+  Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -11,19 +16,16 @@ import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 grid-bg">
-      <div className="max-w-md text-center glass-panel rounded-2xl p-8">
-        <h1 className="text-7xl font-bold text-gradient">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          העמוד שחיפשת לא נמצא. The page you're looking for doesn't exist.
-        </p>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center rounded-2xl border border-border bg-surface p-8">
+        <h1 className="text-6xl font-bold">404</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Page not found · Страница не найдена</p>
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md gradient-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-glow"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
           >
-            חזרה לדף הבית
+            Home
           </Link>
         </div>
       </div>
@@ -32,20 +34,31 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
   const router = useRouter();
-  useEffect(() => { reportLovableError(error, { boundary: "tanstack_root_error_component" }); }, [error]);
+  useEffect(() => {
+    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+  }, [error]);
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center glass-panel rounded-2xl p-8">
-        <h1 className="text-xl font-semibold tracking-tight">אירעה שגיאה</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Something went wrong.</p>
+      <div className="max-w-md text-center rounded-2xl border border-border bg-surface p-8">
+        <h1 className="text-xl font-semibold">Something went wrong</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
-            className="inline-flex items-center justify-center rounded-md gradient-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-          >Try again</button>
-          <a href="/" className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm">Home</a>
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          >
+            Try again
+          </button>
+          <a
+            href="/"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm"
+          >
+            Home
+          </a>
         </div>
       </div>
     </div>
@@ -57,20 +70,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lamdan AI – מערכת ההפעלה ללימודים באקדמיה הישראלית" },
-      { name: "description", content: "העלה סילבוס, ידיעון או תוכנית לימודים וקבל סביבת לימוד אישית בסגנון Obsidian: קורסים, הערות, כרטיסיות, בחנים, מטלות והכנה למועד א׳ / ב׳." },
-      { name: "author", content: "Lamdan AI" },
-      { property: "og:title", content: "Lamdan AI – Study OS for Israeli Academia" },
-      { property: "og:description", content: "Turn any Israeli university syllabus into a personal Obsidian-style study OS." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Lamdan — Personal study workspace" },
+      {
+        name: "description",
+        content:
+          "Personal Obsidian-style study workspace: programs, courses, notes, flashcards, quizzes, assignments — stored locally.",
+      },
+      { name: "robots", content: "noindex" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -81,8 +97,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="he" dir="rtl" className="dark">
-      <head><HeadContent /></head>
+    <html lang="ru" dir="ltr" className="dark">
+      <head>
+        <HeadContent />
+      </head>
       <body>
         {children}
         <Scripts />

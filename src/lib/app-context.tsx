@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Lang } from "./i18n";
-import { isRTL } from "./i18n";
+import { dicts } from "./i18n";
 
 type Theme = "dark" | "light";
 
@@ -9,41 +9,46 @@ interface AppState {
   setLang: (l: Lang) => void;
   theme: Theme;
   setTheme: (t: Theme) => void;
-  semester: string;
-  setSemester: (s: string) => void;
+  t: (typeof dicts)["ru"];
 }
 
 const Ctx = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>("he");
+  const [lang, setLang] = useState<Lang>("ru");
   const [theme, setTheme] = useState<Theme>("dark");
-  const [semester, setSemester] = useState("סמסטר ב' 2025/26");
 
   useEffect(() => {
     try {
       const l = localStorage.getItem("lamdan.lang") as Lang | null;
-      const t = localStorage.getItem("lamdan.theme") as Theme | null;
-      if (l) setLang(l);
-      if (t) setTheme(t);
+      const th = localStorage.getItem("lamdan.theme") as Theme | null;
+      if (l === "ru" || l === "en") setLang(l);
+      if (th === "dark" || th === "light") setTheme(th);
     } catch {}
   }, []);
 
   useEffect(() => {
     const root = document.documentElement;
-    root.setAttribute("dir", isRTL(lang) ? "rtl" : "ltr");
+    root.setAttribute("dir", "ltr");
     root.setAttribute("lang", lang);
-    try { localStorage.setItem("lamdan.lang", lang); } catch {}
+    try {
+      localStorage.setItem("lamdan.lang", lang);
+    } catch {}
   }, [lang]);
 
   useEffect(() => {
     const root = document.documentElement;
     root.classList.toggle("light", theme === "light");
     root.classList.toggle("dark", theme === "dark");
-    try { localStorage.setItem("lamdan.theme", theme); } catch {}
+    try {
+      localStorage.setItem("lamdan.theme", theme);
+    } catch {}
   }, [theme]);
 
-  const value = useMemo(() => ({ lang, setLang, theme, setTheme, semester, setSemester }), [lang, theme, semester]);
+  const value = useMemo<AppState>(
+    () => ({ lang, setLang, theme, setTheme, t: dicts[lang] }),
+    [lang, theme],
+  );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
