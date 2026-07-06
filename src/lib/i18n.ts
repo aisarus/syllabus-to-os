@@ -378,8 +378,6 @@ export type Dict = {
   statusEnabled: string;
   statusDisabled: string;
   statusNotImplemented: string;
-  yes: string;
-  no: string;
   // materials v2
   searchNav: string;
   overview: string;
