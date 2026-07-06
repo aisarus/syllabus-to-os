@@ -32,8 +32,16 @@ import { Route as AppQuizzesQuizIdRouteImport } from './routes/app.quizzes.$quiz
 import { Route as AppPresentationsOutlineIdRouteImport } from './routes/app.presentations.$outlineId'
 import { Route as AppMaterialsMaterialIdRouteImport } from './routes/app.materials.$materialId'
 import { Route as AppCoursesCourseIdRouteImport } from './routes/app.courses.$courseId'
+import { Route as ApiAiTranslateTextRouteImport } from './routes/api/ai/translate-text'
 import { Route as ApiAiStatusRouteImport } from './routes/api/ai/status'
+import { Route as ApiAiSimplifyTextRouteImport } from './routes/api/ai/simplify-text'
 import { Route as ApiAiParseSyllabusRouteImport } from './routes/api/ai/parse-syllabus'
+import { Route as ApiAiGenerateTopicExplanationRouteImport } from './routes/api/ai/generate-topic-explanation'
+import { Route as ApiAiGenerateQuizRouteImport } from './routes/api/ai/generate-quiz'
+import { Route as ApiAiGeneratePresentationOutlineRouteImport } from './routes/api/ai/generate-presentation-outline'
+import { Route as ApiAiGenerateNoteRouteImport } from './routes/api/ai/generate-note'
+import { Route as ApiAiGenerateFlashcardsRouteImport } from './routes/api/ai/generate-flashcards'
+import { Route as ApiAiGenerateAssignmentBreakdownRouteImport } from './routes/api/ai/generate-assignment-breakdown'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -151,9 +159,19 @@ const AppCoursesCourseIdRoute = AppCoursesCourseIdRouteImport.update({
   path: '/$courseId',
   getParentRoute: () => AppCoursesRoute,
 } as any)
+const ApiAiTranslateTextRoute = ApiAiTranslateTextRouteImport.update({
+  id: '/api/ai/translate-text',
+  path: '/api/ai/translate-text',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAiStatusRoute = ApiAiStatusRouteImport.update({
   id: '/api/ai/status',
   path: '/api/ai/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiSimplifyTextRoute = ApiAiSimplifyTextRouteImport.update({
+  id: '/api/ai/simplify-text',
+  path: '/api/ai/simplify-text',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAiParseSyllabusRoute = ApiAiParseSyllabusRouteImport.update({
@@ -161,6 +179,39 @@ const ApiAiParseSyllabusRoute = ApiAiParseSyllabusRouteImport.update({
   path: '/api/ai/parse-syllabus',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiGenerateTopicExplanationRoute =
+  ApiAiGenerateTopicExplanationRouteImport.update({
+    id: '/api/ai/generate-topic-explanation',
+    path: '/api/ai/generate-topic-explanation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAiGenerateQuizRoute = ApiAiGenerateQuizRouteImport.update({
+  id: '/api/ai/generate-quiz',
+  path: '/api/ai/generate-quiz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiGeneratePresentationOutlineRoute =
+  ApiAiGeneratePresentationOutlineRouteImport.update({
+    id: '/api/ai/generate-presentation-outline',
+    path: '/api/ai/generate-presentation-outline',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAiGenerateNoteRoute = ApiAiGenerateNoteRouteImport.update({
+  id: '/api/ai/generate-note',
+  path: '/api/ai/generate-note',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiGenerateFlashcardsRoute = ApiAiGenerateFlashcardsRouteImport.update({
+  id: '/api/ai/generate-flashcards',
+  path: '/api/ai/generate-flashcards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiGenerateAssignmentBreakdownRoute =
+  ApiAiGenerateAssignmentBreakdownRouteImport.update({
+    id: '/api/ai/generate-assignment-breakdown',
+    path: '/api/ai/generate-assignment-breakdown',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -182,8 +233,16 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
   '/app/': typeof AppIndexRoute
+  '/api/ai/generate-assignment-breakdown': typeof ApiAiGenerateAssignmentBreakdownRoute
+  '/api/ai/generate-flashcards': typeof ApiAiGenerateFlashcardsRoute
+  '/api/ai/generate-note': typeof ApiAiGenerateNoteRoute
+  '/api/ai/generate-presentation-outline': typeof ApiAiGeneratePresentationOutlineRoute
+  '/api/ai/generate-quiz': typeof ApiAiGenerateQuizRoute
+  '/api/ai/generate-topic-explanation': typeof ApiAiGenerateTopicExplanationRoute
   '/api/ai/parse-syllabus': typeof ApiAiParseSyllabusRoute
+  '/api/ai/simplify-text': typeof ApiAiSimplifyTextRoute
   '/api/ai/status': typeof ApiAiStatusRoute
+  '/api/ai/translate-text': typeof ApiAiTranslateTextRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
   '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
   '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
@@ -208,8 +267,16 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
   '/app': typeof AppIndexRoute
+  '/api/ai/generate-assignment-breakdown': typeof ApiAiGenerateAssignmentBreakdownRoute
+  '/api/ai/generate-flashcards': typeof ApiAiGenerateFlashcardsRoute
+  '/api/ai/generate-note': typeof ApiAiGenerateNoteRoute
+  '/api/ai/generate-presentation-outline': typeof ApiAiGeneratePresentationOutlineRoute
+  '/api/ai/generate-quiz': typeof ApiAiGenerateQuizRoute
+  '/api/ai/generate-topic-explanation': typeof ApiAiGenerateTopicExplanationRoute
   '/api/ai/parse-syllabus': typeof ApiAiParseSyllabusRoute
+  '/api/ai/simplify-text': typeof ApiAiSimplifyTextRoute
   '/api/ai/status': typeof ApiAiStatusRoute
+  '/api/ai/translate-text': typeof ApiAiTranslateTextRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
   '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
   '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
@@ -236,8 +303,16 @@ export interface FileRoutesById {
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
   '/app/': typeof AppIndexRoute
+  '/api/ai/generate-assignment-breakdown': typeof ApiAiGenerateAssignmentBreakdownRoute
+  '/api/ai/generate-flashcards': typeof ApiAiGenerateFlashcardsRoute
+  '/api/ai/generate-note': typeof ApiAiGenerateNoteRoute
+  '/api/ai/generate-presentation-outline': typeof ApiAiGeneratePresentationOutlineRoute
+  '/api/ai/generate-quiz': typeof ApiAiGenerateQuizRoute
+  '/api/ai/generate-topic-explanation': typeof ApiAiGenerateTopicExplanationRoute
   '/api/ai/parse-syllabus': typeof ApiAiParseSyllabusRoute
+  '/api/ai/simplify-text': typeof ApiAiSimplifyTextRoute
   '/api/ai/status': typeof ApiAiStatusRoute
+  '/api/ai/translate-text': typeof ApiAiTranslateTextRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
   '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
   '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
@@ -265,8 +340,16 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/study-plan'
     | '/app/'
+    | '/api/ai/generate-assignment-breakdown'
+    | '/api/ai/generate-flashcards'
+    | '/api/ai/generate-note'
+    | '/api/ai/generate-presentation-outline'
+    | '/api/ai/generate-quiz'
+    | '/api/ai/generate-topic-explanation'
     | '/api/ai/parse-syllabus'
+    | '/api/ai/simplify-text'
     | '/api/ai/status'
+    | '/api/ai/translate-text'
     | '/app/courses/$courseId'
     | '/app/materials/$materialId'
     | '/app/presentations/$outlineId'
@@ -291,8 +374,16 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/study-plan'
     | '/app'
+    | '/api/ai/generate-assignment-breakdown'
+    | '/api/ai/generate-flashcards'
+    | '/api/ai/generate-note'
+    | '/api/ai/generate-presentation-outline'
+    | '/api/ai/generate-quiz'
+    | '/api/ai/generate-topic-explanation'
     | '/api/ai/parse-syllabus'
+    | '/api/ai/simplify-text'
     | '/api/ai/status'
+    | '/api/ai/translate-text'
     | '/app/courses/$courseId'
     | '/app/materials/$materialId'
     | '/app/presentations/$outlineId'
@@ -318,8 +409,16 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/study-plan'
     | '/app/'
+    | '/api/ai/generate-assignment-breakdown'
+    | '/api/ai/generate-flashcards'
+    | '/api/ai/generate-note'
+    | '/api/ai/generate-presentation-outline'
+    | '/api/ai/generate-quiz'
+    | '/api/ai/generate-topic-explanation'
     | '/api/ai/parse-syllabus'
+    | '/api/ai/simplify-text'
     | '/api/ai/status'
+    | '/api/ai/translate-text'
     | '/app/courses/$courseId'
     | '/app/materials/$materialId'
     | '/app/presentations/$outlineId'
@@ -329,8 +428,16 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  ApiAiGenerateAssignmentBreakdownRoute: typeof ApiAiGenerateAssignmentBreakdownRoute
+  ApiAiGenerateFlashcardsRoute: typeof ApiAiGenerateFlashcardsRoute
+  ApiAiGenerateNoteRoute: typeof ApiAiGenerateNoteRoute
+  ApiAiGeneratePresentationOutlineRoute: typeof ApiAiGeneratePresentationOutlineRoute
+  ApiAiGenerateQuizRoute: typeof ApiAiGenerateQuizRoute
+  ApiAiGenerateTopicExplanationRoute: typeof ApiAiGenerateTopicExplanationRoute
   ApiAiParseSyllabusRoute: typeof ApiAiParseSyllabusRoute
+  ApiAiSimplifyTextRoute: typeof ApiAiSimplifyTextRoute
   ApiAiStatusRoute: typeof ApiAiStatusRoute
+  ApiAiTranslateTextRoute: typeof ApiAiTranslateTextRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -496,6 +603,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCoursesCourseIdRouteImport
       parentRoute: typeof AppCoursesRoute
     }
+    '/api/ai/translate-text': {
+      id: '/api/ai/translate-text'
+      path: '/api/ai/translate-text'
+      fullPath: '/api/ai/translate-text'
+      preLoaderRoute: typeof ApiAiTranslateTextRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ai/status': {
       id: '/api/ai/status'
       path: '/api/ai/status'
@@ -503,11 +617,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/simplify-text': {
+      id: '/api/ai/simplify-text'
+      path: '/api/ai/simplify-text'
+      fullPath: '/api/ai/simplify-text'
+      preLoaderRoute: typeof ApiAiSimplifyTextRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ai/parse-syllabus': {
       id: '/api/ai/parse-syllabus'
       path: '/api/ai/parse-syllabus'
       fullPath: '/api/ai/parse-syllabus'
       preLoaderRoute: typeof ApiAiParseSyllabusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/generate-topic-explanation': {
+      id: '/api/ai/generate-topic-explanation'
+      path: '/api/ai/generate-topic-explanation'
+      fullPath: '/api/ai/generate-topic-explanation'
+      preLoaderRoute: typeof ApiAiGenerateTopicExplanationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/generate-quiz': {
+      id: '/api/ai/generate-quiz'
+      path: '/api/ai/generate-quiz'
+      fullPath: '/api/ai/generate-quiz'
+      preLoaderRoute: typeof ApiAiGenerateQuizRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/generate-presentation-outline': {
+      id: '/api/ai/generate-presentation-outline'
+      path: '/api/ai/generate-presentation-outline'
+      fullPath: '/api/ai/generate-presentation-outline'
+      preLoaderRoute: typeof ApiAiGeneratePresentationOutlineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/generate-note': {
+      id: '/api/ai/generate-note'
+      path: '/api/ai/generate-note'
+      fullPath: '/api/ai/generate-note'
+      preLoaderRoute: typeof ApiAiGenerateNoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/generate-flashcards': {
+      id: '/api/ai/generate-flashcards'
+      path: '/api/ai/generate-flashcards'
+      fullPath: '/api/ai/generate-flashcards'
+      preLoaderRoute: typeof ApiAiGenerateFlashcardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/generate-assignment-breakdown': {
+      id: '/api/ai/generate-assignment-breakdown'
+      path: '/api/ai/generate-assignment-breakdown'
+      fullPath: '/api/ai/generate-assignment-breakdown'
+      preLoaderRoute: typeof ApiAiGenerateAssignmentBreakdownRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -605,8 +768,16 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  ApiAiGenerateAssignmentBreakdownRoute: ApiAiGenerateAssignmentBreakdownRoute,
+  ApiAiGenerateFlashcardsRoute: ApiAiGenerateFlashcardsRoute,
+  ApiAiGenerateNoteRoute: ApiAiGenerateNoteRoute,
+  ApiAiGeneratePresentationOutlineRoute: ApiAiGeneratePresentationOutlineRoute,
+  ApiAiGenerateQuizRoute: ApiAiGenerateQuizRoute,
+  ApiAiGenerateTopicExplanationRoute: ApiAiGenerateTopicExplanationRoute,
   ApiAiParseSyllabusRoute: ApiAiParseSyllabusRoute,
+  ApiAiSimplifyTextRoute: ApiAiSimplifyTextRoute,
   ApiAiStatusRoute: ApiAiStatusRoute,
+  ApiAiTranslateTextRoute: ApiAiTranslateTextRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
