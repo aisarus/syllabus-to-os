@@ -57,45 +57,64 @@ export interface AIParseSyllabusInput {
 }
 
 export interface AIStatus {
+  ok: boolean;
+  provider: "google-gemini";
   configured: boolean;
-  provider: "gemini";
-  model?: string;
+  model: string | null;
 }
 
 let statusCache: { at: number; value: AIStatus } | null = null;
 
-export async function checkAIStatus(): Promise<AIStatus> {
+export async function checkAIStatus(force = false): Promise<AIStatus> {
   const now = Date.now();
-  if (statusCache && now - statusCache.at < 30_000) return statusCache.value;
+  if (!force && statusCache && now - statusCache.at < 30_000) return statusCache.value;
   try {
     const res = await fetch("/api/ai/status", { headers: { Accept: "application/json" } });
     if (!res.ok) throw new Error(String(res.status));
-    const j = (await res.json()) as AIStatus;
-    statusCache = { at: now, value: j };
-    return j;
+    const j = (await res.json()) as Partial<AIStatus>;
+    const value: AIStatus = {
+      ok: true,
+      provider: "google-gemini",
+      configured: Boolean(j.configured),
+      model: j.model ?? null,
+    };
+    statusCache = { at: now, value };
+    return value;
   } catch {
-    const value: AIStatus = { configured: false, provider: "gemini" };
+    const value: AIStatus = { ok: false, provider: "google-gemini", configured: false, model: null };
     statusCache = { at: now, value };
     return value;
   }
 }
 
+interface AIParseSyllabusResponse {
+  ok: boolean;
+  draft?: ParsedSyllabusDraft;
+  warnings?: string[];
+  error?: string;
+  details?: string;
+  model?: string;
+}
+
 export async function parseSyllabusWithAI(
   input: AIParseSyllabusInput,
-): Promise<AIResult<ParsedSyllabusDraft>> {
+): Promise<AIResult<ParsedSyllabusDraft> & { warnings?: string[]; details?: string }> {
   try {
     const res = await fetch("/api/ai/parse-syllabus", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
     });
-    const j = (await res.json()) as
-      | { ok: true; draft: ParsedSyllabusDraft }
-      | { ok: false; error: string };
-    if (!j.ok) {
-      return { ok: false, reason: "not_connected", message: j.error };
+    const j = (await res.json()) as AIParseSyllabusResponse;
+    if (!j.ok || !j.draft) {
+      return {
+        ok: false,
+        reason: "not_connected",
+        message: j.error || "Gemini parser is not configured",
+        details: j.details,
+      };
     }
-    return { ok: true, data: j.draft };
+    return { ok: true, data: j.draft, warnings: j.warnings };
   } catch (e) {
     return { ok: false, reason: "error", message: (e as Error).message };
   }
