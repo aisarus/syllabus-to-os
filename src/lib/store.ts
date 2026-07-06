@@ -270,6 +270,7 @@ export interface AppData {
   quizAttempts: QuizAttempt[];
   assignments: Assignment[];
   materials: Material[];
+  materialChunks: MaterialChunk[];
   materialOutputs: MaterialOutput[];
   presentationOutlines: PresentationOutline[];
   calendarEvents: CalendarEvent[];
@@ -291,6 +292,7 @@ const empty = (): AppData => ({
   quizAttempts: [],
   assignments: [],
   materials: [],
+  materialChunks: [],
   materialOutputs: [],
   presentationOutlines: [],
   calendarEvents: [],
