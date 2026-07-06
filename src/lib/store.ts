@@ -147,8 +147,16 @@ function load(): AppData {
   }
 }
 
-let state: AppData = load();
+const SERVER_SNAPSHOT: AppData = empty();
+let state: AppData = SERVER_SNAPSHOT;
+let hydrated = false;
 const listeners = new Set<() => void>();
+
+function ensureHydrated() {
+  if (hydrated || typeof window === "undefined") return;
+  hydrated = true;
+  state = load();
+}
 
 function persist() {
   try {
@@ -158,6 +166,8 @@ function persist() {
 }
 
 function subscribe(fn: () => void) {
+  ensureHydrated();
+  queueMicrotask(fn);
   listeners.add(fn);
   return () => listeners.delete(fn);
 }
@@ -167,7 +177,7 @@ function getSnapshot() {
 }
 
 function getServerSnapshot() {
-  return state;
+  return SERVER_SNAPSHOT;
 }
 
 export function useData(): AppData {
