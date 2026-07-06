@@ -23,6 +23,12 @@ function CoursePage() {
   const cards = data.flashcards.filter((c) => c.courseId === courseId);
   const quizzes = data.quizzes.filter((q) => q.courseId === courseId);
   const assignments = data.assignments.filter((a) => a.courseId === courseId);
+  const materials = data.materials.filter((m) => m.courseId === courseId);
+  const today = new Date().toISOString().slice(0, 10);
+  const events = data.calendarEvents
+    .filter((e) => e.courseId === courseId && e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 5);
   const [newTopic, setNewTopic] = useState("");
 
   if (!course) {
@@ -122,10 +128,25 @@ function CoursePage() {
             <div><span className="text-muted-foreground">{t.status}:</span> {course.status.replace("_", " ")}</div>
           </div>
 
+          <MiniList title={t.courseMaterials} count={materials.length} linkTo="/app/materials" />
           <MiniList title={t.notes} count={notes.length} linkTo="/app/notes" />
           <MiniList title={t.flashcards} count={cards.length} linkTo="/app/flashcards" />
           <MiniList title={t.quizzes} count={quizzes.length} linkTo="/app/quizzes" />
           <MiniList title={t.assignments} count={assignments.length} linkTo="/app/assignments" />
+
+          <div className="rounded-lg border border-border bg-surface p-3 text-xs">
+            <div className="text-muted-foreground uppercase text-[10px] mb-2">{t.courseEvents}</div>
+            {events.length === 0 ? (
+              <div className="text-muted-foreground">{t.empty}</div>
+            ) : (
+              events.map((e) => (
+                <div key={e.id} className="flex justify-between py-0.5">
+                  <span className="truncate">{e.title}</span>
+                  <span className="text-muted-foreground ms-2">{e.date}</span>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>

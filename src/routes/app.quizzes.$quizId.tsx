@@ -123,6 +123,14 @@ function QuizDetail() {
                 <Button size="sm" variant="ghost" onClick={() => store.updateQuestion(q.id, { options: [...q.options, "New option"] })}>
                   <Plus className="h-3.5 w-3.5 me-1" />{t.add}
                 </Button>
+                <div className="pt-2">
+                  <Label className="text-xs">{t.explanation}</Label>
+                  <textarea
+                    className="w-full min-h-[60px] rounded-md border border-input bg-background p-2 text-xs"
+                    value={q.explanation ?? ""}
+                    onChange={(e) => store.updateQuestion(q.id, { explanation: e.target.value })}
+                  />
+                </div>
               </div>
             </div>
           ))}
@@ -178,6 +186,7 @@ function QuizDetail() {
                   <div className="text-sm font-medium">{idx + 1}. {q.prompt}</div>
                   <div className="text-xs mt-1">Your: {chosen != null ? q.options[chosen] : "—"}</div>
                   {!ok && <div className="text-xs">Correct: {q.options[q.correctIndex]}</div>}
+                  {q.explanation && <div className="text-xs mt-1 italic text-muted-foreground">{t.explanation}: {q.explanation}</div>}
                 </div>
               );
             })}

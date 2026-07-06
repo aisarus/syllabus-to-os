@@ -12,17 +12,23 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppStudyPlanRouteImport } from './routes/app.study-plan'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppQuizzesRouteImport } from './routes/app.quizzes'
 import { Route as AppProgressRouteImport } from './routes/app.progress'
 import { Route as AppProgramRouteImport } from './routes/app.program'
+import { Route as AppPresentationsRouteImport } from './routes/app.presentations'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
+import { Route as AppMaterialsRouteImport } from './routes/app.materials'
 import { Route as AppFlashcardsRouteImport } from './routes/app.flashcards'
 import { Route as AppDataRouteImport } from './routes/app.data'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppCoursesRouteImport } from './routes/app.courses'
+import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 import { Route as AppAssignmentsRouteImport } from './routes/app.assignments'
 import { Route as AppQuizzesQuizIdRouteImport } from './routes/app.quizzes.$quizId'
+import { Route as AppPresentationsOutlineIdRouteImport } from './routes/app.presentations.$outlineId'
+import { Route as AppMaterialsMaterialIdRouteImport } from './routes/app.materials.$materialId'
 import { Route as AppCoursesCourseIdRouteImport } from './routes/app.courses.$courseId'
 
 const AppRoute = AppRouteImport.update({
@@ -38,6 +44,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStudyPlanRoute = AppStudyPlanRouteImport.update({
+  id: '/study-plan',
+  path: '/study-plan',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
@@ -60,9 +71,19 @@ const AppProgramRoute = AppProgramRouteImport.update({
   path: '/program',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPresentationsRoute = AppPresentationsRouteImport.update({
+  id: '/presentations',
+  path: '/presentations',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppNotesRoute = AppNotesRouteImport.update({
   id: '/notes',
   path: '/notes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMaterialsRoute = AppMaterialsRouteImport.update({
+  id: '/materials',
+  path: '/materials',
   getParentRoute: () => AppRoute,
 } as any)
 const AppFlashcardsRoute = AppFlashcardsRouteImport.update({
@@ -85,6 +106,11 @@ const AppCoursesRoute = AppCoursesRouteImport.update({
   path: '/courses',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCalendarRoute = AppCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAssignmentsRoute = AppAssignmentsRouteImport.update({
   id: '/assignments',
   path: '/assignments',
@@ -94,6 +120,17 @@ const AppQuizzesQuizIdRoute = AppQuizzesQuizIdRouteImport.update({
   id: '/$quizId',
   path: '/$quizId',
   getParentRoute: () => AppQuizzesRoute,
+} as any)
+const AppPresentationsOutlineIdRoute =
+  AppPresentationsOutlineIdRouteImport.update({
+    id: '/$outlineId',
+    path: '/$outlineId',
+    getParentRoute: () => AppPresentationsRoute,
+  } as any)
+const AppMaterialsMaterialIdRoute = AppMaterialsMaterialIdRouteImport.update({
+  id: '/$materialId',
+  path: '/$materialId',
+  getParentRoute: () => AppMaterialsRoute,
 } as any)
 const AppCoursesCourseIdRoute = AppCoursesCourseIdRouteImport.update({
   id: '/$courseId',
@@ -105,33 +142,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/assignments': typeof AppAssignmentsRoute
+  '/app/calendar': typeof AppCalendarRoute
   '/app/courses': typeof AppCoursesRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
+  '/app/materials': typeof AppMaterialsRouteWithChildren
   '/app/notes': typeof AppNotesRoute
+  '/app/presentations': typeof AppPresentationsRouteWithChildren
   '/app/program': typeof AppProgramRoute
   '/app/progress': typeof AppProgressRoute
   '/app/quizzes': typeof AppQuizzesRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
+  '/app/study-plan': typeof AppStudyPlanRoute
   '/app/': typeof AppIndexRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
+  '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
   '/app/quizzes/$quizId': typeof AppQuizzesQuizIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/assignments': typeof AppAssignmentsRoute
+  '/app/calendar': typeof AppCalendarRoute
   '/app/courses': typeof AppCoursesRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
+  '/app/materials': typeof AppMaterialsRouteWithChildren
   '/app/notes': typeof AppNotesRoute
+  '/app/presentations': typeof AppPresentationsRouteWithChildren
   '/app/program': typeof AppProgramRoute
   '/app/progress': typeof AppProgressRoute
   '/app/quizzes': typeof AppQuizzesRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
+  '/app/study-plan': typeof AppStudyPlanRoute
   '/app': typeof AppIndexRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
+  '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
   '/app/quizzes/$quizId': typeof AppQuizzesQuizIdRoute
 }
 export interface FileRoutesById {
@@ -139,17 +188,23 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/assignments': typeof AppAssignmentsRoute
+  '/app/calendar': typeof AppCalendarRoute
   '/app/courses': typeof AppCoursesRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
+  '/app/materials': typeof AppMaterialsRouteWithChildren
   '/app/notes': typeof AppNotesRoute
+  '/app/presentations': typeof AppPresentationsRouteWithChildren
   '/app/program': typeof AppProgramRoute
   '/app/progress': typeof AppProgressRoute
   '/app/quizzes': typeof AppQuizzesRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
+  '/app/study-plan': typeof AppStudyPlanRoute
   '/app/': typeof AppIndexRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
+  '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
   '/app/quizzes/$quizId': typeof AppQuizzesQuizIdRoute
 }
 export interface FileRouteTypes {
@@ -158,50 +213,68 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/assignments'
+    | '/app/calendar'
     | '/app/courses'
     | '/app/dashboard'
     | '/app/data'
     | '/app/flashcards'
+    | '/app/materials'
     | '/app/notes'
+    | '/app/presentations'
     | '/app/program'
     | '/app/progress'
     | '/app/quizzes'
     | '/app/settings'
+    | '/app/study-plan'
     | '/app/'
     | '/app/courses/$courseId'
+    | '/app/materials/$materialId'
+    | '/app/presentations/$outlineId'
     | '/app/quizzes/$quizId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/app/assignments'
+    | '/app/calendar'
     | '/app/courses'
     | '/app/dashboard'
     | '/app/data'
     | '/app/flashcards'
+    | '/app/materials'
     | '/app/notes'
+    | '/app/presentations'
     | '/app/program'
     | '/app/progress'
     | '/app/quizzes'
     | '/app/settings'
+    | '/app/study-plan'
     | '/app'
     | '/app/courses/$courseId'
+    | '/app/materials/$materialId'
+    | '/app/presentations/$outlineId'
     | '/app/quizzes/$quizId'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/app/assignments'
+    | '/app/calendar'
     | '/app/courses'
     | '/app/dashboard'
     | '/app/data'
     | '/app/flashcards'
+    | '/app/materials'
     | '/app/notes'
+    | '/app/presentations'
     | '/app/program'
     | '/app/progress'
     | '/app/quizzes'
     | '/app/settings'
+    | '/app/study-plan'
     | '/app/'
     | '/app/courses/$courseId'
+    | '/app/materials/$materialId'
+    | '/app/presentations/$outlineId'
     | '/app/quizzes/$quizId'
   fileRoutesById: FileRoutesById
 }
@@ -233,6 +306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/study-plan': {
+      id: '/app/study-plan'
+      path: '/study-plan'
+      fullPath: '/app/study-plan'
+      preLoaderRoute: typeof AppStudyPlanRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/settings': {
       id: '/app/settings'
       path: '/settings'
@@ -261,11 +341,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProgramRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/presentations': {
+      id: '/app/presentations'
+      path: '/presentations'
+      fullPath: '/app/presentations'
+      preLoaderRoute: typeof AppPresentationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/notes': {
       id: '/app/notes'
       path: '/notes'
       fullPath: '/app/notes'
       preLoaderRoute: typeof AppNotesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/materials': {
+      id: '/app/materials'
+      path: '/materials'
+      fullPath: '/app/materials'
+      preLoaderRoute: typeof AppMaterialsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/flashcards': {
@@ -296,6 +390,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCoursesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/calendar': {
+      id: '/app/calendar'
+      path: '/calendar'
+      fullPath: '/app/calendar'
+      preLoaderRoute: typeof AppCalendarRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/assignments': {
       id: '/app/assignments'
       path: '/assignments'
@@ -309,6 +410,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/quizzes/$quizId'
       preLoaderRoute: typeof AppQuizzesQuizIdRouteImport
       parentRoute: typeof AppQuizzesRoute
+    }
+    '/app/presentations/$outlineId': {
+      id: '/app/presentations/$outlineId'
+      path: '/$outlineId'
+      fullPath: '/app/presentations/$outlineId'
+      preLoaderRoute: typeof AppPresentationsOutlineIdRouteImport
+      parentRoute: typeof AppPresentationsRoute
+    }
+    '/app/materials/$materialId': {
+      id: '/app/materials/$materialId'
+      path: '/$materialId'
+      fullPath: '/app/materials/$materialId'
+      preLoaderRoute: typeof AppMaterialsMaterialIdRouteImport
+      parentRoute: typeof AppMaterialsRoute
     }
     '/app/courses/$courseId': {
       id: '/app/courses/$courseId'
@@ -332,6 +447,29 @@ const AppCoursesRouteWithChildren = AppCoursesRoute._addFileChildren(
   AppCoursesRouteChildren,
 )
 
+interface AppMaterialsRouteChildren {
+  AppMaterialsMaterialIdRoute: typeof AppMaterialsMaterialIdRoute
+}
+
+const AppMaterialsRouteChildren: AppMaterialsRouteChildren = {
+  AppMaterialsMaterialIdRoute: AppMaterialsMaterialIdRoute,
+}
+
+const AppMaterialsRouteWithChildren = AppMaterialsRoute._addFileChildren(
+  AppMaterialsRouteChildren,
+)
+
+interface AppPresentationsRouteChildren {
+  AppPresentationsOutlineIdRoute: typeof AppPresentationsOutlineIdRoute
+}
+
+const AppPresentationsRouteChildren: AppPresentationsRouteChildren = {
+  AppPresentationsOutlineIdRoute: AppPresentationsOutlineIdRoute,
+}
+
+const AppPresentationsRouteWithChildren =
+  AppPresentationsRoute._addFileChildren(AppPresentationsRouteChildren)
+
 interface AppQuizzesRouteChildren {
   AppQuizzesQuizIdRoute: typeof AppQuizzesQuizIdRoute
 }
@@ -346,29 +484,37 @@ const AppQuizzesRouteWithChildren = AppQuizzesRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppAssignmentsRoute: typeof AppAssignmentsRoute
+  AppCalendarRoute: typeof AppCalendarRoute
   AppCoursesRoute: typeof AppCoursesRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
   AppDataRoute: typeof AppDataRoute
   AppFlashcardsRoute: typeof AppFlashcardsRoute
+  AppMaterialsRoute: typeof AppMaterialsRouteWithChildren
   AppNotesRoute: typeof AppNotesRoute
+  AppPresentationsRoute: typeof AppPresentationsRouteWithChildren
   AppProgramRoute: typeof AppProgramRoute
   AppProgressRoute: typeof AppProgressRoute
   AppQuizzesRoute: typeof AppQuizzesRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
+  AppStudyPlanRoute: typeof AppStudyPlanRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAssignmentsRoute: AppAssignmentsRoute,
+  AppCalendarRoute: AppCalendarRoute,
   AppCoursesRoute: AppCoursesRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
   AppDataRoute: AppDataRoute,
   AppFlashcardsRoute: AppFlashcardsRoute,
+  AppMaterialsRoute: AppMaterialsRouteWithChildren,
   AppNotesRoute: AppNotesRoute,
+  AppPresentationsRoute: AppPresentationsRouteWithChildren,
   AppProgramRoute: AppProgramRoute,
   AppProgressRoute: AppProgressRoute,
   AppQuizzesRoute: AppQuizzesRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,
+  AppStudyPlanRoute: AppStudyPlanRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
