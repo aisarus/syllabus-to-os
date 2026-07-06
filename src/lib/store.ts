@@ -568,6 +568,7 @@ export const store = {
     updateData((d) => ({
       ...d,
       materials: d.materials.filter((m) => m.id !== id),
+      materialChunks: d.materialChunks.filter((ch) => ch.materialId !== id),
       materialOutputs: d.materialOutputs.filter((o) => o.materialId !== id),
       notes: d.notes.map((n) => (n.materialId === id ? { ...n, materialId: undefined } : n)),
       flashcards: d.flashcards.map((c) =>
@@ -583,6 +584,60 @@ export const store = {
     const out: MaterialOutput = { ...o, id: uid("out"), createdAt: Date.now() };
     updateData((d) => ({ ...d, materialOutputs: [out, ...d.materialOutputs] }));
     return out;
+  },
+  // material chunks
+  createMaterialChunk(c: Omit<MaterialChunk, "id" | "createdAt">) {
+    const chunk: MaterialChunk = { ...c, id: uid("chk"), createdAt: Date.now() };
+    updateData((d) => ({ ...d, materialChunks: [...d.materialChunks, chunk] }));
+    return chunk;
+  },
+  updateMaterialChunk(id: string, patch: Partial<MaterialChunk>) {
+    updateData((d) => ({
+      ...d,
+      materialChunks: d.materialChunks.map((ch) => (ch.id === id ? { ...ch, ...patch } : ch)),
+    }));
+  },
+  deleteMaterialChunk(id: string) {
+    updateData((d) => ({
+      ...d,
+      materialChunks: d.materialChunks.filter((ch) => ch.id !== id),
+      notes: d.notes.map((n) =>
+        n.sourceChunkIds?.includes(id)
+          ? { ...n, sourceChunkIds: n.sourceChunkIds.filter((x) => x !== id) }
+          : n,
+      ),
+      flashcards: d.flashcards.map((c) =>
+        c.sourceChunkIds?.includes(id)
+          ? { ...c, sourceChunkIds: c.sourceChunkIds.filter((x) => x !== id) }
+          : c,
+      ),
+      quizQuestions: d.quizQuestions.map((q) =>
+        q.sourceChunkIds?.includes(id)
+          ? { ...q, sourceChunkIds: q.sourceChunkIds.filter((x) => x !== id) }
+          : q,
+      ),
+    }));
+  },
+  replaceMaterialChunksForMaterial(
+    materialId: string,
+    chunks: Array<Omit<MaterialChunk, "id" | "createdAt" | "materialId">>,
+  ) {
+    const now = Date.now();
+    const created: MaterialChunk[] = chunks.map((c, i) => ({
+      ...c,
+      order: c.order ?? i,
+      materialId,
+      id: uid("chk"),
+      createdAt: now,
+    }));
+    updateData((d) => ({
+      ...d,
+      materialChunks: [
+        ...d.materialChunks.filter((ch) => ch.materialId !== materialId),
+        ...created,
+      ],
+    }));
+    return created;
   },
   // presentation outlines
   createOutline(o: Omit<PresentationOutline, "id" | "createdAt" | "updatedAt" | "slides"> & { slides?: Slide[] }) {
