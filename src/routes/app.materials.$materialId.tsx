@@ -16,6 +16,18 @@ export const Route = createFileRoute("/app/materials/$materialId")({
   component: MaterialDetail,
 });
 
+function matTypeLabel(t: ReturnType<typeof useApp>["t"], v: MaterialType): string {
+  switch (v) {
+    case "syllabus": return t.syllabus;
+    case "lecture": return t.lecture;
+    case "article": return t.article;
+    case "assignment": return t.assignments;
+    case "presentation": return t.presentationMat;
+    case "exam": return t.exam;
+    default: return t.other;
+  }
+}
+
 function MaterialDetail() {
   const { materialId } = Route.useParams();
   const { t } = useApp();
