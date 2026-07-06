@@ -16,6 +16,10 @@ export type Dict = {
   progress: string;
   data: string;
   settings: string;
+  materials: string;
+  calendar: string;
+  studyPlan: string;
+  presentations: string;
   // common
   create: string;
   edit: string;
@@ -47,6 +51,21 @@ export type Dict = {
   invalidFile: string;
   yes: string;
   no: string;
+  type: string;
+  filter: string;
+  reset: string;
+  today: string;
+  upcoming: string;
+  copy: string;
+  copied: string;
+  markdown: string;
+  minutes: string;
+  markDone: string;
+  done: string;
+  reason: string;
+  estimated: string;
+  source: string;
+  suggestions: string;
   // dashboard
   totalCourses: string;
   inProgress: string;
@@ -57,6 +76,14 @@ export type Dict = {
   quizAvg: string;
   welcome: string;
   emptyDashboard: string;
+  todaysSchedule: string;
+  upcomingDeadlines: string;
+  upcomingExams: string;
+  recentMaterials: string;
+  recentNotes: string;
+  suggestedPlan: string;
+  activeCourses: string;
+  lowScoreQuizzes: string;
   // program
   createProgram: string;
   institution: string;
@@ -81,13 +108,19 @@ export type Dict = {
   understood: string;
   completedStatus: string;
   addTopic: string;
+  courseEvents: string;
+  courseMaterials: string;
+  readinessScore: string;
+  readinessFormula: string;
   // notes
   createNote: string;
   content: string;
   tags: string;
   linkedCourse: string;
   linkedTopic: string;
+  linkedMaterial: string;
   generateNotes: string;
+  fromMaterial: string;
   // flashcards
   createCard: string;
   front: string;
@@ -101,6 +134,7 @@ export type Dict = {
   reviewMode: string;
   noDueCards: string;
   generateCards: string;
+  buildCardsFromMaterial: string;
   // quizzes
   createQuiz: string;
   addQuestion: string;
@@ -113,6 +147,8 @@ export type Dict = {
   attempts: string;
   retry: string;
   generateQuiz: string;
+  explanation: string;
+  buildQuizFromMaterial: string;
   // assignments
   createAssignment: string;
   dueDate: string;
@@ -130,6 +166,76 @@ export type Dict = {
   importSuccess: string;
   clearConfirm: string;
   emptyImport: string;
+  // materials
+  createMaterial: string;
+  uploadFile: string;
+  pasteText: string;
+  materialType: string;
+  syllabus: string;
+  lecture: string;
+  article: string;
+  presentationMat: string;
+  exam: string;
+  other: string;
+  rawText: string;
+  userSummary: string;
+  processingReady: string;
+  processingUnsupported: string;
+  processingNoText: string;
+  processingError: string;
+  createNoteFromMaterial: string;
+  createFlashcardsFromMaterial: string;
+  createQuizFromMaterial: string;
+  createOutlineFromMaterial: string;
+  materialsEmpty: string;
+  extractTerms: string;
+  extractTermsHelp: string;
+  fileMeta: string;
+  aiDisabledHint: string;
+  // presentations
+  createOutline: string;
+  slides: string;
+  slide: string;
+  addSlide: string;
+  bullets: string;
+  speakerNotes: string;
+  sourceQuote: string;
+  exportMarkdown: string;
+  presentationsEmpty: string;
+  // calendar
+  createEvent: string;
+  eventType: string;
+  class_: string;
+  studySession: string;
+  personal: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  recurrence: string;
+  weekday: string;
+  weekly: string;
+  none_: string;
+  deadlines: string;
+  calendarEmpty: string;
+  // study plan
+  availableTime: string;
+  generatePlan: string;
+  emptyPlan: string;
+  studyPlanIntro: string;
+  planWhyCardsDue: string;
+  planWhyLowScore: string;
+  planWhyLearning: string;
+  planWhyDeadline: string;
+  planWhyExamSoon: string;
+  planWhyStaleCourse: string;
+  planCompletedToday: string;
+  // settings
+  aiConnection: string;
+  aiStatus: string;
+  aiStatusNotConnected: string;
+  aiExplanation: string;
+  serverEndpoint: string;
+  noKeyInFrontend: string;
 };
 
 const en: Dict = {
@@ -145,6 +251,10 @@ const en: Dict = {
   progress: "Progress",
   data: "Import / Export",
   settings: "Settings",
+  materials: "Materials",
+  calendar: "Calendar",
+  studyPlan: "Study Plan",
+  presentations: "Presentations",
   create: "Create",
   edit: "Edit",
   delete: "Delete",
@@ -175,6 +285,21 @@ const en: Dict = {
   invalidFile: "Invalid file format",
   yes: "Yes",
   no: "No",
+  type: "Type",
+  filter: "Filter",
+  reset: "Reset",
+  today: "Today",
+  upcoming: "Upcoming",
+  copy: "Copy",
+  copied: "Copied",
+  markdown: "Markdown",
+  minutes: "min",
+  markDone: "Mark done",
+  done: "Done",
+  reason: "Reason",
+  estimated: "Est.",
+  source: "Source",
+  suggestions: "Suggestions",
   totalCourses: "Total courses",
   inProgress: "In progress",
   completed: "Completed",
@@ -184,6 +309,14 @@ const en: Dict = {
   quizAvg: "Quiz average",
   welcome: "Welcome",
   emptyDashboard: "Create a program or import a JSON structure to get started.",
+  todaysSchedule: "Today's schedule",
+  upcomingDeadlines: "Upcoming deadlines",
+  upcomingExams: "Upcoming exams",
+  recentMaterials: "Recent materials",
+  recentNotes: "Recent notes",
+  suggestedPlan: "Suggested plan",
+  activeCourses: "Active courses",
+  lowScoreQuizzes: "Low-score quizzes",
   createProgram: "Create program",
   institution: "Institution",
   degree: "Degree",
@@ -206,12 +339,18 @@ const en: Dict = {
   understood: "Understood",
   completedStatus: "Completed",
   addTopic: "Add topic",
+  courseEvents: "Upcoming events",
+  courseMaterials: "Materials",
+  readinessScore: "Readiness score",
+  readinessFormula: "40% topics · 25% quizzes · 20% cards · 15% assignments",
   createNote: "Create note",
   content: "Content",
   tags: "Tags (comma separated)",
   linkedCourse: "Course",
   linkedTopic: "Topic",
+  linkedMaterial: "Material",
   generateNotes: "Generate notes — not connected yet",
+  fromMaterial: "From material",
   createCard: "Create card",
   front: "Front",
   cardBack: "Back",
@@ -224,6 +363,7 @@ const en: Dict = {
   reviewMode: "Review mode",
   noDueCards: "No cards due for review.",
   generateCards: "Generate flashcards — not connected yet",
+  buildCardsFromMaterial: "Build cards from material",
   createQuiz: "Create quiz",
   addQuestion: "Add question",
   question: "Question",
@@ -235,6 +375,8 @@ const en: Dict = {
   attempts: "Attempts",
   retry: "Retry",
   generateQuiz: "Generate quiz — not connected yet",
+  explanation: "Explanation",
+  buildQuizFromMaterial: "Build quiz from material",
   createAssignment: "Create assignment",
   dueDate: "Due date",
   priority: "Priority",
@@ -250,6 +392,72 @@ const en: Dict = {
   importSuccess: "Data imported successfully.",
   clearConfirm: "This will erase all local data. Continue?",
   emptyImport: "Import a JSON structure or create your program manually.",
+  createMaterial: "Create material",
+  uploadFile: "Upload file",
+  pasteText: "Paste text",
+  materialType: "Material type",
+  syllabus: "Syllabus",
+  lecture: "Lecture",
+  article: "Article",
+  presentationMat: "Presentation",
+  exam: "Exam",
+  other: "Other",
+  rawText: "Raw text",
+  userSummary: "Your summary",
+  processingReady: "Ready",
+  processingUnsupported: "Text extraction not connected for this format",
+  processingNoText: "No text",
+  processingError: "Error",
+  createNoteFromMaterial: "Create note",
+  createFlashcardsFromMaterial: "Build flashcards",
+  createQuizFromMaterial: "Build quiz",
+  createOutlineFromMaterial: "Create outline",
+  materialsEmpty: "No materials yet. Upload a file or paste text.",
+  extractTerms: "Suggest terms",
+  extractTermsHelp: "Local heuristic — repeated capitalized/technical words in the text. Not AI.",
+  fileMeta: "File info",
+  aiDisabledHint: "AI is not connected. Manual tools work locally.",
+  createOutline: "Create outline",
+  slides: "Slides",
+  slide: "Slide",
+  addSlide: "Add slide",
+  bullets: "Bullets (one per line)",
+  speakerNotes: "Speaker notes",
+  sourceQuote: "Source quote",
+  exportMarkdown: "Export as Markdown",
+  presentationsEmpty: "No presentation outlines yet.",
+  createEvent: "Create event",
+  eventType: "Event type",
+  class_: "Class",
+  studySession: "Study session",
+  personal: "Personal",
+  date: "Date",
+  startTime: "Start",
+  endTime: "End",
+  recurrence: "Recurrence",
+  weekday: "Weekday",
+  weekly: "Weekly",
+  none_: "None",
+  deadlines: "Deadlines",
+  calendarEmpty: "No events yet.",
+  availableTime: "Available time today",
+  generatePlan: "Generate plan",
+  emptyPlan: "Nothing to suggest right now. Add assignments, cards or quizzes.",
+  studyPlanIntro: "Rule-based suggestions built from your own data.",
+  planWhyCardsDue: "cards are due today",
+  planWhyLowScore: "best quiz score is below 70%",
+  planWhyLearning: "topic still in \"learning\" status",
+  planWhyDeadline: "assignment deadline soon",
+  planWhyExamSoon: "exam soon",
+  planWhyStaleCourse: "no recent activity on this course",
+  planCompletedToday: "Completed today",
+  aiConnection: "AI Connection",
+  aiStatus: "Status",
+  aiStatusNotConnected: "Not connected",
+  aiExplanation:
+    "AI generation is not connected yet. Manual tools work locally. A future update will let you connect a server endpoint — API keys are never stored in the browser.",
+  serverEndpoint: "Server endpoint (planned)",
+  noKeyInFrontend: "No secret keys will be stored in this app.",
 };
 
 const ru: Dict = {
@@ -265,6 +473,10 @@ const ru: Dict = {
   progress: "Прогресс",
   data: "Импорт / Экспорт",
   settings: "Настройки",
+  materials: "Материалы",
+  calendar: "Расписание",
+  studyPlan: "Учебный план",
+  presentations: "Презентации",
   create: "Создать",
   edit: "Изменить",
   delete: "Удалить",
@@ -295,6 +507,21 @@ const ru: Dict = {
   invalidFile: "Неверный формат файла",
   yes: "Да",
   no: "Нет",
+  type: "Тип",
+  filter: "Фильтр",
+  reset: "Сброс",
+  today: "Сегодня",
+  upcoming: "Скоро",
+  copy: "Копировать",
+  copied: "Скопировано",
+  markdown: "Markdown",
+  minutes: "мин",
+  markDone: "Отметить",
+  done: "Готово",
+  reason: "Причина",
+  estimated: "≈",
+  source: "Источник",
+  suggestions: "Подсказки",
   totalCourses: "Всего курсов",
   inProgress: "В процессе",
   completed: "Завершено",
@@ -304,6 +531,14 @@ const ru: Dict = {
   quizAvg: "Средний балл",
   welcome: "Добро пожаловать",
   emptyDashboard: "Создайте программу или импортируйте JSON-структуру, чтобы начать.",
+  todaysSchedule: "Расписание на сегодня",
+  upcomingDeadlines: "Ближайшие дедлайны",
+  upcomingExams: "Ближайшие экзамены",
+  recentMaterials: "Недавние материалы",
+  recentNotes: "Недавние заметки",
+  suggestedPlan: "Рекомендуемый план",
+  activeCourses: "Активные курсы",
+  lowScoreQuizzes: "Тесты со слабым результатом",
   createProgram: "Создать программу",
   institution: "Учебное заведение",
   degree: "Степень",
@@ -313,7 +548,7 @@ const ru: Dict = {
   noProgram: "Программа ещё не создана.",
   createCourse: "Создать курс",
   courseNumber: "Номер курса",
-  credits: "Кредиты (нац)",
+  credits: "Кредиты",
   courseType: "Тип",
   instructor: "Преподаватель",
   prerequisites: "Пререквизиты",
@@ -326,12 +561,18 @@ const ru: Dict = {
   understood: "Понятно",
   completedStatus: "Завершён",
   addTopic: "Добавить тему",
+  courseEvents: "Ближайшие события",
+  courseMaterials: "Материалы",
+  readinessScore: "Оценка готовности",
+  readinessFormula: "40% темы · 25% тесты · 20% карточки · 15% задания",
   createNote: "Создать заметку",
   content: "Содержимое",
   tags: "Теги (через запятую)",
   linkedCourse: "Курс",
   linkedTopic: "Тема",
+  linkedMaterial: "Материал",
   generateNotes: "Сгенерировать конспект — ещё не подключено",
+  fromMaterial: "Из материала",
   createCard: "Создать карточку",
   front: "Лицевая сторона",
   cardBack: "Обратная сторона",
@@ -344,6 +585,7 @@ const ru: Dict = {
   reviewMode: "Режим повторения",
   noDueCards: "Нет карточек к повторению.",
   generateCards: "Сгенерировать карточки — ещё не подключено",
+  buildCardsFromMaterial: "Создать карточки из материала",
   createQuiz: "Создать тест",
   addQuestion: "Добавить вопрос",
   question: "Вопрос",
@@ -355,6 +597,8 @@ const ru: Dict = {
   attempts: "Попытки",
   retry: "Пройти снова",
   generateQuiz: "Сгенерировать тест — ещё не подключено",
+  explanation: "Пояснение",
+  buildQuizFromMaterial: "Собрать тест из материала",
   createAssignment: "Создать задание",
   dueDate: "Срок сдачи",
   priority: "Приоритет",
@@ -370,6 +614,72 @@ const ru: Dict = {
   importSuccess: "Данные успешно импортированы.",
   clearConfirm: "Все локальные данные будут удалены. Продолжить?",
   emptyImport: "Загрузите JSON-структуру или создайте программу вручную.",
+  createMaterial: "Создать материал",
+  uploadFile: "Загрузить файл",
+  pasteText: "Вставить текст",
+  materialType: "Тип материала",
+  syllabus: "Силабус",
+  lecture: "Лекция",
+  article: "Статья",
+  presentationMat: "Презентация",
+  exam: "Экзамен",
+  other: "Другое",
+  rawText: "Исходный текст",
+  userSummary: "Ваше резюме",
+  processingReady: "Готово",
+  processingUnsupported: "Извлечение текста для этого формата ещё не подключено",
+  processingNoText: "Нет текста",
+  processingError: "Ошибка",
+  createNoteFromMaterial: "Создать заметку",
+  createFlashcardsFromMaterial: "Собрать карточки",
+  createQuizFromMaterial: "Собрать тест",
+  createOutlineFromMaterial: "Создать план презентации",
+  materialsEmpty: "Материалов пока нет. Загрузите файл или вставьте текст.",
+  extractTerms: "Подсказать термины",
+  extractTermsHelp: "Локальная эвристика — часто встречающиеся термины с большой буквы. Не AI.",
+  fileMeta: "О файле",
+  aiDisabledHint: "AI не подключён. Ручные инструменты работают локально.",
+  createOutline: "Создать план",
+  slides: "Слайды",
+  slide: "Слайд",
+  addSlide: "Добавить слайд",
+  bullets: "Пункты (по одному на строку)",
+  speakerNotes: "Заметки докладчика",
+  sourceQuote: "Цитата-источник",
+  exportMarkdown: "Экспорт в Markdown",
+  presentationsEmpty: "Планов презентаций пока нет.",
+  createEvent: "Создать событие",
+  eventType: "Тип события",
+  class_: "Занятие",
+  studySession: "Учебная сессия",
+  personal: "Личное",
+  date: "Дата",
+  startTime: "Начало",
+  endTime: "Конец",
+  recurrence: "Повторение",
+  weekday: "День недели",
+  weekly: "Еженедельно",
+  none_: "Нет",
+  deadlines: "Дедлайны",
+  calendarEmpty: "Событий пока нет.",
+  availableTime: "Доступное время сегодня",
+  generatePlan: "Собрать план",
+  emptyPlan: "Сейчас нечего рекомендовать. Добавьте задания, карточки или тесты.",
+  studyPlanIntro: "Рекомендации по простым правилам, только на основе ваших данных.",
+  planWhyCardsDue: "карточек ждут повторения сегодня",
+  planWhyLowScore: "лучший результат по тесту ниже 70%",
+  planWhyLearning: "тема ещё в статусе «изучается»",
+  planWhyDeadline: "скоро дедлайн задания",
+  planWhyExamSoon: "скоро экзамен",
+  planWhyStaleCourse: "по курсу нет недавней активности",
+  planCompletedToday: "Выполнено сегодня",
+  aiConnection: "Подключение AI",
+  aiStatus: "Статус",
+  aiStatusNotConnected: "Не подключено",
+  aiExplanation:
+    "AI-генерация ещё не подключена. Ручные инструменты работают локально. В будущем можно будет указать серверный endpoint — секретные ключи в браузере не хранятся никогда.",
+  serverEndpoint: "Серверный endpoint (в планах)",
+  noKeyInFrontend: "Секретные ключи не хранятся в приложении.",
 };
 
 export const dicts: Record<Lang, Dict> = { en, ru };
