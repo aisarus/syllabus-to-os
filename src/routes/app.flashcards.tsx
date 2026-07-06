@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useApp } from "@/lib/app-context";
 import { useData, store } from "@/lib/store";
 import { Plus, Trash2, Play } from "lucide-react";
+import { AIGenerateButton } from "@/components/ai-generate-dialog";
 
 export const Route = createFileRoute("/app/flashcards")({
   component: FlashcardsPage,
@@ -120,7 +121,7 @@ function FlashcardsPage() {
         title={t.flashcards}
         actions={
           <>
-            <Button variant="outline" disabled title={t.notConnected}>{t.generateCards}</Button>
+            <AIGenerateButton kind="flashcards" />
             <Button variant="outline" onClick={() => setReviewing(true)} disabled={dueCount === 0}>
               <Play className="h-4 w-4 me-1" />{t.reviewMode} ({dueCount})
             </Button>

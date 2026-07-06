@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useApp } from "@/lib/app-context";
 import { useData, store } from "@/lib/store";
 import { Plus, Trash2, Search, ExternalLink } from "lucide-react";
+import { AIGenerateButton } from "@/components/ai-generate-dialog";
 
 export const Route = createFileRoute("/app/notes")({
   component: NotesPage,
@@ -37,7 +38,7 @@ function NotesPage() {
         title={t.notes}
         actions={
           <>
-            <Button variant="outline" disabled title={t.notConnected}>{t.generateNotes}</Button>
+            <AIGenerateButton kind="note" />
             <Button
               onClick={() => {
                 const n = store.createNote({ title: "Untitled", content: "", tags: [] });
