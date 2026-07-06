@@ -23,6 +23,12 @@ function CoursePage() {
   const cards = data.flashcards.filter((c) => c.courseId === courseId);
   const quizzes = data.quizzes.filter((q) => q.courseId === courseId);
   const assignments = data.assignments.filter((a) => a.courseId === courseId);
+  const materials = data.materials.filter((m) => m.courseId === courseId);
+  const today = new Date().toISOString().slice(0, 10);
+  const events = data.calendarEvents
+    .filter((e) => e.courseId === courseId && e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 5);
   const [newTopic, setNewTopic] = useState("");
 
   if (!course) {
