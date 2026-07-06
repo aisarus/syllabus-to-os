@@ -169,8 +169,24 @@ export interface Material {
   userSummary?: string;
   processingStatus: MaterialProcessingStatus;
   processingMessage?: string;
+  pageCount?: number;
+  wordCount?: number;
+  charCount?: number;
+  extractionMethod?: MaterialExtractionMethod;
+  sourceLanguage?: MaterialSourceLanguage;
   createdAt: number;
   updatedAt: number;
+}
+
+export interface MaterialChunk {
+  id: string;
+  materialId: string;
+  order: number;
+  title?: string;
+  text: string;
+  pageNumber?: number;
+  section?: string;
+  createdAt: number;
 }
 
 export interface MaterialOutput {
