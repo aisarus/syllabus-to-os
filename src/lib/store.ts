@@ -262,6 +262,7 @@ const empty = (): AppData => ({
   presentationOutlines: [],
   calendarEvents: [],
   studySessions: [],
+  syllabusImports: [],
 });
 
 function load(): AppData {
