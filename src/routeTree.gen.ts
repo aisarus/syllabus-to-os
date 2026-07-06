@@ -9,38 +9,324 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UploadRouteImport } from './routes/upload'
+import { Route as PreviewRouteImport } from './routes/preview'
+import { Route as ParsingRouteImport } from './routes/parsing'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppTutorRouteImport } from './routes/app.tutor'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppQuizzesRouteImport } from './routes/app.quizzes'
+import { Route as AppProgramsRouteImport } from './routes/app.programs'
+import { Route as AppNotesRouteImport } from './routes/app.notes'
+import { Route as AppGraphRouteImport } from './routes/app.graph'
+import { Route as AppFlashcardsRouteImport } from './routes/app.flashcards'
+import { Route as AppExamPrepRouteImport } from './routes/app.exam-prep'
+import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppCoursesRouteImport } from './routes/app.courses'
+import { Route as AppCourseMapRouteImport } from './routes/app.course-map'
+import { Route as AppBoosterRouteImport } from './routes/app.booster'
+import { Route as AppAssignmentsRouteImport } from './routes/app.assignments'
+import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
+import { Route as AppTopicsTopicIdRouteImport } from './routes/app.topics.$topicId'
+import { Route as AppCoursesCourseIdRouteImport } from './routes/app.courses.$courseId'
 
+const UploadRoute = UploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviewRoute = PreviewRouteImport.update({
+  id: '/preview',
+  path: '/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParsingRoute = ParsingRouteImport.update({
+  id: '/parsing',
+  path: '/parsing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTutorRoute = AppTutorRouteImport.update({
+  id: '/tutor',
+  path: '/tutor',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppQuizzesRoute = AppQuizzesRouteImport.update({
+  id: '/quizzes',
+  path: '/quizzes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProgramsRoute = AppProgramsRouteImport.update({
+  id: '/programs',
+  path: '/programs',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotesRoute = AppNotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGraphRoute = AppGraphRouteImport.update({
+  id: '/graph',
+  path: '/graph',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFlashcardsRoute = AppFlashcardsRouteImport.update({
+  id: '/flashcards',
+  path: '/flashcards',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppExamPrepRoute = AppExamPrepRouteImport.update({
+  id: '/exam-prep',
+  path: '/exam-prep',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCoursesRoute = AppCoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCourseMapRoute = AppCourseMapRouteImport.update({
+  id: '/course-map',
+  path: '/course-map',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBoosterRoute = AppBoosterRouteImport.update({
+  id: '/booster',
+  path: '/booster',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAssignmentsRoute = AppAssignmentsRouteImport.update({
+  id: '/assignments',
+  path: '/assignments',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTopicsTopicIdRoute = AppTopicsTopicIdRouteImport.update({
+  id: '/topics/$topicId',
+  path: '/topics/$topicId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCoursesCourseIdRoute = AppCoursesCourseIdRouteImport.update({
+  id: '/$courseId',
+  path: '/$courseId',
+  getParentRoute: () => AppCoursesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/parsing': typeof ParsingRoute
+  '/preview': typeof PreviewRoute
+  '/upload': typeof UploadRoute
+  '/app/analytics': typeof AppAnalyticsRoute
+  '/app/assignments': typeof AppAssignmentsRoute
+  '/app/booster': typeof AppBoosterRoute
+  '/app/course-map': typeof AppCourseMapRoute
+  '/app/courses': typeof AppCoursesRouteWithChildren
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/exam-prep': typeof AppExamPrepRoute
+  '/app/flashcards': typeof AppFlashcardsRoute
+  '/app/graph': typeof AppGraphRoute
+  '/app/notes': typeof AppNotesRoute
+  '/app/programs': typeof AppProgramsRoute
+  '/app/quizzes': typeof AppQuizzesRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/tutor': typeof AppTutorRoute
+  '/app/': typeof AppIndexRoute
+  '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/topics/$topicId': typeof AppTopicsTopicIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/parsing': typeof ParsingRoute
+  '/preview': typeof PreviewRoute
+  '/upload': typeof UploadRoute
+  '/app/analytics': typeof AppAnalyticsRoute
+  '/app/assignments': typeof AppAssignmentsRoute
+  '/app/booster': typeof AppBoosterRoute
+  '/app/course-map': typeof AppCourseMapRoute
+  '/app/courses': typeof AppCoursesRouteWithChildren
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/exam-prep': typeof AppExamPrepRoute
+  '/app/flashcards': typeof AppFlashcardsRoute
+  '/app/graph': typeof AppGraphRoute
+  '/app/notes': typeof AppNotesRoute
+  '/app/programs': typeof AppProgramsRoute
+  '/app/quizzes': typeof AppQuizzesRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/tutor': typeof AppTutorRoute
+  '/app': typeof AppIndexRoute
+  '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/topics/$topicId': typeof AppTopicsTopicIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/parsing': typeof ParsingRoute
+  '/preview': typeof PreviewRoute
+  '/upload': typeof UploadRoute
+  '/app/analytics': typeof AppAnalyticsRoute
+  '/app/assignments': typeof AppAssignmentsRoute
+  '/app/booster': typeof AppBoosterRoute
+  '/app/course-map': typeof AppCourseMapRoute
+  '/app/courses': typeof AppCoursesRouteWithChildren
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/exam-prep': typeof AppExamPrepRoute
+  '/app/flashcards': typeof AppFlashcardsRoute
+  '/app/graph': typeof AppGraphRoute
+  '/app/notes': typeof AppNotesRoute
+  '/app/programs': typeof AppProgramsRoute
+  '/app/quizzes': typeof AppQuizzesRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/tutor': typeof AppTutorRoute
+  '/app/': typeof AppIndexRoute
+  '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/topics/$topicId': typeof AppTopicsTopicIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/parsing'
+    | '/preview'
+    | '/upload'
+    | '/app/analytics'
+    | '/app/assignments'
+    | '/app/booster'
+    | '/app/course-map'
+    | '/app/courses'
+    | '/app/dashboard'
+    | '/app/exam-prep'
+    | '/app/flashcards'
+    | '/app/graph'
+    | '/app/notes'
+    | '/app/programs'
+    | '/app/quizzes'
+    | '/app/settings'
+    | '/app/tutor'
+    | '/app/'
+    | '/app/courses/$courseId'
+    | '/app/topics/$topicId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/parsing'
+    | '/preview'
+    | '/upload'
+    | '/app/analytics'
+    | '/app/assignments'
+    | '/app/booster'
+    | '/app/course-map'
+    | '/app/courses'
+    | '/app/dashboard'
+    | '/app/exam-prep'
+    | '/app/flashcards'
+    | '/app/graph'
+    | '/app/notes'
+    | '/app/programs'
+    | '/app/quizzes'
+    | '/app/settings'
+    | '/app/tutor'
+    | '/app'
+    | '/app/courses/$courseId'
+    | '/app/topics/$topicId'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/parsing'
+    | '/preview'
+    | '/upload'
+    | '/app/analytics'
+    | '/app/assignments'
+    | '/app/booster'
+    | '/app/course-map'
+    | '/app/courses'
+    | '/app/dashboard'
+    | '/app/exam-prep'
+    | '/app/flashcards'
+    | '/app/graph'
+    | '/app/notes'
+    | '/app/programs'
+    | '/app/quizzes'
+    | '/app/settings'
+    | '/app/tutor'
+    | '/app/'
+    | '/app/courses/$courseId'
+    | '/app/topics/$topicId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  ParsingRoute: typeof ParsingRoute
+  PreviewRoute: typeof PreviewRoute
+  UploadRoute: typeof UploadRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upload': {
+      id: '/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preview': {
+      id: '/preview'
+      path: '/preview'
+      fullPath: '/preview'
+      preLoaderRoute: typeof PreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parsing': {
+      id: '/parsing'
+      path: '/parsing'
+      fullPath: '/parsing'
+      preLoaderRoute: typeof ParsingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +334,187 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/tutor': {
+      id: '/app/tutor'
+      path: '/tutor'
+      fullPath: '/app/tutor'
+      preLoaderRoute: typeof AppTutorRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/quizzes': {
+      id: '/app/quizzes'
+      path: '/quizzes'
+      fullPath: '/app/quizzes'
+      preLoaderRoute: typeof AppQuizzesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/programs': {
+      id: '/app/programs'
+      path: '/programs'
+      fullPath: '/app/programs'
+      preLoaderRoute: typeof AppProgramsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/notes': {
+      id: '/app/notes'
+      path: '/notes'
+      fullPath: '/app/notes'
+      preLoaderRoute: typeof AppNotesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/graph': {
+      id: '/app/graph'
+      path: '/graph'
+      fullPath: '/app/graph'
+      preLoaderRoute: typeof AppGraphRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/flashcards': {
+      id: '/app/flashcards'
+      path: '/flashcards'
+      fullPath: '/app/flashcards'
+      preLoaderRoute: typeof AppFlashcardsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/exam-prep': {
+      id: '/app/exam-prep'
+      path: '/exam-prep'
+      fullPath: '/app/exam-prep'
+      preLoaderRoute: typeof AppExamPrepRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/dashboard': {
+      id: '/app/dashboard'
+      path: '/dashboard'
+      fullPath: '/app/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/courses': {
+      id: '/app/courses'
+      path: '/courses'
+      fullPath: '/app/courses'
+      preLoaderRoute: typeof AppCoursesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/course-map': {
+      id: '/app/course-map'
+      path: '/course-map'
+      fullPath: '/app/course-map'
+      preLoaderRoute: typeof AppCourseMapRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/booster': {
+      id: '/app/booster'
+      path: '/booster'
+      fullPath: '/app/booster'
+      preLoaderRoute: typeof AppBoosterRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/assignments': {
+      id: '/app/assignments'
+      path: '/assignments'
+      fullPath: '/app/assignments'
+      preLoaderRoute: typeof AppAssignmentsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/analytics': {
+      id: '/app/analytics'
+      path: '/analytics'
+      fullPath: '/app/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/topics/$topicId': {
+      id: '/app/topics/$topicId'
+      path: '/topics/$topicId'
+      fullPath: '/app/topics/$topicId'
+      preLoaderRoute: typeof AppTopicsTopicIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/courses/$courseId': {
+      id: '/app/courses/$courseId'
+      path: '/$courseId'
+      fullPath: '/app/courses/$courseId'
+      preLoaderRoute: typeof AppCoursesCourseIdRouteImport
+      parentRoute: typeof AppCoursesRoute
+    }
   }
 }
 
+interface AppCoursesRouteChildren {
+  AppCoursesCourseIdRoute: typeof AppCoursesCourseIdRoute
+}
+
+const AppCoursesRouteChildren: AppCoursesRouteChildren = {
+  AppCoursesCourseIdRoute: AppCoursesCourseIdRoute,
+}
+
+const AppCoursesRouteWithChildren = AppCoursesRoute._addFileChildren(
+  AppCoursesRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppAnalyticsRoute: typeof AppAnalyticsRoute
+  AppAssignmentsRoute: typeof AppAssignmentsRoute
+  AppBoosterRoute: typeof AppBoosterRoute
+  AppCourseMapRoute: typeof AppCourseMapRoute
+  AppCoursesRoute: typeof AppCoursesRouteWithChildren
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppExamPrepRoute: typeof AppExamPrepRoute
+  AppFlashcardsRoute: typeof AppFlashcardsRoute
+  AppGraphRoute: typeof AppGraphRoute
+  AppNotesRoute: typeof AppNotesRoute
+  AppProgramsRoute: typeof AppProgramsRoute
+  AppQuizzesRoute: typeof AppQuizzesRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppTutorRoute: typeof AppTutorRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppTopicsTopicIdRoute: typeof AppTopicsTopicIdRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAnalyticsRoute: AppAnalyticsRoute,
+  AppAssignmentsRoute: AppAssignmentsRoute,
+  AppBoosterRoute: AppBoosterRoute,
+  AppCourseMapRoute: AppCourseMapRoute,
+  AppCoursesRoute: AppCoursesRouteWithChildren,
+  AppDashboardRoute: AppDashboardRoute,
+  AppExamPrepRoute: AppExamPrepRoute,
+  AppFlashcardsRoute: AppFlashcardsRoute,
+  AppGraphRoute: AppGraphRoute,
+  AppNotesRoute: AppNotesRoute,
+  AppProgramsRoute: AppProgramsRoute,
+  AppQuizzesRoute: AppQuizzesRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppTutorRoute: AppTutorRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppTopicsTopicIdRoute: AppTopicsTopicIdRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  ParsingRoute: ParsingRoute,
+  PreviewRoute: PreviewRoute,
+  UploadRoute: UploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
