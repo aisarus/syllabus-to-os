@@ -793,6 +793,104 @@ export function importJSON(json: string): { ok: true } | { ok: false; error: str
   }
 }
 
+// ============ Chunk / search helpers ============
+
+export function getChunksByMaterial(d: AppData, materialId: string): MaterialChunk[] {
+  return d.materialChunks
+    .filter((c) => c.materialId === materialId)
+    .slice()
+    .sort((a, b) => a.order - b.order);
+}
+
+export type SearchHit =
+  | { kind: "course"; id: string; title: string; snippet: string; courseId?: string }
+  | { kind: "topic"; id: string; title: string; snippet: string; courseId?: string }
+  | { kind: "material"; id: string; title: string; snippet: string; courseId?: string }
+  | { kind: "chunk"; id: string; title: string; snippet: string; materialId: string; courseId?: string }
+  | { kind: "note"; id: string; title: string; snippet: string; courseId?: string }
+  | { kind: "flashcard"; id: string; title: string; snippet: string; courseId?: string }
+  | { kind: "quiz"; id: string; title: string; snippet: string; courseId?: string }
+  | { kind: "question"; id: string; title: string; snippet: string; quizId: string }
+  | { kind: "assignment"; id: string; title: string; snippet: string; courseId?: string }
+  | { kind: "outline"; id: string; title: string; snippet: string; courseId?: string };
+
+function snip(text: string | undefined, q: string, len = 140): string {
+  if (!text) return "";
+  const lower = text.toLowerCase();
+  const idx = lower.indexOf(q.toLowerCase());
+  if (idx < 0) return text.slice(0, len);
+  const start = Math.max(0, idx - 40);
+  return (start > 0 ? "…" : "") + text.slice(start, start + len);
+}
+
+export function searchAll(d: AppData, query: string, limit = 200): SearchHit[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const has = (s?: string) => (s ? s.toLowerCase().includes(q) : false);
+  const hits: SearchHit[] = [];
+
+  for (const c of d.courses) {
+    if (has(c.title) || has(c.originalTitle) || has(c.description) || has(c.number)) {
+      hits.push({ kind: "course", id: c.id, title: c.title, snippet: snip(c.description, q), courseId: c.id });
+    }
+  }
+  for (const tp of d.topics) {
+    if (has(tp.title) || has(tp.description)) {
+      hits.push({ kind: "topic", id: tp.id, title: tp.title, snippet: snip(tp.description, q), courseId: tp.courseId });
+    }
+  }
+  for (const m of d.materials) {
+    if (has(m.title) || has(m.rawText) || m.tags.some((t) => t.toLowerCase().includes(q))) {
+      hits.push({ kind: "material", id: m.id, title: m.title, snippet: snip(m.rawText, q), courseId: m.courseId });
+    }
+  }
+  for (const ch of d.materialChunks) {
+    if (has(ch.text) || has(ch.title) || has(ch.section)) {
+      const mat = d.materials.find((m) => m.id === ch.materialId);
+      hits.push({
+        kind: "chunk",
+        id: ch.id,
+        title: ch.title || `${mat?.title ?? ""} · chunk ${ch.order + 1}`,
+        snippet: snip(ch.text, q),
+        materialId: ch.materialId,
+        courseId: mat?.courseId,
+      });
+    }
+  }
+  for (const n of d.notes) {
+    if (has(n.title) || has(n.content) || n.tags.some((t) => t.toLowerCase().includes(q))) {
+      hits.push({ kind: "note", id: n.id, title: n.title || "—", snippet: snip(n.content, q), courseId: n.courseId });
+    }
+  }
+  for (const c of d.flashcards) {
+    if (has(c.front) || has(c.back)) {
+      hits.push({ kind: "flashcard", id: c.id, title: c.front, snippet: snip(c.back, q), courseId: c.courseId });
+    }
+  }
+  for (const qz of d.quizzes) {
+    if (has(qz.title)) {
+      hits.push({ kind: "quiz", id: qz.id, title: qz.title, snippet: "", courseId: qz.courseId });
+    }
+  }
+  for (const qq of d.quizQuestions) {
+    if (has(qq.prompt) || has(qq.explanation) || qq.options.some((o) => has(o))) {
+      hits.push({ kind: "question", id: qq.id, title: qq.prompt, snippet: snip(qq.explanation, q), quizId: qq.quizId });
+    }
+  }
+  for (const a of d.assignments) {
+    if (has(a.title) || has(a.notes)) {
+      hits.push({ kind: "assignment", id: a.id, title: a.title, snippet: snip(a.notes, q), courseId: a.courseId });
+    }
+  }
+  for (const o of d.presentationOutlines) {
+    const slideHit = o.slides.some((s) => has(s.title) || s.bullets.some((b) => has(b)));
+    if (has(o.title) || slideHit) {
+      hits.push({ kind: "outline", id: o.id, title: o.title, snippet: "", courseId: o.courseId });
+    }
+  }
+  return hits.slice(0, limit);
+}
+
 // ============ Sample data ============
 
 export function loadSampleBarIlan() {
