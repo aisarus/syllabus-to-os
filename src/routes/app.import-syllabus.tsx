@@ -136,30 +136,40 @@ function AutoParseFlow() {
 
   const [fileName, setFileName] = useState("");
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
-  const [draft, setDraft] = useState<ParsedSyllabusDraft | null>(null);
+  const [detDraft, setDetDraft] = useState<ParsedSyllabusDraft | null>(null);
+  const [aiDraft, setAiDraft] = useState<ParsedSyllabusDraft | null>(null);
+  const [activeSource, setActiveSource] = useState<"deterministic" | "ai">("deterministic");
   const [busy, setBusy] = useState(false);
   const [activeStep, setActiveStep] = useState<ParserStep | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [showCompare, setShowCompare] = useState(false);
 
   // AI state
-  const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
+  const [aiStatus, setAiStatus] = useState<{ configured: boolean; model: string | null } | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
+
+  const activeDraft = activeSource === "ai" ? aiDraft : detDraft;
+  const setActiveDraft = (d: ParsedSyllabusDraft) => {
+    if (activeSource === "ai") setAiDraft(d); else setDetDraft(d);
+  };
 
   const runParser = useCallback(async (wb: XLSX.WorkBook, name: string) => {
     setBusy(true);
-    setDraft(null);
+    setDetDraft(null);
+    setAiDraft(null);
+    setActiveSource("deterministic");
     try {
       for (const step of ALL_STEPS) {
         setActiveStep(step);
-        // Yield to the UI so the spinner is visible for large files.
         await new Promise((r) => setTimeout(r, 30));
       }
       const d = parseWorkbookToSyllabusDraft(wb, { sourceFileName: name });
-      setDraft(d);
+      setDetDraft(d);
       if (d.courses.length === 0) toast.error(t.syllabusNoCoursesDetected);
-      // check AI availability quietly
-      checkAIStatus().then((s) => setAiConfigured(s.configured)).catch(() => setAiConfigured(false));
+      checkAIStatus(true)
+        .then((s) => setAiStatus({ configured: s.configured, model: s.model }))
+        .catch(() => setAiStatus({ configured: false, model: null }));
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -181,27 +191,28 @@ function AutoParseFlow() {
   }, [runParser, t.syllabusUnsupportedFile]);
 
   const runAI = useCallback(async () => {
-    if (!workbook || !draft) return;
+    if (!workbook || !detDraft) return;
     setAiBusy(true);
     try {
       const sheets = workbook.SheetNames.map((n) => ({ name: n, rows: readSheetRows(workbook, n) }));
       const res = await parseSyllabusWithAI({
         fileName,
         sheets,
-        deterministicDraft: draft,
-        ignoredRows: draft.ignoredRows,
+        deterministicDraft: detDraft,
+        ignoredRows: detDraft.ignoredRows,
         locale: "ru",
       });
       if (!res.ok) {
         toast.error(res.message || t.syllabusAIFailed);
       } else {
-        setDraft({ ...res.data, parserType: "ai_assisted" });
-        toast.success("Gemini ✓");
+        setAiDraft({ ...res.data, parserType: "ai_assisted" });
+        setActiveSource("ai");
+        toast.success("Gemini ✓ — " + t.syllabusReviewAiDraft);
       }
     } finally {
       setAiBusy(false);
     }
-  }, [workbook, draft, fileName, t.syllabusAIFailed]);
+  }, [workbook, detDraft, fileName, t.syllabusAIFailed, t.syllabusReviewAiDraft]);
 
   return (
     <div className="space-y-6">
@@ -221,9 +232,7 @@ function AutoParseFlow() {
       >
         <FileUp className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
         <h3 className="font-semibold text-base">{t.syllabusUploadTitle}</h3>
-        <p className="text-sm text-muted-foreground max-w-xl mx-auto mt-1">
-          {t.syllabusUploadHelp}
-        </p>
+        <p className="text-sm text-muted-foreground max-w-xl mx-auto mt-1">{t.syllabusUploadHelp}</p>
         <div className="mt-4 flex items-center justify-center gap-3">
           <input
             ref={fileRef}
@@ -271,27 +280,46 @@ function AutoParseFlow() {
       )}
 
       {/* Step 3+4: Clean review + Import */}
-      {draft && !busy && (
+      {activeDraft && detDraft && !busy && (
         <>
-          <DraftSummary draft={draft} />
+          <DraftSummary draft={activeDraft} />
+
+          {/* Draft source switcher */}
+          {aiDraft && (
+            <div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-surface p-2">
+              <span className="text-xs text-muted-foreground me-1">{t.syllabusParserComparison}:</span>
+              <Button size="sm" variant={activeSource === "deterministic" ? "default" : "outline"} onClick={() => setActiveSource("deterministic")}>
+                {t.syllabusUseDeterministic} ({detDraft.courses.length})
+              </Button>
+              <Button size="sm" variant={activeSource === "ai" ? "default" : "outline"} onClick={() => setActiveSource("ai")}>
+                {t.syllabusUseGemini} ({aiDraft.courses.length})
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setShowCompare((s) => !s)}>
+                {t.syllabusCompareDrafts}
+              </Button>
+            </div>
+          )}
+
+          {showCompare && aiDraft && <CompareDraftsPanel det={detDraft} ai={aiDraft} />}
+
           <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={runAI}
-              disabled={!aiConfigured || aiBusy}
-              title={aiConfigured ? "" : t.syllabusAINotConnected}
+              disabled={!aiStatus?.configured || aiBusy}
+              title={aiStatus?.configured ? "" : t.syllabusAINotConnected}
             >
               <Sparkles className="h-4 w-4 me-1" />
-              {aiBusy ? t.syllabusAIRunning : aiConfigured ? t.syllabusAIImprove : t.syllabusAINotConnected}
+              {aiBusy ? t.syllabusAIRunning : aiStatus?.configured ? t.syllabusAIImprove : t.syllabusAINotConnected}
             </Button>
             <p className="text-xs text-muted-foreground">{t.syllabusAIHint}</p>
           </div>
 
-          <DraftEditor draft={draft} onChange={setDraft} />
+          <DraftEditor draft={activeDraft} onChange={setActiveDraft} />
 
           <IgnoredRowsPanel
-            draft={draft}
+            draft={activeDraft}
             onConvert={(row) => {
               const newCourse: ParsedCourseDraft = {
                 id: "crs_manual_" + row.id,
@@ -300,24 +328,30 @@ function AutoParseFlow() {
                 topics: [],
                 confidence: 0.5,
                 warnings: ["converted_from_ignored"],
-                source: {
-                  sheetName: row.sheetName,
-                  rowIndex: row.rowIndex,
-                  originalCells: row.cells,
-                },
+                source: { sheetName: row.sheetName, rowIndex: row.rowIndex, originalCells: row.cells },
               };
-              setDraft({
-                ...draft,
-                courses: [...draft.courses, newCourse],
-                ignoredRows: draft.ignoredRows.filter((r) => r.id !== row.id),
+              setActiveDraft({
+                ...activeDraft,
+                courses: [...activeDraft.courses, newCourse],
+                ignoredRows: activeDraft.ignoredRows.filter((r) => r.id !== row.id),
               });
             }}
             onIgnore={(row) => {
-              setDraft({ ...draft, ignoredRows: draft.ignoredRows.filter((r) => r.id !== row.id) });
+              setActiveDraft({ ...activeDraft, ignoredRows: activeDraft.ignoredRows.filter((r) => r.id !== row.id) });
             }}
           />
 
-          <ImportPanel draft={draft} fileName={fileName} onDone={() => { setDraft(null); setWorkbook(null); setFileName(""); }} />
+          <DiagnosticsPanel
+            draft={activeDraft}
+            aiStatus={aiStatus}
+            source={activeSource}
+          />
+
+          <ImportPanel
+            draft={activeDraft}
+            fileName={fileName}
+            onDone={() => { setDetDraft(null); setAiDraft(null); setWorkbook(null); setFileName(""); }}
+          />
         </>
       )}
 
