@@ -275,6 +275,82 @@ export type Dict = {
   syllabusCoursesImported: string;
   syllabusTopicsImported: string;
   syllabusTopicsSplitHelp: string;
+  // materials v2
+  searchNav: string;
+  overview: string;
+  chunks: string;
+  studyBuilder: string;
+  outputs: string;
+  wordCount: string;
+  charCount: string;
+  chunkCount: string;
+  pageCount: string;
+  extractionMethod: string;
+  sourceLanguage: string;
+  processingPartial: string;
+  processingWarnings: string;
+  regenerateChunks: string;
+  clearRawText: string;
+  addChunk: string;
+  editChunk: string;
+  deleteChunk: string;
+  searchInChunks: string;
+  useSelection: string;
+  selectionEmpty: string;
+  createNoteFromChunk: string;
+  createCardFromChunk: string;
+  createQuestionFromChunk: string;
+  createAssignmentNoteFromChunk: string;
+  createSlideFromChunk: string;
+  sourceChunks: string;
+  openSource: string;
+  chunksEmpty: string;
+  materialsEmptyV2: string;
+  materialNoTextExtracted: string;
+  materialUnsupportedPaste: string;
+  langRu: string;
+  langEn: string;
+  langHe: string;
+  langAr: string;
+  langMixed: string;
+  langUnknown: string;
+  extMethodManual: string;
+  extMethodTxt: string;
+  extMethodMarkdown: string;
+  extMethodCsv: string;
+  extMethodJson: string;
+  extMethodHtml: string;
+  extMethodXml: string;
+  extMethodYaml: string;
+  extMethodXlsx: string;
+  extMethodDocx: string;
+  extMethodPdf: string;
+  needsAttention: string;
+  unsupportedFiles: string;
+  materialsWithoutCourse: string;
+  materialsWithChunksNoOutputs: string;
+  continueLatestMaterial: string;
+  recentlyProcessed: string;
+  searchPlaceholderGlobal: string;
+  searchNoResults: string;
+  searchAllScopes: string;
+  filterStatus: string;
+  filterExtraction: string;
+  filterCourse: string;
+  filterTag: string;
+  statusReady: string;
+  statusUnsupported: string;
+  statusError: string;
+  statusNoText: string;
+  statusPartial: string;
+  regenerateChunksHelp: string;
+  chunkAddedManually: string;
+  clearRawTextConfirm: string;
+  extractingFile: string;
+  pdfNoTextHint: string;
+  docxUnsupportedHint: string;
+  pdfUnsupportedHint: string;
+  ingestionErrorHint: string;
 };
 
 const en: Dict = {
@@ -535,6 +611,81 @@ const en: Dict = {
   syllabusCoursesImported: "courses imported",
   syllabusTopicsImported: "topics imported",
   syllabusTopicsSplitHelp: "Topic cells are split by newline or semicolon.",
+  searchNav: "Search",
+  overview: "Overview",
+  chunks: "Chunks",
+  studyBuilder: "Study Builder",
+  outputs: "Outputs",
+  wordCount: "Words",
+  charCount: "Characters",
+  chunkCount: "Chunks",
+  pageCount: "Pages",
+  extractionMethod: "Extraction",
+  sourceLanguage: "Language",
+  processingPartial: "Partially extracted",
+  processingWarnings: "Warnings",
+  regenerateChunks: "Regenerate chunks from text",
+  clearRawText: "Clear text",
+  addChunk: "Add chunk",
+  editChunk: "Edit chunk",
+  deleteChunk: "Delete chunk",
+  searchInChunks: "Search inside chunks",
+  useSelection: "Use selected chunk",
+  selectionEmpty: "Select a chunk first",
+  createNoteFromChunk: "Create note from chunk",
+  createCardFromChunk: "Create flashcard from chunk",
+  createQuestionFromChunk: "Create quiz question from chunk",
+  createAssignmentNoteFromChunk: "Create assignment note from chunk",
+  createSlideFromChunk: "Create presentation slide from chunk",
+  sourceChunks: "Source",
+  openSource: "Open source",
+  chunksEmpty: "No chunks yet. Generate chunks from text.",
+  materialsEmptyV2: "Upload a material or paste text to begin.",
+  materialNoTextExtracted: "Text was not extracted. Paste it manually or try another format.",
+  materialUnsupportedPaste: "This file format is not connected for extraction. Paste text below manually.",
+  langRu: "Russian",
+  langEn: "English",
+  langHe: "Hebrew",
+  langAr: "Arabic",
+  langMixed: "Mixed",
+  langUnknown: "Unknown",
+  extMethodManual: "Manual",
+  extMethodTxt: "Text",
+  extMethodMarkdown: "Markdown",
+  extMethodCsv: "CSV",
+  extMethodJson: "JSON",
+  extMethodHtml: "HTML",
+  extMethodXml: "XML",
+  extMethodYaml: "YAML",
+  extMethodXlsx: "XLSX",
+  extMethodDocx: "DOCX",
+  extMethodPdf: "PDF",
+  needsAttention: "Needs attention",
+  unsupportedFiles: "Files needing manual text",
+  materialsWithoutCourse: "Materials without a course",
+  materialsWithChunksNoOutputs: "Chunks not yet used",
+  continueLatestMaterial: "Continue from latest material",
+  recentlyProcessed: "Recently processed",
+  searchPlaceholderGlobal: "Search across courses, materials, notes, chunks…",
+  searchNoResults: "No results.",
+  searchAllScopes: "All",
+  filterStatus: "Status",
+  filterExtraction: "Extraction",
+  filterCourse: "Course",
+  filterTag: "Tag",
+  statusReady: "Ready",
+  statusUnsupported: "Unsupported",
+  statusError: "Error",
+  statusNoText: "No text",
+  statusPartial: "Partial",
+  regenerateChunksHelp: "Splits current text into chunks. Replaces existing chunks.",
+  chunkAddedManually: "Chunk added",
+  clearRawTextConfirm: "Delete extracted text? Chunks stay.",
+  extractingFile: "Extracting…",
+  pdfNoTextHint: "No text found. This may be a scanned PDF. Paste the text manually.",
+  docxUnsupportedHint: "DOCX text extraction is not connected yet.",
+  pdfUnsupportedHint: "PDF text extraction is not connected yet.",
+  ingestionErrorHint: "Extraction failed. You can still paste text manually below.",
 };
 
 const ru: Dict = {
@@ -795,6 +946,81 @@ const ru: Dict = {
   syllabusCoursesImported: "курсов импортировано",
   syllabusTopicsImported: "тем импортировано",
   syllabusTopicsSplitHelp: "Ячейки с темами разбиваются по переводу строки или «;».",
+  searchNav: "Поиск",
+  overview: "Обзор",
+  chunks: "Чанки",
+  studyBuilder: "Учебный конструктор",
+  outputs: "Выходы",
+  wordCount: "Слов",
+  charCount: "Символов",
+  chunkCount: "Чанков",
+  pageCount: "Страниц",
+  extractionMethod: "Извлечение",
+  sourceLanguage: "Язык",
+  processingPartial: "Извлечено частично",
+  processingWarnings: "Предупреждения",
+  regenerateChunks: "Пересоздать чанки из текста",
+  clearRawText: "Очистить текст",
+  addChunk: "Добавить чанк",
+  editChunk: "Изменить чанк",
+  deleteChunk: "Удалить чанк",
+  searchInChunks: "Поиск внутри чанков",
+  useSelection: "Использовать выбранный чанк",
+  selectionEmpty: "Сначала выберите чанк",
+  createNoteFromChunk: "Создать заметку из чанка",
+  createCardFromChunk: "Создать карточку из чанка",
+  createQuestionFromChunk: "Создать вопрос теста из чанка",
+  createAssignmentNoteFromChunk: "Создать заметку задания из чанка",
+  createSlideFromChunk: "Создать слайд из чанка",
+  sourceChunks: "Источник",
+  openSource: "Открыть источник",
+  chunksEmpty: "Чанков пока нет. Сгенерируйте чанки из текста.",
+  materialsEmptyV2: "Загрузите материал или вставьте текст, чтобы начать.",
+  materialNoTextExtracted: "Текст не извлечён. Вставьте его вручную или попробуйте другой формат.",
+  materialUnsupportedPaste: "Этот формат файла не подключён для извлечения. Вставьте текст ниже вручную.",
+  langRu: "Русский",
+  langEn: "Английский",
+  langHe: "Иврит",
+  langAr: "Арабский",
+  langMixed: "Смешанный",
+  langUnknown: "Неизвестно",
+  extMethodManual: "Вручную",
+  extMethodTxt: "Текст",
+  extMethodMarkdown: "Markdown",
+  extMethodCsv: "CSV",
+  extMethodJson: "JSON",
+  extMethodHtml: "HTML",
+  extMethodXml: "XML",
+  extMethodYaml: "YAML",
+  extMethodXlsx: "XLSX",
+  extMethodDocx: "DOCX",
+  extMethodPdf: "PDF",
+  needsAttention: "Требует внимания",
+  unsupportedFiles: "Файлы, которым нужен ручной текст",
+  materialsWithoutCourse: "Материалы без курса",
+  materialsWithChunksNoOutputs: "Чанки без заметок и карточек",
+  continueLatestMaterial: "Продолжить с последнего материала",
+  recentlyProcessed: "Недавно обработанные",
+  searchPlaceholderGlobal: "Поиск по курсам, материалам, заметкам, чанкам…",
+  searchNoResults: "Ничего не найдено.",
+  searchAllScopes: "Всё",
+  filterStatus: "Статус",
+  filterExtraction: "Извлечение",
+  filterCourse: "Курс",
+  filterTag: "Тег",
+  statusReady: "Готово",
+  statusUnsupported: "Не поддерживается",
+  statusError: "Ошибка",
+  statusNoText: "Нет текста",
+  statusPartial: "Частично",
+  regenerateChunksHelp: "Разбивает текущий текст на чанки. Существующие чанки будут заменены.",
+  chunkAddedManually: "Чанк добавлен",
+  clearRawTextConfirm: "Удалить извлечённый текст? Чанки останутся.",
+  extractingFile: "Извлечение…",
+  pdfNoTextHint: "Текст не найден. Возможно, это скан. Вставьте текст вручную.",
+  docxUnsupportedHint: "Извлечение текста из DOCX ещё не подключено.",
+  pdfUnsupportedHint: "Извлечение текста из PDF ещё не подключено.",
+  ingestionErrorHint: "Извлечение не удалось. Вставьте текст вручную ниже.",
 };
 
 export const dicts: Record<Lang, Dict> = { en, ru };

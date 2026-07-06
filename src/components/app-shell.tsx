@@ -20,6 +20,7 @@ import {
   Target,
   Presentation,
   FileInput,
+  Search,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useApp } from "@/lib/app-context";
@@ -55,6 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const items = [
     { to: "/app/dashboard", label: t.dashboard, icon: LayoutDashboard },
+    { to: "/app/search", label: t.searchNav, icon: Search },
     { to: "/app/program", label: t.program, icon: GraduationCap },
     { to: "/app/courses", label: t.courses, icon: BookOpen },
     { to: "/app/materials", label: t.materials, icon: FolderOpen },
