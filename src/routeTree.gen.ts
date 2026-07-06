@@ -9,38 +9,204 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UploadRouteImport } from './routes/upload'
+import { Route as PreviewRouteImport } from './routes/preview'
+import { Route as ParsingRouteImport } from './routes/parsing'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppProgramsRouteImport } from './routes/app.programs'
+import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppCoursesRouteImport } from './routes/app.courses'
+import { Route as AppCourseMapRouteImport } from './routes/app.course-map'
+import { Route as AppTopicsTopicIdRouteImport } from './routes/app.topics.$topicId'
+import { Route as AppCoursesCourseIdRouteImport } from './routes/app.courses.$courseId'
 
+const UploadRoute = UploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviewRoute = PreviewRouteImport.update({
+  id: '/preview',
+  path: '/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParsingRoute = ParsingRouteImport.update({
+  id: '/parsing',
+  path: '/parsing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProgramsRoute = AppProgramsRouteImport.update({
+  id: '/programs',
+  path: '/programs',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCoursesRoute = AppCoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCourseMapRoute = AppCourseMapRouteImport.update({
+  id: '/course-map',
+  path: '/course-map',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTopicsTopicIdRoute = AppTopicsTopicIdRouteImport.update({
+  id: '/topics/$topicId',
+  path: '/topics/$topicId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCoursesCourseIdRoute = AppCoursesCourseIdRouteImport.update({
+  id: '/$courseId',
+  path: '/$courseId',
+  getParentRoute: () => AppCoursesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/parsing': typeof ParsingRoute
+  '/preview': typeof PreviewRoute
+  '/upload': typeof UploadRoute
+  '/app/course-map': typeof AppCourseMapRoute
+  '/app/courses': typeof AppCoursesRouteWithChildren
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/programs': typeof AppProgramsRoute
+  '/app/': typeof AppIndexRoute
+  '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/topics/$topicId': typeof AppTopicsTopicIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/parsing': typeof ParsingRoute
+  '/preview': typeof PreviewRoute
+  '/upload': typeof UploadRoute
+  '/app/course-map': typeof AppCourseMapRoute
+  '/app/courses': typeof AppCoursesRouteWithChildren
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/programs': typeof AppProgramsRoute
+  '/app': typeof AppIndexRoute
+  '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/topics/$topicId': typeof AppTopicsTopicIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/parsing': typeof ParsingRoute
+  '/preview': typeof PreviewRoute
+  '/upload': typeof UploadRoute
+  '/app/course-map': typeof AppCourseMapRoute
+  '/app/courses': typeof AppCoursesRouteWithChildren
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/programs': typeof AppProgramsRoute
+  '/app/': typeof AppIndexRoute
+  '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/topics/$topicId': typeof AppTopicsTopicIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/parsing'
+    | '/preview'
+    | '/upload'
+    | '/app/course-map'
+    | '/app/courses'
+    | '/app/dashboard'
+    | '/app/programs'
+    | '/app/'
+    | '/app/courses/$courseId'
+    | '/app/topics/$topicId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/parsing'
+    | '/preview'
+    | '/upload'
+    | '/app/course-map'
+    | '/app/courses'
+    | '/app/dashboard'
+    | '/app/programs'
+    | '/app'
+    | '/app/courses/$courseId'
+    | '/app/topics/$topicId'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/parsing'
+    | '/preview'
+    | '/upload'
+    | '/app/course-map'
+    | '/app/courses'
+    | '/app/dashboard'
+    | '/app/programs'
+    | '/app/'
+    | '/app/courses/$courseId'
+    | '/app/topics/$topicId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  ParsingRoute: typeof ParsingRoute
+  PreviewRoute: typeof PreviewRoute
+  UploadRoute: typeof UploadRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upload': {
+      id: '/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preview': {
+      id: '/preview'
+      path: '/preview'
+      fullPath: '/preview'
+      preLoaderRoute: typeof PreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parsing': {
+      id: '/parsing'
+      path: '/parsing'
+      fullPath: '/parsing'
+      preLoaderRoute: typeof ParsingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +214,97 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/programs': {
+      id: '/app/programs'
+      path: '/programs'
+      fullPath: '/app/programs'
+      preLoaderRoute: typeof AppProgramsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/dashboard': {
+      id: '/app/dashboard'
+      path: '/dashboard'
+      fullPath: '/app/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/courses': {
+      id: '/app/courses'
+      path: '/courses'
+      fullPath: '/app/courses'
+      preLoaderRoute: typeof AppCoursesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/course-map': {
+      id: '/app/course-map'
+      path: '/course-map'
+      fullPath: '/app/course-map'
+      preLoaderRoute: typeof AppCourseMapRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/topics/$topicId': {
+      id: '/app/topics/$topicId'
+      path: '/topics/$topicId'
+      fullPath: '/app/topics/$topicId'
+      preLoaderRoute: typeof AppTopicsTopicIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/courses/$courseId': {
+      id: '/app/courses/$courseId'
+      path: '/$courseId'
+      fullPath: '/app/courses/$courseId'
+      preLoaderRoute: typeof AppCoursesCourseIdRouteImport
+      parentRoute: typeof AppCoursesRoute
+    }
   }
 }
 
+interface AppCoursesRouteChildren {
+  AppCoursesCourseIdRoute: typeof AppCoursesCourseIdRoute
+}
+
+const AppCoursesRouteChildren: AppCoursesRouteChildren = {
+  AppCoursesCourseIdRoute: AppCoursesCourseIdRoute,
+}
+
+const AppCoursesRouteWithChildren = AppCoursesRoute._addFileChildren(
+  AppCoursesRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppCourseMapRoute: typeof AppCourseMapRoute
+  AppCoursesRoute: typeof AppCoursesRouteWithChildren
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppProgramsRoute: typeof AppProgramsRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppTopicsTopicIdRoute: typeof AppTopicsTopicIdRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppCourseMapRoute: AppCourseMapRoute,
+  AppCoursesRoute: AppCoursesRouteWithChildren,
+  AppDashboardRoute: AppDashboardRoute,
+  AppProgramsRoute: AppProgramsRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppTopicsTopicIdRoute: AppTopicsTopicIdRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  ParsingRoute: ParsingRoute,
+  PreviewRoute: PreviewRoute,
+  UploadRoute: UploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
