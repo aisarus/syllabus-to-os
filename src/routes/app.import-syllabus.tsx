@@ -168,7 +168,7 @@ function AutoParseFlow() {
       setDetDraft(d);
       if (d.courses.length === 0) toast.error(t.syllabusNoCoursesDetected);
       checkAIStatus(true)
-        .then((s) => setAiStatus({ configured: s.configured, model: s.model }))
+        .then((s) => setAiStatus({ configured: s.configured, model: s.model ?? null }))
         .catch(() => setAiStatus({ configured: false, model: null }));
     } catch (e) {
       toast.error((e as Error).message);

@@ -18,7 +18,7 @@ function SettingsPage() {
   const [aiStatus, setAiStatus] = useState<AIStatus | null>(null);
   useEffect(() => {
     checkAIStatus(true).then(setAiStatus).catch(() =>
-      setAiStatus({ ok: false, provider: "lovable-ai", configured: false, model: null }),
+      setAiStatus({ ok: false, provider: "lovable-ai-gateway", configured: false, model: null }),
     );
   }, []);
   const configured = aiStatus?.configured ?? false;
