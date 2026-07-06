@@ -652,8 +652,131 @@ function reasonLabel(t: ReturnType<typeof useApp>["t"], r: IgnoredRow): string {
 }
 
 // =================================================================
-// Import panel
+// Compare drafts panel
 // =================================================================
+
+function CompareDraftsPanel({ det, ai }: { det: ParsedSyllabusDraft; ai: ParsedSyllabusDraft }) {
+  const { t } = useApp();
+  const detKeys = new Set(det.courses.map((c) => (c.number || normalizedTitle(c.title))));
+  const aiKeys = new Set(ai.courses.map((c) => (c.number || normalizedTitle(c.title))));
+  const added = ai.courses.filter((c) => !detKeys.has(c.number || normalizedTitle(c.title)));
+  const removed = det.courses.filter((c) => !aiKeys.has(c.number || normalizedTitle(c.title)));
+  return (
+    <div className="rounded-lg border border-border bg-surface p-4 space-y-2 text-sm">
+      <h4 className="font-semibold">{t.syllabusParserComparison}</h4>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <Cell label={t.syllabusDeterministicCourses} value={det.courses.length} />
+        <Cell label={t.syllabusGeminiCourses} value={ai.courses.length} />
+        <Cell label={t.syllabusCoursesAdded} value={added.length} />
+        <Cell label={t.syllabusCoursesRemoved} value={removed.length} />
+        <Cell label={`${t.syllabusWarnings} (det)`} value={det.warnings.length} />
+        <Cell label={`${t.syllabusWarnings} (Gemini)`} value={ai.warnings.length} />
+      </div>
+      {added.length > 0 && (
+        <details className="text-xs">
+          <summary className="cursor-pointer text-muted-foreground">+ {added.length} · {t.syllabusCoursesAdded}</summary>
+          <ul className="ms-4 mt-1 list-disc space-y-0.5">
+            {added.slice(0, 20).map((c) => <li key={c.id}>{c.number ? `${c.number} · ` : ""}{c.title}</li>)}
+          </ul>
+        </details>
+      )}
+      {removed.length > 0 && (
+        <details className="text-xs">
+          <summary className="cursor-pointer text-muted-foreground">− {removed.length} · {t.syllabusCoursesRemoved}</summary>
+          <ul className="ms-4 mt-1 list-disc space-y-0.5">
+            {removed.slice(0, 20).map((c) => <li key={c.id}>{c.number ? `${c.number} · ` : ""}{c.title}</li>)}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
+
+function Cell({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div>
+      <div className="text-muted-foreground">{label}</div>
+      <div className="font-semibold text-base">{value}</div>
+    </div>
+  );
+}
+
+// =================================================================
+// Diagnostics panel
+// =================================================================
+
+function DiagnosticsPanel({
+  draft,
+  aiStatus,
+  source,
+}: {
+  draft: ParsedSyllabusDraft;
+  aiStatus: { configured: boolean; model: string | null } | null;
+  source: "deterministic" | "ai";
+}) {
+  const { t } = useApp();
+  const [open, setOpen] = useState(false);
+  const semesterLabels = draft.semesters.map((s) => s.title).join(" · ") || "—";
+  return (
+    <div className="rounded-lg border border-border bg-surface">
+      <button
+        className="w-full flex items-center gap-2 p-3 text-sm font-semibold hover:bg-muted/30"
+        onClick={() => setOpen((o) => !o)}
+      >
+        {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        {t.syllabusDiagPanel}
+      </button>
+      {open && (
+        <div className="p-3 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <Diag k={t.syllabusParserVersion} v={draft.parserVersion} />
+          <Diag k={t.syllabusDiagSelectedSheet} v={draft.detectedSheetName ?? "—"} />
+          <Diag k={t.syllabusDiagTotalRows} v={String(draft.stats.detectedCourses + draft.ignoredRows.length)} />
+          <Diag k={t.syllabusDetectedSemesters} v={String(draft.stats.detectedSemesters)} />
+          <Diag k={t.syllabusDetectedCourses} v={String(draft.stats.detectedCourses)} />
+          <Diag k={t.syllabusDiagLowConfRows} v={String(draft.stats.lowConfidenceCourses)} />
+          <Diag k={t.syllabusIgnoredRows} v={String(draft.ignoredRows.length)} />
+          <Diag k={t.syllabusWarnings} v={String(draft.warnings.length)} />
+          <Diag k={t.syllabusDiagGeminiStatus} v={aiStatus?.configured ? t.statusEnabled : t.statusDisabled} />
+          <Diag k={t.syllabusDiagGeminiModel} v={aiStatus?.model ?? "—"} />
+          <div className="sm:col-span-2">
+            <div className="text-muted-foreground">{t.syllabusDetectedSemesters}:</div>
+            <div className="text-[11px]">{semesterLabels}</div>
+          </div>
+          {draft.warnings.length > 0 && (
+            <div className="sm:col-span-2">
+              <div className="text-muted-foreground">{t.syllabusWarnings}:</div>
+              <ul className="list-disc ms-4">
+                {draft.warnings.map((w) => <li key={w}>{w.replace(/_/g, " ")}</li>)}
+              </ul>
+            </div>
+          )}
+          <div className="sm:col-span-2 pt-1 text-[11px] text-muted-foreground">
+            source: {source}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Diag({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="flex items-center justify-between border-b border-border/40 py-0.5">
+      <span className="text-muted-foreground">{k}</span>
+      <span className="font-mono">{v}</span>
+    </div>
+  );
+}
+
+// =================================================================
+// Import panel (with confirmation + duplicate review)
+// =================================================================
+
+interface DupCandidate {
+  incoming: ParsedCourseDraft;
+  existing: Course;
+  action: "skip" | "update" | "new";
+}
 
 function ImportPanel({
   draft,
@@ -670,16 +793,40 @@ function ImportPanel({
   const [programName, setProgramName] = useState(draft.programName ?? "");
   const [institution, setInstitution] = useState(draft.institution ?? "");
   const [existingProgramId, setExistingProgramId] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [dupCandidates, setDupCandidates] = useState<DupCandidate[]>([]);
+
+  const targetProgramId = destMode === "new" ? undefined : existingProgramId;
+  const picked = useMemo(() => draft.courses.filter((c) => c.include), [draft.courses]);
+
+  const dups = useMemo<DupCandidate[]>(() => {
+    if (!targetProgramId) return [];
+    const existing = data.courses.filter((c) => c.programId === targetProgramId);
+    return picked
+      .map((row) => {
+        const found = existing.find((ec) => {
+          if (row.number && ec.number && row.number === ec.number) return true;
+          if (normalizedTitle(ec.title) === normalizedTitle(row.title)) return true;
+          return false;
+        });
+        return found ? { incoming: row, existing: found, action: destMode === "merge" ? "update" as const : destMode === "replace" ? "new" as const : "skip" as const } : null;
+      })
+      .filter((x): x is DupCandidate => x !== null);
+  }, [picked, data.courses, targetProgramId, destMode]);
+
+  const openConfirm = () => {
+    if (picked.length === 0) { toast.error(t.syllabusNoRowsPicked); return; }
+    if (destMode === "new" && !programName.trim()) { toast.error(t.programName); return; }
+    if (destMode !== "new" && !existingProgramId) { toast.error(t.programName); return; }
+    setDupCandidates(dups);
+    setConfirmOpen(true);
+  };
 
   const run = () => {
-    const picked = draft.courses.filter((c) => c.include);
-    if (picked.length === 0) { toast.error(t.syllabusNoRowsPicked); return; }
-
     let programId: string | undefined;
     let programNameFinal: string | undefined;
 
     if (destMode === "new") {
-      if (!programName.trim()) { toast.error(t.programName); return; }
       const p = store.createProgram({
         name: programName.trim(),
         institution: institution.trim(),
@@ -690,47 +837,34 @@ function ImportPanel({
       programId = p.id;
       programNameFinal = p.name;
     } else {
-      if (!existingProgramId) { toast.error(t.programName); return; }
       programId = existingProgramId;
       programNameFinal = data.programs.find((p) => p.id === existingProgramId)?.name;
       if (destMode === "replace") {
-        // Delete all existing courses under this program
         const doomed = data.courses.filter((c) => c.programId === programId);
         for (const c of doomed) store.deleteCourse(c.id);
       }
     }
 
-    // Duplicate detection against existing courses in target program
-    const existingInProgram = data.courses.filter((c) => c.programId === programId);
+    const dupById = new Map(dupCandidates.map((d) => [d.incoming.id, d]));
     const createdCourses: Course[] = [];
     const createdTopics: Topic[] = [];
     let skipped = 0, updated = 0;
 
     picked.forEach((row, idx) => {
-      const dup = existingInProgram.find((ec) => {
-        if (row.number && ec.number && row.number === ec.number) return true;
-        if (normalizedTitle(ec.title) === normalizedTitle(row.title)) return true;
-        return false;
-      });
-
-      if (dup && destMode === "merge") {
-        // Update existing with any non-empty fields, do not overwrite user data blindly
-        store.updateCourse(dup.id, {
-          credits: dup.credits ?? row.credits,
-          instructor: dup.instructor || row.instructor,
-          type: dup.type || row.type,
-          description: dup.description || row.description,
-          semester: dup.semester || row.semester,
-          number: dup.number || row.number,
+      const dc = dupById.get(row.id);
+      if (dc && dc.action === "skip") { skipped++; return; }
+      if (dc && dc.action === "update") {
+        store.updateCourse(dc.existing.id, {
+          credits: dc.existing.credits ?? row.credits,
+          instructor: dc.existing.instructor || row.instructor,
+          type: dc.existing.type || row.type,
+          description: dc.existing.description || row.description,
+          semester: dc.existing.semester || row.semester,
+          number: dc.existing.number || row.number,
         });
         updated++;
         return;
       }
-      if (dup && destMode === "replace") {
-        // structure was already cleared above
-      }
-      if (dup && destMode === "new") skipped++; // shouldn't happen (new program is empty)
-
       const c = store.createCourse({
         programId,
         title: row.title.trim(),
@@ -746,12 +880,7 @@ function ImportPanel({
       });
       createdCourses.push(c);
       row.topics.forEach((tt, ti) => {
-        const topic = store.createTopic({
-          courseId: c.id,
-          title: tt,
-          status: "not_started",
-          order: ti,
-        });
+        const topic = store.createTopic({ courseId: c.id, title: tt, status: "not_started", order: ti });
         createdTopics.push(topic);
       });
     });
@@ -769,8 +898,12 @@ function ImportPanel({
     toast.success(
       `${t.syllabusImported}: +${createdCourses.length}${updated ? ` · ~${updated}` : ""}${skipped ? ` · skip ${skipped}` : ""}`,
     );
+    setConfirmOpen(false);
     onDone();
   };
+
+  const topicsCount = picked.reduce((n, c) => n + (c.topics?.length ?? 0), 0);
+  const lowConfCount = picked.filter((c) => c.confidence < 0.6).length;
 
   return (
     <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
@@ -803,13 +936,131 @@ function ImportPanel({
           </SelectContent>
         </Select>
       )}
-      <Button onClick={run}>
+      <Button onClick={openConfirm}>
         <CheckCircle2 className="h-4 w-4 me-1" />
         {t.syllabusRunImport}
       </Button>
+
+      <ConfirmImportDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        picked={picked}
+        topicsCount={topicsCount}
+        lowConfCount={lowConfCount}
+        dups={dupCandidates}
+        setDups={setDupCandidates}
+        onConfirm={run}
+      />
     </div>
   );
 }
+
+function ConfirmImportDialog({
+  open,
+  onOpenChange,
+  picked,
+  topicsCount,
+  lowConfCount,
+  dups,
+  setDups,
+  onConfirm,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  picked: ParsedCourseDraft[];
+  topicsCount: number;
+  lowConfCount: number;
+  dups: DupCandidate[];
+  setDups: (d: DupCandidate[]) => void;
+  onConfirm: () => void;
+}) {
+  const { t } = useApp();
+  const skipCount = dups.filter((d) => d.action === "skip").length;
+  return (
+    <ConfirmDialogShell open={open} onOpenChange={onOpenChange} title={t.syllabusConfirmImport}>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+        <Cell label={t.syllabusCoursesToImport} value={picked.length - skipCount} />
+        <Cell label={t.syllabusTopicsToImport} value={topicsCount} />
+        <Cell label={t.syllabusDuplicatesCount} value={dups.length} />
+        <Cell label={t.syllabusSkippedRows} value={skipCount} />
+        <Cell label={t.syllabusLowConfidenceRows} value={lowConfCount} />
+      </div>
+
+      {dups.length > 0 && (
+        <div className="mt-4 space-y-2">
+          <h5 className="text-sm font-semibold">{t.syllabusDupReviewTitle}</h5>
+          <div className="max-h-60 overflow-auto border border-border rounded">
+            <table className="w-full text-xs">
+              <thead className="bg-muted/40 sticky top-0">
+                <tr>
+                  <th className="px-2 py-1 text-start">{t.syllabusDupExisting}</th>
+                  <th className="px-2 py-1 text-start">{t.syllabusDupIncoming}</th>
+                  <th className="px-2 py-1 text-start w-40">{t.syllabusDupAction}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dups.map((d, i) => (
+                  <tr key={d.incoming.id} className="border-t border-border align-top">
+                    <td className="px-2 py-1">{d.existing.number ? `${d.existing.number} · ` : ""}{d.existing.title}</td>
+                    <td className="px-2 py-1">{d.incoming.number ? `${d.incoming.number} · ` : ""}{d.incoming.title}</td>
+                    <td className="px-2 py-1">
+                      <Select
+                        value={d.action}
+                        onValueChange={(v) => {
+                          const next = [...dups];
+                          next[i] = { ...next[i], action: v as DupCandidate["action"] };
+                          setDups(next);
+                        }}
+                      >
+                        <SelectTrigger className="h-7 text-xs bg-background"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="skip">{t.syllabusDupActionSkip}</SelectItem>
+                          <SelectItem value="update">{t.syllabusDupActionUpdate}</SelectItem>
+                          <SelectItem value="new">{t.syllabusDupActionNew}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4 flex justify-end gap-2">
+        <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>{t.cancel}</Button>
+        <Button size="sm" onClick={onConfirm}>
+          <CheckCircle2 className="h-4 w-4 me-1" />
+          {t.syllabusImportBtn}
+        </Button>
+      </div>
+    </ConfirmDialogShell>
+  );
+}
+
+function ConfirmDialogShell({
+  open,
+  onOpenChange,
+  title,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => onOpenChange(false)}>
+      <div className="bg-surface border border-border rounded-lg p-5 max-w-2xl w-full mx-4 max-h-[85vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+        <h3 className="font-semibold mb-3">{title}</h3>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 
 // =================================================================
 // Advanced (manual) mapping — legacy behaviour, hidden by default
