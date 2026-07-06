@@ -58,15 +58,11 @@ function SettingsPage() {
             </span>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="text-muted-foreground">{t.aiProvider}</div><div>Lovable AI</div>
+            <div className="text-muted-foreground">{t.aiProvider}</div><div>Lovable AI Gateway</div>
             <div className="text-muted-foreground">{t.aiConfigured}</div><div>{configured ? t.yes : t.no}</div>
             <div className="text-muted-foreground">{t.aiModel}</div><div>{aiStatus?.model ?? "—"}</div>
           </div>
           <p className="text-xs text-muted-foreground">{t.aiExplanation}</p>
-          <div>
-            <Label className="text-xs">{t.serverEndpoint}</Label>
-            <Input disabled value="/api/ai/parse-syllabus" readOnly />
-          </div>
           <p className="text-[11px] text-muted-foreground">{t.noKeyInFrontend}</p>
         </div>
 
@@ -77,8 +73,19 @@ function SettingsPage() {
           <div className="pt-2 border-t border-border">
             <h3 className="text-xs font-semibold mb-1">{t.aiActionsTitle}</h3>
             <ul className="text-xs space-y-0.5">
-              <li>· {t.aiActionSyllabus}: <span className={configured ? "text-green-400" : "text-muted-foreground"}>{configured ? t.statusEnabled : t.statusDisabled}</span></li>
-              <li>· {t.aiActionStudyGen}: <span className="text-muted-foreground">{t.statusNotImplemented}</span></li>
+              {[
+                t.aiActionSyllabus,
+                t.aiGenerateNote,
+                t.aiGenerateFlashcards,
+                t.aiGenerateQuiz,
+                t.aiGeneratePresentation,
+                t.aiSimplifyText,
+                t.aiTranslateText,
+                t.aiBreakDownAssignment,
+                t.aiExplainTopic,
+              ].map((label) => (
+                <li key={label}>· {label}: <span className={configured ? "text-green-400" : "text-muted-foreground"}>{configured ? t.statusEnabled : t.statusDisabled}</span></li>
+              ))}
             </ul>
           </div>
         </div>
