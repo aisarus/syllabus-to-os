@@ -91,7 +91,7 @@ export type Dict = {
   // flashcards
   createCard: string;
   front: string;
-  back: string;
+  cardBack: string;
   review: string;
   again: string;
   good: string;
@@ -214,7 +214,7 @@ const en: Dict = {
   generateNotes: "Generate notes — not connected yet",
   createCard: "Create card",
   front: "Front",
-  back: "Back",
+  cardBack: "Back",
   review: "Review",
   again: "Again",
   good: "Good",
@@ -334,7 +334,7 @@ const ru: Dict = {
   generateNotes: "Сгенерировать конспект — ещё не подключено",
   createCard: "Создать карточку",
   front: "Лицевая сторона",
-  back: "Обратная сторона",
+  cardBack: "Обратная сторона",
   review: "Повторить",
   again: "Ещё раз",
   good: "Нормально",
