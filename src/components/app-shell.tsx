@@ -58,6 +58,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/app/program", label: t.program, icon: GraduationCap },
     { to: "/app/courses", label: t.courses, icon: BookOpen },
     { to: "/app/materials", label: t.materials, icon: FolderOpen },
+    { to: "/app/import-syllabus", label: t.importSyllabus, icon: FileInput },
     { to: "/app/notes", label: t.notes, icon: FileText },
     { to: "/app/flashcards", label: t.flashcards, icon: Layers },
     { to: "/app/quizzes", label: t.quizzes, icon: HelpCircle },
