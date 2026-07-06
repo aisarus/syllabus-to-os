@@ -19,6 +19,7 @@ import {
   CalendarDays,
   Target,
   Presentation,
+  FileInput,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useApp } from "@/lib/app-context";
