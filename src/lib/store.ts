@@ -203,6 +203,7 @@ export interface Slide {
   bullets: string[];
   speakerNotes?: string;
   sourceQuote?: string;
+  sourceChunkIds?: string[];
   order: number;
 }
 
