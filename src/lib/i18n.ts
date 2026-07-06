@@ -236,6 +236,45 @@ export type Dict = {
   aiExplanation: string;
   serverEndpoint: string;
   noKeyInFrontend: string;
+  // syllabus import
+  importSyllabus: string;
+  importSyllabusIntro: string;
+  syllabusTabXlsx: string;
+  syllabusTabJson: string;
+  syllabusChooseXlsx: string;
+  syllabusChooseSheet: string;
+  syllabusHeaderRow: string;
+  syllabusSheetPreview: string;
+  syllabusColumnMapping: string;
+  syllabusMappingHelp: string;
+  syllabusColTitle: string;
+  syllabusColOriginalTitle: string;
+  syllabusColNumber: string;
+  syllabusColSemester: string;
+  syllabusColCredits: string;
+  syllabusColInstructor: string;
+  syllabusColType: string;
+  syllabusColDescription: string;
+  syllabusColTopics: string;
+  syllabusColIgnore: string;
+  syllabusCoursePreview: string;
+  syllabusIncludeRow: string;
+  syllabusDestinationProgram: string;
+  syllabusNewProgram: string;
+  syllabusExistingProgram: string;
+  syllabusRunImport: string;
+  syllabusImported: string;
+  syllabusJsonPasteHelp: string;
+  syllabusJsonSchemaHint: string;
+  syllabusJsonPreview: string;
+  syllabusHistory: string;
+  syllabusHistoryEmpty: string;
+  syllabusNoRowsPicked: string;
+  syllabusTitleRequired: string;
+  syllabusRowCount: string;
+  syllabusCoursesImported: string;
+  syllabusTopicsImported: string;
+  syllabusTopicsSplitHelp: string;
 };
 
 const en: Dict = {
