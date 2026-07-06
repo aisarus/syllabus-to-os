@@ -18,7 +18,20 @@ export type MaterialType =
   | "exam"
   | "other";
 export type MaterialSourceMode = "uploaded_file" | "pasted_text" | "manual";
-export type MaterialProcessingStatus = "ready" | "unsupported" | "error" | "no_text";
+export type MaterialProcessingStatus = "ready" | "unsupported" | "error" | "no_text" | "partial";
+export type MaterialExtractionMethod =
+  | "manual"
+  | "txt"
+  | "markdown"
+  | "csv"
+  | "json"
+  | "html"
+  | "xml"
+  | "yaml"
+  | "xlsx"
+  | "docx"
+  | "pdf";
+export type MaterialSourceLanguage = "ru" | "en" | "he" | "ar" | "mixed" | "unknown";
 export type MaterialOutputType =
   | "note"
   | "quiz"
