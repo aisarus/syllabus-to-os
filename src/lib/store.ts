@@ -99,6 +99,19 @@ export interface Note {
   createdAt: number;
 }
 
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  courseId?: string;
+  topicId?: string;
+  materialId?: string;
+  sourceChunkIds?: string[];
+  updatedAt: number;
+  createdAt: number;
+}
+
 export interface Flashcard {
   id: string;
   front: string;
@@ -106,6 +119,7 @@ export interface Flashcard {
   courseId?: string;
   topicId?: string;
   materialId?: string;
+  sourceChunkIds?: string[];
   status: CardStatus;
   dueAt: number;
   interval: number;
