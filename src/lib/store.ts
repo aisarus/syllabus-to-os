@@ -666,20 +666,25 @@ export const store = {
       presentationOutlines: d.presentationOutlines.filter((p) => p.id !== id),
     }));
   },
-  addSlide(outlineId: string) {
+  addSlide(outlineId: string, patch?: Partial<Omit<Slide, "id" | "order">>) {
+    const slideId = uid("sl");
     updateData((d) => ({
       ...d,
       presentationOutlines: d.presentationOutlines.map((p) => {
         if (p.id !== outlineId) return p;
         const slide: Slide = {
-          id: uid("sl"),
-          title: "New slide",
-          bullets: [],
+          id: slideId,
+          title: patch?.title ?? "New slide",
+          bullets: patch?.bullets ?? [],
+          speakerNotes: patch?.speakerNotes,
+          sourceQuote: patch?.sourceQuote,
+          sourceChunkIds: patch?.sourceChunkIds,
           order: p.slides.length,
         };
         return { ...p, slides: [...p.slides, slide], updatedAt: Date.now() };
       }),
     }));
+    return slideId;
   },
   updateSlide(outlineId: string, slideId: string, patch: Partial<Slide>) {
     updateData((d) => ({
