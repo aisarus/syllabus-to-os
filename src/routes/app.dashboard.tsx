@@ -235,6 +235,65 @@ function Dashboard() {
               >{t.clearAll}</Button>
             </Card>
           </div>
+
+          <div className="mt-6">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase mb-2">{t.needsAttention}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Card>
+                <div className="text-sm font-semibold mb-3 flex items-center gap-2"><FolderOpen className="h-4 w-4" />{t.unsupportedFiles}</div>
+                {unsupportedMaterials.length === 0 ? (
+                  <div className="text-xs text-muted-foreground">{t.empty}</div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {unsupportedMaterials.map((m) => (
+                      <Link key={m.id} to="/app/materials/$materialId" params={{ materialId: m.id }} className="text-sm block hover:bg-accent rounded px-1 -mx-1 truncate">
+                        {m.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </Card>
+              <Card>
+                <div className="text-sm font-semibold mb-3 flex items-center gap-2"><FolderOpen className="h-4 w-4" />{t.materialsWithoutCourse}</div>
+                {materialsNoCourse.length === 0 ? (
+                  <div className="text-xs text-muted-foreground">{t.empty}</div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {materialsNoCourse.map((m) => (
+                      <Link key={m.id} to="/app/materials/$materialId" params={{ materialId: m.id }} className="text-sm block hover:bg-accent rounded px-1 -mx-1 truncate">
+                        {m.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </Card>
+              <Card>
+                <div className="text-sm font-semibold mb-3 flex items-center gap-2"><Layers className="h-4 w-4" />{t.materialsWithChunksNoOutputs}</div>
+                {chunksNoOutputs.length === 0 ? (
+                  <div className="text-xs text-muted-foreground">{t.empty}</div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {chunksNoOutputs.map((m) => (
+                      <Link key={m.id} to="/app/materials/$materialId" params={{ materialId: m.id }} className="text-sm block hover:bg-accent rounded px-1 -mx-1 truncate">
+                        {m.title} <span className="text-xs text-muted-foreground">· {chunkCounts.get(m.id)} {t.chunkCount.toLowerCase()}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </Card>
+              {latestMaterial && (
+                <Card>
+                  <div className="text-sm font-semibold mb-3 flex items-center gap-2"><FolderOpen className="h-4 w-4" />{t.continueLatestMaterial}</div>
+                  <Link to="/app/materials/$materialId" params={{ materialId: latestMaterial.id }} className="text-sm font-medium hover:underline block truncate">
+                    {latestMaterial.title}
+                  </Link>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {chunkCounts.get(latestMaterial.id) || 0} {t.chunkCount.toLowerCase()} · {outputCounts.get(latestMaterial.id) || 0} {t.outputs.toLowerCase()}
+                  </div>
+                </Card>
+              )}
+            </div>
+          </div>
         </>
       )}
     </div>
