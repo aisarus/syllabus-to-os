@@ -57,7 +57,9 @@ function Dashboard() {
     .filter((e) => e.type === "exam" && e.date >= today && e.date <= in7)
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5);
-  const recentMaterials = data.materials.slice(0, 5);
+  const recentMaterials = [...data.materials]
+    .sort((a, b) => b.updatedAt - a.updatedAt)
+    .slice(0, 5);
   const recentNotes = [...data.notes].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 5);
   const lowScoreQuizzes = data.quizzes
     .map((q) => {
@@ -68,6 +70,20 @@ function Dashboard() {
     .filter((x) => x.count > 0 && x.best < 70)
     .slice(0, 5);
   const activeCourses = data.courses.filter((c) => c.status === "in_progress").slice(0, 6);
+
+  const chunkCounts = new Map<string, number>();
+  data.materialChunks.forEach((c) => chunkCounts.set(c.materialId, (chunkCounts.get(c.materialId) || 0) + 1));
+  const outputCounts = new Map<string, number>();
+  data.materialOutputs.forEach((o) => outputCounts.set(o.materialId, (outputCounts.get(o.materialId) || 0) + 1));
+
+  const unsupportedMaterials = data.materials
+    .filter((m) => m.processingStatus === "unsupported" || m.processingStatus === "no_text" || m.processingStatus === "error")
+    .slice(0, 5);
+  const materialsNoCourse = data.materials.filter((m) => !m.courseId).slice(0, 5);
+  const chunksNoOutputs = data.materials
+    .filter((m) => (chunkCounts.get(m.id) || 0) > 0 && (outputCounts.get(m.id) || 0) === 0)
+    .slice(0, 5);
+  const latestMaterial = recentMaterials[0];
 
   const isEmpty =
     data.courses.length === 0 &&
