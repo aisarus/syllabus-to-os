@@ -207,7 +207,7 @@ function AutoParseFlow() {
       } else {
         setAiDraft({ ...res.data, parserType: "ai_assisted" });
         setActiveSource("ai");
-        toast.success("Gemini ✓ — " + t.syllabusReviewAiDraft);
+        toast.success("AI ✓ — " + t.syllabusReviewAiDraft);
       }
     } finally {
       setAiBusy(false);
@@ -670,7 +670,7 @@ function CompareDraftsPanel({ det, ai }: { det: ParsedSyllabusDraft; ai: ParsedS
         <Cell label={t.syllabusCoursesAdded} value={added.length} />
         <Cell label={t.syllabusCoursesRemoved} value={removed.length} />
         <Cell label={`${t.syllabusWarnings} (det)`} value={det.warnings.length} />
-        <Cell label={`${t.syllabusWarnings} (Gemini)`} value={ai.warnings.length} />
+        <Cell label={`${t.syllabusWarnings} (AI)`} value={ai.warnings.length} />
       </div>
       {added.length > 0 && (
         <details className="text-xs">

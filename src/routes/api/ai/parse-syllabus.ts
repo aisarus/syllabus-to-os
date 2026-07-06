@@ -180,7 +180,7 @@ export const Route = createFileRoute("/api/ai/parse-syllabus")({
     handlers: {
       POST: async ({ request }) => {
         if (!isGeminiConfigured()) {
-          return Response.json({ ok: false, error: "Gemini parser is not configured" });
+          return Response.json({ ok: false, error: "Lovable AI is not configured" });
         }
 
         let body: Body;

@@ -18,7 +18,7 @@ function SettingsPage() {
   const [aiStatus, setAiStatus] = useState<AIStatus | null>(null);
   useEffect(() => {
     checkAIStatus(true).then(setAiStatus).catch(() =>
-      setAiStatus({ ok: false, provider: "google-gemini", configured: false, model: null }),
+      setAiStatus({ ok: false, provider: "lovable-ai", configured: false, model: null }),
     );
   }, []);
   const configured = aiStatus?.configured ?? false;
@@ -58,7 +58,7 @@ function SettingsPage() {
             </span>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="text-muted-foreground">{t.aiProvider}</div><div>Google Gemini</div>
+            <div className="text-muted-foreground">{t.aiProvider}</div><div>Lovable AI</div>
             <div className="text-muted-foreground">{t.aiConfigured}</div><div>{configured ? t.yes : t.no}</div>
             <div className="text-muted-foreground">{t.aiModel}</div><div>{aiStatus?.model ?? "—"}</div>
           </div>

@@ -58,7 +58,7 @@ export interface AIParseSyllabusInput {
 
 export interface AIStatus {
   ok: boolean;
-  provider: "google-gemini";
+  provider: "lovable-ai";
   configured: boolean;
   model: string | null;
 }
@@ -74,14 +74,14 @@ export async function checkAIStatus(force = false): Promise<AIStatus> {
     const j = (await res.json()) as Partial<AIStatus>;
     const value: AIStatus = {
       ok: true,
-      provider: "google-gemini",
+      provider: "lovable-ai",
       configured: Boolean(j.configured),
       model: j.model ?? null,
     };
     statusCache = { at: now, value };
     return value;
   } catch {
-    const value: AIStatus = { ok: false, provider: "google-gemini", configured: false, model: null };
+    const value: AIStatus = { ok: false, provider: "lovable-ai", configured: false, model: null };
     statusCache = { at: now, value };
     return value;
   }
@@ -110,7 +110,7 @@ export async function parseSyllabusWithAI(
       return {
         ok: false,
         reason: "not_connected",
-        message: j.error || "Gemini parser is not configured",
+        message: j.error || "Lovable AI is not configured",
         details: j.details,
       };
     }
