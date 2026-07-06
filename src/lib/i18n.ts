@@ -408,9 +408,7 @@ export type Dict = {
   aiEstimatedTime: string;
   aiAppendToNotes: string;
   aiSaveAsNote: string;
-  copied: string;
   copyFailed: string;
-  copy: string;
   // materials v2
   searchNav: string;
   overview: string;
@@ -952,9 +950,7 @@ const en: Dict = {
   aiEstimatedTime: "Estimated time",
   aiAppendToNotes: "Append to assignment notes",
   aiSaveAsNote: "Save as note",
-  copied: "Copied",
   copyFailed: "Copy failed",
-  copy: "Copy",
 };
 
 const ru: Dict = {
