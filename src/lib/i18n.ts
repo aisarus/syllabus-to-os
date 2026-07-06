@@ -1416,9 +1416,7 @@ const ru: Dict = {
   aiEstimatedTime: "Оценка времени",
   aiAppendToNotes: "Добавить в заметки задания",
   aiSaveAsNote: "Сохранить как заметку",
-  copied: "Скопировано",
   copyFailed: "Не удалось скопировать",
-  copy: "Копировать",
 };
 
 export const dicts: Record<Lang, Dict> = { en, ru };
