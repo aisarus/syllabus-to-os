@@ -890,8 +890,6 @@ const en: Dict = {
   statusEnabled: "enabled",
   statusDisabled: "disabled",
   statusNotImplemented: "not implemented yet",
-  yes: "yes",
-  no: "no",
 };
 
 const ru: Dict = {
