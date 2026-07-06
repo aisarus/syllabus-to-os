@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useApp } from "@/lib/app-context";
 import { useData, store } from "@/lib/store";
 import { Plus, Trash2 } from "lucide-react";
+import { AIGenerateButton } from "@/components/ai-generate-dialog";
 
 export const Route = createFileRoute("/app/quizzes")({
   component: QuizzesPage,
@@ -27,7 +28,7 @@ function QuizzesPage() {
         title={t.quizzes}
         actions={
           <>
-            <Button variant="outline" disabled title={t.notConnected}>{t.generateQuiz}</Button>
+            <AIGenerateButton kind="quiz" />
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild><Button><Plus className="h-4 w-4 me-1" />{t.createQuiz}</Button></DialogTrigger>
               <DialogContent>

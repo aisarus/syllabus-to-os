@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useApp } from "@/lib/app-context";
 import { useData, store, type AssignmentStatus, type Priority } from "@/lib/store";
 import { Plus, Trash2, Pencil } from "lucide-react";
+import { AIAssignmentBreakdownButton } from "@/components/ai-side-actions";
 
 export const Route = createFileRoute("/app/assignments")({
   component: AssignmentsPage,
@@ -82,6 +83,8 @@ function AssignmentForm({ id, onDone }: { id?: string; onDone: () => void }) {
         />
       </div>
       <div className="flex justify-end gap-2">
+        {id && <AIAssignmentBreakdownButton assignmentId={id} />}
+        <div className="flex-1" />
         <Button variant="ghost" onClick={onDone}>{t.cancel}</Button>
         <Button onClick={save}>{t.save}</Button>
       </div>

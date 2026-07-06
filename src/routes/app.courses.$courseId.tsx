@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useApp } from "@/lib/app-context";
 import { useData, store, type TopicStatus } from "@/lib/store";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { AITopicExplainButton } from "@/components/ai-side-actions";
 
 export const Route = createFileRoute("/app/courses/$courseId")({
   component: CoursePage,
@@ -102,6 +103,7 @@ function CoursePage() {
                         <SelectItem value="understood">{t.understood}</SelectItem>
                       </SelectContent>
                     </Select>
+                    <AITopicExplainButton topicId={tp.id} courseId={course.id} />
                     <Button size="icon" variant="ghost" onClick={() => store.deleteTopic(tp.id)}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

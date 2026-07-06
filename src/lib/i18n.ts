@@ -378,6 +378,37 @@ export type Dict = {
   statusEnabled: string;
   statusDisabled: string;
   statusNotImplemented: string;
+  // AI generation UI
+  aiGenerate: string;
+  aiThinking: string;
+  aiError: string;
+  aiWarnings: string;
+  aiSources: string;
+  aiRegenerate: string;
+  aiSelectSource: string;
+  aiSelectChunks: string;
+  aiNoChunksSelected: string;
+  aiUnavailable: string;
+  aiGenerateNote: string;
+  aiGenerateFlashcards: string;
+  aiGenerateQuiz: string;
+  aiGeneratePresentation: string;
+  aiBreakDownAssignment: string;
+  aiExplainTopic: string;
+  aiSimplifyText: string;
+  aiTranslateText: string;
+  aiChooseMaterial: string;
+  aiInstructionsOptional: string;
+  aiTooManyChars: string;
+  aiKeyTerms: string;
+  aiShortExplanation: string;
+  aiDetailedExplanation: string;
+  aiSteps: string;
+  aiChecklist: string;
+  aiEstimatedTime: string;
+  aiAppendToNotes: string;
+  aiSaveAsNote: string;
+  copyFailed: string;
   // materials v2
   searchNav: string;
   overview: string;
@@ -890,6 +921,36 @@ const en: Dict = {
   statusEnabled: "enabled",
   statusDisabled: "disabled",
   statusNotImplemented: "not implemented yet",
+  aiGenerate: "Generate with AI",
+  aiThinking: "AI is thinking…",
+  aiError: "AI request failed",
+  aiWarnings: "Warnings",
+  aiSources: "Source chunks",
+  aiRegenerate: "Regenerate",
+  aiSelectSource: "Select a material",
+  aiSelectChunks: "Select chunks (up to 8)",
+  aiNoChunksSelected: "Select at least one chunk",
+  aiUnavailable: "AI is not connected",
+  aiGenerateNote: "Generate note with AI",
+  aiGenerateFlashcards: "Generate flashcards with AI",
+  aiGenerateQuiz: "Generate quiz with AI",
+  aiGeneratePresentation: "Generate outline with AI",
+  aiBreakDownAssignment: "Break down with AI",
+  aiExplainTopic: "Explain with AI",
+  aiSimplifyText: "Simplify with AI",
+  aiTranslateText: "Translate with AI",
+  aiChooseMaterial: "Choose a material",
+  aiInstructionsOptional: "Instructions (optional)",
+  aiTooManyChars: "Selected text exceeds the size limit. Select fewer chunks.",
+  aiKeyTerms: "Key terms",
+  aiShortExplanation: "Short explanation",
+  aiDetailedExplanation: "Detailed explanation",
+  aiSteps: "Steps",
+  aiChecklist: "Checklist",
+  aiEstimatedTime: "Estimated time",
+  aiAppendToNotes: "Append to assignment notes",
+  aiSaveAsNote: "Save as note",
+  copyFailed: "Copy failed",
 };
 
 const ru: Dict = {
@@ -1326,6 +1387,36 @@ const ru: Dict = {
   statusEnabled: "включено",
   statusDisabled: "выключено",
   statusNotImplemented: "пока не реализовано",
+  aiGenerate: "Сгенерировать с ИИ",
+  aiThinking: "ИИ думает…",
+  aiError: "Ошибка запроса к ИИ",
+  aiWarnings: "Предупреждения",
+  aiSources: "Источники",
+  aiRegenerate: "Сгенерировать заново",
+  aiSelectSource: "Выберите материал",
+  aiSelectChunks: "Выберите чанки (до 8)",
+  aiNoChunksSelected: "Выберите хотя бы один чанк",
+  aiUnavailable: "ИИ не подключён",
+  aiGenerateNote: "Сгенерировать заметку с ИИ",
+  aiGenerateFlashcards: "Сгенерировать карточки с ИИ",
+  aiGenerateQuiz: "Сгенерировать тест с ИИ",
+  aiGeneratePresentation: "Сгенерировать план презентации с ИИ",
+  aiBreakDownAssignment: "Разбить задание с ИИ",
+  aiExplainTopic: "Объяснить с ИИ",
+  aiSimplifyText: "Упростить с ИИ",
+  aiTranslateText: "Перевести с ИИ",
+  aiChooseMaterial: "Выберите материал",
+  aiInstructionsOptional: "Инструкции (необязательно)",
+  aiTooManyChars: "Слишком много текста. Выберите меньше чанков.",
+  aiKeyTerms: "Ключевые термины",
+  aiShortExplanation: "Кратко",
+  aiDetailedExplanation: "Подробно",
+  aiSteps: "Шаги",
+  aiChecklist: "Чек-лист",
+  aiEstimatedTime: "Оценка времени",
+  aiAppendToNotes: "Добавить в заметки задания",
+  aiSaveAsNote: "Сохранить как заметку",
+  copyFailed: "Не удалось скопировать",
 };
 
 export const dicts: Record<Lang, Dict> = { en, ru };

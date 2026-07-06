@@ -29,6 +29,7 @@ import {
   RefreshCw, Search, ClipboardList, StickyNote,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AIGenerateButton } from "@/components/ai-generate-dialog";
 
 export const Route = createFileRoute("/app/materials/$materialId")({
   component: MaterialDetail,
@@ -476,6 +477,12 @@ function BuilderActions({ material, chunk }: { material: Material; chunk: Materi
         <Button size="sm" variant={mode === "quiz" ? "default" : "outline"} onClick={() => setMode("quiz")}><HelpCircle className="h-3.5 w-3.5 me-1" />{t.createQuestionFromChunk}</Button>
         <Button size="sm" variant={mode === "assignment" ? "default" : "outline"} onClick={() => setMode("assignment")}><ClipboardList className="h-3.5 w-3.5 me-1" />{t.createAssignmentNoteFromChunk}</Button>
         <Button size="sm" variant={mode === "slide" ? "default" : "outline"} onClick={() => setMode("slide")}><Presentation className="h-3.5 w-3.5 me-1" />{t.createSlideFromChunk}</Button>
+      </div>
+      <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border">
+        <AIGenerateButton size="sm" kind="note" initialMaterialId={material.id} initialChunkIds={[chunk.id]} />
+        <AIGenerateButton size="sm" kind="flashcards" initialMaterialId={material.id} initialChunkIds={[chunk.id]} />
+        <AIGenerateButton size="sm" kind="quiz" initialMaterialId={material.id} initialChunkIds={[chunk.id]} />
+        <AIGenerateButton size="sm" kind="presentation" initialMaterialId={material.id} initialChunkIds={[chunk.id]} />
       </div>
       {mode === "note" && <CreateNoteFromChunk material={material} chunk={chunk} />}
       {mode === "card" && <CreateCardFromChunk material={material} chunk={chunk} />}
