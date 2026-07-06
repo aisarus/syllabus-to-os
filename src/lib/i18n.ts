@@ -335,6 +335,49 @@ export type Dict = {
   syllabusReasonNotes: string;
   syllabusReasonUnknown: string;
   syllabusReasonNoTitle: string;
+  // Gemini + diagnostics
+  syllabusReviewAiDraft: string;
+  syllabusUseDeterministic: string;
+  syllabusUseGemini: string;
+  syllabusCompareDrafts: string;
+  syllabusParserComparison: string;
+  syllabusDeterministicCourses: string;
+  syllabusGeminiCourses: string;
+  syllabusCoursesAdded: string;
+  syllabusCoursesRemoved: string;
+  syllabusCheckThisRow: string;
+  syllabusRowExplain: string;
+  syllabusConfirmImport: string;
+  syllabusCoursesToImport: string;
+  syllabusTopicsToImport: string;
+  syllabusDuplicatesCount: string;
+  syllabusSkippedRows: string;
+  syllabusLowConfidenceRows: string;
+  syllabusImportBtn: string;
+  syllabusDupReviewTitle: string;
+  syllabusDupExisting: string;
+  syllabusDupIncoming: string;
+  syllabusDupAction: string;
+  syllabusDupActionSkip: string;
+  syllabusDupActionUpdate: string;
+  syllabusDupActionNew: string;
+  syllabusDiagPanel: string;
+  syllabusDiagClassifiedRows: string;
+  syllabusDiagDetectedColumns: string;
+  syllabusDiagLowConfRows: string;
+  syllabusDiagGeminiStatus: string;
+  syllabusDiagGeminiModel: string;
+  syllabusDiagSelectedSheet: string;
+  syllabusDiagTotalRows: string;
+  aiProvider: string;
+  aiConfigured: string;
+  aiModel: string;
+  aiActionsTitle: string;
+  aiActionSyllabus: string;
+  aiActionStudyGen: string;
+  statusEnabled: string;
+  statusDisabled: string;
+  statusNotImplemented: string;
   // materials v2
   searchNav: string;
   overview: string;
@@ -805,6 +848,48 @@ const en: Dict = {
   docxUnsupportedHint: "DOCX text extraction is not connected yet.",
   pdfUnsupportedHint: "PDF text extraction is not connected yet.",
   ingestionErrorHint: "Extraction failed. You can still paste text manually below.",
+  syllabusReviewAiDraft: "Review the AI draft before importing",
+  syllabusUseDeterministic: "Use deterministic draft",
+  syllabusUseGemini: "Use Gemini draft",
+  syllabusCompareDrafts: "Compare drafts",
+  syllabusParserComparison: "Parser comparison",
+  syllabusDeterministicCourses: "Deterministic courses",
+  syllabusGeminiCourses: "Gemini courses",
+  syllabusCoursesAdded: "Added by Gemini",
+  syllabusCoursesRemoved: "Removed by Gemini",
+  syllabusCheckThisRow: "Check this row",
+  syllabusRowExplain: "Row details",
+  syllabusConfirmImport: "Confirm import",
+  syllabusCoursesToImport: "Courses to import",
+  syllabusTopicsToImport: "Topics to import",
+  syllabusDuplicatesCount: "Duplicates",
+  syllabusSkippedRows: "Skipped rows",
+  syllabusLowConfidenceRows: "Low-confidence rows",
+  syllabusImportBtn: "Import",
+  syllabusDupReviewTitle: "Duplicate review",
+  syllabusDupExisting: "Existing course",
+  syllabusDupIncoming: "Incoming course",
+  syllabusDupAction: "Action",
+  syllabusDupActionSkip: "Skip",
+  syllabusDupActionUpdate: "Update existing",
+  syllabusDupActionNew: "Import as new",
+  syllabusDiagPanel: "Parser diagnostics",
+  syllabusDiagClassifiedRows: "Classified rows",
+  syllabusDiagDetectedColumns: "Detected columns",
+  syllabusDiagLowConfRows: "Low-confidence rows",
+  syllabusDiagGeminiStatus: "Gemini status",
+  syllabusDiagGeminiModel: "Gemini model",
+  syllabusDiagSelectedSheet: "Selected sheet",
+  syllabusDiagTotalRows: "Total rows",
+  aiProvider: "AI provider",
+  aiConfigured: "Gemini configured",
+  aiModel: "Gemini model",
+  aiActionsTitle: "Supported AI actions",
+  aiActionSyllabus: "Syllabus parsing",
+  aiActionStudyGen: "Study generation",
+  statusEnabled: "enabled",
+  statusDisabled: "disabled",
+  statusNotImplemented: "not implemented yet",
 };
 
 const ru: Dict = {
@@ -1199,6 +1284,48 @@ const ru: Dict = {
   docxUnsupportedHint: "Извлечение текста из DOCX ещё не подключено.",
   pdfUnsupportedHint: "Извлечение текста из PDF ещё не подключено.",
   ingestionErrorHint: "Извлечение не удалось. Вставьте текст вручную ниже.",
+  syllabusReviewAiDraft: "Проверьте AI-черновик перед импортом",
+  syllabusUseDeterministic: "Использовать детерминированный",
+  syllabusUseGemini: "Использовать черновик Gemini",
+  syllabusCompareDrafts: "Сравнить разборы",
+  syllabusParserComparison: "Сравнение разборов",
+  syllabusDeterministicCourses: "Детерминированный: курсов",
+  syllabusGeminiCourses: "Gemini: курсов",
+  syllabusCoursesAdded: "Добавлено Gemini",
+  syllabusCoursesRemoved: "Убрано Gemini",
+  syllabusCheckThisRow: "Проверьте эту строку",
+  syllabusRowExplain: "Подробности строки",
+  syllabusConfirmImport: "Подтвердите импорт",
+  syllabusCoursesToImport: "Курсов к импорту",
+  syllabusTopicsToImport: "Тем к импорту",
+  syllabusDuplicatesCount: "Дубликатов",
+  syllabusSkippedRows: "Строк пропущено",
+  syllabusLowConfidenceRows: "Строк с низкой уверенностью",
+  syllabusImportBtn: "Импортировать",
+  syllabusDupReviewTitle: "Разбор дубликатов",
+  syllabusDupExisting: "Существующий курс",
+  syllabusDupIncoming: "Новый курс",
+  syllabusDupAction: "Действие",
+  syllabusDupActionSkip: "Пропустить",
+  syllabusDupActionUpdate: "Обновить существующий",
+  syllabusDupActionNew: "Импортировать как новый",
+  syllabusDiagPanel: "Диагностика разбора",
+  syllabusDiagClassifiedRows: "Классифицированные строки",
+  syllabusDiagDetectedColumns: "Обнаруженные колонки",
+  syllabusDiagLowConfRows: "Строк с низкой уверенностью",
+  syllabusDiagGeminiStatus: "Статус Gemini",
+  syllabusDiagGeminiModel: "Модель Gemini",
+  syllabusDiagSelectedSheet: "Выбранный лист",
+  syllabusDiagTotalRows: "Всего строк",
+  aiProvider: "AI-провайдер",
+  aiConfigured: "Gemini настроен",
+  aiModel: "Модель Gemini",
+  aiActionsTitle: "Поддерживаемые AI-действия",
+  aiActionSyllabus: "Разбор силабуса",
+  aiActionStudyGen: "Генерация учебных материалов",
+  statusEnabled: "включено",
+  statusDisabled: "выключено",
+  statusNotImplemented: "пока не реализовано",
 };
 
 export const dicts: Record<Lang, Dict> = { en, ru };
