@@ -681,6 +681,7 @@ export function importJSON(json: string): { ok: true } | { ok: false; error: str
       presentationOutlines: arr<PresentationOutline>(parsed.presentationOutlines),
       calendarEvents: arr<CalendarEvent>(parsed.calendarEvents),
       studySessions: arr<StudySession>(parsed.studySessions),
+      syllabusImports: arr<SyllabusImport>(parsed.syllabusImports),
     };
     setData(shape);
     return { ok: true };
