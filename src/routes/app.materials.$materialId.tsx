@@ -639,21 +639,12 @@ function CreateSlideFromChunk({ material, chunk }: { material: Material; chunk: 
       id = o.id;
       setOutlineId(id);
     }
-    store.addSlide(id);
-    // Find the newly added slide (last) and populate
-    const state = data.presentationOutlines.find((o) => o.id === id);
-    const next = state ? state.slides.length : 0;
-    // Refetch after tick isn't necessary; addSlide already added. Now update the last:
-    const outline = data.presentationOutlines.find((o) => o.id === id);
-    const slideId = outline?.slides[next]?.id;
-    // Fallback: update ephemeral last chunk via search after update through store
-    if (slideId) {
-      store.updateSlide(id, slideId, {
-        title, bullets: bullets.split(/\n+/).map((s) => s.trim()).filter(Boolean),
-        sourceQuote: chunk.text.slice(0, 240),
-        sourceChunkIds: [chunk.id],
-      });
-    }
+    store.addSlide(id, {
+      title,
+      bullets: bullets.split(/\n+/).map((s) => s.trim()).filter(Boolean),
+      sourceQuote: chunk.text.slice(0, 240),
+      sourceChunkIds: [chunk.id],
+    });
     toast.success(t.save);
     navigate({ to: "/app/presentations/$outlineId", params: { outlineId: id } });
   };
