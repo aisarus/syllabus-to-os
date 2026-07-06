@@ -9,13 +9,40 @@ export type Priority = "low" | "medium" | "high";
 export type CardStatus = "new" | "learning" | "mastered";
 export type Difficulty = "easy" | "medium" | "hard";
 
+export type MaterialType =
+  | "syllabus"
+  | "lecture"
+  | "article"
+  | "assignment"
+  | "presentation"
+  | "exam"
+  | "other";
+export type MaterialSourceMode = "uploaded_file" | "pasted_text" | "manual";
+export type MaterialProcessingStatus = "ready" | "unsupported" | "error" | "no_text";
+export type MaterialOutputType =
+  | "note"
+  | "quiz"
+  | "flashcards"
+  | "outline"
+  | "presentation_outline"
+  | "task_list";
+
+export type CalendarEventType =
+  | "class"
+  | "assignment"
+  | "exam"
+  | "study_session"
+  | "personal"
+  | "other";
+export type Recurrence = "none" | "weekly";
+
 export interface Program {
   id: string;
   name: string;
   institution: string;
   degree: string;
   years: number;
-  semesters: string[]; // e.g. ["Sem 1 2025/26", ...]
+  semesters: string[];
   createdAt: number;
 }
 
@@ -54,6 +81,7 @@ export interface Note {
   tags: string[];
   courseId?: string;
   topicId?: string;
+  materialId?: string;
   updatedAt: number;
   createdAt: number;
 }
@@ -64,9 +92,10 @@ export interface Flashcard {
   back: string;
   courseId?: string;
   topicId?: string;
+  materialId?: string;
   status: CardStatus;
-  dueAt: number; // ms epoch
-  interval: number; // days
+  dueAt: number;
+  interval: number;
   createdAt: number;
 }
 
@@ -76,6 +105,7 @@ export interface QuizQuestion {
   prompt: string;
   options: string[];
   correctIndex: number;
+  explanation?: string;
 }
 
 export interface Quiz {
@@ -83,13 +113,14 @@ export interface Quiz {
   title: string;
   courseId?: string;
   topicId?: string;
+  materialId?: string;
   createdAt: number;
 }
 
 export interface QuizAttempt {
   id: string;
   quizId: string;
-  score: number; // 0-100
+  score: number;
   correctCount: number;
   total: number;
   takenAt: number;
@@ -99,12 +130,85 @@ export interface Assignment {
   id: string;
   title: string;
   courseId?: string;
-  dueDate?: string; // yyyy-mm-dd
+  dueDate?: string;
   status: AssignmentStatus;
   priority: Priority;
   notes?: string;
   grade?: string;
   createdAt: number;
+}
+
+export interface Material {
+  id: string;
+  title: string;
+  type: MaterialType;
+  sourceMode: MaterialSourceMode;
+  fileName?: string;
+  mimeType?: string;
+  fileSize?: number;
+  courseId?: string;
+  topicId?: string;
+  tags: string[];
+  rawText: string;
+  userSummary?: string;
+  processingStatus: MaterialProcessingStatus;
+  processingMessage?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface MaterialOutput {
+  id: string;
+  materialId: string;
+  type: MaterialOutputType;
+  linkedEntityId?: string;
+  createdAt: number;
+}
+
+export interface Slide {
+  id: string;
+  title: string;
+  bullets: string[];
+  speakerNotes?: string;
+  sourceQuote?: string;
+  order: number;
+}
+
+export interface PresentationOutline {
+  id: string;
+  title: string;
+  courseId?: string;
+  topicId?: string;
+  materialId?: string;
+  slides: Slide[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  type: CalendarEventType;
+  courseId?: string;
+  assignmentId?: string;
+  quizId?: string;
+  date: string; // yyyy-mm-dd
+  startTime?: string; // HH:MM
+  endTime?: string;
+  recurrence?: Recurrence;
+  weekday?: number; // 0-6
+  notes?: string;
+  createdAt: number;
+}
+
+export interface StudySession {
+  id: string;
+  title: string;
+  type: string;
+  linkedEntityType?: string;
+  linkedEntityId?: string;
+  durationMinutes: number;
+  completedAt: number;
 }
 
 export interface AppData {
@@ -118,6 +222,11 @@ export interface AppData {
   quizQuestions: QuizQuestion[];
   quizAttempts: QuizAttempt[];
   assignments: Assignment[];
+  materials: Material[];
+  materialOutputs: MaterialOutput[];
+  presentationOutlines: PresentationOutline[];
+  calendarEvents: CalendarEvent[];
+  studySessions: StudySession[];
 }
 
 const KEY = "lamdan.data.v1";
@@ -133,6 +242,11 @@ const empty = (): AppData => ({
   quizQuestions: [],
   quizAttempts: [],
   assignments: [],
+  materials: [],
+  materialOutputs: [],
+  presentationOutlines: [],
+  calendarEvents: [],
+  studySessions: [],
 });
 
 function load(): AppData {
@@ -175,7 +289,6 @@ function subscribe(fn: () => void) {
 function getSnapshot() {
   return state;
 }
-
 function getServerSnapshot() {
   return SERVER_SNAPSHOT;
 }
@@ -383,9 +496,139 @@ export const store = {
     }));
   },
   deleteAssignment(id: string) {
+    updateData((d) => ({ ...d, assignments: d.assignments.filter((a) => a.id !== id) }));
+  },
+  // materials
+  createMaterial(m: Omit<Material, "id" | "createdAt" | "updatedAt">) {
+    const now = Date.now();
+    const mat: Material = { ...m, id: uid("mat"), createdAt: now, updatedAt: now };
+    updateData((d) => ({ ...d, materials: [mat, ...d.materials] }));
+    return mat;
+  },
+  updateMaterial(id: string, patch: Partial<Material>) {
     updateData((d) => ({
       ...d,
-      assignments: d.assignments.filter((a) => a.id !== id),
+      materials: d.materials.map((m) =>
+        m.id === id ? { ...m, ...patch, updatedAt: Date.now() } : m,
+      ),
+    }));
+  },
+  deleteMaterial(id: string) {
+    updateData((d) => ({
+      ...d,
+      materials: d.materials.filter((m) => m.id !== id),
+      materialOutputs: d.materialOutputs.filter((o) => o.materialId !== id),
+      notes: d.notes.map((n) => (n.materialId === id ? { ...n, materialId: undefined } : n)),
+      flashcards: d.flashcards.map((c) =>
+        c.materialId === id ? { ...c, materialId: undefined } : c,
+      ),
+      quizzes: d.quizzes.map((q) => (q.materialId === id ? { ...q, materialId: undefined } : q)),
+      presentationOutlines: d.presentationOutlines.map((p) =>
+        p.materialId === id ? { ...p, materialId: undefined } : p,
+      ),
+    }));
+  },
+  recordOutput(o: Omit<MaterialOutput, "id" | "createdAt">) {
+    const out: MaterialOutput = { ...o, id: uid("out"), createdAt: Date.now() };
+    updateData((d) => ({ ...d, materialOutputs: [out, ...d.materialOutputs] }));
+    return out;
+  },
+  // presentation outlines
+  createOutline(o: Omit<PresentationOutline, "id" | "createdAt" | "updatedAt" | "slides"> & { slides?: Slide[] }) {
+    const now = Date.now();
+    const outline: PresentationOutline = {
+      ...o,
+      id: uid("pres"),
+      slides: o.slides ?? [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    updateData((d) => ({ ...d, presentationOutlines: [outline, ...d.presentationOutlines] }));
+    return outline;
+  },
+  updateOutline(id: string, patch: Partial<PresentationOutline>) {
+    updateData((d) => ({
+      ...d,
+      presentationOutlines: d.presentationOutlines.map((p) =>
+        p.id === id ? { ...p, ...patch, updatedAt: Date.now() } : p,
+      ),
+    }));
+  },
+  deleteOutline(id: string) {
+    updateData((d) => ({
+      ...d,
+      presentationOutlines: d.presentationOutlines.filter((p) => p.id !== id),
+    }));
+  },
+  addSlide(outlineId: string) {
+    updateData((d) => ({
+      ...d,
+      presentationOutlines: d.presentationOutlines.map((p) => {
+        if (p.id !== outlineId) return p;
+        const slide: Slide = {
+          id: uid("sl"),
+          title: "New slide",
+          bullets: [],
+          order: p.slides.length,
+        };
+        return { ...p, slides: [...p.slides, slide], updatedAt: Date.now() };
+      }),
+    }));
+  },
+  updateSlide(outlineId: string, slideId: string, patch: Partial<Slide>) {
+    updateData((d) => ({
+      ...d,
+      presentationOutlines: d.presentationOutlines.map((p) => {
+        if (p.id !== outlineId) return p;
+        return {
+          ...p,
+          slides: p.slides.map((s) => (s.id === slideId ? { ...s, ...patch } : s)),
+          updatedAt: Date.now(),
+        };
+      }),
+    }));
+  },
+  deleteSlide(outlineId: string, slideId: string) {
+    updateData((d) => ({
+      ...d,
+      presentationOutlines: d.presentationOutlines.map((p) => {
+        if (p.id !== outlineId) return p;
+        return {
+          ...p,
+          slides: p.slides.filter((s) => s.id !== slideId),
+          updatedAt: Date.now(),
+        };
+      }),
+    }));
+  },
+  // calendar
+  createEvent(e: Omit<CalendarEvent, "id" | "createdAt">) {
+    const ev: CalendarEvent = { ...e, id: uid("ev"), createdAt: Date.now() };
+    updateData((d) => ({ ...d, calendarEvents: [...d.calendarEvents, ev] }));
+    return ev;
+  },
+  updateEvent(id: string, patch: Partial<CalendarEvent>) {
+    updateData((d) => ({
+      ...d,
+      calendarEvents: d.calendarEvents.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+    }));
+  },
+  deleteEvent(id: string) {
+    updateData((d) => ({
+      ...d,
+      calendarEvents: d.calendarEvents.filter((e) => e.id !== id),
+    }));
+  },
+  // study sessions
+  logSession(s: Omit<StudySession, "id" | "completedAt">) {
+    const ss: StudySession = { ...s, id: uid("ses"), completedAt: Date.now() };
+    updateData((d) => ({ ...d, studySessions: [ss, ...d.studySessions] }));
+    return ss;
+  },
+  deleteSession(id: string) {
+    updateData((d) => ({
+      ...d,
+      studySessions: d.studySessions.filter((s) => s.id !== id),
     }));
   },
   // bulk
@@ -405,18 +648,23 @@ export function importJSON(json: string): { ok: true } | { ok: false; error: str
   try {
     const parsed = JSON.parse(json);
     if (!parsed || typeof parsed !== "object") return { ok: false, error: "Not an object" };
-    // basic shape validation — ensure arrays exist
+    const arr = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
     const shape: AppData = {
       version: 1,
-      programs: Array.isArray(parsed.programs) ? parsed.programs : [],
-      courses: Array.isArray(parsed.courses) ? parsed.courses : [],
-      topics: Array.isArray(parsed.topics) ? parsed.topics : [],
-      notes: Array.isArray(parsed.notes) ? parsed.notes : [],
-      flashcards: Array.isArray(parsed.flashcards) ? parsed.flashcards : [],
-      quizzes: Array.isArray(parsed.quizzes) ? parsed.quizzes : [],
-      quizQuestions: Array.isArray(parsed.quizQuestions) ? parsed.quizQuestions : [],
-      quizAttempts: Array.isArray(parsed.quizAttempts) ? parsed.quizAttempts : [],
-      assignments: Array.isArray(parsed.assignments) ? parsed.assignments : [],
+      programs: arr<Program>(parsed.programs),
+      courses: arr<Course>(parsed.courses),
+      topics: arr<Topic>(parsed.topics),
+      notes: arr<Note>(parsed.notes),
+      flashcards: arr<Flashcard>(parsed.flashcards),
+      quizzes: arr<Quiz>(parsed.quizzes),
+      quizQuestions: arr<QuizQuestion>(parsed.quizQuestions),
+      quizAttempts: arr<QuizAttempt>(parsed.quizAttempts),
+      assignments: arr<Assignment>(parsed.assignments),
+      materials: arr<Material>(parsed.materials),
+      materialOutputs: arr<MaterialOutput>(parsed.materialOutputs),
+      presentationOutlines: arr<PresentationOutline>(parsed.presentationOutlines),
+      calendarEvents: arr<CalendarEvent>(parsed.calendarEvents),
+      studySessions: arr<StudySession>(parsed.studySessions),
     };
     setData(shape);
     return { ok: true };
