@@ -95,18 +95,6 @@ export interface Note {
   courseId?: string;
   topicId?: string;
   materialId?: string;
-  updatedAt: number;
-  createdAt: number;
-}
-
-export interface Note {
-  id: string;
-  title: string;
-  content: string;
-  tags: string[];
-  courseId?: string;
-  topicId?: string;
-  materialId?: string;
   sourceChunkIds?: string[];
   updatedAt: number;
   createdAt: number;
