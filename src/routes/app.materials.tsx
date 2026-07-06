@@ -28,6 +28,18 @@ export const Route = createFileRoute("/app/materials")({
   component: MaterialsPage,
 });
 
+function matTypeLabel(t: ReturnType<typeof useApp>["t"], v: MaterialType): string {
+  switch (v) {
+    case "syllabus": return t.syllabus;
+    case "lecture": return t.lecture;
+    case "article": return t.article;
+    case "assignment": return t.assignments;
+    case "presentation": return t.presentationMat;
+    case "exam": return t.exam;
+    default: return t.other;
+  }
+}
+
 function MaterialsPage() {
   const { t } = useApp();
   const data = useData();
