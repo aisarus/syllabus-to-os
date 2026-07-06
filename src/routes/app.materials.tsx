@@ -74,7 +74,7 @@ function MaterialsPage() {
           <SelectContent>
             <SelectItem value="all">— {t.materialType} —</SelectItem>
             {(["syllabus","lecture","article","assignment","presentation","exam","other"] as const).map((v) => (
-              <SelectItem key={v} value={v}>{t[v === "presentation" ? "presentationMat" : v]}</SelectItem>
+              <SelectItem key={v} value={v}>{matTypeLabel(t, v)}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -111,7 +111,7 @@ function MaterialsPage() {
                 </div>
                 <div className="mt-1 flex flex-wrap gap-1 text-[11px] text-muted-foreground">
                   <span className="rounded bg-background px-2 py-0.5 uppercase">
-                    {t[m.type === "presentation" ? "presentationMat" : (m.type as MaterialType)]}
+                    {matTypeLabel(t, m.type)}
                   </span>
                   {course && <span className="rounded bg-background px-2 py-0.5">{course.title}</span>}
                   {m.fileName && <span className="rounded bg-background px-2 py-0.5">{m.fileName}</span>}
@@ -200,7 +200,7 @@ function UploadDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o:
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {(["syllabus","lecture","article","assignment","presentation","exam","other"] as const).map((v) => (
-                  <SelectItem key={v} value={v}>{t[v === "presentation" ? "presentationMat" : v]}</SelectItem>
+                  <SelectItem key={v} value={v}>{matTypeLabel(t, v)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -269,7 +269,7 @@ function PasteDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: 
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {(["syllabus","lecture","article","assignment","presentation","exam","other"] as const).map((v) => (
-                    <SelectItem key={v} value={v}>{t[v === "presentation" ? "presentationMat" : v]}</SelectItem>
+                    <SelectItem key={v} value={v}>{matTypeLabel(t, v)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

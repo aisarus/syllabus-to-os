@@ -108,7 +108,7 @@ function MaterialDetail() {
               <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {(["syllabus","lecture","article","assignment","presentation","exam","other"] as const).map((v) => (
-                  <SelectItem key={v} value={v}>{t[v === "presentation" ? "presentationMat" : v]}</SelectItem>
+                  <SelectItem key={v} value={v}>{matTypeLabel(t, v)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
