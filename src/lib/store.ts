@@ -647,6 +647,18 @@ export const store = {
       studySessions: d.studySessions.filter((s) => s.id !== id),
     }));
   },
+  // syllabus imports
+  recordSyllabusImport(s: Omit<SyllabusImport, "id" | "createdAt">) {
+    const rec: SyllabusImport = { ...s, id: uid("simp"), createdAt: Date.now() };
+    updateData((d) => ({ ...d, syllabusImports: [rec, ...d.syllabusImports] }));
+    return rec;
+  },
+  deleteSyllabusImport(id: string) {
+    updateData((d) => ({
+      ...d,
+      syllabusImports: d.syllabusImports.filter((s) => s.id !== id),
+    }));
+  },
   // bulk
   reset() {
     setData(empty());
