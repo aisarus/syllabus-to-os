@@ -20,6 +20,7 @@ import { Route as AppProgramRouteImport } from './routes/app.program'
 import { Route as AppPresentationsRouteImport } from './routes/app.presentations'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
 import { Route as AppMaterialsRouteImport } from './routes/app.materials'
+import { Route as AppImportSyllabusRouteImport } from './routes/app.import-syllabus'
 import { Route as AppFlashcardsRouteImport } from './routes/app.flashcards'
 import { Route as AppDataRouteImport } from './routes/app.data'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
@@ -86,6 +87,11 @@ const AppMaterialsRoute = AppMaterialsRouteImport.update({
   path: '/materials',
   getParentRoute: () => AppRoute,
 } as any)
+const AppImportSyllabusRoute = AppImportSyllabusRouteImport.update({
+  id: '/import-syllabus',
+  path: '/import-syllabus',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppFlashcardsRoute = AppFlashcardsRouteImport.update({
   id: '/flashcards',
   path: '/flashcards',
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/app/dashboard': typeof AppDashboardRoute
   '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
+  '/app/import-syllabus': typeof AppImportSyllabusRoute
   '/app/materials': typeof AppMaterialsRouteWithChildren
   '/app/notes': typeof AppNotesRoute
   '/app/presentations': typeof AppPresentationsRouteWithChildren
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/app/dashboard': typeof AppDashboardRoute
   '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
+  '/app/import-syllabus': typeof AppImportSyllabusRoute
   '/app/materials': typeof AppMaterialsRouteWithChildren
   '/app/notes': typeof AppNotesRoute
   '/app/presentations': typeof AppPresentationsRouteWithChildren
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/app/dashboard': typeof AppDashboardRoute
   '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
+  '/app/import-syllabus': typeof AppImportSyllabusRoute
   '/app/materials': typeof AppMaterialsRouteWithChildren
   '/app/notes': typeof AppNotesRoute
   '/app/presentations': typeof AppPresentationsRouteWithChildren
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/app/dashboard'
     | '/app/data'
     | '/app/flashcards'
+    | '/app/import-syllabus'
     | '/app/materials'
     | '/app/notes'
     | '/app/presentations'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/app/dashboard'
     | '/app/data'
     | '/app/flashcards'
+    | '/app/import-syllabus'
     | '/app/materials'
     | '/app/notes'
     | '/app/presentations'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/app/dashboard'
     | '/app/data'
     | '/app/flashcards'
+    | '/app/import-syllabus'
     | '/app/materials'
     | '/app/notes'
     | '/app/presentations'
@@ -360,6 +372,13 @@ declare module '@tanstack/react-router' {
       path: '/materials'
       fullPath: '/app/materials'
       preLoaderRoute: typeof AppMaterialsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/import-syllabus': {
+      id: '/app/import-syllabus'
+      path: '/import-syllabus'
+      fullPath: '/app/import-syllabus'
+      preLoaderRoute: typeof AppImportSyllabusRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/flashcards': {
@@ -489,6 +508,7 @@ interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppDataRoute: typeof AppDataRoute
   AppFlashcardsRoute: typeof AppFlashcardsRoute
+  AppImportSyllabusRoute: typeof AppImportSyllabusRoute
   AppMaterialsRoute: typeof AppMaterialsRouteWithChildren
   AppNotesRoute: typeof AppNotesRoute
   AppPresentationsRoute: typeof AppPresentationsRouteWithChildren
@@ -507,6 +527,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppDataRoute: AppDataRoute,
   AppFlashcardsRoute: AppFlashcardsRoute,
+  AppImportSyllabusRoute: AppImportSyllabusRoute,
   AppMaterialsRoute: AppMaterialsRouteWithChildren,
   AppNotesRoute: AppNotesRoute,
   AppPresentationsRoute: AppPresentationsRouteWithChildren,
@@ -527,3 +548,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -236,6 +236,45 @@ export type Dict = {
   aiExplanation: string;
   serverEndpoint: string;
   noKeyInFrontend: string;
+  // syllabus import
+  importSyllabus: string;
+  importSyllabusIntro: string;
+  syllabusTabXlsx: string;
+  syllabusTabJson: string;
+  syllabusChooseXlsx: string;
+  syllabusChooseSheet: string;
+  syllabusHeaderRow: string;
+  syllabusSheetPreview: string;
+  syllabusColumnMapping: string;
+  syllabusMappingHelp: string;
+  syllabusColTitle: string;
+  syllabusColOriginalTitle: string;
+  syllabusColNumber: string;
+  syllabusColSemester: string;
+  syllabusColCredits: string;
+  syllabusColInstructor: string;
+  syllabusColType: string;
+  syllabusColDescription: string;
+  syllabusColTopics: string;
+  syllabusColIgnore: string;
+  syllabusCoursePreview: string;
+  syllabusIncludeRow: string;
+  syllabusDestinationProgram: string;
+  syllabusNewProgram: string;
+  syllabusExistingProgram: string;
+  syllabusRunImport: string;
+  syllabusImported: string;
+  syllabusJsonPasteHelp: string;
+  syllabusJsonSchemaHint: string;
+  syllabusJsonPreview: string;
+  syllabusHistory: string;
+  syllabusHistoryEmpty: string;
+  syllabusNoRowsPicked: string;
+  syllabusTitleRequired: string;
+  syllabusRowCount: string;
+  syllabusCoursesImported: string;
+  syllabusTopicsImported: string;
+  syllabusTopicsSplitHelp: string;
 };
 
 const en: Dict = {
@@ -458,6 +497,44 @@ const en: Dict = {
     "AI generation is not connected yet. Manual tools work locally. A future update will let you connect a server endpoint — API keys are never stored in the browser.",
   serverEndpoint: "Server endpoint (planned)",
   noKeyInFrontend: "No secret keys will be stored in this app.",
+  importSyllabus: "Import syllabus",
+  importSyllabusIntro: "Import an XLSX syllabus/ידיעון or a structured JSON structure into real programs and courses.",
+  syllabusTabXlsx: "XLSX file",
+  syllabusTabJson: "Structured JSON",
+  syllabusChooseXlsx: "Choose XLSX file",
+  syllabusChooseSheet: "Sheet",
+  syllabusHeaderRow: "Header row",
+  syllabusSheetPreview: "Sheet preview",
+  syllabusColumnMapping: "Column mapping",
+  syllabusMappingHelp: "Pick which column contains each course field. Only Title is required.",
+  syllabusColTitle: "Title (required)",
+  syllabusColOriginalTitle: "Original title",
+  syllabusColNumber: "Course number",
+  syllabusColSemester: "Semester",
+  syllabusColCredits: "Credits",
+  syllabusColInstructor: "Instructor",
+  syllabusColType: "Type",
+  syllabusColDescription: "Description",
+  syllabusColTopics: "Topics (one per line)",
+  syllabusColIgnore: "— ignore —",
+  syllabusCoursePreview: "Course preview",
+  syllabusIncludeRow: "Include",
+  syllabusDestinationProgram: "Destination program",
+  syllabusNewProgram: "Create new program",
+  syllabusExistingProgram: "Add to existing program",
+  syllabusRunImport: "Import into workspace",
+  syllabusImported: "Import successful",
+  syllabusJsonPasteHelp: "Paste a JSON object with a program and/or courses array.",
+  syllabusJsonSchemaHint: `Example: { "program": { "name": "...", "institution": "..." }, "courses": [ { "title": "...", "number": "615", "semester": "Sem A", "credits": 5, "topics": ["Topic 1", "Topic 2"] } ] }`,
+  syllabusJsonPreview: "Parsed preview",
+  syllabusHistory: "Import history",
+  syllabusHistoryEmpty: "No imports yet.",
+  syllabusNoRowsPicked: "No rows selected.",
+  syllabusTitleRequired: "Map a Title column first.",
+  syllabusRowCount: "rows",
+  syllabusCoursesImported: "courses imported",
+  syllabusTopicsImported: "topics imported",
+  syllabusTopicsSplitHelp: "Topic cells are split by newline or semicolon.",
 };
 
 const ru: Dict = {
@@ -680,6 +757,44 @@ const ru: Dict = {
     "AI-генерация ещё не подключена. Ручные инструменты работают локально. В будущем можно будет указать серверный endpoint — секретные ключи в браузере не хранятся никогда.",
   serverEndpoint: "Серверный endpoint (в планах)",
   noKeyInFrontend: "Секретные ключи не хранятся в приложении.",
+  importSyllabus: "Импорт силабуса",
+  importSyllabusIntro: "Загрузите XLSX-силабус/ידיעון или структурированный JSON и превратите его в реальные программы и курсы.",
+  syllabusTabXlsx: "XLSX файл",
+  syllabusTabJson: "Структурированный JSON",
+  syllabusChooseXlsx: "Выбрать XLSX файл",
+  syllabusChooseSheet: "Лист",
+  syllabusHeaderRow: "Строка заголовков",
+  syllabusSheetPreview: "Предпросмотр листа",
+  syllabusColumnMapping: "Сопоставление колонок",
+  syllabusMappingHelp: "Укажите, какая колонка содержит каждое поле курса. Обязательна только «Название».",
+  syllabusColTitle: "Название (обязательно)",
+  syllabusColOriginalTitle: "Оригинальное название",
+  syllabusColNumber: "Номер курса",
+  syllabusColSemester: "Семестр",
+  syllabusColCredits: "Кредиты",
+  syllabusColInstructor: "Преподаватель",
+  syllabusColType: "Тип",
+  syllabusColDescription: "Описание",
+  syllabusColTopics: "Темы (по одной на строку)",
+  syllabusColIgnore: "— не использовать —",
+  syllabusCoursePreview: "Предпросмотр курсов",
+  syllabusIncludeRow: "Включить",
+  syllabusDestinationProgram: "Программа-приёмник",
+  syllabusNewProgram: "Создать новую программу",
+  syllabusExistingProgram: "Добавить в существующую программу",
+  syllabusRunImport: "Импортировать в рабочее пространство",
+  syllabusImported: "Импорт выполнен",
+  syllabusJsonPasteHelp: "Вставьте JSON-объект с программой и/или массивом курсов.",
+  syllabusJsonSchemaHint: `Пример: { "program": { "name": "...", "institution": "..." }, "courses": [ { "title": "...", "number": "615", "semester": "Sem A", "credits": 5, "topics": ["Тема 1", "Тема 2"] } ] }`,
+  syllabusJsonPreview: "Разобранный предпросмотр",
+  syllabusHistory: "История импортов",
+  syllabusHistoryEmpty: "Импортов пока нет.",
+  syllabusNoRowsPicked: "Ни одна строка не выбрана.",
+  syllabusTitleRequired: "Сначала укажите колонку «Название».",
+  syllabusRowCount: "строк",
+  syllabusCoursesImported: "курсов импортировано",
+  syllabusTopicsImported: "тем импортировано",
+  syllabusTopicsSplitHelp: "Ячейки с темами разбиваются по переводу строки или «;».",
 };
 
 export const dicts: Record<Lang, Dict> = { en, ru };
