@@ -278,7 +278,7 @@ function NoteEditor({ draft, onChange }: { draft: NoteDraft; onChange: (d: NoteD
     <div className="space-y-2">
       <div><Label>{t.title}</Label><Input value={draft.title} onChange={(e) => onChange({ ...draft, title: e.target.value })} /></div>
       <div>
-        <Label>{t.content ?? "Content"}</Label>
+        <Label>{t.content}</Label>
         <textarea className="w-full min-h-[280px] rounded-md border border-input bg-background p-2 text-sm font-mono" value={draft.content} onChange={(e) => onChange({ ...draft, content: e.target.value })} />
       </div>
       <div><Label>{t.tags}</Label>
@@ -361,12 +361,12 @@ function PresEditor({ draft, onChange }: { draft: PresentationDraft; onChange: (
             className="w-full min-h-[40px] rounded-md border border-input bg-background p-2 text-xs"
             value={s.speakerNotes}
             onChange={(e) => updateS(i, { speakerNotes: e.target.value })}
-            placeholder={t.speakerNotes ?? "Speaker notes"}
+            placeholder={t.speakerNotes}
           />
         </div>
       ))}
       <Button size="sm" variant="ghost" onClick={() => onChange({ ...draft, slides: [...draft.slides, { title: "New slide", bullets: [], speakerNotes: "", sourceChunkIds: [] }] })}>
-        <Plus className="h-3.5 w-3.5 me-1" />{t.add ?? "Add"}
+        <Plus className="h-3.5 w-3.5 me-1" />{t.add}
       </Button>
     </div>
   );
