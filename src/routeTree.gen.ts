@@ -32,6 +32,8 @@ import { Route as AppQuizzesQuizIdRouteImport } from './routes/app.quizzes.$quiz
 import { Route as AppPresentationsOutlineIdRouteImport } from './routes/app.presentations.$outlineId'
 import { Route as AppMaterialsMaterialIdRouteImport } from './routes/app.materials.$materialId'
 import { Route as AppCoursesCourseIdRouteImport } from './routes/app.courses.$courseId'
+import { Route as ApiAiStatusRouteImport } from './routes/api/ai/status'
+import { Route as ApiAiParseSyllabusRouteImport } from './routes/api/ai/parse-syllabus'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -149,6 +151,16 @@ const AppCoursesCourseIdRoute = AppCoursesCourseIdRouteImport.update({
   path: '/$courseId',
   getParentRoute: () => AppCoursesRoute,
 } as any)
+const ApiAiStatusRoute = ApiAiStatusRouteImport.update({
+  id: '/api/ai/status',
+  path: '/api/ai/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiParseSyllabusRoute = ApiAiParseSyllabusRouteImport.update({
+  id: '/api/ai/parse-syllabus',
+  path: '/api/ai/parse-syllabus',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -170,6 +182,8 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
   '/app/': typeof AppIndexRoute
+  '/api/ai/parse-syllabus': typeof ApiAiParseSyllabusRoute
+  '/api/ai/status': typeof ApiAiStatusRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
   '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
   '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
@@ -194,6 +208,8 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
   '/app': typeof AppIndexRoute
+  '/api/ai/parse-syllabus': typeof ApiAiParseSyllabusRoute
+  '/api/ai/status': typeof ApiAiStatusRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
   '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
   '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
@@ -220,6 +236,8 @@ export interface FileRoutesById {
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
   '/app/': typeof AppIndexRoute
+  '/api/ai/parse-syllabus': typeof ApiAiParseSyllabusRoute
+  '/api/ai/status': typeof ApiAiStatusRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
   '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
   '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
@@ -247,6 +265,8 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/study-plan'
     | '/app/'
+    | '/api/ai/parse-syllabus'
+    | '/api/ai/status'
     | '/app/courses/$courseId'
     | '/app/materials/$materialId'
     | '/app/presentations/$outlineId'
@@ -271,6 +291,8 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/study-plan'
     | '/app'
+    | '/api/ai/parse-syllabus'
+    | '/api/ai/status'
     | '/app/courses/$courseId'
     | '/app/materials/$materialId'
     | '/app/presentations/$outlineId'
@@ -296,6 +318,8 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/study-plan'
     | '/app/'
+    | '/api/ai/parse-syllabus'
+    | '/api/ai/status'
     | '/app/courses/$courseId'
     | '/app/materials/$materialId'
     | '/app/presentations/$outlineId'
@@ -305,6 +329,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  ApiAiParseSyllabusRoute: typeof ApiAiParseSyllabusRoute
+  ApiAiStatusRoute: typeof ApiAiStatusRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -470,6 +496,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCoursesCourseIdRouteImport
       parentRoute: typeof AppCoursesRoute
     }
+    '/api/ai/status': {
+      id: '/api/ai/status'
+      path: '/api/ai/status'
+      fullPath: '/api/ai/status'
+      preLoaderRoute: typeof ApiAiStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/parse-syllabus': {
+      id: '/api/ai/parse-syllabus'
+      path: '/api/ai/parse-syllabus'
+      fullPath: '/api/ai/parse-syllabus'
+      preLoaderRoute: typeof ApiAiParseSyllabusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -565,17 +605,9 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  ApiAiParseSyllabusRoute: ApiAiParseSyllabusRoute,
+  ApiAiStatusRoute: ApiAiStatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

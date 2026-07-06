@@ -1,9 +1,12 @@
 // AI provider abstraction.
-// There is NO real AI backend connected. Every generator returns a clear
-// "not connected" result. Wiring a real provider is done in a future phase
-// via a server endpoint — never by embedding secret API keys in the browser.
+// Real AI generation is not connected in the frontend.
+// A single optional feature — Gemini-assisted syllabus parsing — is available via
+// the `/api/ai/parse-syllabus` server route. The frontend never sees the API key.
+// If GEMINI_API_KEY is not set on the server, the endpoint responds honestly and
+// the UI stays disabled.
 
 import type { Material } from "./store";
+import type { ParsedSyllabusDraft, IgnoredRow } from "./syllabus-parser";
 
 export type AIResult<T> =
   | { ok: true; data: T }
@@ -18,6 +21,8 @@ export function notConnectedMessage(lang: "ru" | "en" = "ru") {
   return lang === "ru" ? NOT_CONNECTED_RU : NOT_CONNECTED_EN;
 }
 
+// Frontend-side heuristic: assume not connected. Real status is fetched from the
+// server via `checkAIStatus()` when the UI needs to know.
 export function isAIConnected(): boolean {
   return false;
 }
@@ -26,32 +31,72 @@ function notConnected<T>(): AIResult<T> {
   return { ok: false, reason: "not_connected", message: NOT_CONNECTED_EN };
 }
 
-export async function generateNoteFromMaterial(_material: Material): Promise<AIResult<{ title: string; content: string }>> {
+export async function generateNoteFromMaterial(_m: Material): Promise<AIResult<{ title: string; content: string }>> {
   return notConnected();
 }
-
-export async function generateQuizFromMaterial(_material: Material): Promise<
+export async function generateQuizFromMaterial(_m: Material): Promise<
   AIResult<{ title: string; questions: { prompt: string; options: string[]; correctIndex: number; explanation?: string }[] }>
-> {
+> { return notConnected(); }
+export async function generateFlashcardsFromMaterial(_m: Material): Promise<AIResult<{ front: string; back: string }[]>> {
   return notConnected();
 }
-
-export async function generateFlashcardsFromMaterial(
-  _material: Material,
-): Promise<AIResult<{ front: string; back: string }[]>> {
+export async function generatePresentationOutline(_m: Material): Promise<AIResult<{ title: string; slides: { title: string; bullets: string[] }[] }>> {
   return notConnected();
 }
+export async function simplifyText(_t: string, _l: string): Promise<AIResult<string>> { return notConnected(); }
+export async function translateText(_t: string, _l: string): Promise<AIResult<string>> { return notConnected(); }
 
-export async function generatePresentationOutline(
-  _material: Material,
-): Promise<AIResult<{ title: string; slides: { title: string; bullets: string[] }[] }>> {
-  return notConnected();
+// ============ Gemini-assisted syllabus parsing ============
+
+export interface AIParseSyllabusInput {
+  fileName: string;
+  sheets: { name: string; rows: string[][] }[];
+  deterministicDraft: ParsedSyllabusDraft;
+  ignoredRows: IgnoredRow[];
+  locale: "ru" | "en";
 }
 
-export async function simplifyText(_text: string, _targetLanguage: string): Promise<AIResult<string>> {
-  return notConnected();
+export interface AIStatus {
+  configured: boolean;
+  provider: "gemini";
+  model?: string;
 }
 
-export async function translateText(_text: string, _targetLanguage: string): Promise<AIResult<string>> {
-  return notConnected();
+let statusCache: { at: number; value: AIStatus } | null = null;
+
+export async function checkAIStatus(): Promise<AIStatus> {
+  const now = Date.now();
+  if (statusCache && now - statusCache.at < 30_000) return statusCache.value;
+  try {
+    const res = await fetch("/api/ai/status", { headers: { Accept: "application/json" } });
+    if (!res.ok) throw new Error(String(res.status));
+    const j = (await res.json()) as AIStatus;
+    statusCache = { at: now, value: j };
+    return j;
+  } catch {
+    const value: AIStatus = { configured: false, provider: "gemini" };
+    statusCache = { at: now, value };
+    return value;
+  }
+}
+
+export async function parseSyllabusWithAI(
+  input: AIParseSyllabusInput,
+): Promise<AIResult<ParsedSyllabusDraft>> {
+  try {
+    const res = await fetch("/api/ai/parse-syllabus", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    const j = (await res.json()) as
+      | { ok: true; draft: ParsedSyllabusDraft }
+      | { ok: false; error: string };
+    if (!j.ok) {
+      return { ok: false, reason: "not_connected", message: j.error };
+    }
+    return { ok: true, data: j.draft };
+  } catch (e) {
+    return { ok: false, reason: "error", message: (e as Error).message };
+  }
 }
