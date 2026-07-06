@@ -211,6 +211,20 @@ export interface StudySession {
   completedAt: number;
 }
 
+export type SyllabusImportSource = "xlsx" | "json";
+
+export interface SyllabusImport {
+  id: string;
+  source: SyllabusImportSource;
+  fileName?: string;
+  sheetName?: string;
+  programId?: string;
+  programName?: string;
+  courseIds: string[];
+  topicIds: string[];
+  createdAt: number;
+}
+
 export interface AppData {
   version: 1;
   programs: Program[];
@@ -227,6 +241,7 @@ export interface AppData {
   presentationOutlines: PresentationOutline[];
   calendarEvents: CalendarEvent[];
   studySessions: StudySession[];
+  syllabusImports: SyllabusImport[];
 }
 
 const KEY = "lamdan.data.v1";
