@@ -14,11 +14,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppQuizzesRouteImport } from './routes/app.quizzes'
+import { Route as AppProgressRouteImport } from './routes/app.progress'
+import { Route as AppProgramRouteImport } from './routes/app.program'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
 import { Route as AppFlashcardsRouteImport } from './routes/app.flashcards'
+import { Route as AppDataRouteImport } from './routes/app.data'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppCoursesRouteImport } from './routes/app.courses'
 import { Route as AppAssignmentsRouteImport } from './routes/app.assignments'
+import { Route as AppQuizzesQuizIdRouteImport } from './routes/app.quizzes.$quizId'
 import { Route as AppCoursesCourseIdRouteImport } from './routes/app.courses.$courseId'
 
 const AppRoute = AppRouteImport.update({
@@ -46,6 +50,16 @@ const AppQuizzesRoute = AppQuizzesRouteImport.update({
   path: '/quizzes',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProgressRoute = AppProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProgramRoute = AppProgramRouteImport.update({
+  id: '/program',
+  path: '/program',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppNotesRoute = AppNotesRouteImport.update({
   id: '/notes',
   path: '/notes',
@@ -54,6 +68,11 @@ const AppNotesRoute = AppNotesRouteImport.update({
 const AppFlashcardsRoute = AppFlashcardsRouteImport.update({
   id: '/flashcards',
   path: '/flashcards',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDataRoute = AppDataRouteImport.update({
+  id: '/data',
+  path: '/data',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
@@ -71,6 +90,11 @@ const AppAssignmentsRoute = AppAssignmentsRouteImport.update({
   path: '/assignments',
   getParentRoute: () => AppRoute,
 } as any)
+const AppQuizzesQuizIdRoute = AppQuizzesQuizIdRouteImport.update({
+  id: '/$quizId',
+  path: '/$quizId',
+  getParentRoute: () => AppQuizzesRoute,
+} as any)
 const AppCoursesCourseIdRoute = AppCoursesCourseIdRouteImport.update({
   id: '/$courseId',
   path: '/$courseId',
@@ -83,24 +107,32 @@ export interface FileRoutesByFullPath {
   '/app/assignments': typeof AppAssignmentsRoute
   '/app/courses': typeof AppCoursesRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
   '/app/notes': typeof AppNotesRoute
-  '/app/quizzes': typeof AppQuizzesRoute
+  '/app/program': typeof AppProgramRoute
+  '/app/progress': typeof AppProgressRoute
+  '/app/quizzes': typeof AppQuizzesRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/quizzes/$quizId': typeof AppQuizzesQuizIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/assignments': typeof AppAssignmentsRoute
   '/app/courses': typeof AppCoursesRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
   '/app/notes': typeof AppNotesRoute
-  '/app/quizzes': typeof AppQuizzesRoute
+  '/app/program': typeof AppProgramRoute
+  '/app/progress': typeof AppProgressRoute
+  '/app/quizzes': typeof AppQuizzesRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/quizzes/$quizId': typeof AppQuizzesQuizIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -109,12 +141,16 @@ export interface FileRoutesById {
   '/app/assignments': typeof AppAssignmentsRoute
   '/app/courses': typeof AppCoursesRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
   '/app/notes': typeof AppNotesRoute
-  '/app/quizzes': typeof AppQuizzesRoute
+  '/app/program': typeof AppProgramRoute
+  '/app/progress': typeof AppProgressRoute
+  '/app/quizzes': typeof AppQuizzesRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/quizzes/$quizId': typeof AppQuizzesQuizIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -124,24 +160,32 @@ export interface FileRouteTypes {
     | '/app/assignments'
     | '/app/courses'
     | '/app/dashboard'
+    | '/app/data'
     | '/app/flashcards'
     | '/app/notes'
+    | '/app/program'
+    | '/app/progress'
     | '/app/quizzes'
     | '/app/settings'
     | '/app/'
     | '/app/courses/$courseId'
+    | '/app/quizzes/$quizId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/app/assignments'
     | '/app/courses'
     | '/app/dashboard'
+    | '/app/data'
     | '/app/flashcards'
     | '/app/notes'
+    | '/app/program'
+    | '/app/progress'
     | '/app/quizzes'
     | '/app/settings'
     | '/app'
     | '/app/courses/$courseId'
+    | '/app/quizzes/$quizId'
   id:
     | '__root__'
     | '/'
@@ -149,12 +193,16 @@ export interface FileRouteTypes {
     | '/app/assignments'
     | '/app/courses'
     | '/app/dashboard'
+    | '/app/data'
     | '/app/flashcards'
     | '/app/notes'
+    | '/app/program'
+    | '/app/progress'
     | '/app/quizzes'
     | '/app/settings'
     | '/app/'
     | '/app/courses/$courseId'
+    | '/app/quizzes/$quizId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -199,6 +247,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppQuizzesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/progress': {
+      id: '/app/progress'
+      path: '/progress'
+      fullPath: '/app/progress'
+      preLoaderRoute: typeof AppProgressRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/program': {
+      id: '/app/program'
+      path: '/program'
+      fullPath: '/app/program'
+      preLoaderRoute: typeof AppProgramRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/notes': {
       id: '/app/notes'
       path: '/notes'
@@ -211,6 +273,13 @@ declare module '@tanstack/react-router' {
       path: '/flashcards'
       fullPath: '/app/flashcards'
       preLoaderRoute: typeof AppFlashcardsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/data': {
+      id: '/app/data'
+      path: '/data'
+      fullPath: '/app/data'
+      preLoaderRoute: typeof AppDataRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/dashboard': {
@@ -234,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssignmentsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/quizzes/$quizId': {
+      id: '/app/quizzes/$quizId'
+      path: '/$quizId'
+      fullPath: '/app/quizzes/$quizId'
+      preLoaderRoute: typeof AppQuizzesQuizIdRouteImport
+      parentRoute: typeof AppQuizzesRoute
+    }
     '/app/courses/$courseId': {
       id: '/app/courses/$courseId'
       path: '/$courseId'
@@ -256,13 +332,28 @@ const AppCoursesRouteWithChildren = AppCoursesRoute._addFileChildren(
   AppCoursesRouteChildren,
 )
 
+interface AppQuizzesRouteChildren {
+  AppQuizzesQuizIdRoute: typeof AppQuizzesQuizIdRoute
+}
+
+const AppQuizzesRouteChildren: AppQuizzesRouteChildren = {
+  AppQuizzesQuizIdRoute: AppQuizzesQuizIdRoute,
+}
+
+const AppQuizzesRouteWithChildren = AppQuizzesRoute._addFileChildren(
+  AppQuizzesRouteChildren,
+)
+
 interface AppRouteChildren {
   AppAssignmentsRoute: typeof AppAssignmentsRoute
   AppCoursesRoute: typeof AppCoursesRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
+  AppDataRoute: typeof AppDataRoute
   AppFlashcardsRoute: typeof AppFlashcardsRoute
   AppNotesRoute: typeof AppNotesRoute
-  AppQuizzesRoute: typeof AppQuizzesRoute
+  AppProgramRoute: typeof AppProgramRoute
+  AppProgressRoute: typeof AppProgressRoute
+  AppQuizzesRoute: typeof AppQuizzesRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -271,9 +362,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppAssignmentsRoute: AppAssignmentsRoute,
   AppCoursesRoute: AppCoursesRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
+  AppDataRoute: AppDataRoute,
   AppFlashcardsRoute: AppFlashcardsRoute,
   AppNotesRoute: AppNotesRoute,
-  AppQuizzesRoute: AppQuizzesRoute,
+  AppProgramRoute: AppProgramRoute,
+  AppProgressRoute: AppProgressRoute,
+  AppQuizzesRoute: AppQuizzesRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
 }
