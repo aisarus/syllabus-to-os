@@ -1,73 +1,154 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/app-shell";
-import { demoFlashcards, findCourse } from "@/lib/demo-data";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { RotateCcw, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useApp } from "@/lib/app-context";
+import { useData, store } from "@/lib/store";
+import { Plus, Trash2, Play } from "lucide-react";
 
 export const Route = createFileRoute("/app/flashcards")({
-  head: () => ({ meta: [{ title: "כרטיסיות · Lamdan AI" }] }),
-  component: Flashcards,
+  component: FlashcardsPage,
 });
 
-function Flashcards() {
-  const cards = demoFlashcards;
-  const [i, setI] = useState(0);
-  const [flip, setFlip] = useState(false);
-  const card = cards[i % cards.length];
-  const course = findCourse(card.courseId);
+function CardForm({ onDone }: { onDone: () => void }) {
+  const { t } = useApp();
+  const data = useData();
+  const [f, setF] = useState({ front: "", back: "", courseId: "_none" });
+  return (
+    <div className="space-y-3">
+      <div><Label>{t.front}</Label><Input value={f.front} onChange={(e) => setF({ ...f, front: e.target.value })} /></div>
+      <div><Label>{t.cardBack}</Label><Input value={f.back} onChange={(e) => setF({ ...f, back: e.target.value })} /></div>
+      <div>
+        <Label>{t.linkedCourse}</Label>
+        <Select value={f.courseId} onValueChange={(v) => setF({ ...f, courseId: v })}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_none">— {t.none} —</SelectItem>
+            {data.courses.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button variant="ghost" onClick={onDone}>{t.cancel}</Button>
+        <Button
+          onClick={() => {
+            if (!f.front || !f.back) return;
+            store.createCard({ front: f.front, back: f.back, courseId: f.courseId === "_none" ? undefined : f.courseId });
+            onDone();
+          }}
+        >{t.save}</Button>
+      </div>
+    </div>
+  );
+}
 
-  const next = (rating?: string) => { setFlip(false); setI((v) => v + 1); void rating; };
+function ReviewMode({ onDone }: { onDone: () => void }) {
+  const { t } = useApp();
+  const data = useData();
+  const due = useMemo(() => data.flashcards.filter((c) => c.dueAt <= Date.now()), [data.flashcards]);
+  const [idx, setIdx] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const card = due[idx];
 
-  const stats = {
-    new: cards.filter(c => c.status === "new").length,
-    learning: cards.filter(c => c.status === "learning").length,
-    review: cards.filter(c => c.status === "review").length,
-    mastered: cards.filter(c => c.status === "mastered").length,
-    due: cards.filter(c => c.dueToday).length,
+  if (!card) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-muted-foreground mb-4">{t.noDueCards}</p>
+        <Button onClick={onDone}>{t.close}</Button>
+      </div>
+    );
+  }
+
+  const rate = (q: "again" | "good" | "easy") => {
+    store.reviewCard(card.id, q);
+    setFlipped(false);
+    setIdx(idx + 1);
   };
 
   return (
-    <div className="p-4 lg:p-8 max-w-4xl mx-auto">
-      <PageHeader title="כרטיסיות" subtitle="Spaced repetition · מצב טרמינולוגיה עברית-אנגלית-רוסית" actions={<Button variant="outline"><Sparkles className="me-2 h-4 w-4" /> צור מכרטיסיות מהערה</Button>} />
-
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-6">
-        {Object.entries({ "לחזרה היום": stats.due, "חדשות": stats.new, "בלמידה": stats.learning, "לחזור": stats.review, "שולטים": stats.mastered }).map(([k, v]) => (
-          <Card key={k} className="p-3 bg-card border-border text-center">
-            <div className="text-2xl font-bold text-gradient">{v}</div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">{k}</div>
-          </Card>
-        ))}
+    <div className="space-y-4">
+      <div className="text-xs text-muted-foreground">{idx + 1} / {due.length}</div>
+      <div
+        className="min-h-[200px] rounded-lg border border-border bg-background p-8 flex items-center justify-center text-center cursor-pointer"
+        onClick={() => setFlipped((v) => !v)}
+      >
+        <div className="text-lg">{flipped ? card.back : card.front}</div>
       </div>
-
-      <Card className="p-8 bg-card border-border min-h-[320px] flex flex-col cursor-pointer" onClick={() => setFlip(!flip)}>
-        <div className="flex items-center justify-between mb-4">
-          <Badge variant="secondary" className="text-[10px]">{course?.number} · {course?.titleHe}</Badge>
-          <Badge variant="outline" className="text-[10px]">{card.status}</Badge>
+      {flipped ? (
+        <div className="grid grid-cols-3 gap-2">
+          <Button variant="destructive" onClick={() => rate("again")}>{t.again}</Button>
+          <Button variant="outline" onClick={() => rate("good")}>{t.good}</Button>
+          <Button onClick={() => rate("easy")}>{t.easy}</Button>
         </div>
-        <div className="flex-1 flex items-center justify-center text-center">
-          <div>
-            <div className="text-xs uppercase tracking-widest text-muted-foreground mb-3">{flip ? "תשובה" : "שאלה"}</div>
-            <div className="text-2xl md:text-3xl font-bold">{flip ? card.back : card.front}</div>
-            {!flip && <div className="text-xs text-muted-foreground mt-6">לחצו על הכרטיס כדי לחשוף</div>}
-          </div>
+      ) : (
+        <Button className="w-full" onClick={() => setFlipped(true)}>Show answer</Button>
+      )}
+    </div>
+  );
+}
+
+function FlashcardsPage() {
+  const { t } = useApp();
+  const data = useData();
+  const [open, setOpen] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
+  const dueCount = data.flashcards.filter((c) => c.dueAt <= Date.now()).length;
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      <PageHeader
+        title={t.flashcards}
+        actions={
+          <>
+            <Button variant="outline" disabled title={t.notConnected}>{t.generateCards}</Button>
+            <Button variant="outline" onClick={() => setReviewing(true)} disabled={dueCount === 0}>
+              <Play className="h-4 w-4 me-1" />{t.reviewMode} ({dueCount})
+            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild><Button><Plus className="h-4 w-4 me-1" />{t.createCard}</Button></DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>{t.createCard}</DialogTitle></DialogHeader>
+                <CardForm onDone={() => setOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </>
+        }
+      />
+
+      <Dialog open={reviewing} onOpenChange={setReviewing}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{t.reviewMode}</DialogTitle></DialogHeader>
+          <ReviewMode onDone={() => setReviewing(false)} />
+        </DialogContent>
+      </Dialog>
+
+      {data.flashcards.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">
+          {t.empty}
         </div>
-      </Card>
-
-      <div className="mt-4 grid grid-cols-4 gap-2">
-        {[
-          ["שוב", "destructive"], ["קשה", "warning"], ["טוב", "info"], ["קל", "success"],
-        ].map(([l]) => (
-          <Button key={l as string} disabled={!flip} onClick={() => next(l as string)} variant="outline" className="h-12">{l}</Button>
-        ))}
-      </div>
-
-      <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-        <span>{i + 1} מתוך {cards.length}</span>
-        <button onClick={() => { setI(0); setFlip(false); }} className="hover:text-foreground flex items-center gap-1"><RotateCcw className="h-3 w-3" /> אפס סשן</button>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {data.flashcards.map((c) => (
+            <div key={c.id} className="rounded-lg border border-border bg-surface p-4">
+              <div className="text-xs text-muted-foreground uppercase mb-1">{c.status}</div>
+              <Input value={c.front} onChange={(e) => store.updateCard(c.id, { front: e.target.value })} />
+              <Input className="mt-2" value={c.back} onChange={(e) => store.updateCard(c.id, { back: e.target.value })} />
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-[11px] text-muted-foreground">
+                  Due: {new Date(c.dueAt).toLocaleDateString()}
+                </span>
+                <Button size="icon" variant="ghost" onClick={() => store.deleteCard(c.id)}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

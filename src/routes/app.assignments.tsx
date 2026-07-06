@@ -1,62 +1,147 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { PageHeader } from "@/components/app-shell";
-import { demoAssignments, findCourse } from "@/lib/demo-data";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Calendar, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useApp } from "@/lib/app-context";
+import { useData, store, type AssignmentStatus, type Priority } from "@/lib/store";
+import { Plus, Trash2, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/app/assignments")({
-  head: () => ({ meta: [{ title: "מטלות · Lamdan AI" }] }),
-  component: Assignments,
+  component: AssignmentsPage,
 });
 
-function Assignments() {
+function AssignmentForm({ id, onDone }: { id?: string; onDone: () => void }) {
+  const { t } = useApp();
+  const data = useData();
+  const ex = id ? data.assignments.find((a) => a.id === id) : undefined;
+  const [f, setF] = useState({
+    title: ex?.title ?? "",
+    courseId: ex?.courseId ?? "_none",
+    dueDate: ex?.dueDate ?? "",
+    status: (ex?.status ?? "not_started") as AssignmentStatus,
+    priority: (ex?.priority ?? "medium") as Priority,
+    notes: ex?.notes ?? "",
+    grade: ex?.grade ?? "",
+  });
+  const save = () => {
+    const payload = { ...f, courseId: f.courseId === "_none" ? undefined : f.courseId };
+    if (ex) store.updateAssignment(ex.id, payload);
+    else store.createAssignment(payload);
+    onDone();
+  };
   return (
-    <div className="p-4 lg:p-8 max-w-5xl mx-auto">
-      <PageHeader title="מטלות" subtitle="ניהול מטלות, פרויקטים ותרגילים · פירוק AI לצעדים" actions={
-        <Button className="gradient-primary"><Sparkles className="me-2 h-4 w-4" /> תוכנית שבועית</Button>
-      } />
-
-      <div className="space-y-3">
-        {demoAssignments.map((a) => {
-          const c = findCourse(a.courseId);
-          const days = Math.round((new Date(a.due).getTime() - Date.now()) / 86400000);
-          return (
-            <Card key={a.id} className="p-4 bg-card border-border">
-              <div className="flex items-start gap-4">
-                <div className="hidden sm:flex flex-col items-center bg-surface rounded-lg p-2 w-16">
-                  <Calendar className="h-3.5 w-3.5 text-muted-foreground mb-1" />
-                  <div className="text-xs text-muted-foreground">עוד</div>
-                  <div className={`text-lg font-bold ${days < 5 ? "text-destructive" : "text-foreground"}`}>{days}</div>
-                  <div className="text-[10px] text-muted-foreground">ימים</div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <Badge variant="outline" className="text-[10px]">{c?.number}</Badge>
-                    <span className="text-xs text-muted-foreground">{c?.titleHe}</span>
-                    <Badge variant={a.status === "todo" ? "destructive" : "secondary"} className="text-[10px]">{a.status}</Badge>
-                  </div>
-                  <div className="font-semibold">{a.title}</div>
-                  <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-muted-foreground">
-                    <div>משקל: <span className="text-foreground font-semibold">{a.weight}%</span></div>
-                    <div>קושי: <span className="text-foreground font-semibold">{"⭐".repeat(a.difficulty)}</span></div>
-                    <div>זמן: <span className="text-foreground font-semibold">~{a.estimatedHours}h</span></div>
-                    <div>דדליין: <span className="text-foreground font-semibold">{a.due}</span></div>
-                  </div>
-                  <Progress value={a.status === "in_progress" ? 45 : a.status === "submitted" ? 100 : 0} className="mt-3 h-1.5" />
-                </div>
-                <div className="hidden md:flex flex-col gap-1.5">
-                  <Button size="sm" variant="outline" className="text-xs h-7">התחל</Button>
-                  <Button size="sm" variant="outline" className="text-xs h-7">פרק ל-AI</Button>
-                  <Button size="sm" variant="outline" className="text-xs h-7">סמן כהוגש</Button>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+    <div className="space-y-3">
+      <div><Label>{t.title}</Label><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label>{t.linkedCourse}</Label>
+          <Select value={f.courseId} onValueChange={(v) => setF({ ...f, courseId: v })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_none">— {t.none} —</SelectItem>
+              {data.courses.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div><Label>{t.dueDate}</Label><Input type="date" value={f.dueDate} onChange={(e) => setF({ ...f, dueDate: e.target.value })} /></div>
+        <div>
+          <Label>{t.status}</Label>
+          <Select value={f.status} onValueChange={(v) => setF({ ...f, status: v as AssignmentStatus })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="not_started">{t.notStarted}</SelectItem>
+              <SelectItem value="in_progress">{t.inProgress}</SelectItem>
+              <SelectItem value="submitted">{t.submitted}</SelectItem>
+              <SelectItem value="graded">{t.graded}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>{t.priority}</Label>
+          <Select value={f.priority} onValueChange={(v) => setF({ ...f, priority: v as Priority })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">{t.low}</SelectItem>
+              <SelectItem value="medium">{t.medium}</SelectItem>
+              <SelectItem value="high">{t.high}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div><Label>{t.grade}</Label><Input value={f.grade} onChange={(e) => setF({ ...f, grade: e.target.value })} /></div>
       </div>
+      <div>
+        <Label>{t.notes}</Label>
+        <textarea
+          className="w-full min-h-20 rounded-md border border-input bg-background px-3 py-2 text-sm"
+          value={f.notes}
+          onChange={(e) => setF({ ...f, notes: e.target.value })}
+        />
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button variant="ghost" onClick={onDone}>{t.cancel}</Button>
+        <Button onClick={save}>{t.save}</Button>
+      </div>
+    </div>
+  );
+}
+
+function AssignmentsPage() {
+  const { t } = useApp();
+  const data = useData();
+  const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<string | undefined>();
+  const sorted = [...data.assignments].sort((a, b) => (a.dueDate || "").localeCompare(b.dueDate || ""));
+
+  const badge = (p: Priority) =>
+    ({ low: "bg-blue-500/15 text-blue-300", medium: "bg-yellow-500/15 text-yellow-300", high: "bg-red-500/15 text-red-300" }[p]);
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      <PageHeader
+        title={t.assignments}
+        actions={
+          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditId(undefined); }}>
+            <DialogTrigger asChild>
+              <Button onClick={() => setEditId(undefined)}><Plus className="h-4 w-4 me-1" />{t.createAssignment}</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>{editId ? t.edit : t.createAssignment}</DialogTitle></DialogHeader>
+              <AssignmentForm id={editId} onDone={() => { setOpen(false); setEditId(undefined); }} />
+            </DialogContent>
+          </Dialog>
+        }
+      />
+      {sorted.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">{t.empty}</div>
+      ) : (
+        <div className="space-y-2">
+          {sorted.map((a) => {
+            const course = data.courses.find((c) => c.id === a.courseId);
+            return (
+              <div key={a.id} className="rounded-lg border border-border bg-surface p-3 flex items-center gap-3">
+                <span className={`px-2 py-0.5 rounded text-[10px] uppercase ${badge(a.priority)}`}>{t[a.priority]}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{a.title}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {course?.title || t.none} {a.dueDate && `· ${a.dueDate}`} · {a.status.replace("_", " ")}
+                    {a.grade && ` · ${t.grade}: ${a.grade}`}
+                  </div>
+                </div>
+                <Button size="icon" variant="ghost" onClick={() => { setEditId(a.id); setOpen(true); }}>
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button size="icon" variant="ghost" onClick={() => { if (confirm(t.confirm + "?")) store.deleteAssignment(a.id); }}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
