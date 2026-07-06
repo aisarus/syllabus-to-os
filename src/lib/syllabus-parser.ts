@@ -693,8 +693,17 @@ export function parseWorkbookToSyllabusDraft(
             .sort((a, b) => b.cell.length - a.cell.length)[0];
           if (alt) title = alt.cell;
         }
-        if (!title) {
-          addIgnored(row, "no_title_detected");
+        // Reject headers/section labels/numeric-only strings as titles
+        const titleNorm = normalizeForMatch(title);
+        const isNumericOnly = /^\d+([-./]\d+)*$/.test(titleNorm);
+        const isHeaderLabel = equalsAny(title, ALL_HEADER_LABELS);
+        const isSectionLabel =
+          containsAny(title, SEMESTER_KEYWORDS_HE) ||
+          containsAny(title, SEMESTER_KEYWORDS_EN) ||
+          containsAny(title, SEMESTER_KEYWORDS_RU) ||
+          containsAny(title, TOTAL_KEYWORDS);
+        if (!title || isNumericOnly || isHeaderLabel || isSectionLabel) {
+          addIgnored(row, isNumericOnly ? "title_is_number" : isHeaderLabel ? "title_is_header_label" : isSectionLabel ? "title_is_section_label" : "no_title_detected");
           break;
         }
 
