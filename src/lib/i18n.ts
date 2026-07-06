@@ -275,6 +275,66 @@ export type Dict = {
   syllabusCoursesImported: string;
   syllabusTopicsImported: string;
   syllabusTopicsSplitHelp: string;
+  // syllabus v2 (auto-parse flow)
+  syllabusUploadTitle: string;
+  syllabusUploadHelp: string;
+  syllabusAutoParse: string;
+  syllabusParsing: string;
+  syllabusStepReading: string;
+  syllabusStepDetectSheets: string;
+  syllabusStepDetectHeaders: string;
+  syllabusStepDetectSections: string;
+  syllabusStepDetectCourses: string;
+  syllabusStepCleaning: string;
+  syllabusStepBuildDraft: string;
+  syllabusCleanReview: string;
+  syllabusRawSpreadsheet: string;
+  syllabusAdvancedMapping: string;
+  syllabusDropHere: string;
+  syllabusOr: string;
+  syllabusChooseFile: string;
+  syllabusDetectedSheet: string;
+  syllabusParserConfidence: string;
+  syllabusDetectedSemesters: string;
+  syllabusDetectedCourses: string;
+  syllabusWarnings: string;
+  syllabusIgnoredRows: string;
+  syllabusIgnoredRowsHelp: string;
+  syllabusConvertToCourse: string;
+  syllabusIgnorePermanently: string;
+  syllabusViewCells: string;
+  syllabusSourceRow: string;
+  syllabusLowConfidence: string;
+  syllabusRowsGroup: string;
+  syllabusTotalCredits: string;
+  syllabusDetectedProgramName: string;
+  syllabusDetectedInstitution: string;
+  syllabusDetectedDegree: string;
+  syllabusReimportReplace: string;
+  syllabusReimportMerge: string;
+  syllabusReimportNew: string;
+  syllabusDuplicateFound: string;
+  syllabusDupSkip: string;
+  syllabusDupUpdate: string;
+  syllabusDupNew: string;
+  syllabusAIImprove: string;
+  syllabusAINotConnected: string;
+  syllabusAIHint: string;
+  syllabusAIRunning: string;
+  syllabusAIFailed: string;
+  syllabusNoCoursesDetected: string;
+  syllabusUnsupportedFile: string;
+  syllabusFileEmpty: string;
+  syllabusParserDiag: string;
+  syllabusParserVersion: string;
+  syllabusSupportedFormats: string;
+  syllabusReasonEmpty: string;
+  syllabusReasonHeader: string;
+  syllabusReasonSection: string;
+  syllabusReasonTotal: string;
+  syllabusReasonNotes: string;
+  syllabusReasonUnknown: string;
+  syllabusReasonNoTitle: string;
   // materials v2
   searchNav: string;
   overview: string;
@@ -611,6 +671,65 @@ const en: Dict = {
   syllabusCoursesImported: "courses imported",
   syllabusTopicsImported: "topics imported",
   syllabusTopicsSplitHelp: "Topic cells are split by newline or semicolon.",
+  syllabusUploadTitle: "Upload syllabus / program file",
+  syllabusUploadHelp: "Upload a program file or syllabus. Lamdan will try to detect semesters, courses, credits, and instructors automatically.",
+  syllabusAutoParse: "Auto-parse",
+  syllabusParsing: "Parsing…",
+  syllabusStepReading: "Reading workbook",
+  syllabusStepDetectSheets: "Detecting sheets",
+  syllabusStepDetectHeaders: "Detecting header rows",
+  syllabusStepDetectSections: "Detecting semester sections",
+  syllabusStepDetectCourses: "Detecting course rows",
+  syllabusStepCleaning: "Cleaning ignored rows",
+  syllabusStepBuildDraft: "Building draft",
+  syllabusCleanReview: "Clean review",
+  syllabusRawSpreadsheet: "Raw spreadsheet",
+  syllabusAdvancedMapping: "Advanced mapping",
+  syllabusDropHere: "Drop XLSX / CSV / JSON here",
+  syllabusOr: "or",
+  syllabusChooseFile: "Choose file",
+  syllabusDetectedSheet: "Sheet",
+  syllabusParserConfidence: "Confidence",
+  syllabusDetectedSemesters: "Semesters",
+  syllabusDetectedCourses: "Courses",
+  syllabusWarnings: "Warnings",
+  syllabusIgnoredRows: "Ignored rows",
+  syllabusIgnoredRowsHelp: "Rows the parser skipped. Review anything that should have been imported.",
+  syllabusConvertToCourse: "Convert to course",
+  syllabusIgnorePermanently: "Ignore",
+  syllabusViewCells: "View cells",
+  syllabusSourceRow: "Source row",
+  syllabusLowConfidence: "Low confidence",
+  syllabusRowsGroup: "courses",
+  syllabusTotalCredits: "total credits",
+  syllabusDetectedProgramName: "Detected program name",
+  syllabusDetectedInstitution: "Detected institution",
+  syllabusDetectedDegree: "Detected degree",
+  syllabusReimportReplace: "Replace course structure",
+  syllabusReimportMerge: "Merge into program",
+  syllabusReimportNew: "Create new program",
+  syllabusDuplicateFound: "Possible duplicate",
+  syllabusDupSkip: "Skip",
+  syllabusDupUpdate: "Update existing",
+  syllabusDupNew: "Import as new",
+  syllabusAIImprove: "Improve parsing with Gemini",
+  syllabusAINotConnected: "Gemini parsing is not connected",
+  syllabusAIHint: "AI can help fix complex tables, but import only happens after your confirmation.",
+  syllabusAIRunning: "Asking Gemini…",
+  syllabusAIFailed: "Gemini could not refine this draft",
+  syllabusNoCoursesDetected: "No course rows detected. Try Advanced mapping.",
+  syllabusUnsupportedFile: "Unsupported file format.",
+  syllabusFileEmpty: "The file is empty.",
+  syllabusParserDiag: "Syllabus parser",
+  syllabusParserVersion: "Deterministic parser version",
+  syllabusSupportedFormats: "Supported formats: XLSX, XLS, JSON",
+  syllabusReasonEmpty: "empty row",
+  syllabusReasonHeader: "header row",
+  syllabusReasonSection: "semester / section row",
+  syllabusReasonTotal: "total credits row",
+  syllabusReasonNotes: "notes row",
+  syllabusReasonUnknown: "not recognised as a course",
+  syllabusReasonNoTitle: "no title detected",
   searchNav: "Search",
   overview: "Overview",
   chunks: "Chunks",
@@ -946,6 +1065,65 @@ const ru: Dict = {
   syllabusCoursesImported: "курсов импортировано",
   syllabusTopicsImported: "тем импортировано",
   syllabusTopicsSplitHelp: "Ячейки с темами разбиваются по переводу строки или «;».",
+  syllabusUploadTitle: "Загрузите файл силабуса / программы",
+  syllabusUploadHelp: "Загрузите файл программы или силлабус. Lamdan сам попробует найти семестры, курсы, кредиты и преподавателей.",
+  syllabusAutoParse: "Автоматически разобрать",
+  syllabusParsing: "Разбираем…",
+  syllabusStepReading: "Чтение книги",
+  syllabusStepDetectSheets: "Поиск листов",
+  syllabusStepDetectHeaders: "Поиск строк заголовков",
+  syllabusStepDetectSections: "Поиск разделов семестров",
+  syllabusStepDetectCourses: "Поиск строк курсов",
+  syllabusStepCleaning: "Отсеиваем служебные строки",
+  syllabusStepBuildDraft: "Собираем черновик",
+  syllabusCleanReview: "Чистый просмотр",
+  syllabusRawSpreadsheet: "Сырой лист",
+  syllabusAdvancedMapping: "Расширенная настройка",
+  syllabusDropHere: "Перетащите XLSX / CSV / JSON сюда",
+  syllabusOr: "или",
+  syllabusChooseFile: "Выбрать файл",
+  syllabusDetectedSheet: "Лист",
+  syllabusParserConfidence: "Уверенность парсера",
+  syllabusDetectedSemesters: "Семестров",
+  syllabusDetectedCourses: "Курсов",
+  syllabusWarnings: "Предупреждений",
+  syllabusIgnoredRows: "Пропущенные строки",
+  syllabusIgnoredRowsHelp: "Строки, которые парсер не импортировал. Проверьте, если что-то важное пропало.",
+  syllabusConvertToCourse: "Сделать курсом",
+  syllabusIgnorePermanently: "Пропустить",
+  syllabusViewCells: "Показать ячейки",
+  syllabusSourceRow: "Строка источника",
+  syllabusLowConfidence: "Низкая уверенность",
+  syllabusRowsGroup: "курсов",
+  syllabusTotalCredits: "всего кредитов",
+  syllabusDetectedProgramName: "Найденное имя программы",
+  syllabusDetectedInstitution: "Найденное учебное заведение",
+  syllabusDetectedDegree: "Найденная степень",
+  syllabusReimportReplace: "Заменить структуру курсов",
+  syllabusReimportMerge: "Добавить в программу",
+  syllabusReimportNew: "Создать новую программу",
+  syllabusDuplicateFound: "Возможный дубликат",
+  syllabusDupSkip: "Пропустить",
+  syllabusDupUpdate: "Обновить существующий",
+  syllabusDupNew: "Импортировать как новый",
+  syllabusAIImprove: "Улучшить разбор с Gemini",
+  syllabusAINotConnected: "Gemini-разбор не подключён",
+  syllabusAIHint: "AI может помочь исправить сложные таблицы, но импорт произойдёт только после вашего подтверждения.",
+  syllabusAIRunning: "Спрашиваем Gemini…",
+  syllabusAIFailed: "Gemini не смог улучшить черновик",
+  syllabusNoCoursesDetected: "Курсы не найдены. Попробуйте «Расширенная настройка».",
+  syllabusUnsupportedFile: "Формат файла не поддерживается.",
+  syllabusFileEmpty: "Файл пуст.",
+  syllabusParserDiag: "Парсер силабусов",
+  syllabusParserVersion: "Версия детерминированного парсера",
+  syllabusSupportedFormats: "Поддерживаемые форматы: XLSX, XLS, JSON",
+  syllabusReasonEmpty: "пустая строка",
+  syllabusReasonHeader: "строка заголовков",
+  syllabusReasonSection: "разделитель семестра",
+  syllabusReasonTotal: "строка итогов",
+  syllabusReasonNotes: "строка примечаний",
+  syllabusReasonUnknown: "не распознано как курс",
+  syllabusReasonNoTitle: "не найдено название",
   searchNav: "Поиск",
   overview: "Обзор",
   chunks: "Чанки",
