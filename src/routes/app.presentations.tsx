@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useApp } from "@/lib/app-context";
 import { useData, store } from "@/lib/store";
 import { Plus, Trash2 } from "lucide-react";
+import { AIGenerateButton } from "@/components/ai-generate-dialog";
 import { useState } from "react";
 
 export const Route = createFileRoute("/app/presentations")({
@@ -18,7 +19,10 @@ function PresentationsPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <PageHeader title={t.presentations} />
+      <PageHeader
+        title={t.presentations}
+        actions={<AIGenerateButton kind="presentation" />}
+      />
       <div className="flex gap-2 mb-4">
         <Input placeholder={t.title} value={title} onChange={(e) => setTitle(e.target.value)} />
         <Button
