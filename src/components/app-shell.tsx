@@ -15,6 +15,10 @@ import {
   Menu,
   X,
   Languages,
+  FolderOpen,
+  CalendarDays,
+  Target,
+  Presentation,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useApp } from "@/lib/app-context";
