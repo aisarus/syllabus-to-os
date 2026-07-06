@@ -121,6 +121,7 @@ export interface QuizQuestion {
   options: string[];
   correctIndex: number;
   explanation?: string;
+  sourceChunkIds?: string[];
 }
 
 export interface Quiz {
