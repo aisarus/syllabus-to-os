@@ -6,7 +6,7 @@ import type { Lang } from "@/lib/i18n";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { checkAIStatus, isAIConnected, type AIStatus } from "@/lib/ai";
+import { checkAIStatus, type AIStatus } from "@/lib/ai";
 import { PARSER_VERSION } from "@/lib/syllabus-parser";
 
 export const Route = createFileRoute("/app/settings")({
@@ -16,8 +16,12 @@ export const Route = createFileRoute("/app/settings")({
 function SettingsPage() {
   const { t, lang, setLang, theme, setTheme } = useApp();
   const [aiStatus, setAiStatus] = useState<AIStatus | null>(null);
-  useEffect(() => { checkAIStatus().then(setAiStatus).catch(() => setAiStatus({ configured: false, provider: "gemini" })); }, []);
-  const aiConnected = aiStatus?.configured ?? isAIConnected();
+  useEffect(() => {
+    checkAIStatus(true).then(setAiStatus).catch(() =>
+      setAiStatus({ ok: false, provider: "google-gemini", configured: false, model: null }),
+    );
+  }, []);
+  const configured = aiStatus?.configured ?? false;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -49,9 +53,14 @@ function SettingsPage() {
         <div className="rounded-lg border border-border bg-surface p-6 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">{t.aiConnection}</h2>
-            <span className={`text-xs rounded px-2 py-0.5 ${aiConnected ? "bg-green-500/15 text-green-300" : "bg-yellow-500/15 text-yellow-300"}`}>
-              {t.aiStatus}: {aiConnected ? "Gemini" + (aiStatus?.model ? ` · ${aiStatus.model}` : "") : t.syllabusAINotConnected}
+            <span className={`text-xs rounded px-2 py-0.5 ${configured ? "bg-green-500/15 text-green-300" : "bg-yellow-500/15 text-yellow-300"}`}>
+              {t.aiStatus}: {configured ? `${aiStatus?.model ?? ""}` : t.syllabusAINotConnected}
             </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="text-muted-foreground">{t.aiProvider}</div><div>Google Gemini</div>
+            <div className="text-muted-foreground">{t.aiConfigured}</div><div>{configured ? t.yes : t.no}</div>
+            <div className="text-muted-foreground">{t.aiModel}</div><div>{aiStatus?.model ?? "—"}</div>
           </div>
           <p className="text-xs text-muted-foreground">{t.aiExplanation}</p>
           <div>
@@ -65,6 +74,13 @@ function SettingsPage() {
           <h2 className="text-sm font-semibold">{t.syllabusParserDiag}</h2>
           <p className="text-xs"><span className="text-muted-foreground">{t.syllabusParserVersion}:</span> {PARSER_VERSION}</p>
           <p className="text-xs text-muted-foreground">{t.syllabusSupportedFormats}</p>
+          <div className="pt-2 border-t border-border">
+            <h3 className="text-xs font-semibold mb-1">{t.aiActionsTitle}</h3>
+            <ul className="text-xs space-y-0.5">
+              <li>· {t.aiActionSyllabus}: <span className={configured ? "text-green-400" : "text-muted-foreground"}>{configured ? t.statusEnabled : t.statusDisabled}</span></li>
+              <li>· {t.aiActionStudyGen}: <span className="text-muted-foreground">{t.statusNotImplemented}</span></li>
+            </ul>
+          </div>
         </div>
 
         <p className="text-xs text-muted-foreground pt-2">
@@ -74,4 +90,3 @@ function SettingsPage() {
     </div>
   );
 }
-
