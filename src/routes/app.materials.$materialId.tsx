@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { MaterialWorkspace } from "@/components/material-workspace";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
@@ -13,7 +13,7 @@ function MaterialDetail() {
   const { materialId } = Route.useParams();
   const { t } = useApp();
   const data = useData();
-  const navigate = Route.useNavigate();
+  const navigate = useNavigate();
   const material = data.materials.find((item) => item.id === materialId);
 
   if (!material) {
