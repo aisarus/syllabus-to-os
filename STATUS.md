@@ -18,39 +18,37 @@ Last updated: 2026-07-12
 - `P0-008 Replace material detail with a true workspace` — complete and verified.
 - `P0-009 Add chunk editing tools` — complete and verified.
 - `P0-010 Add material output history` — complete and verified.
-- `P0-011 Connect AI actions to material selection` — next.
+- `P0-011 Connect AI actions to material selection` — complete; CI validation in progress.
+- `P0-012 Upgrade AI draft review` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Source-linked material output history
+### Selected-source AI contract
 
-- Added a complete material-level view of saved notes, generated cards, quizzes and presentation outlines.
-- Added chronological generation history from persisted `materialOutputs` records.
-- Added direct links to exact notes, quizzes and presentation outlines.
-- Added a dedicated editable note route so a history entry opens the linked note rather than a generic list.
-- Flashcard generation history opens the material-linked card collection because there is no deck entity yet.
-- Deleted or missing linked entities are displayed honestly instead of producing broken navigation.
-- Added removal of an individual history row without deleting its note, cards, quiz or outline.
-- Existing AI save flows already record note, flashcard, quiz and presentation generation consistently.
-- Existing output records and localStorage data remain compatible; no schema migration was introduced.
+- Audited the existing Material Workspace actions for notes, flashcards and quizzes.
+- Confirmed that the current material, course, topic and selected chunk IDs are preselected in the reusable AI dialog.
+- Confirmed that selected character count and the 20,000-character limit are visible and enforced.
+- Confirmed that an empty source selection cannot be submitted.
+- Confirmed that saved notes, cards and quiz questions preserve `materialId`, course/topic context and `sourceChunkIds`.
+- Confirmed that global AI buttons remain available outside the Material Workspace.
+- Added `verify:ai-source-contract`, a regression check that fails when the selected-source wiring or source-linked save behavior is removed.
+- Added the contract check to the canonical `npm run check` command and GitHub Actions.
+- Preserved the dependency lockfile, store schema and existing localStorage data.
 
 ## Verification state
 
-- Documentation verification passed.
-- TypeScript passed.
-- ESLint passed.
-- Production build passed.
-- The successful pull-request run covers the new direct note route, output resolution, missing-output states and history-only deletion.
+- The new source-contract check is part of CI before TypeScript, ESLint and production build.
+- Do not mark `P0-011` verified until the pull-request run passes the contract check and all existing quality gates.
 
 ## Next execution target
 
-1. Begin `P0-011` selected-source AI actions.
-2. Audit the existing Material Workspace preselection flow against all acceptance criteria.
-3. Block invalid or empty source submissions at the reusable AI-button layer, not only inside the dialog.
-4. Preserve material, course, topic and chunk relationships in every saved output.
+1. Fix any concrete CI failure in the selected-source contract.
+2. Mark `P0-011` verified after the full suite passes.
+3. Begin `P0-012` with idempotent draft saving and explicit saved state.
+4. Add unsaved-change protection and stronger card/question editing in dependency-safe slices.
 
 ## Blockers
 
-None.
+None unless CI reports a concrete failure.
