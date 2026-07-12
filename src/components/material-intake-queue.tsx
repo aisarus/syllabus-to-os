@@ -6,7 +6,9 @@ import {
   useMemo,
   useRef,
   useState,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
 } from "react";
 import {
   AlertTriangle,
@@ -14,12 +16,14 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
+  Eye,
   Files,
   Loader2,
   RotateCcw,
   Trash2,
   X,
 } from "lucide-react";
+import { MaterialIntakeReviewDialog } from "@/components/material-intake-review-dialog";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
 import { formatFileSize } from "@/lib/document-ingestion";
@@ -37,12 +41,13 @@ import {
   type MaterialIntakeOutcome,
   type PreparedFileIntake,
 } from "@/lib/material-intake";
-import { uid, useData, type AppData } from "@/lib/store";
+import { uid, useData, type AppData, type MaterialType } from "@/lib/store";
 
 export type MaterialQueueStatus =
   | "queued"
   | "extracting"
   | "duplicate"
+  | "review"
   | "ready"
   | "partial"
   | "unsupported"
@@ -60,6 +65,14 @@ interface QueueDuplicate {
   title: string;
   canReplace: boolean;
   reason: "fingerprint" | "content" | "metadata";
+}
+
+export interface MaterialReviewPatch {
+  title: string;
+  type: MaterialType;
+  courseId?: string;
+  topicId?: string;
+  tags: string[];
 }
 
 export interface MaterialQueueItem {
@@ -87,6 +100,9 @@ interface MaterialIntakeQueueContextValue {
   cancel: (id: string) => void;
   remove: (id: string) => void;
   resolveDuplicate: (id: string, action: "skip" | DuplicateDecision) => void;
+  saveReview: (id: string, patch: MaterialReviewPatch) => void;
+  retryReview: (id: string) => void;
+  discardReview: (id: string) => void;
   clearFinished: () => void;
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -178,26 +194,15 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
         }
       }
 
-      const replaceMaterialId =
-        item.duplicateDecision === "replace" && item.duplicate?.kind === "material"
-          ? item.duplicate.id
-          : undefined;
-      const result = persistPreparedFile(prepared, {
-        ...item.options,
-        existingMaterialId: replaceMaterialId ?? item.materialId,
-      });
-      rememberMaterialFingerprint(result.material.id, fingerprint);
       setItems((current) =>
         current.map((candidate) =>
           candidate.id === id
             ? {
                 ...candidate,
-                status: queueStatusFromOutcome(result.outcome),
-                message: result.message,
-                materialId: result.material.id,
+                status: "review",
                 fingerprint,
-                prepared: undefined,
-                duplicate: undefined,
+                prepared,
+                message: prepared.extraction.message,
               }
             : candidate,
         ),
@@ -240,6 +245,7 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
               ...item,
               status: "queued",
               message: undefined,
+              prepared: undefined,
               duplicate: undefined,
               duplicateDecision: undefined,
             }
@@ -290,6 +296,74 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
     [],
   );
 
+  const saveReview = useCallback<MaterialIntakeQueueContextValue["saveReview"]>(
+    (id, patch) => {
+      const item = itemsRef.current.find((candidate) => candidate.id === id);
+      if (!item?.prepared || item.status !== "review") return;
+      try {
+        const replaceMaterialId =
+          item.duplicateDecision === "replace" && item.duplicate?.kind === "material"
+            ? item.duplicate.id
+            : undefined;
+        const result = persistPreparedFile(item.prepared, {
+          ...item.options,
+          ...patch,
+          existingMaterialId: replaceMaterialId ?? item.materialId,
+        });
+        rememberMaterialFingerprint(result.material.id, item.fingerprint);
+        setItems((current) =>
+          current.map((candidate) =>
+            candidate.id === id
+              ? {
+                  ...candidate,
+                  status: queueStatusFromOutcome(result.outcome),
+                  message: result.message,
+                  materialId: result.material.id,
+                  options: { ...candidate.options, ...patch },
+                  prepared: undefined,
+                  duplicate: undefined,
+                }
+              : candidate,
+          ),
+        );
+      } catch (error) {
+        setItems((current) =>
+          current.map((candidate) =>
+            candidate.id === id
+              ? {
+                  ...candidate,
+                  status: "error",
+                  message: error instanceof Error ? error.message : String(error),
+                }
+              : candidate,
+          ),
+        );
+      }
+    },
+    [],
+  );
+
+  const retryReview = useCallback((id: string) => {
+    setItems((current) =>
+      current.map((item) =>
+        item.id === id && item.status === "review"
+          ? { ...item, status: "queued", prepared: undefined, message: undefined }
+          : item,
+      ),
+    );
+    setOpen(true);
+  }, []);
+
+  const discardReview = useCallback((id: string) => {
+    setItems((current) =>
+      current.map((item) =>
+        item.id === id && item.status === "review"
+          ? { ...item, status: "skipped", prepared: undefined, message: undefined }
+          : item,
+      ),
+    );
+  }, []);
+
   const clearFinished = useCallback(() => {
     setItems((current) => current.filter((item) => isActiveStatus(item.status)));
   }, []);
@@ -302,11 +376,26 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
       cancel,
       remove,
       resolveDuplicate,
+      saveReview,
+      retryReview,
+      discardReview,
       clearFinished,
       open,
       setOpen,
     }),
-    [items, enqueueFiles, retry, cancel, remove, resolveDuplicate, clearFinished, open],
+    [
+      items,
+      enqueueFiles,
+      retry,
+      cancel,
+      remove,
+      resolveDuplicate,
+      saveReview,
+      retryReview,
+      discardReview,
+      clearFinished,
+      open,
+    ],
   );
 
   return (
@@ -327,11 +416,30 @@ export function useMaterialIntakeQueue(): MaterialIntakeQueueContextValue {
 
 function MaterialIntakeQueuePanel() {
   const { lang } = useApp();
-  const { items, retry, cancel, remove, resolveDuplicate, clearFinished, open, setOpen } =
-    useMaterialIntakeQueue();
+  const {
+    items,
+    retry,
+    cancel,
+    remove,
+    resolveDuplicate,
+    saveReview,
+    retryReview,
+    discardReview,
+    clearFinished,
+    open,
+    setOpen,
+  } = useMaterialIntakeQueue();
+  const [reviewId, setReviewId] = useState<string | null>(null);
   const isRu = lang === "ru";
   const activeCount = items.filter((item) => isActiveStatus(item.status)).length;
   const finishedCount = items.length - activeCount;
+  const reviewItem = reviewId
+    ? items.find((item) => item.id === reviewId && item.status === "review")
+    : undefined;
+
+  useEffect(() => {
+    if (reviewId && !reviewItem) setReviewId(null);
+  }, [reviewId, reviewItem]);
 
   if (items.length === 0) return null;
 
@@ -353,61 +461,85 @@ function MaterialIntakeQueuePanel() {
   }
 
   return (
-    <section
-      aria-label={isRu ? "Очередь загрузки материалов" : "Material upload queue"}
-      className="fixed bottom-4 end-4 z-[80] w-[min(480px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border bg-surface shadow-2xl"
-    >
-      <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 font-semibold">
-            <Files className="h-4 w-4 text-primary" />
-            {isRu ? "Очередь материалов" : "Material queue"}
-          </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {items.some((item) => item.status === "duplicate")
-              ? isRu
-                ? "Найдены возможные дубликаты — выбери действие"
-                : "Possible duplicates found — choose an action"
-              : activeCount > 0
+    <>
+      <section
+        aria-label={isRu ? "Очередь загрузки материалов" : "Material upload queue"}
+        className="fixed bottom-4 end-4 z-[80] w-[min(480px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border bg-surface shadow-2xl"
+      >
+        <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 font-semibold">
+              <Files className="h-4 w-4 text-primary" />
+              {isRu ? "Очередь материалов" : "Material queue"}
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {items.some((item) => item.status === "duplicate")
                 ? isRu
-                  ? `Обрабатывается: ${activeCount}`
-                  : `Processing: ${activeCount}`
-                : isRu
-                  ? "Обработка завершена"
-                  : "Processing complete"}
-          </p>
-        </div>
-        <div className="flex items-center gap-1">
-          {finishedCount > 0 && (
-            <Button size="sm" variant="ghost" onClick={clearFinished}>
-              {isRu ? "Очистить" : "Clear"}
+                  ? "Найдены возможные дубликаты — выбери действие"
+                  : "Possible duplicates found — choose an action"
+                : items.some((item) => item.status === "review")
+                  ? isRu
+                    ? "Материалы готовы к проверке"
+                    : "Materials are ready for review"
+                  : activeCount > 0
+                    ? isRu
+                      ? `Обрабатывается: ${activeCount}`
+                      : `Processing: ${activeCount}`
+                    : isRu
+                      ? "Обработка завершена"
+                      : "Processing complete"}
+            </p>
+          </div>
+          <div className="flex items-center gap-1">
+            {finishedCount > 0 && (
+              <Button size="sm" variant="ghost" onClick={clearFinished}>
+                {isRu ? "Очистить" : "Clear"}
+              </Button>
+            )}
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label={isRu ? "Свернуть очередь" : "Collapse queue"}
+              onClick={() => setOpen(false)}
+            >
+              <ChevronDown className="h-4 w-4" />
             </Button>
-          )}
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label={isRu ? "Свернуть очередь" : "Collapse queue"}
-            onClick={() => setOpen(false)}
-          >
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-        </div>
-      </header>
+          </div>
+        </header>
 
-      <div className="max-h-[min(62svh,480px)] overflow-y-auto p-2">
-        {items.map((item) => (
-          <QueueRow
-            key={item.id}
-            item={item}
-            isRu={isRu}
-            onRetry={() => retry(item.id)}
-            onCancel={() => cancel(item.id)}
-            onRemove={() => remove(item.id)}
-            onDuplicateAction={(action) => resolveDuplicate(item.id, action)}
-          />
-        ))}
-      </div>
-    </section>
+        <div className="max-h-[min(62svh,480px)] overflow-y-auto p-2">
+          {items.map((item) => (
+            <QueueRow
+              key={item.id}
+              item={item}
+              isRu={isRu}
+              onRetry={() => retry(item.id)}
+              onCancel={() => cancel(item.id)}
+              onRemove={() => remove(item.id)}
+              onReview={() => setReviewId(item.id)}
+              onDuplicateAction={(action) => resolveDuplicate(item.id, action)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <MaterialIntakeReviewDialog
+        item={reviewItem}
+        open={Boolean(reviewItem)}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setReviewId(null);
+        }}
+        onSave={(patch) => {
+          if (reviewItem) saveReview(reviewItem.id, patch);
+        }}
+        onRetry={() => {
+          if (reviewItem) retryReview(reviewItem.id);
+        }}
+        onDiscard={() => {
+          if (reviewItem) discardReview(reviewItem.id);
+        }}
+      />
+    </>
   );
 }
 
@@ -417,6 +549,7 @@ function QueueRow({
   onRetry,
   onCancel,
   onRemove,
+  onReview,
   onDuplicateAction,
 }: {
   item: MaterialQueueItem;
@@ -424,6 +557,7 @@ function QueueRow({
   onRetry: () => void;
   onCancel: () => void;
   onRemove: () => void;
+  onReview: () => void;
   onDuplicateAction: (action: "skip" | DuplicateDecision) => void;
 }) {
   const status = queueStatusCopy(item.status, isRu);
@@ -459,6 +593,12 @@ function QueueRow({
               <X className="h-3.5 w-3.5" />
             </Button>
           )}
+          {item.status === "review" && (
+            <Button size="sm" variant="outline" onClick={onReview}>
+              <Eye className="h-3.5 w-3.5 me-1" />
+              {isRu ? "Проверить" : "Review"}
+            </Button>
+          )}
           {canRetry && (
             <Button
               size="icon"
@@ -469,16 +609,19 @@ function QueueRow({
               <RotateCcw className="h-3.5 w-3.5" />
             </Button>
           )}
-          {canRemove && item.status !== "queued" && item.status !== "duplicate" && (
-            <Button
-              size="icon"
-              variant="ghost"
-              aria-label={isRu ? "Убрать из очереди" : "Remove from queue"}
-              onClick={onRemove}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          )}
+          {canRemove &&
+            item.status !== "queued" &&
+            item.status !== "duplicate" &&
+            item.status !== "review" && (
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label={isRu ? "Убрать из очереди" : "Remove from queue"}
+                onClick={onRemove}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
         </div>
       </div>
 
@@ -516,6 +659,7 @@ function QueueRow({
 function QueueStatusIcon({ status }: { status: MaterialQueueStatus }) {
   if (status === "extracting") return <Loader2 className="h-4 w-4 animate-spin text-primary" />;
   if (status === "ready") return <CheckCircle2 className="h-4 w-4 text-emerald-400" />;
+  if (status === "review") return <Eye className="h-4 w-4 text-primary" />;
   if (status === "queued") return <Files className="h-4 w-4 text-muted-foreground" />;
   if (status === "cancelled" || status === "skipped") {
     return <X className="h-4 w-4 text-muted-foreground" />;
@@ -541,9 +685,10 @@ function queueStatusCopy(status: MaterialQueueStatus, isRu: boolean): string {
     queued: ["В очереди", "Queued"],
     extracting: ["Проверяю и извлекаю", "Checking and extracting"],
     duplicate: ["Нужна проверка", "Needs review"],
-    ready: ["Готово", "Ready"],
-    partial: ["Частично", "Partial"],
-    unsupported: ["Не поддерживается", "Unsupported"],
+    review: ["Готово к проверке", "Ready for review"],
+    ready: ["Сохранено", "Saved"],
+    partial: ["Сохранено частично", "Saved partially"],
+    unsupported: ["Сохранено без текста", "Saved without text"],
     error: ["Ошибка", "Error"],
     cancelled: ["Отменено", "Cancelled"],
     skipped: ["Пропущено", "Skipped"],
@@ -552,7 +697,12 @@ function queueStatusCopy(status: MaterialQueueStatus, isRu: boolean): string {
 }
 
 function isActiveStatus(status: MaterialQueueStatus): boolean {
-  return status === "queued" || status === "extracting" || status === "duplicate";
+  return (
+    status === "queued" ||
+    status === "extracting" ||
+    status === "duplicate" ||
+    status === "review"
+  );
 }
 
 function pauseForDuplicate(
@@ -560,7 +710,7 @@ function pauseForDuplicate(
   fingerprint: string | undefined,
   prepared: PreparedFileIntake | undefined,
   duplicate: QueueDuplicate,
-  setItems: React.Dispatch<React.SetStateAction<MaterialQueueItem[]>>,
+  setItems: Dispatch<SetStateAction<MaterialQueueItem[]>>,
 ) {
   setItems((current) =>
     current.map((candidate) =>
