@@ -18,6 +18,7 @@ export function CourseBook({
   code,
   title,
   progress,
+  progressLabel,
   tone = "forest",
   to = "/app/courses",
   className,
@@ -25,18 +26,22 @@ export function CourseBook({
 }: {
   code: string;
   title: string;
-  progress: number;
+  progress: number | null;
+  progressLabel?: string;
   tone?: BookTone;
   to?: string;
   className?: string;
   compact?: boolean;
 }) {
+  const hasProgress = progress !== null;
+  const pct = hasProgress ? progress : 0;
+  const label = hasProgress ? `${pct}%` : (progressLabel ?? "Not started");
   return (
     <Link
       to={to as never}
       className={cn("course-book", toneMap[tone], compact && "course-book--compact", className)}
-      aria-label={`${title}, ${progress}%`}
-      style={{ "--book-progress": `${progress}%` } as CSSProperties}
+      aria-label={`${title}, ${label}`}
+      style={{ "--book-progress": `${pct}%` } as CSSProperties}
     >
       <span className="course-book__bookmark" aria-hidden="true" />
       <span className="course-book__edge" aria-hidden="true" />
@@ -45,10 +50,11 @@ export function CourseBook({
       <span className="course-book__progress">
         <span />
       </span>
-      <span className="course-book__percent">{progress}%</span>
+      <span className="course-book__percent">{label}</span>
     </Link>
   );
 }
+
 
 export function WoodenShelf({ children, className }: { children: ReactNode; className?: string }) {
   return (
