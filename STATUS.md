@@ -4,7 +4,7 @@ Last updated: 2026-07-12
 
 ## Current milestone
 
-**Milestone C — Material Workspace**
+**Milestone D — AI transformation loop**
 
 ## Task status
 
@@ -17,27 +17,24 @@ Last updated: 2026-07-12
 - `P0-007 Add intake review and correction` — complete and verified.
 - `P0-008 Replace material detail with a true workspace` — complete and verified.
 - `P0-009 Add chunk editing tools` — complete and verified.
-- `P0-010 Add material output history` — next.
+- `P0-010 Add material output history` — complete and verified.
+- `P0-011 Connect AI actions to material selection` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Safe chunk editing
+### Source-linked material output history
 
-- Added editing for chunk titles and extracted text.
-- Added split-at-cursor with ordered creation of the second chunk.
-- Added merge-with-next while preserving the complete source text.
-- Added move-up and move-down controls that change the order used by AI.
-- Added guarded deletion with a visible count of dependent source references.
-- Rewrites `sourceChunkIds` safely across notes, flashcards, quiz questions and presentation slides.
-- Split references expand from the original chunk to both resulting chunks.
-- Merge references from the removed chunk are redirected to the retained chunk.
-- Delete removes only the deleted chunk ID from dependent outputs.
-- Rebuilds material raw text, character count and word count after each structural change.
-- Preserves page and section metadata where logically possible.
-- Extracted the material workspace into a reusable component without changing the store schema.
-- Preserved localStorage compatibility and the existing selected-source AI workflow.
+- Added a complete material-level view of saved notes, generated cards, quizzes and presentation outlines.
+- Added chronological generation history from persisted `materialOutputs` records.
+- Added direct links to exact notes, quizzes and presentation outlines.
+- Added a dedicated editable note route so a history entry opens the linked note rather than a generic list.
+- Flashcard generation history opens the material-linked card collection because there is no deck entity yet.
+- Deleted or missing linked entities are displayed honestly instead of producing broken navigation.
+- Added removal of an individual history row without deleting its note, cards, quiz or outline.
+- Existing AI save flows already record note, flashcard, quiz and presentation generation consistently.
+- Existing output records and localStorage data remain compatible; no schema migration was introduced.
 
 ## Verification state
 
@@ -45,14 +42,14 @@ Last updated: 2026-07-12
 - TypeScript passed.
 - ESLint passed.
 - Production build passed.
-- The successful pull-request run covers the workspace extraction, editing, split, merge, reorder and guarded deletion implementation.
+- The successful pull-request run covers the new direct note route, output resolution, missing-output states and history-only deletion.
 
 ## Next execution target
 
-1. Begin `P0-010` material output history.
-2. Record note, flashcard, quiz and outline generations consistently.
-3. Open linked outputs from the material workspace and display missing entities honestly.
-4. Allow deleting a history entry without deleting its linked output.
+1. Begin `P0-011` selected-source AI actions.
+2. Audit the existing Material Workspace preselection flow against all acceptance criteria.
+3. Block invalid or empty source submissions at the reusable AI-button layer, not only inside the dialog.
+4. Preserve material, course, topic and chunk relationships in every saved output.
 
 ## Blockers
 
