@@ -55,16 +55,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const groupLabels = lang === "ru"
+    ? { home: "Главная", library: "Библиотека", study: "Учёба", planning: "Планирование", system: "Система" }
+    : { home: "Home", library: "Library", study: "Study", planning: "Planning", system: "System" };
+
   const groups = [
     {
-      label: t.dashboard,
+      label: groupLabels.home,
       items: [
         { to: "/app/dashboard", label: t.dashboard, icon: LayoutDashboard },
         { to: "/app/search", label: t.searchNav, icon: Search },
       ],
     },
     {
-      label: t.library ?? "Library",
+      label: groupLabels.library,
       items: [
         { to: "/app/program", label: t.program, icon: GraduationCap },
         { to: "/app/courses", label: t.courses, icon: BookOpen },
@@ -73,7 +77,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       ],
     },
     {
-      label: t.study ?? "Study",
+      label: groupLabels.study,
       items: [
         { to: "/app/notes", label: t.notes, icon: FileText },
         { to: "/app/flashcards", label: t.flashcards, icon: Layers },
@@ -83,7 +87,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       ],
     },
     {
-      label: t.planning ?? "Planning",
+      label: groupLabels.planning,
       items: [
         { to: "/app/calendar", label: t.calendar, icon: CalendarDays },
         { to: "/app/study-plan", label: t.studyPlan, icon: Target },
@@ -91,7 +95,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       ],
     },
     {
-      label: t.system ?? "System",
+      label: groupLabels.system,
       items: [
         { to: "/app/data", label: t.data, icon: Database },
         { to: "/app/settings", label: t.settings, icon: Settings },
