@@ -2,36 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Check, Music2, RotateCcw, Pause, Play, Square } from "lucide-react";
 import { RoomHeading, PaperButton } from "@/components/study-room-ui";
-import { useApp } from "@/lib/app-context";
 
 export const Route = createFileRoute("/app/study-session")({
   component: StudySessionPage,
 });
 
 function StudySessionPage() {
-  const { t } = useApp();
   const totalSeconds = 45 * 60;
   const [seconds, setSeconds] = useState(totalSeconds);
   const [running, setRunning] = useState(false);
-  const sounds = useMemo(
-    () => [
-      { id: "rain", name: t.soundRain, desc: t.soundRainDesc },
-      { id: "cafe", name: t.soundCafe, desc: t.soundCafeDesc },
-      { id: "fireplace", name: t.soundFireplace, desc: t.soundFireplaceDesc },
-      { id: "forest", name: t.soundForest, desc: t.soundForestDesc },
-    ],
-    [t],
-  );
-  const [soundId, setSoundId] = useState("rain");
-  const goals = useMemo(
-    () => [
-      { id: "read", label: "Read 20 pages", checked: true },
-      { id: "notes", label: "Take notes", checked: false },
-      { id: "cards", label: "10 flashcards", checked: false },
-      { id: "quiz", label: "Mini quiz", checked: false },
-    ],
-    [],
-  );
+  const [sound, setSound] = useState("Rain");
 
   useEffect(() => {
     if (!running || seconds <= 0) return;
@@ -52,35 +32,54 @@ function StudySessionPage() {
   return (
     <div className="room-page focus-room">
       <RoomHeading
-        eyebrow={t.focusEyebrow}
-        title={t.navStudySession}
-        subtitle={t.focusSubtitle}
+        eyebrow="A protected hour"
+        title="Study session"
+        subtitle="One course, one goal, one quiet stretch of time."
         actions={
           <PaperButton>
-            <Music2 size={14} /> {t.ambientSounds}
+            <Music2 size={14} /> Ambient sounds
           </PaperButton>
         }
       />
 
       <section className="focus-desk">
         <aside className="focus-card focus-card--course">
-          <span>{t.currentSessionLabel}</span>
+          <span>CURRENT SESSION</span>
           <h2>Introduction to Sociology</h2>
           <p>Reading: Durkheim · Social facts</p>
-          <button type="button">{t.changeCourse}</button>
+          <button type="button">Change course</button>
         </aside>
 
         <aside className="focus-card focus-card--goals">
-          <span>{t.todaysGoalLabel}</span>
-          {goals.map((g) => (
-            <label key={g.id}>
-              <input type="checkbox" defaultChecked={g.checked} />
-              <i>
-                <Check size={12} />
-              </i>{" "}
-              {g.label}
-            </label>
-          ))}
+          <span>TODAY&apos;S GOAL</span>
+          <label>
+            <input type="checkbox" defaultChecked />
+            <i>
+              <Check size={12} />
+            </i>{" "}
+            Read 20 pages
+          </label>
+          <label>
+            <input type="checkbox" />
+            <i>
+              <Check size={12} />
+            </i>{" "}
+            Take notes
+          </label>
+          <label>
+            <input type="checkbox" />
+            <i>
+              <Check size={12} />
+            </i>{" "}
+            10 flashcards
+          </label>
+          <label>
+            <input type="checkbox" />
+            <i>
+              <Check size={12} />
+            </i>{" "}
+            Mini quiz
+          </label>
         </aside>
 
         <div
@@ -89,36 +88,47 @@ function StudySessionPage() {
         >
           <div className="mechanical-timer__ticks" aria-hidden="true" />
           <div className="mechanical-timer__face">
-            <span>{t.focusTimeLabel}</span>
+            <span>FOCUS TIME</span>
             <strong>{time}</strong>
-            <small>{running ? t.focusRunning : t.focusReady}</small>
+            <small>{running ? "Stay with the page" : "Ready when you are"}</small>
             <button type="button" onClick={() => setRunning((value) => !value)}>
               {running ? <Pause size={15} /> : <Play size={15} />}
-              {running ? t.pause : t.start}
+              {running ? "Pause" : "Start"}
             </button>
           </div>
         </div>
 
         <aside className="focus-card focus-card--sounds">
-          <span>{t.ambientSounds.toUpperCase()}</span>
-          {sounds.map((s) => (
+          <span>AMBIENT SOUNDS</span>
+          {[
+            ["Rain", "soft window rain"],
+            ["Cafe", "quiet room tone"],
+            ["Fireplace", "low warm crackle"],
+            ["Forest", "leaves and birds"],
+          ].map(([name, description]) => (
             <button
-              key={s.id}
+              key={name}
               type="button"
-              className={soundId === s.id ? "is-active" : ""}
-              onClick={() => setSoundId(s.id)}
+              className={sound === name ? "is-active" : ""}
+              onClick={() => setSound(name)}
             >
-              <span>{s.name}</span>
-              <small>{s.desc}</small>
+              <span>{name}</span>
+              <small>{description}</small>
             </button>
           ))}
-          <input type="range" min="0" max="100" defaultValue="48" aria-label={t.soundVolumeAria} />
+          <input
+            type="range"
+            min="0"
+            max="100"
+            defaultValue="48"
+            aria-label="Ambient sound volume"
+          />
         </aside>
 
         <div className="focus-controls">
           <button type="button" onClick={() => setRunning((value) => !value)}>
             {running ? <Pause size={16} /> : <Play size={16} />}
-            {running ? t.pause : t.start}
+            {running ? "Pause" : "Start"}
           </button>
           <button
             type="button"
@@ -128,7 +138,7 @@ function StudySessionPage() {
             }}
           >
             <RotateCcw size={16} />
-            {t.reset}
+            Reset
           </button>
           <button
             type="button"
@@ -138,7 +148,7 @@ function StudySessionPage() {
             }}
           >
             <Square size={15} />
-            {t.finish}
+            Finish
           </button>
         </div>
 

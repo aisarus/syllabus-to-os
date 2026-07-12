@@ -79,10 +79,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Lamdan — Personal study workspace" },
       { name: "twitter:title", content: "Lamdan — Personal study workspace" },
-      { property: "og:description", content: "Personal Obsidian-style study workspace: programs, courses, notes, flashcards, quizzes, assignments — stored locally." },
-      { name: "twitter:description", content: "Personal Obsidian-style study workspace: programs, courses, notes, flashcards, quizzes, assignments — stored locally." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/da19855f-d0ad-49e7-b2f0-ce36d360f43f/id-preview-7460ba6b--04c80f14-1f8f-4c2f-a81e-f6a48365c265.lovable.app-1783370020490.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/da19855f-d0ad-49e7-b2f0-ce36d360f43f/id-preview-7460ba6b--04c80f14-1f8f-4c2f-a81e-f6a48365c265.lovable.app-1783370020490.png" },
+      {
+        property: "og:description",
+        content:
+          "Personal Obsidian-style study workspace: programs, courses, notes, flashcards, quizzes, assignments — stored locally.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Personal Obsidian-style study workspace: programs, courses, notes, flashcards, quizzes, assignments — stored locally.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/da19855f-d0ad-49e7-b2f0-ce36d360f43f/id-preview-7460ba6b--04c80f14-1f8f-4c2f-a81e-f6a48365c265.lovable.app-1783370020490.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/da19855f-d0ad-49e7-b2f0-ce36d360f43f/id-preview-7460ba6b--04c80f14-1f8f-4c2f-a81e-f6a48365c265.lovable.app-1783370020490.png",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],

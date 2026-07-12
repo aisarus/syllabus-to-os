@@ -22,8 +22,7 @@ import {
   ChevronRight,
   Leaf,
 } from "lucide-react";
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
-import "@/immersive-dashboard-fixed.css";
+import { useState, type ReactNode } from "react";
 import { useApp } from "@/lib/app-context";
 import type { Dict, Lang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -36,59 +35,6 @@ import {
 } from "@/components/ui/select";
 
 type LabelKey = keyof Dict;
-
-const IMMERSIVE_CANVAS_WIDTH = 1536;
-const IMMERSIVE_CANVAS_HEIGHT = 1024;
-const IMMERSIVE_DESKTOP_BREAKPOINT = 900;
-
-function useImmersiveDashboardScale(enabled: boolean) {
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    if (!enabled) {
-      setScale(1);
-      return;
-    }
-
-    const updateScale = () => {
-      if (window.innerWidth < IMMERSIVE_DESKTOP_BREAKPOINT) {
-        setScale(1);
-        return;
-      }
-
-      const nextScale = Math.min(
-        window.innerWidth / IMMERSIVE_CANVAS_WIDTH,
-        window.innerHeight / IMMERSIVE_CANVAS_HEIGHT,
-        1.05,
-      );
-      setScale(Math.max(0.5, nextScale));
-    };
-
-    updateScale();
-    window.addEventListener("resize", updateScale);
-    return () => window.removeEventListener("resize", updateScale);
-  }, [enabled]);
-
-  return scale;
-}
-
-function useReferenceDesktop(enabled: boolean) {
-  const [active, setActive] = useState(false);
-
-  useEffect(() => {
-    if (!enabled) {
-      setActive(false);
-      return;
-    }
-
-    const update = () => setActive(window.innerWidth >= IMMERSIVE_DESKTOP_BREAKPOINT);
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, [enabled]);
-
-  return active;
-}
 
 const primaryNav: ReadonlyArray<{ to: string; labelKey: LabelKey; icon: typeof Home }> = [
   { to: "/app/dashboard", labelKey: "dashboard", icon: Home },
@@ -181,105 +127,81 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { lang, setLang } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
-  const immersiveDashboard = pathname === "/app/dashboard";
-  const immersiveScale = useImmersiveDashboardScale(immersiveDashboard);
-  const referenceDesktop = useReferenceDesktop(immersiveDashboard);
-  const viewportStyle = immersiveDashboard
-    ? ({ "--immersive-scale": immersiveScale } as CSSProperties)
-    : undefined;
-  const liveLayerStyle = referenceDesktop ? ({ opacity: 0 } as CSSProperties) : undefined;
 
   return (
-    <div
-      className={cn(
-        "study-app-viewport",
-        immersiveDashboard && "study-app-viewport--immersive",
-      )}
-      style={viewportStyle}
-    >
-      <div
-        className={cn(
-          "study-app-shell",
-          immersiveDashboard && "study-app-shell--reference-canvas",
-        )}
-      >
-        <div className="study-app-shell__top-trim" aria-hidden="true" style={liveLayerStyle} />
-        <div className="study-app-shell__bottom-plinth" aria-hidden="true" style={liveLayerStyle} />
+    <div className="study-app-shell">
+      <div className="study-app-shell__top-trim" aria-hidden="true" />
+      <div className="study-app-shell__bottom-plinth" aria-hidden="true" />
 
-        <aside
-          className="study-cabinet"
-          aria-label="Lamdan navigation cabinet"
-          style={liveLayerStyle}
-        >
-          <span className="study-cabinet__sconce" aria-hidden="true" />
-          <div className="study-cabinet__top">
-            <BrandPlaque />
-          </div>
-          <div className="study-cabinet__vine study-cabinet__vine--left" aria-hidden="true" />
-          <div className="study-cabinet__vine study-cabinet__vine--right" aria-hidden="true" />
-          <NavList pathname={pathname} />
-          <blockquote>
-            {lang === "ru"
-              ? "«Всё, что тебе нужно, уже стоит у тебя на полке.»"
-              : "“Everything you need is already on the shelf.”"}
-          </blockquote>
-          <div className="study-cabinet__footer">
-            <Select value={lang} onValueChange={(v) => setLang(v as Lang)}>
-              <SelectTrigger
-                className="cabinet-language"
-                aria-label={lang === "ru" ? "Язык" : "Language"}
-              >
-                <Languages size={13} />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ru">RU</SelectItem>
-                <SelectItem value="en">EN</SelectItem>
-              </SelectContent>
-            </Select>
-            <span>{lang === "ru" ? "локальное пространство" : "local workspace"}</span>
-          </div>
-        </aside>
-
-        <div className="study-stage" style={liveLayerStyle}>
-          <div className="study-stage__side-shadow" aria-hidden="true" />
-          <header className="mobile-study-header">
-            <button
-              type="button"
-              onClick={() => setMobileOpen(true)}
-              aria-label={lang === "ru" ? "Открыть навигацию" : "Open navigation"}
-            >
-              <Menu size={21} />
-            </button>
-            <BrandPlaque />
-            <span />
-          </header>
-          <main className="study-stage__content">{children}</main>
+      <aside className="study-cabinet" aria-label="Lamdan navigation cabinet">
+        <span className="study-cabinet__sconce" aria-hidden="true" />
+        <div className="study-cabinet__top">
+          <BrandPlaque />
         </div>
+        <div className="study-cabinet__vine study-cabinet__vine--left" aria-hidden="true" />
+        <div className="study-cabinet__vine study-cabinet__vine--right" aria-hidden="true" />
+        <NavList pathname={pathname} />
+        <blockquote>
+          {lang === "ru"
+            ? "«Всё, что тебе нужно, уже стоит у тебя на полке.»"
+            : "“Everything you need is already on the shelf.”"}
+        </blockquote>
+        <div className="study-cabinet__footer">
+          <Select value={lang} onValueChange={(v) => setLang(v as Lang)}>
+            <SelectTrigger
+              className="cabinet-language"
+              aria-label={lang === "ru" ? "Язык" : "Language"}
+            >
+              <Languages size={13} />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ru">RU</SelectItem>
+              <SelectItem value="en">EN</SelectItem>
+            </SelectContent>
+          </Select>
+          <span>{lang === "ru" ? "локальное пространство" : "local workspace"}</span>
+        </div>
+      </aside>
 
-        {mobileOpen && (
-          <div className="mobile-cabinet-layer" style={liveLayerStyle}>
-            <button
-              className="mobile-cabinet-layer__veil"
-              onClick={() => setMobileOpen(false)}
-              aria-label={lang === "ru" ? "Закрыть навигацию" : "Close navigation"}
-            />
-            <aside className="mobile-cabinet">
-              <div className="mobile-cabinet__header">
-                <BrandPlaque />
-                <button
-                  type="button"
-                  onClick={() => setMobileOpen(false)}
-                  aria-label={lang === "ru" ? "Закрыть меню" : "Close menu"}
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <NavList pathname={pathname} onNavigate={() => setMobileOpen(false)} />
-            </aside>
-          </div>
-        )}
+      <div className="study-stage">
+        <div className="study-stage__side-shadow" aria-hidden="true" />
+        <header className="mobile-study-header">
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label={lang === "ru" ? "Открыть навигацию" : "Open navigation"}
+          >
+            <Menu size={21} />
+          </button>
+          <BrandPlaque />
+          <span />
+        </header>
+        <main className="study-stage__content">{children}</main>
       </div>
+
+      {mobileOpen && (
+        <div className="mobile-cabinet-layer">
+          <button
+            className="mobile-cabinet-layer__veil"
+            onClick={() => setMobileOpen(false)}
+            aria-label={lang === "ru" ? "Закрыть навигацию" : "Close navigation"}
+          />
+          <aside className="mobile-cabinet">
+            <div className="mobile-cabinet__header">
+              <BrandPlaque />
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                aria-label={lang === "ru" ? "Закрыть меню" : "Close menu"}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <NavList pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+          </aside>
+        </div>
+      )}
     </div>
   );
 }
