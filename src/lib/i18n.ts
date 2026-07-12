@@ -112,6 +112,9 @@ export type Dict = {
   courseMaterials: string;
   readinessScore: string;
   readinessFormula: string;
+  emptyShelfTitle: string;
+  emptyShelfHint: string;
+  addFirstCourse: string;
   // notes
   createNote: string;
   content: string;
