@@ -25,18 +25,20 @@ export function CourseBook({
 }: {
   code: string;
   title: string;
-  progress: number;
+  progress: number | null;
   tone?: BookTone;
   to?: string;
   className?: string;
   compact?: boolean;
 }) {
+  const hasProgress = typeof progress === "number";
+  const pct = hasProgress ? progress : 0;
   return (
     <Link
       to={to as never}
       className={cn("course-book", toneMap[tone], compact && "course-book--compact", className)}
-      aria-label={`${title}, ${progress}%`}
-      style={{ "--book-progress": `${progress}%` } as CSSProperties}
+      aria-label={hasProgress ? `${title}, ${pct}%` : title}
+      style={{ "--book-progress": `${pct}%` } as CSSProperties}
     >
       <span className="course-book__bookmark" aria-hidden="true" />
       <span className="course-book__edge" aria-hidden="true" />
@@ -45,7 +47,7 @@ export function CourseBook({
       <span className="course-book__progress">
         <span />
       </span>
-      <span className="course-book__percent">{progress}%</span>
+      <span className="course-book__percent">{hasProgress ? `${pct}%` : "—"}</span>
     </Link>
   );
 }
