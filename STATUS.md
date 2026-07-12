@@ -4,7 +4,7 @@ Last updated: 2026-07-12
 
 ## Current milestone
 
-**Milestone D — AI transformation loop**
+**Milestone E — Syllabus and course brain**
 
 ## Task status
 
@@ -20,8 +20,8 @@ Last updated: 2026-07-12
 - `P0-010 Add material output history` — complete and verified.
 - `P0-011 Connect AI actions to material selection` — complete and verified.
 - `P0-012 Upgrade AI draft review` — complete and verified.
-- `P0-013 Add AI trust and citation layer` — server contract merged; typed client trust UI and regression validation in progress.
-- `P0-014 Complete syllabus review and confirmation` — next after validation.
+- `P0-013 Add AI trust and citation layer` — complete and verified.
+- `P0-014 Complete syllabus review and confirmation` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
@@ -43,17 +43,20 @@ Last updated: 2026-07-12
 
 ## Verification state
 
-- The server trust contract is merged in `main` through PR #13.
-- A clean follow-up branch from current `main` contains only the typed client trust UI, regression checks and status documentation.
-- Do not mark `P0-013` complete until documentation, AI contract, TypeScript, ESLint and production build checks pass together.
+- Documentation verification passed.
+- Selected-source, draft-review and citation-trust contract verification passed.
+- TypeScript passed.
+- ESLint passed.
+- Production build passed.
+- The client follow-up is based on current `main` after the server contract from PR #13, avoiding any duplicated or conflicting server rewrite.
 
 ## Next execution target
 
-1. Fix any concrete CI failure in the client trust layer.
-2. Mark `P0-013` complete after the full suite passes.
-3. Begin `P0-014` by auditing current syllabus intake and review boundaries.
-4. Keep all syllabus store mutations behind explicit user confirmation.
+1. Begin `P0-014` by auditing the current syllabus intake, deterministic parser, AI parser and review-state boundaries.
+2. Reuse the shared material intake pipeline for PDF, DOCX, XLSX and pasted syllabus text.
+3. Keep every course/topic mutation behind explicit confirmation.
+4. Make reimport duplicate-safe and preserve user corrections.
 
 ## Blockers
 
-None unless CI reports a concrete failure.
+None.
