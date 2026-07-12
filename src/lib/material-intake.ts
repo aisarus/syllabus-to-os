@@ -1,6 +1,7 @@
 import { ingestFile, ingestPastedText, type IngestResult } from "./document-ingestion";
 import {
   store,
+  updateData,
   type Material,
   type MaterialProcessingStatus,
   type MaterialSourceMode,
@@ -15,6 +16,7 @@ export interface MaterialIntakeOptions {
   courseId?: string;
   topicId?: string;
   tags?: string[];
+  existingMaterialId?: string;
 }
 
 export interface MaterialIntakeResult {
@@ -99,7 +101,7 @@ function persistMaterial(
   options: Required<Pick<MaterialIntakeOptions, "title" | "type">> & MaterialIntakeOptions,
   fileMetadata: Pick<Material, "fileName" | "mimeType" | "fileSize"> = {},
 ): MaterialIntakeResult {
-  const material = store.createMaterial({
+  const patch: Omit<Material, "id" | "createdAt" | "updatedAt"> = {
     title: options.title,
     type: options.type,
     sourceMode,
@@ -115,9 +117,32 @@ function persistMaterial(
     wordCount: extraction.wordCount,
     charCount: extraction.charCount,
     sourceLanguage: extraction.sourceLanguage,
-  });
+  };
 
-  if (extraction.chunks.length > 0) {
+  let material: Material | undefined;
+  if (options.existingMaterialId) {
+    updateData((data) => {
+      const existing = data.materials.find((item) => item.id === options.existingMaterialId);
+      if (!existing) return data;
+      material = {
+        ...existing,
+        ...patch,
+        id: existing.id,
+        createdAt: existing.createdAt,
+        updatedAt: Date.now(),
+      };
+      return {
+        ...data,
+        materials: data.materials.map((item) => (item.id === existing.id ? material! : item)),
+      };
+    });
+  }
+
+  if (!material) {
+    material = store.createMaterial(patch);
+  }
+
+  if (options.existingMaterialId || extraction.chunks.length > 0) {
     store.replaceMaterialChunksForMaterial(material.id, extraction.chunks);
   }
 
