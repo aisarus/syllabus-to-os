@@ -72,6 +72,24 @@ function useImmersiveDashboardScale(enabled: boolean) {
   return scale;
 }
 
+function useReferenceDesktop(enabled: boolean) {
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    if (!enabled) {
+      setActive(false);
+      return;
+    }
+
+    const update = () => setActive(window.innerWidth >= IMMERSIVE_DESKTOP_BREAKPOINT);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [enabled]);
+
+  return active;
+}
+
 const primaryNav: ReadonlyArray<{ to: string; labelKey: LabelKey; icon: typeof Home }> = [
   { to: "/app/dashboard", labelKey: "dashboard", icon: Home },
   { to: "/app/courses", labelKey: "courses", icon: BookOpen },
@@ -165,10 +183,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const immersiveDashboard = pathname === "/app/dashboard";
   const immersiveScale = useImmersiveDashboardScale(immersiveDashboard);
+  const referenceDesktop = useReferenceDesktop(immersiveDashboard);
   const viewportStyle = immersiveDashboard
     ? ({ "--immersive-scale": immersiveScale } as CSSProperties)
     : undefined;
-  const liveLayerStyle = immersiveDashboard ? ({ opacity: 0 } as CSSProperties) : undefined;
+  const liveLayerStyle = referenceDesktop ? ({ opacity: 0 } as CSSProperties) : undefined;
 
   return (
     <div
