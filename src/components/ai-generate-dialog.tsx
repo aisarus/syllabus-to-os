@@ -1,31 +1,43 @@
 import { useEffect, useMemo, useState } from "react";
+import { Sparkles } from "lucide-react";
+import { toast } from "sonner";
+import { AIDraftModal, type AIDraftSource, type AIDraftState } from "@/components/ai-draft-modal";
+import {
+  FlashcardsDraftEditor,
+  NoteDraftEditor,
+  PresentationDraftEditor,
+  QuizDraftEditor,
+} from "@/components/ai-draft-editors";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AIDraftModal, type AIDraftState, type AIDraftSource } from "@/components/ai-draft-modal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/lib/app-context";
-import { useData, store, getChunksByMaterial, type MaterialChunk } from "@/lib/store";
 import {
   checkAIStatus,
-  generateNoteDraft,
   generateFlashcardsDraft,
-  generateQuizDraft,
+  generateNoteDraft,
   generatePresentationOutlineDraft,
+  generateQuizDraft,
   type AIChunkInput,
-  type NoteDraft,
   type FlashcardsDraft,
-  type QuizDraft,
+  type NoteDraft,
   type PresentationDraft,
+  type QuizDraft,
 } from "@/lib/ai";
-import { Sparkles, Trash2, Plus } from "lucide-react";
-import { toast } from "sonner";
+import { getChunksByMaterial, store, useData, type MaterialChunk } from "@/lib/store";
 
 export type AIGenerateKind = "note" | "flashcards" | "quiz" | "presentation";
 
 interface Props {
   open: boolean;
-  onOpenChange: (v: boolean) => void;
+  onOpenChange: (value: boolean) => void;
   kind: AIGenerateKind;
   initialMaterialId?: string;
   initialCourseId?: string;
@@ -34,161 +46,365 @@ interface Props {
 }
 
 const MAX_CHUNKS = 8;
+const MAX_CHARS = 20_000;
 
 export function AIGenerateDialog(props: Props) {
   const { t, lang } = useApp();
   const data = useData();
-  const [materialId, setMaterialId] = useState<string>(props.initialMaterialId ?? "");
+  const isRu = lang === "ru";
+  const [materialId, setMaterialId] = useState(props.initialMaterialId ?? "");
   const [selected, setSelected] = useState<string[]>(props.initialChunkIds ?? []);
   const [instructions, setInstructions] = useState("");
   const [state, setState] = useState<AIDraftState>("idle");
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState("");
   const [note, setNote] = useState<NoteDraft | null>(null);
   const [cards, setCards] = useState<FlashcardsDraft | null>(null);
   const [quiz, setQuiz] = useState<QuizDraft | null>(null);
-  const [pres, setPres] = useState<PresentationDraft | null>(null);
+  const [presentation, setPresentation] = useState<PresentationDraft | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (props.open) checkAIStatus().then((s) => setAiConfigured(s.configured));
-  }, [props.open]);
+  const [baseline, setBaseline] = useState("");
+  const [saveLocked, setSaveLocked] = useState(false);
+  const [regeneratingItem, setRegeneratingItem] = useState<number | null>(null);
 
   useEffect(() => {
     if (props.open) {
-      setMaterialId(props.initialMaterialId ?? "");
-      setSelected(props.initialChunkIds ?? []);
-      setInstructions("");
-      setState("idle");
-      setError("");
-      setNote(null); setCards(null); setQuiz(null); setPres(null);
-      setWarnings([]);
+      void checkAIStatus().then((status) => setAiConfigured(status.configured));
     }
+  }, [props.open]);
+
+  useEffect(() => {
+    if (!props.open) return;
+    setMaterialId(props.initialMaterialId ?? "");
+    setSelected(props.initialChunkIds ?? []);
+    setInstructions("");
+    setState("idle");
+    setError("");
+    setNote(null);
+    setCards(null);
+    setQuiz(null);
+    setPresentation(null);
+    setWarnings([]);
+    setBaseline("");
+    setSaveLocked(false);
+    setRegeneratingItem(null);
   }, [props.open, props.initialMaterialId, props.initialChunkIds]);
 
-  const material = data.materials.find((m) => m.id === materialId) ?? null;
+  const material = data.materials.find((item) => item.id === materialId) ?? null;
   const chunks: MaterialChunk[] = material ? getChunksByMaterial(data, material.id) : [];
   const selectedChunks = chunks.filter((c) => selected.includes(c.id));
-  const totalChars = selectedChunks.reduce((n, c) => n + c.text.length, 0);
+  const totalChars = selectedChunks.reduce((total, chunk) => total + chunk.text.length, 0);
   const overLimit = totalChars > 20_000;
-  const course = data.courses.find((c) => c.id === (props.initialCourseId ?? material?.courseId));
-  const topic = data.topics.find((tp) => tp.id === (props.initialTopicId ?? material?.topicId));
+  const courseId = props.initialCourseId ?? material?.courseId;
+  const topicId = props.initialTopicId ?? material?.topicId;
+  const course = data.courses.find((item) => item.id === courseId);
+  const topic = data.topics.find((item) => item.id === topicId);
+
+  const currentDraft = useMemo(() => {
+    if (props.kind === "note") return note;
+    if (props.kind === "flashcards") return cards;
+    if (props.kind === "quiz") return quiz;
+    return presentation;
+  }, [props.kind, note, cards, quiz, presentation]);
+  const serializedDraft = currentDraft ? JSON.stringify(currentDraft) : "";
+  const dirty = state === "ready" && Boolean(baseline) && serializedDraft !== baseline;
+  const draftValid = validateDraft(props.kind, currentDraft);
 
   const toggleChunk = (id: string) => {
-    setSelected((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= MAX_CHUNKS) return prev;
-      return [...prev, id];
+    setSelected((current) => {
+      if (current.includes(id)) return current.filter((item) => item !== id);
+      if (current.length >= MAX_CHUNKS) return current;
+      return [...current, id];
     });
   };
 
-  const inputPayload = () => ({
+  const inputPayload = (overrides?: { chunks?: MaterialChunk[]; instructions?: string }) => ({
     locale: lang,
     targetLanguage: lang,
     course: course ? { id: course.id, title: course.title, number: course.number } : undefined,
     topic: topic ? { id: topic.id, title: topic.title } : undefined,
-    material: material ? { id: material.id, title: material.title, type: material.type } : undefined,
-    chunks: selectedChunks.map<AIChunkInput>((c) => ({
-      id: c.id, title: c.title, text: c.text, pageNumber: c.pageNumber, section: c.section,
+    material: material
+      ? { id: material.id, title: material.title, type: material.type }
+      : undefined,
+    chunks: (overrides?.chunks ?? selectedChunks).map<AIChunkInput>((chunk) => ({
+      id: chunk.id,
+      title: chunk.title,
+      text: chunk.text,
+      pageNumber: chunk.pageNumber,
+      section: chunk.section,
     })),
-    instructions: instructions.trim() || undefined,
+    instructions: overrides?.instructions ?? instructions.trim() || undefined,
   });
 
+  const applyGeneratedDraft = (
+    kind: AIGenerateKind,
+    draft: NoteDraft | FlashcardsDraft | QuizDraft | PresentationDraft,
+  ) => {
+    setNote(kind === "note" ? (draft as NoteDraft) : null);
+    setCards(kind === "flashcards" ? (draft as FlashcardsDraft) : null);
+    setQuiz(kind === "quiz" ? (draft as QuizDraft) : null);
+    setPresentation(kind === "presentation" ? (draft as PresentationDraft) : null);
+    setWarnings(draft.warnings ?? []);
+    setBaseline(JSON.stringify(draft));
+    setSaveLocked(false);
+    setState("ready");
+  };
+
   const generate = async () => {
-    if (selected.length === 0) { toast.error(t.aiNoChunksSelected); return; }
-    if (overLimit) { toast.error(t.aiTooManyChars); return; }
-    setState("loading"); setError(""); setWarnings([]);
+    if (selected.length === 0 || selectedChunks.length === 0) {
+      toast.error(t.aiNoChunksSelected);
+      return;
+    }
+    if (overLimit) {
+      toast.error(t.aiTooManyChars);
+      return;
+    }
+
+    setState("loading");
+    setError("");
+    setWarnings([]);
     const input = inputPayload();
+
     if (props.kind === "note") {
-      const r = await generateNoteDraft(input);
-      if (r.ok) { setNote(r.data); setWarnings(r.data.warnings ?? []); setState("ready"); }
-      else { setError(r.message); setState("error"); }
-    } else if (props.kind === "flashcards") {
-      const r = await generateFlashcardsDraft(input);
-      if (r.ok) { setCards(r.data); setWarnings(r.data.warnings ?? []); setState("ready"); }
-      else { setError(r.message); setState("error"); }
-    } else if (props.kind === "quiz") {
-      const r = await generateQuizDraft(input);
-      if (r.ok) { setQuiz(r.data); setWarnings(r.data.warnings ?? []); setState("ready"); }
-      else { setError(r.message); setState("error"); }
-    } else {
-      const r = await generatePresentationOutlineDraft(input);
-      if (r.ok) { setPres(r.data); setWarnings(r.data.warnings ?? []); setState("ready"); }
-      else { setError(r.message); setState("error"); }
+      const result = await generateNoteDraft(input);
+      if (result.ok) applyGeneratedDraft("note", result.data);
+      else {
+        setError(result.message);
+        setState("error");
+      }
+      return;
+    }
+    if (props.kind === "flashcards") {
+      const result = await generateFlashcardsDraft(input);
+      if (result.ok) applyGeneratedDraft("flashcards", result.data);
+      else {
+        setError(result.message);
+        setState("error");
+      }
+      return;
+    }
+    if (props.kind === "quiz") {
+      const result = await generateQuizDraft(input);
+      if (result.ok) applyGeneratedDraft("quiz", result.data);
+      else {
+        setError(result.message);
+        setState("error");
+      }
+      return;
+    }
+
+    const result = await generatePresentationOutlineDraft(input);
+    if (result.ok) applyGeneratedDraft("presentation", result.data);
+    else {
+      setError(result.message);
+      setState("error");
     }
   };
 
-  const chunkSources: AIDraftSource[] = selectedChunks.map((c) => ({
-    id: c.id, title: c.title || `Chunk ${c.order + 1}`,
+  const regenerateCard = async (index: number) => {
+    if (!cards || regeneratingItem !== null) return;
+    const card = cards.cards[index];
+    const scopedChunks = selectedChunks.filter((chunk) =>
+      card.sourceChunkIds?.includes(chunk.id),
+    );
+    setRegeneratingItem(index);
+    const result = await generateFlashcardsDraft(
+      inputPayload({
+        chunks: scopedChunks.length > 0 ? scopedChunks : selectedChunks,
+        instructions: isRu
+          ? "Создай ровно одну улучшенную карточку на замену выбранной. Она должна быть атомарной, понятной и опираться только на источники."
+          : "Generate exactly one improved replacement flashcard. Keep it atomic, clear, and grounded only in the sources.",
+      }),
+    );
+    setRegeneratingItem(null);
+    if (!result.ok || result.data.cards.length === 0) {
+      toast.error(result.ok ? t.aiError : result.message);
+      return;
+    }
+    const replacement = result.data.cards[0];
+    setCards({
+      ...cards,
+      cards: cards.cards.map((item, itemIndex) =>
+        itemIndex === index
+          ? {
+              ...replacement,
+              sourceChunkIds: replacement.sourceChunkIds?.length
+                ? replacement.sourceChunkIds
+                : card.sourceChunkIds,
+            }
+          : item,
+      ),
+    });
+  };
+
+  const regenerateQuestion = async (index: number) => {
+    if (!quiz || regeneratingItem !== null) return;
+    const question = quiz.questions[index];
+    const scopedChunks = selectedChunks.filter((chunk) =>
+      question.sourceChunkIds?.includes(chunk.id),
+    );
+    setRegeneratingItem(index);
+    const result = await generateQuizDraft(
+      inputPayload({
+        chunks: scopedChunks.length > 0 ? scopedChunks : selectedChunks,
+        instructions: isRu
+          ? "Создай ровно один улучшенный вопрос на замену выбранному. Неправильные варианты должны быть правдоподобными, а объяснение — опираться только на источники."
+          : "Generate exactly one improved replacement question. Distractors must be plausible and the explanation must rely only on the sources.",
+      }),
+    );
+    setRegeneratingItem(null);
+    if (!result.ok || result.data.questions.length === 0) {
+      toast.error(result.ok ? t.aiError : result.message);
+      return;
+    }
+    const replacement = result.data.questions[0];
+    setQuiz({
+      ...quiz,
+      questions: quiz.questions.map((item, itemIndex) =>
+        itemIndex === index
+          ? {
+              ...replacement,
+              sourceChunkIds: replacement.sourceChunkIds?.length
+                ? replacement.sourceChunkIds
+                : question.sourceChunkIds,
+            }
+          : item,
+      ),
+    });
+  };
+
+  const chunkSources: AIDraftSource[] = selectedChunks.map((chunk) => ({
+    id: chunk.id,
+    title: chunk.title || `Chunk ${chunk.order + 1}`,
   }));
 
   const save = () => {
-    if (!material) return;
-    const ctx = {
-      courseId: material.courseId,
-      topicId: material.topicId,
+    if (!material || state !== "ready" || saveLocked || !draftValid) return;
+    setSaveLocked(true);
+    const context = {
+      courseId,
+      topicId,
       materialId: material.id,
     };
-    if (props.kind === "note" && note) {
-      const n = store.createNote({
-        title: note.title || material.title,
-        content: note.content,
-        tags: note.tags ?? [],
-        ...ctx,
-        sourceChunkIds: selected,
-      });
-      store.recordOutput({ materialId: material.id, type: "note", linkedEntityId: n.id });
-      toast.success(t.save);
-    } else if (props.kind === "flashcards" && cards) {
-      for (const c of cards.cards) {
-        store.createCard({
-          front: c.front, back: c.back, ...ctx,
-          sourceChunkIds: c.sourceChunkIds?.length ? c.sourceChunkIds : selected,
+
+    try {
+      if (props.kind === "note" && note) {
+        const savedNote = store.createNote({
+          title: note.title || material.title,
+          content: note.content,
+          tags: note.tags ?? [],
+          ...context,
+          sourceChunkIds: selected,
+        });
+        store.recordOutput({ materialId: material.id, type: "note", linkedEntityId: savedNote.id });
+      } else if (props.kind === "flashcards" && cards) {
+        for (const card of cards.cards) {
+          store.createCard({
+            front: card.front,
+            back: card.back,
+            ...context,
+            sourceChunkIds: card.sourceChunkIds?.length ? card.sourceChunkIds : selected,
+          });
+        }
+        store.recordOutput({ materialId: material.id, type: "flashcards" });
+      } else if (props.kind === "quiz" && quiz) {
+        const savedQuiz = store.createQuiz({
+          title: quiz.title || `${material.title} — quiz`,
+          ...context,
+        });
+        for (const question of quiz.questions) {
+          store.addQuestion({
+            quizId: savedQuiz.id,
+            prompt: question.prompt,
+            options: question.options,
+            correctIndex: question.correctIndex,
+            explanation: question.explanation || undefined,
+            sourceChunkIds: question.sourceChunkIds?.length
+              ? question.sourceChunkIds
+              : selected,
+          });
+        }
+        store.recordOutput({ materialId: material.id, type: "quiz", linkedEntityId: savedQuiz.id });
+      } else if (props.kind === "presentation" && presentation) {
+        const outline = store.createOutline({
+          title: presentation.title || material.title,
+          ...context,
+          slides: presentation.slides.map((slide, index) => ({
+            id: `sl_${Date.now()}_${index}`,
+            title: slide.title,
+            bullets: slide.bullets,
+            speakerNotes: slide.speakerNotes,
+            sourceChunkIds: slide.sourceChunkIds?.length
+              ? slide.sourceChunkIds
+              : selected,
+            order: index,
+          })),
+        });
+        store.recordOutput({
+          materialId: material.id,
+          type: "presentation_outline",
+          linkedEntityId: outline.id,
         });
       }
-      store.recordOutput({ materialId: material.id, type: "flashcards" });
-      toast.success(`${cards.cards.length} · ${t.save}`);
-    } else if (props.kind === "quiz" && quiz) {
-      const q = store.createQuiz({ title: quiz.title || `${material.title} — quiz`, ...ctx });
-      for (const qq of quiz.questions) {
-        store.addQuestion({
-          quizId: q.id, prompt: qq.prompt, options: qq.options,
-          correctIndex: qq.correctIndex, explanation: qq.explanation || undefined,
-          sourceChunkIds: qq.sourceChunkIds?.length ? qq.sourceChunkIds : selected,
-        });
-      }
-      store.recordOutput({ materialId: material.id, type: "quiz", linkedEntityId: q.id });
+      setBaseline(serializedDraft);
+      setState("saved");
       toast.success(t.save);
-    } else if (props.kind === "presentation" && pres) {
-      const outline = store.createOutline({
-        title: pres.title || material.title, ...ctx,
-        slides: pres.slides.map((s, i) => ({
-          id: `sl_${Date.now()}_${i}`,
-          title: s.title, bullets: s.bullets, speakerNotes: s.speakerNotes,
-          sourceChunkIds: s.sourceChunkIds?.length ? s.sourceChunkIds : selected,
-          order: i,
-        })),
-      });
-      store.recordOutput({ materialId: material.id, type: "presentation_outline", linkedEntityId: outline.id });
-      toast.success(t.save);
+    } catch (saveError) {
+      setSaveLocked(false);
+      setError(saveError instanceof Error ? saveError.message : String(saveError));
+      setState("error");
     }
-    props.onOpenChange(false);
   };
 
   const title =
-    props.kind === "note" ? t.aiGenerateNote :
-    props.kind === "flashcards" ? t.aiGenerateFlashcards :
-    props.kind === "quiz" ? t.aiGenerateQuiz :
-    t.aiGeneratePresentation;
+    props.kind === "note"
+      ? t.aiGenerateNote
+      : props.kind === "flashcards"
+        ? t.aiGenerateFlashcards
+        : props.kind === "quiz"
+          ? t.aiGenerateQuiz
+          : t.aiGeneratePresentation;
 
-  const editor = state === "ready" ? (
-    <div className="space-y-3">
-      {props.kind === "note" && note && <NoteEditor draft={note} onChange={setNote} />}
-      {props.kind === "flashcards" && cards && <CardsEditor draft={cards} onChange={setCards} />}
-      {props.kind === "quiz" && quiz && <QuizEditor draft={quiz} onChange={setQuiz} />}
-      {props.kind === "presentation" && pres && <PresEditor draft={pres} onChange={setPres} />}
-    </div>
-  ) : null;
+  const editor =
+    state === "ready" ? (
+      <div className="space-y-3">
+        {props.kind === "note" && note && (
+          <NoteDraftEditor draft={note} onChange={setNote} />
+        )}
+        {props.kind === "flashcards" && cards && (
+          <FlashcardsDraftEditor
+            draft={cards}
+            onChange={setCards}
+            defaultSourceChunkIds={selected}
+            regeneratingIndex={regeneratingItem}
+            onRegenerateItem={regenerateCard}
+          />
+        )}
+        {props.kind === "quiz" && quiz && (
+          <QuizDraftEditor
+            draft={quiz}
+            onChange={setQuiz}
+            defaultSourceChunkIds={selected}
+            regeneratingIndex={regeneratingItem}
+            onRegenerateItem={regenerateQuestion}
+          />
+        )}
+        {props.kind === "presentation" && presentation && (
+          <PresentationDraftEditor
+            draft={presentation}
+            onChange={setPresentation}
+            defaultSourceChunkIds={selected}
+          />
+        )}
+        {!draftValid && (
+          <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-2 text-xs text-yellow-200">
+            {isRu
+              ? "Заполни обязательные поля и оставь хотя бы один валидный элемент перед сохранением."
+              : "Complete the required fields and keep at least one valid item before saving."}
+          </div>
+        )}
+      </div>
+    ) : null;
 
   return (
     <AIDraftModal
@@ -200,67 +416,107 @@ export function AIGenerateDialog(props: Props) {
       warnings={warnings}
       sourceChunks={state === "ready" ? chunkSources : undefined}
       onSave={save}
-      onRegenerate={selected.length > 0 ? generate : undefined}
+      saveDisabled={saveLocked || !draftValid}
+      onRegenerate={selectedChunks.length > 0 ? generate : undefined}
+      copyText={props.kind === "note" ? note?.content : undefined}
+      dirty={dirty}
     >
       {state === "idle" && (
         <div className="space-y-3">
           {aiConfigured === false && (
-            <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 p-2 text-xs">{t.aiUnavailable}</div>
+            <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 p-2 text-xs">
+              {t.aiUnavailable}
+            </div>
           )}
           <div>
             <Label>{t.aiChooseMaterial}</Label>
-            <Select value={materialId} onValueChange={(v) => { setMaterialId(v); setSelected([]); }}>
-              <SelectTrigger><SelectValue placeholder={t.aiSelectSource} /></SelectTrigger>
+            <Select
+              value={materialId}
+              onValueChange={(value) => {
+                setMaterialId(value);
+                setSelected([]);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t.aiSelectSource} />
+              </SelectTrigger>
               <SelectContent>
-                {data.materials.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
+                {data.materials.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.title}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
           {material && (
             <div>
               <Label>{t.aiSelectChunks}</Label>
-              <div className="max-h-72 overflow-auto rounded-md border border-border bg-background p-1 space-y-1">
+              <div className="max-h-72 space-y-1 overflow-auto rounded-md border border-border bg-background p-1">
                 {chunks.length === 0 && (
-                  <div className="p-4 text-xs text-muted-foreground text-center">{t.chunksEmpty}</div>
+                  <div className="p-4 text-center text-xs text-muted-foreground">
+                    {t.chunksEmpty}
+                  </div>
                 )}
-                {chunks.map((c) => (
-                  <label key={c.id} className={`flex gap-2 p-2 rounded-md text-xs cursor-pointer ${selected.includes(c.id) ? "bg-primary/10 border border-primary/40" : "hover:bg-surface"}`}>
+                {chunks.map((chunk) => (
+                  <label
+                    key={chunk.id}
+                    className={`flex cursor-pointer gap-2 rounded-md p-2 text-xs ${
+                      selected.includes(chunk.id)
+                        ? "border border-primary/40 bg-primary/10"
+                        : "hover:bg-surface"
+                    }`}
+                  >
                     <input
                       type="checkbox"
                       className="mt-0.5"
-                      checked={selected.includes(c.id)}
-                      onChange={() => toggleChunk(c.id)}
+                      checked={selected.includes(chunk.id)}
+                      onChange={() => toggleChunk(chunk.id)}
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="font-semibold truncate">{c.title || `Chunk ${c.order + 1}`}</div>
-                      <div className="text-muted-foreground line-clamp-2 whitespace-pre-wrap">{c.text}</div>
+                      <div className="truncate font-semibold">
+                        {chunk.title || `Chunk ${chunk.order + 1}`}
+                      </div>
+                      <div className="line-clamp-2 whitespace-pre-wrap text-muted-foreground">
+                        {chunk.text}
+                      </div>
                     </div>
                   </label>
                 ))}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1">
-                {selected.length}/{MAX_CHUNKS} · {totalChars} / 20000
+              <div className="mt-1 text-[11px] text-muted-foreground">
+                {selectedChunks.length}/{MAX_CHUNKS} · {totalChars.toLocaleString()} /{" "}
+                {MAX_CHARS.toLocaleString()}
               </div>
-              {overLimit && <div className="text-[11px] text-destructive">{t.aiTooManyChars}</div>}
+              {overLimit && (
+                <div className="text-[11px] text-destructive">{t.aiTooManyChars}</div>
+              )}
             </div>
           )}
+
           <div>
             <Label>{t.aiInstructionsOptional}</Label>
-            <textarea
-              className="w-full min-h-16 rounded-md border border-input bg-background p-2 text-sm"
+            <Textarea
+              className="min-h-20 resize-y"
               value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
+              onChange={(event) => setInstructions(event.target.value)}
             />
           </div>
           <div className="flex justify-end">
             <Button
               onClick={generate}
-              disabled={!aiConfigured || selected.length === 0 || overLimit}
-              title={!aiConfigured ? t.aiUnavailable : selected.length === 0 ? t.aiNoChunksSelected : undefined}
+              disabled={!aiConfigured || selectedChunks.length === 0 || overLimit}
+              title={
+                !aiConfigured
+                  ? t.aiUnavailable
+                  : selectedChunks.length === 0
+                    ? t.aiNoChunksSelected
+                    : undefined
+              }
             >
-              <Sparkles className="h-4 w-4 me-1" />{t.aiGenerate}
+              <Sparkles className="h-4 w-4 me-1" />
+              {t.aiGenerate}
             </Button>
           </div>
         </div>
@@ -270,109 +526,41 @@ export function AIGenerateDialog(props: Props) {
   );
 }
 
-// ============ Editors ============
-
-function NoteEditor({ draft, onChange }: { draft: NoteDraft; onChange: (d: NoteDraft) => void }) {
-  const { t } = useApp();
+function validateDraft(
+  kind: AIGenerateKind,
+  draft: NoteDraft | FlashcardsDraft | QuizDraft | PresentationDraft | null,
+): boolean {
+  if (!draft) return false;
+  if (kind === "note") {
+    const note = draft as NoteDraft;
+    return Boolean(note.title.trim() && note.content.trim());
+  }
+  if (kind === "flashcards") {
+    const cards = (draft as FlashcardsDraft).cards;
+    return cards.length > 0 && cards.every((card) => card.front.trim() && card.back.trim());
+  }
+  if (kind === "quiz") {
+    const quiz = draft as QuizDraft;
+    return (
+      Boolean(quiz.title.trim()) &&
+      quiz.questions.length > 0 &&
+      quiz.questions.every(
+        (question) =>
+          Boolean(question.prompt.trim()) &&
+          question.options.length >= 2 &&
+          question.options.every((option) => Boolean(option.trim())) &&
+          question.correctIndex >= 0 &&
+          question.correctIndex < question.options.length,
+      )
+    );
+  }
+  const presentation = draft as PresentationDraft;
   return (
-    <div className="space-y-2">
-      <div><Label>{t.title}</Label><Input value={draft.title} onChange={(e) => onChange({ ...draft, title: e.target.value })} /></div>
-      <div>
-        <Label>{t.content}</Label>
-        <textarea className="w-full min-h-[280px] rounded-md border border-input bg-background p-2 text-sm font-mono" value={draft.content} onChange={(e) => onChange({ ...draft, content: e.target.value })} />
-      </div>
-      <div><Label>{t.tags}</Label>
-        <Input value={draft.tags.join(", ")} onChange={(e) => onChange({ ...draft, tags: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })} />
-      </div>
-    </div>
+    Boolean(presentation.title.trim()) &&
+    presentation.slides.length > 0 &&
+    presentation.slides.every((slide) => Boolean(slide.title.trim()))
   );
 }
-
-function CardsEditor({ draft, onChange }: { draft: FlashcardsDraft; onChange: (d: FlashcardsDraft) => void }) {
-  const { t } = useApp();
-  const update = (i: number, patch: Partial<FlashcardsDraft["cards"][number]>) => {
-    onChange({ ...draft, cards: draft.cards.map((c, ix) => (ix === i ? { ...c, ...patch } : c)) });
-  };
-  const remove = (i: number) => onChange({ ...draft, cards: draft.cards.filter((_, ix) => ix !== i) });
-  return (
-    <div className="space-y-2">
-      <div className="text-xs text-muted-foreground">{draft.cards.length} · {t.flashcards}</div>
-      {draft.cards.map((c, i) => (
-        <div key={i} className="rounded-md border border-border bg-background p-2 space-y-1">
-          <div className="flex gap-2">
-            <Input value={c.front} onChange={(e) => update(i, { front: e.target.value })} placeholder={t.front} />
-            <Button size="icon" variant="ghost" onClick={() => remove(i)}><Trash2 className="h-3.5 w-3.5" /></Button>
-          </div>
-          <textarea className="w-full min-h-[60px] rounded-md border border-input bg-background p-2 text-sm" value={c.back} onChange={(e) => update(i, { back: e.target.value })} placeholder={t.cardBack} />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function QuizEditor({ draft, onChange }: { draft: QuizDraft; onChange: (d: QuizDraft) => void }) {
-  const { t } = useApp();
-  const updateQ = (i: number, patch: Partial<QuizDraft["questions"][number]>) => {
-    onChange({ ...draft, questions: draft.questions.map((q, ix) => (ix === i ? { ...q, ...patch } : q)) });
-  };
-  const remove = (i: number) => onChange({ ...draft, questions: draft.questions.filter((_, ix) => ix !== i) });
-  return (
-    <div className="space-y-2">
-      <div><Label>{t.title}</Label><Input value={draft.title} onChange={(e) => onChange({ ...draft, title: e.target.value })} /></div>
-      {draft.questions.map((q, i) => (
-        <div key={i} className="rounded-md border border-border bg-background p-2 space-y-1">
-          <div className="flex gap-2">
-            <Input value={q.prompt} onChange={(e) => updateQ(i, { prompt: e.target.value })} placeholder={t.question} />
-            <Button size="icon" variant="ghost" onClick={() => remove(i)}><Trash2 className="h-3.5 w-3.5" /></Button>
-          </div>
-          {q.options.map((opt, j) => (
-            <div key={j} className="flex items-center gap-2 text-xs">
-              <input type="radio" checked={q.correctIndex === j} onChange={() => updateQ(i, { correctIndex: j })} />
-              <Input value={opt} onChange={(e) => { const opts = [...q.options]; opts[j] = e.target.value; updateQ(i, { options: opts }); }} />
-            </div>
-          ))}
-          <textarea className="w-full min-h-[50px] rounded-md border border-input bg-background p-2 text-xs" value={q.explanation} onChange={(e) => updateQ(i, { explanation: e.target.value })} placeholder={t.explanation} />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PresEditor({ draft, onChange }: { draft: PresentationDraft; onChange: (d: PresentationDraft) => void }) {
-  const { t } = useApp();
-  const updateS = (i: number, patch: Partial<PresentationDraft["slides"][number]>) =>
-    onChange({ ...draft, slides: draft.slides.map((s, ix) => (ix === i ? { ...s, ...patch } : s)) });
-  const remove = (i: number) => onChange({ ...draft, slides: draft.slides.filter((_, ix) => ix !== i) });
-  return (
-    <div className="space-y-2">
-      <div><Label>{t.title}</Label><Input value={draft.title} onChange={(e) => onChange({ ...draft, title: e.target.value })} /></div>
-      {draft.slides.map((s, i) => (
-        <div key={i} className="rounded-md border border-border bg-background p-2 space-y-1">
-          <div className="flex gap-2">
-            <Input value={s.title} onChange={(e) => updateS(i, { title: e.target.value })} />
-            <Button size="icon" variant="ghost" onClick={() => remove(i)}><Trash2 className="h-3.5 w-3.5" /></Button>
-          </div>
-          <textarea
-            className="w-full min-h-[60px] rounded-md border border-input bg-background p-2 text-xs"
-            value={s.bullets.join("\n")}
-            onChange={(e) => updateS(i, { bullets: e.target.value.split("\n") })}
-          />
-          <textarea
-            className="w-full min-h-[40px] rounded-md border border-input bg-background p-2 text-xs"
-            value={s.speakerNotes}
-            onChange={(e) => updateS(i, { speakerNotes: e.target.value })}
-            placeholder={t.speakerNotes}
-          />
-        </div>
-      ))}
-      <Button size="sm" variant="ghost" onClick={() => onChange({ ...draft, slides: [...draft.slides, { title: "New slide", bullets: [], speakerNotes: "", sourceChunkIds: [] }] })}>
-        <Plus className="h-3.5 w-3.5 me-1" />{t.add}
-      </Button>
-    </div>
-  );
-}
-
-// ============ Convenience button ============
 
 export function AIGenerateButton(props: {
   kind: AIGenerateKind;
@@ -388,11 +576,21 @@ export function AIGenerateButton(props: {
   const { t } = useApp();
   const [open, setOpen] = useState(false);
   const [configured, setConfigured] = useState<boolean | null>(null);
-  useEffect(() => { checkAIStatus().then((s) => setConfigured(s.configured)); }, []);
-  const label = props.label ??
-    (props.kind === "note" ? t.aiGenerateNote :
-     props.kind === "flashcards" ? t.aiGenerateFlashcards :
-     props.kind === "quiz" ? t.aiGenerateQuiz : t.aiGeneratePresentation);
+
+  useEffect(() => {
+    void checkAIStatus().then((status) => setConfigured(status.configured));
+  }, []);
+
+  const label =
+    props.label ??
+    (props.kind === "note"
+      ? t.aiGenerateNote
+      : props.kind === "flashcards"
+        ? t.aiGenerateFlashcards
+        : props.kind === "quiz"
+          ? t.aiGenerateQuiz
+          : t.aiGeneratePresentation);
+
   return (
     <>
       <Button
@@ -403,7 +601,8 @@ export function AIGenerateButton(props: {
         title={configured === false ? t.aiUnavailable : undefined}
         className={props.className}
       >
-        <Sparkles className="h-4 w-4 me-1" />{label}
+        <Sparkles className="h-4 w-4 me-1" />
+        {label}
       </Button>
       <AIGenerateDialog
         open={open}
