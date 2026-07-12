@@ -15,8 +15,8 @@ Last updated: 2026-07-12
 - `P0-005 Build multi-file upload queue` — complete and verified on Dashboard and Materials.
 - `P0-006 Add duplicate detection` — complete and verified across exact, likely, queue and legacy upload paths.
 - `P0-007 Add intake review and correction` — complete and verified.
-- `P0-008 Replace material detail with a true workspace` — complete; CI verification pending for the documentation sync commit.
-- `P0-009 Add chunk editing tools` — next.
+- `P0-008 Replace material detail with a true workspace` — implemented and stabilized; CI validation in progress.
+- `P0-009 Add chunk editing tools` — next after validation.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
@@ -34,22 +34,20 @@ Last updated: 2026-07-12
 - Added existing output counts, direct quiz links and persisted generation-history visibility.
 - Connected note, flashcard and quiz generation actions to the current material, course, topic and selected chunk IDs.
 - Preserved the existing localStorage data model; no migration or destructive rewrite was introduced.
+- Stabilized memoized chunk selection so local UI state changes cannot create a render loop.
 - The layout uses normal responsive grid flow without fixed canvas, absolute-positioned room UI, trackers or timers.
 
 ## Verification state
 
-- The implementation reuses `getChunksByMaterial`, existing material/output relationships, store mutators and `AIGenerateButton` initial-context inputs.
-- Source text renders with automatic direction, supporting long Hebrew and mixed RTL/LTR content.
-- Empty source state and raw-text fallback are explicit rather than fabricated.
-- `TASKS.md` was not rewritten in this pass because it is a large shared planning document and `STATUS.md` is explicitly authoritative until checkbox updates can be applied safely.
-- CI must pass on the documentation sync commit before `P0-008` is considered fully verified.
+- A pull request from `agent/validate-material-workspace` runs documentation verification, TypeScript, ESLint and production build against the stabilized implementation.
+- Do not mark `P0-008` fully verified until that run succeeds.
 
 ## Next execution target
 
-1. Inspect existing chunk mutators and dependent `sourceChunkIds` handling.
-2. Implement the first dependency-safe slice of `P0-009`: edit chunk title/text and persist changes.
-3. Add split, adjacent merge, reorder and guarded deletion in subsequent atomic passes.
-4. Ensure deleted or merged chunk IDs are removed or replaced safely in dependent notes, flashcards and quiz questions.
+1. Fix any concrete CI failure.
+2. Mark `P0-008` complete after the full suite passes.
+3. Begin `P0-009` with edit-title and edit-text chunk tools.
+4. Add split, adjacent merge, reorder and guarded deletion in dependency-safe slices.
 
 ## Blockers
 
