@@ -1,13 +1,19 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-const workspacePath = resolve(process.cwd(), "src/components/material-workspace.tsx");
-const dialogPath = resolve(process.cwd(), "src/components/ai-generate-dialog-impl.tsx");
-const modalPath = resolve(process.cwd(), "src/components/ai-draft-modal.tsx");
-const [workspace, dialog, modal] = await Promise.all([
-  readFile(workspacePath, "utf8"),
-  readFile(dialogPath, "utf8"),
-  readFile(modalPath, "utf8"),
+const paths = {
+  workspace: resolve(process.cwd(), "src/components/material-workspace.tsx"),
+  dialog: resolve(process.cwd(), "src/components/ai-generate-dialog-impl.tsx"),
+  modal: resolve(process.cwd(), "src/components/ai-draft-modal.tsx"),
+  client: resolve(process.cwd(), "src/lib/ai.ts"),
+  server: resolve(process.cwd(), "src/lib/server/ai-generation.ts"),
+};
+const [workspace, dialog, modal, client, server] = await Promise.all([
+  readFile(paths.workspace, "utf8"),
+  readFile(paths.dialog, "utf8"),
+  readFile(paths.modal, "utf8"),
+  readFile(paths.client, "utf8"),
+  readFile(paths.server, "utf8"),
 ]);
 
 const failures = [];
@@ -79,23 +85,23 @@ requireMarker(
 );
 requireMarker(
   dialog,
-  "store.recordOutput({ materialId: material.id, type: \"note\"",
+  'store.recordOutput({ materialId: material.id, type: "note"',
   "Note generation no longer records material output history.",
 );
 requireMarker(
   dialog,
-  "store.recordOutput({ materialId: material.id, type: \"flashcards\"",
+  'store.recordOutput({ materialId: material.id, type: "flashcards"',
   "Flashcard generation no longer records material output history.",
 );
 requireMarker(
   dialog,
-  "store.recordOutput({ materialId: material.id, type: \"quiz\"",
+  'store.recordOutput({ materialId: material.id, type: "quiz"',
   "Quiz generation no longer records material output history.",
 );
 
 for (const marker of [
-  "state !== \"ready\" || saveLocked || !draftValid",
-  "setState(\"saved\")",
+  'state !== "ready" || saveLocked || !draftValid',
+  'setState("saved")',
   "dirty={dirty}",
   "onRegenerateItem={regenerateCard}",
   "onRegenerateItem={regenerateQuestion}",
@@ -117,10 +123,55 @@ requireMarker(
   "AI draft modal no longer exposes an explicit saved state.",
 );
 
+for (const marker of [
+  'export const AI_PROMPT_VERSION = "study-grounding-v1"',
+  "sourceChunkIds may contain ONLY ids listed here",
+  "Do not invent facts, citations, dates, formulas, names, numbers, source ids, or page numbers",
+  "notFoundInSources=true",
+  "rejectedSourceChunkIds",
+  "uncitedItemCount",
+  "validateChunkIds",
+]) {
+  requireMarker(
+    server,
+    marker,
+    `Server AI trust contract is missing required behavior: ${marker}`,
+  );
+}
+
+for (const marker of [
+  "export interface AITrustMetadata",
+  "promptVersion: string",
+  "rejectedSourceChunkIds: string[]",
+  "uncitedItemCount: number",
+  "notFoundInSources?: boolean",
+]) {
+  requireMarker(
+    client,
+    marker,
+    `Client AI trust contract is missing required shape: ${marker}`,
+  );
+}
+
+for (const marker of [
+  "Source review required",
+  "Source references validated",
+  "Unknown IDs removed",
+  "Uncited items",
+  "The selected sources did not contain enough information",
+  "findDraftMetadata",
+]) {
+  requireMarker(
+    modal,
+    marker,
+    `Draft trust UI is missing required diagnostic behavior: ${marker}`,
+  );
+}
+
 if (failures.length > 0) {
   console.error("Selected-source AI contract verification failed:\n");
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
 
-console.log("Selected-source AI and draft review contract verification passed.");
+console.log("Selected-source AI, draft review, and citation trust contracts passed.");
