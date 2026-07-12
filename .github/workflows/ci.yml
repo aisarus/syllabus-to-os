@@ -48,7 +48,9 @@ jobs:
         run: npm run verify:docs
 
       - name: Typecheck
-        run: npm run typecheck
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck 2>&1 | tee typecheck-output.txt
 
       - name: Lint
         id: lint
@@ -67,11 +69,12 @@ jobs:
           git diff -- . ':!bun.lock' > prettier-fix.patch
 
       - name: Upload failure diagnostics
-        if: steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
+        if: steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: ci-diagnostics
           path: |
+            typecheck-output.txt
             lint-output.txt
             build-output.txt
             prettier-fix.patch
@@ -79,7 +82,7 @@ jobs:
           retention-days: 7
 
       - name: Fail when quality gates fail
-        if: steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
+        if: steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
         run: |
           echo "One or more quality gates failed. Download the ci-diagnostics artifact for details."
           exit 1
