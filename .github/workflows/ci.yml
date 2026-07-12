@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   quality:
-    name: Contracts, types, lint and build
+    name: Contracts, evals, types, lint and build
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -67,6 +67,12 @@ jobs:
 
       - name: Verify core UI audit contract
         run: npm run verify:core-ui-audit
+
+      - name: Verify evaluation fixture coverage
+        run: npm run verify:evaluation-fixtures
+
+      - name: Run deterministic evaluation suites
+        run: npm run eval
 
       - name: Typecheck
         id: typecheck
