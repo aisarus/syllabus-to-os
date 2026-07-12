@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState, type DragEvent } from "react";
 import {
   ArrowUpRight,
-  BookOpen,
   CircleHelp,
   FileInput,
   FileText,
@@ -10,27 +9,16 @@ import {
   FolderOpen,
   Layers3,
   NotebookPen,
-  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AIGenerateButton } from "@/components/ai-generate-dialog";
 import { useApp } from "@/lib/app-context";
-import { ingestFile } from "@/lib/document-ingestion";
-import { store, useData, type MaterialType } from "@/lib/store";
+import { intakeFile } from "@/lib/material-intake";
+import { useData } from "@/lib/store";
 
 export const Route = createFileRoute("/app/dashboard")({
   component: Dashboard,
 });
-
-function guessMaterialType(fileName: string): MaterialType {
-  const value = fileName.toLowerCase();
-  if (/syllabus|силлабус|סילבוס/.test(value)) return "syllabus";
-  if (/exam|экзамен|מבחן/.test(value)) return "exam";
-  if (/assignment|essay|задани|מטלה/.test(value)) return "assignment";
-  if (/presentation|slides|презентац|מצגת/.test(value)) return "presentation";
-  if (/lecture|лекци|הרצאה/.test(value)) return "lecture";
-  return "other";
-}
 
 function Dashboard() {
   const data = useData();
@@ -94,7 +82,8 @@ function Dashboard() {
         quizzes: "Тесты",
         open: "Открыть",
         uploadSuccess: "Материал добавлен",
-        uploadError: "Не удалось обработать файл",
+        uploadPartial: "Материал добавлен, но извлечение текста выполнено не полностью",
+        uploadError: "Материал сохранён с ошибкой обработки",
       }
     : {
         eyebrow: "Content workspace",
@@ -131,7 +120,8 @@ function Dashboard() {
         quizzes: "Quizzes",
         open: "Open",
         uploadSuccess: "Material added",
-        uploadError: "Could not process the file",
+        uploadPartial: "Material added, but text extraction was incomplete",
+        uploadError: "Material saved with a processing error",
       };
 
   const recentMaterials = [...data.materials]
@@ -143,28 +133,14 @@ function Dashboard() {
     if (!file || uploading) return;
     setUploading(true);
     try {
-      const result = await ingestFile(file);
-      const material = store.createMaterial({
-        title: file.name,
-        type: guessMaterialType(file.name),
-        sourceMode: "uploaded_file",
-        fileName: file.name,
-        mimeType: file.type,
-        fileSize: file.size,
-        tags: [],
-        rawText: result.rawText,
-        processingStatus: result.status,
-        processingMessage: result.message,
-        extractionMethod: result.extractionMethod,
-        pageCount: result.pageCount,
-        wordCount: result.wordCount,
-        charCount: result.charCount,
-        sourceLanguage: result.sourceLanguage,
-      });
-      if (result.chunks.length > 0) {
-        store.replaceMaterialChunksForMaterial(material.id, result.chunks);
+      const result = await intakeFile(file);
+      if (result.outcome === "success") {
+        toast.success(copy.uploadSuccess);
+      } else if (result.outcome === "partial") {
+        toast.warning(result.message || copy.uploadPartial);
+      } else {
+        toast.error(result.message || copy.uploadError);
       }
-      toast.success(copy.uploadSuccess);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : copy.uploadError);
     } finally {
@@ -321,19 +297,31 @@ function Dashboard() {
       <section aria-label={copy.library} className="cw-library-strip">
         <Link to="/app/materials" className="cw-library-link">
           <FolderOpen size={24} />
-          <span><strong>{copy.materials}</strong><small>{data.materials.length} · {copy.open}</small></span>
+          <span>
+            <strong>{copy.materials}</strong>
+            <small>{data.materials.length} · {copy.open}</small>
+          </span>
         </Link>
         <Link to="/app/notes" className="cw-library-link">
           <NotebookPen size={24} />
-          <span><strong>{copy.note.replace(/^Создать |^Create /, "")}</strong><small>{data.notes.length} · {copy.open}</small></span>
+          <span>
+            <strong>{copy.note.replace(/^Создать |^Create /, "")}</strong>
+            <small>{data.notes.length} · {copy.open}</small>
+          </span>
         </Link>
         <Link to="/app/flashcards" className="cw-library-link">
           <Layers3 size={24} />
-          <span><strong>{copy.cards.replace(/^Создать |^Create /, "")}</strong><small>{data.flashcards.length} · {copy.open}</small></span>
+          <span>
+            <strong>{copy.cards.replace(/^Создать |^Create /, "")}</strong>
+            <small>{data.flashcards.length} · {copy.open}</small>
+          </span>
         </Link>
         <Link to="/app/quizzes" className="cw-library-link">
           <CircleHelp size={24} />
-          <span><strong>{copy.quizzes}</strong><small>{data.quizzes.length} · {copy.open}</small></span>
+          <span>
+            <strong>{copy.quizzes}</strong>
+            <small>{data.quizzes.length} · {copy.open}</small>
+          </span>
         </Link>
       </section>
     </div>
