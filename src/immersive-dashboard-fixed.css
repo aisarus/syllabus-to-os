@@ -1,0 +1,69 @@
+/*
+ * Exact desktop composition lock for the immersive dashboard.
+ *
+ * The illustrated scene was art-directed on a 1536 × 1024 canvas. On desktop
+ * we scale that complete canvas as one unit instead of letting individual
+ * absolutely-positioned objects reflow independently. Other routes keep the
+ * normal responsive application layout.
+ */
+
+.study-app-viewport {
+  width: 100%;
+  min-height: 100svh;
+}
+
+.study-app-viewport--immersive {
+  width: 100vw;
+  height: 100svh;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: start center;
+  background:
+    radial-gradient(circle at 70% 10%, rgba(199, 145, 66, 0.07), transparent 32%),
+    #080b06;
+}
+
+.study-app-viewport--immersive > .study-app-shell--reference-canvas {
+  width: 1536px;
+  min-width: 1536px;
+  max-width: none;
+  height: 1024px;
+  min-height: 1024px;
+  overflow: hidden;
+  flex: 0 0 auto;
+  transform: scale(var(--immersive-scale, 1));
+  transform-origin: top center;
+  will-change: transform;
+}
+
+.study-app-shell--reference-canvas .study-stage,
+.study-app-shell--reference-canvas .study-stage__content {
+  min-width: 0;
+}
+
+@media (max-width: 899px) {
+  .study-app-viewport--immersive {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+
+  .study-app-viewport--immersive > .study-app-shell--reference-canvas {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+    transform: none;
+    will-change: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study-app-viewport--immersive > .study-app-shell--reference-canvas {
+    will-change: auto;
+  }
+}
