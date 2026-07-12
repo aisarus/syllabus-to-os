@@ -19,38 +19,43 @@ Last updated: 2026-07-12
 - `P0-009 Add chunk editing tools` — complete and verified.
 - `P0-010 Add material output history` — complete and verified.
 - `P0-011 Connect AI actions to material selection` — complete and verified.
-- `P0-012 Upgrade AI draft review` — next.
+- `P0-012 Upgrade AI draft review` — complete and verified.
+- `P0-013 Add AI trust and citation layer` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Selected-source AI contract
+### Reliable AI draft review
 
-- Audited the existing Material Workspace actions for notes, flashcards and quizzes.
-- Confirmed that the current material, course, topic and selected chunk IDs are preselected in the reusable AI dialog.
-- Confirmed that selected character count and the 20,000-character limit are visible and enforced.
-- Confirmed that an empty source selection cannot be submitted.
-- Confirmed that saved notes, cards and quiz questions preserve `materialId`, course/topic context and `sourceChunkIds`.
-- Confirmed that global AI buttons remain available outside the Material Workspace.
-- Added `verify:ai-source-contract`, a regression check that fails when selected-source wiring or source-linked save behavior is removed.
-- Added the contract check to the canonical `npm run check` command and GitHub Actions.
-- Preserved the dependency lockfile, store schema and existing localStorage data.
+- Added explicit idle, loading, error, ready and saved states.
+- Added unsaved-change protection for cancel, escape and overlay-close paths.
+- Added an idempotent save lock and a visible confirmation after exactly one save.
+- Preserved selected material, course, topic and chunk context after generation failures and retries.
+- Added draft validity checks that prevent empty notes, cards, questions and presentation structures from being saved.
+- Added complete note title, content and tag editing.
+- Added card creation, deletion, reordering and scoped one-card AI replacement.
+- Added quiz question creation, deletion, reordering and scoped one-question AI replacement.
+- Added editing and validation for question options, correct answers and explanations.
+- Added presentation slide creation, deletion and reordering.
+- Split the implementation into focused draft editors and a reusable draft-session component.
+- Extended the AI regression contract to cover saved state, idempotent save, unsaved-change protection and scoped item regeneration.
+- Preserved the existing store schema and localStorage data.
 
 ## Verification state
 
 - Documentation verification passed.
-- Selected-source AI contract verification passed.
+- Selected-source and AI draft review contract verification passed.
 - TypeScript passed.
 - ESLint passed.
 - Production build passed.
 
 ## Next execution target
 
-1. Begin `P0-012` with idempotent draft saving and explicit saved state.
-2. Add unsaved-change protection.
-3. Strengthen editing, removal, addition and reordering for cards and quiz questions.
-4. Preserve selected source context after AI failures and retries.
+1. Begin `P0-013` structured source trust and citation validation.
+2. Validate every returned source chunk ID against the actual request scope.
+3. Show unsupported or uncited generated items honestly.
+4. Add prompt/model metadata for debugging without exposing secrets.
 
 ## Blockers
 
