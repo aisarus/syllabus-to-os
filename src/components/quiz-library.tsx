@@ -42,8 +42,16 @@ export function QuizLibrary() {
   const filtered = useMemo(() => {
     const normalized = normalizeText(query);
     return data.quizzes
-      .filter((quiz) => courseFilter === "all" || quiz.courseId === courseFilter)
-      .filter((quiz) => materialFilter === "all" || quiz.materialId === materialFilter)
+      .filter(
+        (quiz) =>
+          courseFilter === "all" ||
+          (courseFilter === "_none" ? !quiz.courseId : quiz.courseId === courseFilter),
+      )
+      .filter(
+        (quiz) =>
+          materialFilter === "all" ||
+          (materialFilter === "_none" ? !quiz.materialId : quiz.materialId === materialFilter),
+      )
       .filter((quiz) => !normalized || normalizeText(quiz.title).includes(normalized))
       .slice()
       .sort((a, b) => b.createdAt - a.createdAt);
