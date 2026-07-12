@@ -21,41 +21,44 @@ Last updated: 2026-07-12
 - `P0-011 Connect AI actions to material selection` — complete and verified.
 - `P0-012 Upgrade AI draft review` — complete and verified.
 - `P0-013 Add AI trust and citation layer` — complete and verified.
-- `P0-014 Complete syllabus review and confirmation` — next.
+- `P0-014 Complete syllabus review and confirmation` — complete and verified.
+- `P0-015 Build Course Workspace v1` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### AI source trust contract and draft diagnostics
+### Universal syllabus review and confirmation
 
-- Added a versioned AI prompt contract (`study-grounding-v1`).
-- Required structured `sourceChunkIds` for notes, flashcards, quiz questions and presentation slides.
-- Validated every returned source chunk ID against the exact request scope.
-- Removed unknown IDs and emitted explicit RU/EN warnings rather than accepting fabricated references.
-- Added uncited-item counting and explicit `notFoundInSources` behavior.
-- Strengthened prompts against fabricated facts, source IDs and page numbers.
-- Added typed frontend metadata for model, prompt version, requested IDs, rejected IDs and uncited-item count.
-- Added a visible draft trust panel with validated and review-required states.
-- Added a prominent warning when selected sources are insufficient.
-- Added regression coverage for server grounding rules, client metadata and trust diagnostics.
-- Preserved the current store schema and localStorage data.
+- Replaced the active spreadsheet-only mapper with a universal review workspace.
+- Added PDF, DOCX, XLSX/XLS, CSV, TXT/Markdown and pasted-text intake through the shared document extraction pipeline.
+- Added deterministic parsing for course title, code, instructor, credits, semester, description and weekly topics.
+- Added extraction and editing for readings, assignments, exams and grading sections.
+- Added overall and per-field confidence indicators plus visible uncertainty warnings.
+- Added manual add, edit, delete and exclude controls for courses and extracted list items.
+- Added previous-import detection and matching-course detection by course code or normalized title.
+- Kept every course, topic, material and note mutation behind one explicit confirmation step.
+- Added safe create, update or skip decisions per reviewed course.
+- Reimport merges topics without deleting existing topics or creating normalized-title duplicates.
+- Confirmed syllabi are stored as linked syllabus materials with extracted chunks and as reviewed syllabus notes.
+- Added a permanent `verify:syllabus-review-contract` regression check to local checks and CI.
+- Preserved current localStorage compatibility; no destructive schema migration was introduced.
 
 ## Verification state
 
 - Documentation verification passed.
-- Selected-source, draft-review and citation-trust contract verification passed.
+- Selected-source AI contract verification passed.
+- Syllabus review and confirmation contract verification passed.
 - TypeScript passed.
 - ESLint passed.
 - Production build passed.
-- The client follow-up is based on current `main` after the server contract from PR #13, avoiding any duplicated or conflicting server rewrite.
 
 ## Next execution target
 
-1. Begin `P0-014` by auditing the current syllabus intake, deterministic parser, AI parser and review-state boundaries.
-2. Reuse the shared material intake pipeline for PDF, DOCX, XLSX and pasted syllabus text.
-3. Keep every course/topic mutation behind explicit confirmation.
-4. Make reimport duplicate-safe and preserve user corrections.
+1. Build `P0-015` Course Workspace v1 on top of reviewed syllabus data.
+2. Group materials by topic and surface unassigned course materials.
+3. Show notes, cards, quizzes and uncovered syllabus topics in the course.
+4. Add course-level AI actions with explicit source selection only.
 
 ## Blockers
 
