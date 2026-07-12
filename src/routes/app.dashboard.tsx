@@ -48,7 +48,8 @@ function Dashboard() {
   const copy = isRu
     ? {
         eyebrow: "Рабочее пространство контента",
-        subtitle: "Загружай учебные материалы и превращай их в понятные конспекты, карточки и тесты.",
+        subtitle:
+          "Загружай документы, фотографии и учебные материалы и превращай их в понятные конспекты, карточки и тесты.",
         date: new Intl.DateTimeFormat("ru-RU", {
           day: "numeric",
           month: "long",
@@ -57,8 +58,8 @@ function Dashboard() {
         intakeLabel: "Единый вход",
         intakeTitle: "Добавь учебные материалы",
         intakeBody:
-          "Выбери или перетащи сразу несколько файлов. Lamdan обработает их в очереди, а ты сможешь продолжать работать.",
-        chooseFiles: "Выбрать файлы",
+          "Выбери или перетащи сразу несколько файлов и фотографий. Lamdan обработает их в очереди, а ты сможешь продолжать работать.",
+        chooseFiles: "Выбрать файлы или фото",
         importSyllabus: "Импортировать силлабус",
         aiLabel: "AI-преобразование",
         aiTitle: "Создай результат из материала",
@@ -68,7 +69,7 @@ function Dashboard() {
         quiz: "Создать тест",
         recent: "Последние материалы",
         allMaterials: "Все материалы",
-        noMaterials: "Материалов пока нет. Загрузи первые файлы выше.",
+        noMaterials: "Материалов пока нет. Загрузи первые файлы или фото выше.",
         courses: "Курсы",
         allCourses: "Все курсы",
         noCourses: "Курсов пока нет. Начни с импорта силлабуса.",
@@ -83,7 +84,8 @@ function Dashboard() {
       }
     : {
         eyebrow: "Content workspace",
-        subtitle: "Upload study materials and turn them into clear notes, flashcards and quizzes.",
+        subtitle:
+          "Upload documents, photos and study materials and turn them into clear notes, flashcards and quizzes.",
         date: new Intl.DateTimeFormat("en-GB", {
           day: "numeric",
           month: "long",
@@ -92,8 +94,8 @@ function Dashboard() {
         intakeLabel: "Universal intake",
         intakeTitle: "Add study materials",
         intakeBody:
-          "Choose or drop several files at once. Lamdan processes them in a queue while you continue working.",
-        chooseFiles: "Choose files",
+          "Choose or drop several files and photos at once. Lamdan processes them in a queue while you continue working.",
+        chooseFiles: "Choose files or photos",
         importSyllabus: "Import syllabus",
         aiLabel: "AI transformation",
         aiTitle: "Create an output from a material",
@@ -103,7 +105,7 @@ function Dashboard() {
         quiz: "Create quiz",
         recent: "Recent materials",
         allMaterials: "All materials",
-        noMaterials: "No materials yet. Upload your first files above.",
+        noMaterials: "No materials yet. Upload your first files or photos above.",
         courses: "Courses",
         allCourses: "All courses",
         noCourses: "No courses yet. Start by importing a syllabus.",
@@ -166,7 +168,7 @@ function Dashboard() {
               type="file"
               multiple
               hidden
-              accept=".pdf,.docx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.xml,.yaml,.yml"
+              accept=".pdf,.docx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.xml,.yaml,.yml,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
               onChange={(event) => addFiles(event.target.files)}
             />
             <button
