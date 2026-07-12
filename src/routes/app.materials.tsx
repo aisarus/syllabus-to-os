@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Grid2X2, List, Upload, FileInput, Search } from "lucide-react";
 import { FolderCard, RoomHeading, BrassButton, PaperButton } from "@/components/study-room-ui";
 import { useData } from "@/lib/store";
+import { useApp } from "@/lib/app-context";
 
 export const Route = createFileRoute("/app/materials")({
   component: MaterialsPage,
@@ -16,15 +17,17 @@ const fallbackRows = [
 ] as const;
 
 function MaterialsPage() {
+  const { t, lang } = useApp();
   const data = useData();
+  const locale = lang === "ru" ? "ru-RU" : "en-GB";
   const rows = data.materials.length
     ? data.materials.slice(0, 8).map((material) => {
         const course = data.courses.find((item) => item.id === material.courseId);
         return [
           material.title,
-          course?.title || "General",
+          course?.title || t.generalFolder,
           material.fileName?.split(".").pop()?.toUpperCase() || material.type,
-          new Date(material.updatedAt).toLocaleDateString("en-GB"),
+          new Date(material.updatedAt).toLocaleDateString(locale),
           material.fileSize ? `${(material.fileSize / 1024 / 1024).toFixed(1)} MB` : "—",
           material.id,
         ] as const;
@@ -34,44 +37,44 @@ function MaterialsPage() {
   return (
     <div className="room-page materials-room">
       <RoomHeading
-        eyebrow="The archive"
-        title="Materials"
-        subtitle="Folders, readings and lecture files — all in one ledger."
+        eyebrow={t.archiveEyebrow}
+        title={t.materials}
+        subtitle={t.materialsSubtitle}
         actions={
           <>
-            <PaperButton><FileInput size={14} /> Import</PaperButton>
-            <BrassButton><Upload size={14} /> Upload</BrassButton>
+            <PaperButton><FileInput size={14} /> {t.import}</PaperButton>
+            <BrassButton><Upload size={14} /> {t.upload}</BrassButton>
           </>
         }
       />
 
-      <section className="folder-rack" aria-label="Material folders">
-        <FolderCard title="Lecture Notes" count={12} tone="ochre" />
-        <FolderCard title="Slides" count={8} tone="green" />
-        <FolderCard title="Readings" count={6} tone="rust" />
-        <FolderCard title="Exams" count={3} tone="umber" />
-        <FolderCard title="Articles" count={5} tone="ochre" />
-        <FolderCard title="Other" count={7} tone="cream" />
+      <section className="folder-rack" aria-label={t.foldersAria}>
+        <FolderCard title={t.folderLectureNotes} count={12} tone="ochre" />
+        <FolderCard title={t.folderSlides} count={8} tone="green" />
+        <FolderCard title={t.folderReadings} count={6} tone="rust" />
+        <FolderCard title={t.folderExams} count={3} tone="umber" />
+        <FolderCard title={t.folderArticles} count={5} tone="ochre" />
+        <FolderCard title={t.folderOther} count={7} tone="cream" />
       </section>
 
       <div className="materials-toolbar">
-        <label><Search size={15} /><input placeholder="Search the archive…" aria-label="Search materials" /></label>
+        <label><Search size={15} /><input placeholder={t.searchArchivePlaceholder} aria-label={t.searchArchiveAria} /></label>
         <div>
-          <button type="button" aria-label="List view" className="is-active"><List size={15} /></button>
-          <button type="button" aria-label="Grid view"><Grid2X2 size={15} /></button>
+          <button type="button" aria-label={t.listViewAria} className="is-active"><List size={15} /></button>
+          <button type="button" aria-label={t.gridViewAria}><Grid2X2 size={15} /></button>
         </div>
       </div>
 
-      <section className="material-ledger" aria-label="Material list">
+      <section className="material-ledger" aria-label={t.materialsListAria}>
         <div className="material-ledger__clip" aria-hidden="true" />
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Course</th>
-              <th>Type</th>
-              <th>Date</th>
-              <th>Size</th>
+              <th>{t.colName}</th>
+              <th>{t.colCourse}</th>
+              <th>{t.type}</th>
+              <th>{t.colDate}</th>
+              <th>{t.colSize}</th>
             </tr>
           </thead>
           <tbody>
@@ -91,8 +94,8 @@ function MaterialsPage() {
           </tbody>
         </table>
         <aside className="ledger-note">
-          <span>Knowledge</span>
-          <strong>stored today<br />is power<br />used tomorrow.</strong>
+          <span>{t.ledgerKnowledgeLabel}</span>
+          <strong style={{ whiteSpace: "pre-line" }}>{t.ledgerKnowledgeBody}</strong>
           <i>❧</i>
         </aside>
       </section>
