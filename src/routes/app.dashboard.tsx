@@ -63,12 +63,11 @@ function Dashboard() {
           ["Конспекты", "Продолжить запись"],
           ["Карточки", "Повторить колоду"],
           ["Фокус-сессия", "Запустить на 45 мин"],
-        ],
-        schedule: [
-          ["11:30", "Академический иврит", "Аудитория 204 · 90 мин"],
-          ["15:00", "Обзор социологии", "24 карточки"],
-          ["19:30", "Эссе по государственному управлению", "Онлайн · только черновик"],
-        ],
+        ] as const,
+        emptyShelf: "Твоя полка пуста",
+        emptyShelfHint: "Добавь первый курс, чтобы начать путь.",
+        emptySchedule: "На сегодня ничего не запланировано.",
+        notStarted: "Не начат",
       }
     : {
         eyebrow: "Study room",
@@ -87,23 +86,25 @@ function Dashboard() {
           ["Notes", "Continue writing"],
           ["Flashcards", "Review a deck"],
           ["Focus session", "Start 45 minutes"],
-        ],
-        schedule: [
-          ["11:30", "Academic Hebrew", "Room 204 · 90 min"],
-          ["15:00", "Review Sociology", "24 flashcards"],
-          ["19:30", "Government Essay", "Online · outline only"],
-        ],
+        ] as const,
+        emptyShelf: "Your shelf is empty",
+        emptyShelfHint: "Add your first course to begin.",
+        emptySchedule: "Nothing scheduled for today.",
+        notStarted: "Not started",
       };
 
-  const courses = data.courses.length
-    ? data.courses.slice(0, 3).map((course, index) => ({
-        id: course.id,
-        code: course.number || ["6.15", "1.59", "1.62"][index] || "COURSE",
-        title: course.title,
-        progress: [72, 54, 81][index] || 60,
-        tone: (["forest", "rust", "ochre"] as const)[index % 3],
-      }))
-    : fallbackCourses[lang];
+  const todayStr = now.toISOString().slice(0, 10);
+  const todayEvents = data.calendarEvents
+    .filter((e) => e.date === todayStr)
+    .sort((a, b) => (a.startTime ?? "").localeCompare(b.startTime ?? ""));
+
+  const shelfCourses = data.courses.slice(0, 3).map((course) => ({
+    id: course.id,
+    code: course.number || course.title.slice(0, 4).toUpperCase(),
+    title: course.title,
+    tone: courseTone(course.id),
+  }));
+
 
   const shortcutIcons = [FolderArchive, NotebookPen, Layers3, TimerReset] as const;
   const shortcutRoutes = [
