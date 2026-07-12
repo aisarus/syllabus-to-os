@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-const checks = ["verify:docs", "typecheck", "lint", "build"];
+const checks = ["verify:docs", "verify:ai-source-contract", "typecheck", "lint", "build"];
 
 for (const script of checks) {
   console.log(`\n==> npm run ${script}`);
