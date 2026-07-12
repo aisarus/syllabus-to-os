@@ -23,26 +23,28 @@ Last updated: 2026-07-12
 - `P0-013 Add AI trust and citation layer` — complete and verified.
 - `P0-014 Complete syllabus review and confirmation` — complete and verified.
 - `P0-015 Build Course Workspace v1` — complete and verified.
-- `P0-016 Upgrade Notes to a reliable editor` — next.
+- `P0-016 Upgrade Notes to a reliable editor` — complete and verified.
+- `P0-017 Add Flashcard Studio v1` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Persistent Course Workspace v1
+### Reliable source-linked Notes editor
 
-- Replaced the basic course detail page with a persistent course content workspace.
-- Added editable real course metadata, description, topics and weeks.
-- Grouped materials by topic and added an explicit unassigned-material section.
-- Surfaced syllabus topics with no linked materials without calling the result progress or mastery.
-- Added multi-file upload directly into a course through the shared material-intake pipeline.
-- Added attachment of existing unassigned library materials.
-- Added inline relinking and detaching of materials by topic.
-- Added course-scoped notes, flashcards, quizzes and presentation outlines.
-- Added inline topic relinking for generated outputs.
-- Added course-level note, flashcard and quiz generation using one explicitly selected material and exact selected chunks.
-- Added safe course deletion that detaches related content before removing the course and topics.
-- Added a permanent `verify:course-workspace-contract` regression check to local checks and CI.
+- Replaced the compact inline editor with a dedicated persistent note library and detail workspace.
+- Added visible saved, unsaved, saving and error states with debounced autosave.
+- Added flush-on-navigation and before-unload protection so ordinary navigation does not lose note text.
+- Added Markdown controls for headings, lists, checklists, quotes and tables without introducing a heavy editor dependency.
+- Preserved mixed Hebrew, Russian and English editing with automatic text direction.
+- Added course, topic, material and exact source-chunk relationships.
+- Added source comparison that surfaces possibly missing source sections without claiming knowledge or mastery.
+- Added selected-text conversion into an editable flashcard or a fully validated multiple-choice question.
+- Added search across note title, body and tags plus course, material and tag filters.
+- Added safe duplication and multi-note merge preview.
+- Merging creates a new note and preserves every original note.
+- Added direct Markdown export.
+- Added a permanent `verify:notes-editor-contract` regression check to local checks and CI.
 - Preserved the current store schema and localStorage data.
 
 ## Verification state
@@ -51,16 +53,17 @@ Last updated: 2026-07-12
 - Selected-source AI contract verification passed.
 - Syllabus review and confirmation contract verification passed.
 - Course Workspace v1 contract verification passed.
+- Reliable Notes editor contract verification passed.
 - TypeScript passed.
 - ESLint passed.
 - Production build passed.
 
 ## Next execution target
 
-1. Begin `P0-016` with a stable note editor and visible autosave state.
-2. Preserve mixed Hebrew/Russian/English editing and source references.
-3. Add search, filters, duplicate, merge preview and Markdown export.
-4. Add source comparison and selected-text conversion without risking note data.
+1. Begin `P0-017` Flashcard Studio v1.
+2. Add course, topic and material filters plus bulk selection and relinking.
+3. Add duplicate detection and guarded merge/delete flows.
+4. Keep content editing primary and review scheduling secondary.
 
 ## Blockers
 

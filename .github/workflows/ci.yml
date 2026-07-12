@@ -56,6 +56,9 @@ jobs:
       - name: Verify Course Workspace contract
         run: npm run verify:course-workspace-contract
 
+      - name: Verify Notes editor contract
+        run: npm run verify:notes-editor-contract
+
       - name: Typecheck
         id: typecheck
         continue-on-error: true
