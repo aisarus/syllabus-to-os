@@ -4,7 +4,7 @@ Last updated: 2026-07-12
 
 ## Current milestone
 
-**Milestone B — Reliable universal intake**
+**Milestone C — Material Workspace**
 
 ## Task status
 
@@ -14,7 +14,8 @@ Last updated: 2026-07-12
 - `P0-004 Create one shared intake service` — complete and verified.
 - `P0-005 Build multi-file upload queue` — complete and verified on Dashboard and Materials.
 - `P0-006 Add duplicate detection` — complete and verified across exact, likely, queue and legacy upload paths.
-- `P0-007 Add intake review and correction` — implemented for queued files; validation in progress.
+- `P0-007 Add intake review and correction` — complete and verified.
+- `P0-008 Replace material detail with a true workspace` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
@@ -22,7 +23,7 @@ Last updated: 2026-07-12
 
 ### Intake review before persistence
 
-- Extracted queue items now pause in a review state instead of being silently saved.
+- Extracted queue items pause in a review state instead of being silently saved.
 - Added editable title, material type, course, topic and tags.
 - Added detected language, word count, page count and extraction diagnostics.
 - Added a readable extracted-text preview with automatic text direction.
@@ -30,21 +31,25 @@ Last updated: 2026-07-12
 - Added save, save without course, retry extraction and discard actions.
 - Discard does not create a material record.
 - Retry reuses duplicate decisions but performs extraction again.
-- Duplicate review still happens before metadata review.
+- Duplicate review happens before metadata review.
 - Saving persists corrected metadata, chunks and the source fingerprint together.
+- The pasted-text path continues to expose title, type, course and full source text before save.
 
 ## Verification state
 
-- A pull request from `agent/validate-intake-review` runs documentation verification, TypeScript, ESLint and production build against the current review workflow.
-- Do not mark `P0-007` complete until that run succeeds and the direct pasted-text path is confirmed to remain editable before save.
+- Documentation verification passed.
+- TypeScript passed.
+- ESLint passed.
+- Production build passed.
+- The successful run covers the queue review dialog and extraction-before-persistence workflow.
 
 ## Next execution target
 
-1. Fix any concrete CI failure.
-2. Confirm pasted text still exposes title, type, course and full source text before save.
-3. Mark `P0-007` complete after the full suite passes.
-4. Begin `P0-008` Material Workspace.
+1. Replace material detail with a responsive three-part workspace.
+2. Add chunk navigation, text search and multi-chunk selection.
+3. Add editable metadata and honest raw-text fallback.
+4. Connect existing outputs and AI actions to the selected source context.
 
 ## Blockers
 
-None unless CI reports a concrete failure.
+None.
