@@ -1,0 +1,312 @@
+{
+  "version": 1,
+  "description": "Recorded offline baselines for Lamdan. OCR candidates are benchmark records, not a claim that live OCR is connected.",
+  "suiteThresholds": {
+    "syllabus": 0.95,
+    "grounding": 0.94,
+    "multilingual": 0.92,
+    "ocr": 0.86
+  },
+  "fixtures": [
+    {
+      "id": "syllabus-bar-ilan-mixed-he-ru",
+      "suite": "syllabus",
+      "kind": "structured",
+      "weight": 1.5,
+      "candidate": {
+        "course": {
+          "title": "מבוא ללימודי מידע",
+          "number": "35-101",
+          "credits": 3,
+          "semester": "סמסטר א׳",
+          "instructor": "ד״ר יעל כהן"
+        },
+        "topics": ["מבוא למידע וידע", "ארגון מידע", "אחזור מידע", "אתיקה ומידע"]
+      },
+      "negativeCandidate": {
+        "course": { "title": "Информатика", "number": "", "credits": 5 },
+        "topics": ["Общая тема"]
+      },
+      "checks": [
+        { "path": "course.title", "op": "equals", "value": "מבוא ללימודי מידע", "weight": 2 },
+        { "path": "course.number", "op": "equals", "value": "35-101", "weight": 2 },
+        { "path": "course.credits", "op": "equals", "value": 3, "weight": 1.5 },
+        { "path": "course.semester", "op": "equals", "value": "סמסטר א׳", "weight": 1 },
+        { "path": "course.instructor", "op": "equals", "value": "ד״ר יעל כהן", "weight": 1 },
+        { "path": "topics", "op": "arrayIncludes", "value": "אחזור מידע", "weight": 1 },
+        { "path": "topics", "op": "arrayIncludes", "value": "אתיקה ומידע", "weight": 1 },
+        { "path": "topics", "op": "lengthBetween", "min": 4, "max": 8, "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "grounded-note-source-citations",
+      "suite": "grounding",
+      "kind": "generation",
+      "candidate": {
+        "title": "Информация и знание",
+        "content": "מידע — это обработанные данные, получившие значение. ידע возникает, когда человек интерпретирует информацию и связывает её с контекстом.",
+        "sourceChunkIds": ["chunk_he_1", "chunk_he_2"],
+        "notFoundInSources": false
+      },
+      "negativeCandidate": {
+        "title": "Информация и знание",
+        "content": "מידע было изобретено Клодом Шенноном в 1948 году и всегда измеряется только в битах.",
+        "sourceChunkIds": ["invented_chunk"],
+        "notFoundInSources": false
+      },
+      "expectations": {
+        "allowedSourceChunkIds": ["chunk_he_1", "chunk_he_2"],
+        "citationPaths": ["sourceChunkIds"],
+        "requiredTerms": ["מידע", "ידע", "контекст"],
+        "forbiddenTerms": ["Шеннон", "1948", "только в битах"],
+        "requiredFields": ["title", "content", "sourceChunkIds"],
+        "notFoundExpected": false
+      }
+    },
+    {
+      "id": "grounded-quiz-four-options",
+      "suite": "grounding",
+      "kind": "generation",
+      "candidate": {
+        "title": "אחזור מידע",
+        "questions": [
+          {
+            "prompt": "מהי מטרתו של אחזור מידע?",
+            "options": ["למצוא מידע רלוונטי לצורך של המשתמש", "למחוק מסמכים", "להמיר טקסט לתמונה", "לסדר ספרים לפי צבע"],
+            "correctIndex": 0,
+            "explanation": "אחזור מידע מתאים בין צורך מידע לבין פריטים רלוונטיים.",
+            "sourceChunkIds": ["chunk_retrieval_1"]
+          },
+          {
+            "prompt": "מה מייצגת שאילתת המשתמש?",
+            "options": ["ניסוח של צורך המידע", "ציון סופי", "רשימת נוכחות", "סוג הקובץ"],
+            "correctIndex": 0,
+            "explanation": "השאילתה מבטאת את צורך המידע.",
+            "sourceChunkIds": ["chunk_retrieval_1"]
+          }
+        ],
+        "notFoundInSources": false
+      },
+      "negativeCandidate": {
+        "title": "Quiz",
+        "questions": [
+          {
+            "prompt": "מי המציא את האינטרנט?",
+            "options": ["א", "ב"],
+            "correctIndex": 3,
+            "explanation": "לא במקור",
+            "sourceChunkIds": []
+          }
+        ],
+        "notFoundInSources": false
+      },
+      "expectations": {
+        "allowedSourceChunkIds": ["chunk_retrieval_1"],
+        "itemPath": "questions",
+        "minItems": 2,
+        "maxItems": 10,
+        "itemRequiredFields": ["prompt", "options", "correctIndex", "explanation", "sourceChunkIds"],
+        "citationField": "sourceChunkIds",
+        "exactOptionCount": 4,
+        "requiredTerms": ["אחזור מידע", "שאילת"],
+        "forbiddenTerms": ["מי המציא את האינטרנט"],
+        "notFoundExpected": false
+      }
+    },
+    {
+      "id": "multilingual-russian-preserves-hebrew-terms",
+      "suite": "multilingual",
+      "kind": "generation",
+      "candidate": {
+        "text": "מילות מפתח — это ключевые слова, а שאילתת חיפוש — поисковый запрос. דיוק (precision) показывает долю релевантных результатов среди найденных, а כיסוי (recall) — долю найденных релевантных документов среди всех релевантных.",
+        "sourceChunkIds": ["chunk_metrics_1"]
+      },
+      "negativeCandidate": {
+        "text": "Ключевые слова и запрос. Все термины переведены, различия между метриками несущественны.",
+        "sourceChunkIds": []
+      },
+      "expectations": {
+        "allowedSourceChunkIds": ["chunk_metrics_1"],
+        "citationPaths": ["sourceChunkIds"],
+        "requiredTerms": ["מילות מפתח", "שאילתת חיפוש", "דיוק", "כיסוי", "precision", "recall"],
+        "forbiddenTerms": ["различия между метриками несущественны"],
+        "requiredFields": ["text", "sourceChunkIds"]
+      }
+    },
+    {
+      "id": "ocr-printed-hebrew-page",
+      "suite": "ocr",
+      "kind": "ocr",
+      "input": {
+        "assetId": "private:printed-hebrew-page-01",
+        "assetStatus": "private_or_licensed_required",
+        "sourceStyle": "printed",
+        "containsMath": false
+      },
+      "reference": {
+        "transcript": "מבוא ללימודי מידע\nמידע הוא נתונים שעברו עיבוד וקיבלו משמעות.",
+        "lines": ["מבוא ללימודי מידע", "מידע הוא נתונים שעברו עיבוד וקיבלו משמעות."],
+        "criticalTokens": ["לימודי מידע", "נתונים", "משמעות"],
+        "mathExpressions": [],
+        "requiresReview": false
+      },
+      "candidate": {
+        "transcript": "מבוא ללימודי מידע\nמידע הוא נתונים שעברו עיבוד וקיבלו משמעות.",
+        "lines": ["מבוא ללימודי מידע", "מידע הוא נתונים שעברו עיבוד וקיבלו משמעות."],
+        "mathExpressions": [],
+        "confidence": 0.97,
+        "requiresReview": false,
+        "warnings": []
+      },
+      "negativeCandidate": {
+        "transcript": "מבוא ללימודי מדע\nמידע הוא נתונים חסרי משמעות.",
+        "lines": ["מידע הוא נתונים חסרי משמעות.", "מבוא ללימודי מדע"],
+        "mathExpressions": [],
+        "confidence": 0.99,
+        "requiresReview": false,
+        "warnings": []
+      },
+      "thresholds": {
+        "cerMax": 0.08,
+        "werMax": 0.15,
+        "criticalTokenRecallMin": 1,
+        "lineOrderMin": 1,
+        "hallucinatedTokenRateMax": 0.08
+      }
+    },
+    {
+      "id": "ocr-handwritten-hebrew-notes",
+      "suite": "ocr",
+      "kind": "ocr",
+      "weight": 1.2,
+      "input": {
+        "assetId": "private:handwritten-hebrew-notes-01",
+        "assetStatus": "private_or_licensed_required",
+        "sourceStyle": "handwritten",
+        "containsMath": false
+      },
+      "reference": {
+        "transcript": "ידע תלוי בהקשר ובפרשנות של האדם.\nלא כל מידע הופך אוטומטית לידע.",
+        "lines": ["ידע תלוי בהקשר ובפרשנות של האדם.", "לא כל מידע הופך אוטומטית לידע."],
+        "criticalTokens": ["ידע", "הקשר", "פרשנות", "אוטומטית"],
+        "mathExpressions": [],
+        "requiresReview": true
+      },
+      "candidate": {
+        "transcript": "ידע תלוי בהקשר ובפרשנות של האדם.\nלא כל מידע הופך אוטומטית לידע.",
+        "lines": ["ידע תלוי בהקשר ובפרשנות של האדם.", "לא כל מידע הופך אוטומטית לידע."],
+        "mathExpressions": [],
+        "confidence": 0.76,
+        "requiresReview": true,
+        "warnings": ["Handwriting requires manual review."]
+      },
+      "negativeCandidate": {
+        "transcript": "ידע הוא אמת מוחלטת ואינו תלוי באדם.",
+        "lines": ["ידע הוא אמת מוחלטת ואינו תלוי באדם."],
+        "mathExpressions": [],
+        "confidence": 0.95,
+        "requiresReview": false,
+        "warnings": []
+      },
+      "thresholds": {
+        "cerMax": 0.15,
+        "werMax": 0.25,
+        "criticalTokenRecallMin": 0.9,
+        "lineOrderMin": 0.9,
+        "hallucinatedTokenRateMax": 0.12,
+        "requireHonestReview": true
+      }
+    },
+    {
+      "id": "ocr-handwritten-math-notebook",
+      "suite": "ocr",
+      "kind": "ocr",
+      "weight": 1.5,
+      "input": {
+        "assetId": "private:handwritten-math-notebook-01",
+        "assetStatus": "private_or_licensed_required",
+        "sourceStyle": "handwritten",
+        "containsMath": true
+      },
+      "reference": {
+        "transcript": "פתור את המשוואה:\nx² - 4x + 3 = 0\n(x - 1)(x - 3) = 0\nx = 1 או x = 3",
+        "lines": ["פתור את המשוואה:", "x² - 4x + 3 = 0", "(x - 1)(x - 3) = 0", "x = 1 או x = 3"],
+        "criticalTokens": ["- 4x", "+ 3", "(x - 1)(x - 3)", "x = 1", "x = 3"],
+        "mathExpressions": ["x^2-4x+3=0", "(x-1)(x-3)=0", "x=1", "x=3"],
+        "requiresReview": true
+      },
+      "candidate": {
+        "transcript": "פתור את המשוואה:\nx² - 4x + 3 = 0\n(x - 1)(x - 3) = 0\nx = 1 או x = 3",
+        "lines": ["פתור את המשוואה:", "x² - 4x + 3 = 0", "(x - 1)(x - 3) = 0", "x = 1 או x = 3"],
+        "mathExpressions": ["x^2-4x+3=0", "(x-1)(x-3)=0", "x=1", "x=3"],
+        "confidence": 0.72,
+        "requiresReview": true,
+        "warnings": ["Handwritten mathematics requires manual verification."]
+      },
+      "negativeCandidate": {
+        "transcript": "פתור:\nx² - 4x - 3 = 0\nx = 4",
+        "lines": ["פתור:", "x² - 4x - 3 = 0", "x = 4"],
+        "mathExpressions": ["x^2-4x-3=0", "x=4"],
+        "confidence": 0.94,
+        "requiresReview": false,
+        "warnings": []
+      },
+      "thresholds": {
+        "cerMax": 0.12,
+        "werMax": 0.2,
+        "criticalTokenRecallMin": 1,
+        "mathExpressionRecallMin": 1,
+        "lineOrderMin": 0.95,
+        "hallucinatedTokenRateMax": 0.08,
+        "requireHonestReview": true
+      }
+    },
+    {
+      "id": "ocr-unreadable-photo-abstention",
+      "suite": "ocr",
+      "kind": "ocr",
+      "weight": 1.2,
+      "input": {
+        "assetId": "private:blurred-notebook-photo-01",
+        "assetStatus": "private_or_licensed_required",
+        "sourceStyle": "handwritten",
+        "containsMath": true,
+        "quality": "unreadable"
+      },
+      "reference": {
+        "transcript": "",
+        "lines": [],
+        "criticalTokens": [],
+        "mathExpressions": [],
+        "requiresReview": true,
+        "mustAbstain": true
+      },
+      "candidate": {
+        "transcript": "",
+        "lines": [],
+        "mathExpressions": [],
+        "confidence": 0.12,
+        "requiresReview": true,
+        "warnings": ["Image is too blurry for reliable transcription."]
+      },
+      "negativeCandidate": {
+        "transcript": "x² + 5x + 6 = 0, x = -2, x = -3",
+        "lines": ["x² + 5x + 6 = 0", "x = -2", "x = -3"],
+        "mathExpressions": ["x^2+5x+6=0", "x=-2", "x=-3"],
+        "confidence": 0.91,
+        "requiresReview": false,
+        "warnings": []
+      },
+      "thresholds": {
+        "cerMax": 0,
+        "werMax": 0,
+        "criticalTokenRecallMin": 1,
+        "mathExpressionRecallMin": 1,
+        "lineOrderMin": 1,
+        "hallucinatedTokenRateMax": 0,
+        "requireHonestReview": true,
+        "requireAbstention": true
+      }
+    }
+  ]
+}
