@@ -1,14 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { RoomHeading, PaperButton } from "@/components/study-room-ui";
+import { useApp } from "@/lib/app-context";
 
 export const Route = createFileRoute("/app/calendar")({
   component: CalendarPage,
 });
-
-const days = [
-  ["Mon", "10"], ["Tue", "11"], ["Wed", "12"], ["Thu", "13"], ["Fri", "14"], ["Sat", "15"], ["Sun", "16"],
-] as const;
 
 const events = [
   { day: 1, row: 1, title: "Academic Hebrew", meta: "Room 204", tone: "ochre" },
@@ -20,29 +17,48 @@ const events = [
 ];
 
 function CalendarPage() {
+  const { t, lang } = useApp();
+  const days: ReadonlyArray<readonly [string, string]> = [
+    [t.weekdayMon, "10"],
+    [t.weekdayTue, "11"],
+    [t.weekdayWed, "12"],
+    [t.weekdayThu, "13"],
+    [t.weekdayFri, "14"],
+    [t.weekdaySat, "15"],
+    [t.weekdaySun, "16"],
+  ];
+  const now = new Date();
+  const monthTitle = now.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-GB", {
+    month: "long",
+    year: "numeric",
+  });
+  const shortDate = now
+    .toLocaleDateString(lang === "ru" ? "ru-RU" : "en-GB", { day: "numeric", month: "short" })
+    .toUpperCase();
+
   return (
     <div className="room-page calendar-room">
       <RoomHeading
-        eyebrow="This week"
-        title="Calendar"
-        subtitle="A quiet overview of classes, deadlines and study time."
+        eyebrow={t.calendarEyebrow}
+        title={t.calendar}
+        subtitle={t.calendarSubtitle}
         actions={
           <div className="calendar-heading-actions">
-            <PaperButton><ChevronLeft size={14} /></PaperButton>
-            <PaperButton>Today</PaperButton>
-            <PaperButton><ChevronRight size={14} /></PaperButton>
+            <PaperButton aria-label={t.back}><ChevronLeft size={14} /></PaperButton>
+            <PaperButton>{t.today}</PaperButton>
+            <PaperButton aria-label={t.upcoming}><ChevronRight size={14} /></PaperButton>
           </div>
         }
       />
 
       <section className="calendar-board">
         <div className="calendar-board__top">
-          <div><CalendarDays size={15} /><strong>July 2026</strong></div>
-          <div><button type="button" className="is-active">Week</button><button type="button">Month</button></div>
+          <div><CalendarDays size={15} /><strong>{monthTitle}</strong></div>
+          <div><button type="button" className="is-active">{t.weekViewLabel}</button><button type="button">{t.monthViewLabel}</button></div>
         </div>
 
         <div className="week-grid">
-          <div className="week-grid__corner">TIME</div>
+          <div className="week-grid__corner">{t.today.toUpperCase()}</div>
           {days.map(([label, date], index) => (
             <div key={label} className={index === 2 ? "week-day is-today" : "week-day"}>
               <span>{label}</span><strong>{date}</strong>
@@ -66,8 +82,8 @@ function CalendarPage() {
         </div>
 
         <aside className="calendar-quote">
-          <span>12 JUL</span>
-          <p>Discipline is choosing between what you want now and what you want most.</p>
+          <span>{shortDate}</span>
+          <p>{t.calendarQuote}</p>
         </aside>
         <div className="calendar-board__props" aria-hidden="true" />
       </section>
