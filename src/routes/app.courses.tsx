@@ -46,7 +46,7 @@ function CoursesPage() {
   return (
     <div className="room-page courses-room">
       <RoomHeading
-        eyebrow="Your library"
+        eyebrow={t.yourLibraryEyebrow}
         title={t.courses}
         subtitle={isEmpty ? t.emptyShelfHint : coursesOnShelf(lang, courses.length)}
         actions={
