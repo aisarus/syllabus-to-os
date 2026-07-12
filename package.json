@@ -11,6 +11,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "eval": "node scripts/run-evals.mjs --manifest evals/manifest.json",
+    "eval:ocr": "node scripts/run-evals.mjs --manifest evals/manifest.json --suite ocr",
+    "eval:json": "node scripts/run-evals.mjs --manifest evals/manifest.json --json",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
     "verify:syllabus-review-contract": "node scripts/verify-syllabus-review-contract.mjs",
@@ -19,6 +22,7 @@
     "verify:flashcard-studio-contract": "node scripts/verify-flashcard-studio-contract.mjs",
     "verify:quiz-studio-contract": "node scripts/verify-quiz-studio-contract.mjs",
     "verify:core-ui-audit": "node scripts/verify-core-ui-audit.mjs",
+    "verify:evaluation-fixtures": "node scripts/verify-evaluation-fixtures.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {
