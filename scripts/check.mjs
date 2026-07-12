@@ -7,6 +7,7 @@ const checks = [
   "verify:syllabus-review-contract",
   "verify:course-workspace-contract",
   "verify:notes-editor-contract",
+  "verify:flashcard-studio-contract",
   "typecheck",
   "lint",
   "build",
