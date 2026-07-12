@@ -1761,6 +1761,7 @@ const ru: Dict = {
   calendarEyebrow: "Эта неделя",
   calendarSubtitle: "Спокойный обзор занятий, дедлайнов и учебного времени.",
   weekViewLabel: "Неделя",
+  timeColLabel: "ВРЕМЯ",
   monthViewLabel: "Месяц",
   calendarQuote: "Дисциплина — это выбор между тем, чего хочешь сейчас, и тем, чего хочешь больше всего.",
   weekdayMon: "Пн",
