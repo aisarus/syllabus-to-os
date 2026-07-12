@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppStudySessionRouteImport } from './routes/app.study-session'
 import { Route as AppStudyPlanRouteImport } from './routes/app.study-plan'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppSearchRouteImport } from './routes/app.search'
@@ -56,6 +57,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStudySessionRoute = AppStudySessionRouteImport.update({
+  id: '/study-session',
+  path: '/study-session',
   getParentRoute: () => AppRoute,
 } as any)
 const AppStudyPlanRoute = AppStudyPlanRouteImport.update({
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
+  '/app/study-session': typeof AppStudySessionRoute
   '/app/': typeof AppIndexRoute
   '/api/ai/generate-assignment-breakdown': typeof ApiAiGenerateAssignmentBreakdownRoute
   '/api/ai/generate-flashcards': typeof ApiAiGenerateFlashcardsRoute
@@ -266,6 +273,7 @@ export interface FileRoutesByTo {
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
+  '/app/study-session': typeof AppStudySessionRoute
   '/app': typeof AppIndexRoute
   '/api/ai/generate-assignment-breakdown': typeof ApiAiGenerateAssignmentBreakdownRoute
   '/api/ai/generate-flashcards': typeof ApiAiGenerateFlashcardsRoute
@@ -302,6 +310,7 @@ export interface FileRoutesById {
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
+  '/app/study-session': typeof AppStudySessionRoute
   '/app/': typeof AppIndexRoute
   '/api/ai/generate-assignment-breakdown': typeof ApiAiGenerateAssignmentBreakdownRoute
   '/api/ai/generate-flashcards': typeof ApiAiGenerateFlashcardsRoute
@@ -339,6 +348,7 @@ export interface FileRouteTypes {
     | '/app/search'
     | '/app/settings'
     | '/app/study-plan'
+    | '/app/study-session'
     | '/app/'
     | '/api/ai/generate-assignment-breakdown'
     | '/api/ai/generate-flashcards'
@@ -373,6 +383,7 @@ export interface FileRouteTypes {
     | '/app/search'
     | '/app/settings'
     | '/app/study-plan'
+    | '/app/study-session'
     | '/app'
     | '/api/ai/generate-assignment-breakdown'
     | '/api/ai/generate-flashcards'
@@ -408,6 +419,7 @@ export interface FileRouteTypes {
     | '/app/search'
     | '/app/settings'
     | '/app/study-plan'
+    | '/app/study-session'
     | '/app/'
     | '/api/ai/generate-assignment-breakdown'
     | '/api/ai/generate-flashcards'
@@ -461,6 +473,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/study-session': {
+      id: '/app/study-session'
+      path: '/study-session'
+      fullPath: '/app/study-session'
+      preLoaderRoute: typeof AppStudySessionRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/study-plan': {
@@ -740,6 +759,7 @@ interface AppRouteChildren {
   AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudyPlanRoute: typeof AppStudyPlanRoute
+  AppStudySessionRoute: typeof AppStudySessionRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -760,6 +780,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStudyPlanRoute: AppStudyPlanRoute,
+  AppStudySessionRoute: AppStudySessionRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
