@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, ShieldAlert, Trash2, Upload } from "lucide-react";
-import { useRef, useState } from "react";
+import { Download, FileImage, ShieldAlert, Trash2, Upload } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
 import { exportJSON, importJSON, store, useData } from "@/lib/store";
+import {
+  clearAllVisualSourceData,
+  getVisualSourceStorageStats,
+  type VisualSourceStorageStats,
+} from "@/lib/visual-source-store";
 
 export const Route = createFileRoute("/app/data")({
   component: DataPage,
@@ -17,6 +22,19 @@ function DataPage() {
   const data = useData();
   const fileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [visualStats, setVisualStats] = useState<VisualSourceStorageStats | null>(null);
+
+  const refreshVisualStats = useCallback(async () => {
+    try {
+      setVisualStats(await getVisualSourceStorageStats());
+    } catch {
+      setVisualStats(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshVisualStats();
+  }, [refreshVisualStats, data.materials.length]);
 
   const doExport = () => {
     const json = exportJSON();
@@ -27,7 +45,11 @@ function DataPage() {
     anchor.download = `lamdan-${new Date().toISOString().slice(0, 10)}.json`;
     anchor.click();
     URL.revokeObjectURL(url);
-    toast.success(isRu ? "Резервная копия экспортирована" : "Backup exported");
+    toast.success(
+      isRu
+        ? "JSON-копия экспортирована; исходные фото в неё не входят"
+        : "JSON backup exported; original images are not included",
+    );
   };
 
   const doImport = (file: File) => {
@@ -38,12 +60,14 @@ function DataPage() {
       setError(message);
       toast.error(message);
     };
-    reader.onload = () => {
+    reader.onload = async () => {
       const raw = String(reader.result);
       try {
         const parsed = JSON.parse(raw) as Record<string, unknown>;
         if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-          throw new Error(isRu ? "Файл не содержит объект Lamdan" : "The file does not contain a Lamdan object");
+          throw new Error(
+            isRu ? "Файл не содержит объект Lamdan" : "The file does not contain a Lamdan object",
+          );
         }
       } catch (parseError) {
         const message = parseError instanceof Error ? parseError.message : String(parseError);
@@ -54,16 +78,31 @@ function DataPage() {
 
       const confirmed = confirm(
         isRu
-          ? "Импорт полностью заменит все текущие данные Lamdan в этом браузере. Продолжить? Перед импортом лучше экспортировать резервную копию."
-          : "Import will completely replace all current Lamdan data in this browser. Continue? Export a backup first if needed.",
+          ? "Импорт полностью заменит текстовые данные Lamdan и удалит локальные исходные фото и OCR-черновики, потому что JSON-копия их не содержит. Продолжить?"
+          : "Import will replace Lamdan text data and remove local source images and OCR drafts because the JSON backup does not contain them. Continue?",
       );
       if (!confirmed) {
-        toast.message(isRu ? "Импорт отменён, данные не изменены" : "Import cancelled; data was not changed");
+        toast.message(
+          isRu ? "Импорт отменён, данные не изменены" : "Import cancelled; data was not changed",
+        );
         return;
       }
 
       const result = importJSON(raw);
       if (result.ok) {
+        try {
+          await clearAllVisualSourceData();
+          await refreshVisualStats();
+        } catch (visualError) {
+          const message = visualError instanceof Error ? visualError.message : String(visualError);
+          setError(message);
+          toast.warning(
+            isRu
+              ? "Текст восстановлен, но локальные фото не удалось полностью очистить"
+              : "Text was restored, but local images could not be fully cleared",
+          );
+          return;
+        }
         toast.success(t.importSuccess);
       } else {
         setError(result.error);
@@ -79,6 +118,8 @@ function DataPage() {
     data.notes.length +
     data.flashcards.length +
     data.quizzes.length;
+  const visualItemCount = (visualStats?.imageCount ?? 0) + (visualStats?.ocrDraftCount ?? 0);
+  const hasAnyData = itemCount > 0 || visualItemCount > 0;
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -86,8 +127,8 @@ function DataPage() {
         title={t.dataTitle}
         subtitle={
           isRu
-            ? "Полная резервная копия локального хранилища и контролируемое восстановление."
-            : "Full local-data backup and controlled restoration."
+            ? "Резервная копия текстовых данных и честное управление локальными фото."
+            : "Text-data backup and honest management of browser-local images."
         }
       />
 
@@ -102,15 +143,48 @@ function DataPage() {
         </div>
       </div>
 
+      <section className="mb-4 rounded-lg border border-yellow-500/25 bg-yellow-500/5 p-4">
+        <div className="flex items-start gap-3">
+          <FileImage className="mt-0.5 h-5 w-5 shrink-0 text-yellow-200" />
+          <div>
+            <h2 className="text-sm font-semibold text-yellow-100">
+              {isRu ? "Фото хранятся отдельно" : "Images are stored separately"}
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {isRu
+                ? "Обычный JSON-экспорт включает курсы, тексты, применённый OCR и связи, но пока не включает исходные изображения и отдельные OCR-черновики из IndexedDB. Не очищай браузер, если оригиналы не сохранены где-то ещё."
+                : "The JSON export includes courses, text, applied OCR and relationships, but does not yet include original images or separate OCR drafts stored in IndexedDB. Do not clear browser data unless the originals exist elsewhere."}
+            </p>
+            <p className="mt-2 text-xs text-foreground">
+              {visualStats
+                ? isRu
+                  ? `${visualStats.imageCount} фото · ${visualStats.ocrDraftCount} OCR-черновиков · ${formatBytes(visualStats.totalImageBytes)}`
+                  : `${visualStats.imageCount} images · ${visualStats.ocrDraftCount} OCR drafts · ${formatBytes(visualStats.totalImageBytes)}`
+                : isRu
+                  ? "Не удалось прочитать статистику локальных фото"
+                  : "Could not read local image statistics"}
+            </p>
+          </div>
+        </div>
+      </section>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <section className="rounded-lg border border-border bg-surface p-6">
           <h2 className="font-semibold mb-2">{t.export}</h2>
           <p className="text-sm text-muted-foreground mb-4">
             {isRu
-              ? "Скачивает один JSON-файл со всеми курсами, источниками, конспектами, карточками, тестами и связями."
-              : "Downloads one JSON file containing courses, sources, notes, flashcards, quizzes, and relationships."}
+              ? "Скачивает JSON с курсами, материалами, применённым распознанным текстом, конспектами, карточками, тестами и связями. Исходные фото не входят."
+              : "Downloads JSON containing courses, materials, applied recognized text, notes, flashcards, quizzes and relationships. Original images are not included."}
           </p>
-          <Button onClick={doExport} disabled={itemCount === 0} title={itemCount === 0 ? (isRu ? "Экспортировать пока нечего" : "There is nothing to export yet") : undefined}>
+          <Button
+            onClick={doExport}
+            disabled={itemCount === 0}
+            title={
+              itemCount === 0
+                ? isRu ? "Экспортировать текстовые данные пока нечего" : "There is no text data to export yet"
+                : undefined
+            }
+          >
             <Download className="h-4 w-4 me-1" />
             {t.export}
           </Button>
@@ -120,8 +194,8 @@ function DataPage() {
           <h2 className="font-semibold mb-2">{t.import}</h2>
           <p className="text-sm text-muted-foreground mb-4">
             {isRu
-              ? "Восстанавливает резервную копию и полностью заменяет текущие данные только после отдельного подтверждения."
-              : "Restores a backup and replaces current data only after a separate confirmation."}
+              ? "Восстанавливает JSON-копию. Текущие исходные фото и отдельные OCR-черновики будут удалены после подтверждения."
+              : "Restores a JSON backup. Current source images and separate OCR drafts are removed after confirmation."}
           </p>
           <input
             ref={fileRef}
@@ -148,23 +222,41 @@ function DataPage() {
               <h2 className="font-semibold mb-2">{t.clearAll}</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 {isRu
-                  ? "Удаляет все локальные данные Lamdan в этом браузере. Сначала экспортируй резервную копию, если данные могут понадобиться."
-                  : "Deletes all Lamdan data stored in this browser. Export a backup first if you may need it later."}
+                  ? "Удаляет localStorage, исходные изображения и OCR-черновики из IndexedDB в этом браузере. Действие необратимо."
+                  : "Deletes localStorage, source images and OCR drafts from IndexedDB in this browser. This cannot be undone."}
               </p>
               <Button
                 variant="destructive"
-                disabled={itemCount === 0}
-                title={itemCount === 0 ? (isRu ? "Локальное хранилище уже пустое" : "Local storage is already empty") : undefined}
-                onClick={() => {
+                disabled={!hasAnyData}
+                title={
+                  !hasAnyData
+                    ? isRu ? "Локальное хранилище уже пустое" : "Local storage is already empty"
+                    : undefined
+                }
+                onClick={async () => {
                   const confirmed = confirm(
                     isRu
-                      ? "Безвозвратно удалить все данные Lamdan в этом браузере?"
-                      : "Permanently delete all Lamdan data in this browser?",
+                      ? "Безвозвратно удалить все текстовые данные, исходные фото и OCR-черновики Lamdan в этом браузере?"
+                      : "Permanently delete all Lamdan text data, source images and OCR drafts in this browser?",
                   );
                   if (!confirmed) return;
-                  store.reset();
-                  setError(null);
-                  toast.success(isRu ? "Все локальные данные удалены" : "All local data was deleted");
+                  try {
+                    await clearAllVisualSourceData();
+                    store.reset();
+                    setError(null);
+                    await refreshVisualStats();
+                    toast.success(
+                      isRu ? "Все локальные данные и фото удалены" : "All local data and images were deleted",
+                    );
+                  } catch (clearError) {
+                    const message = clearError instanceof Error ? clearError.message : String(clearError);
+                    setError(message);
+                    toast.error(
+                      isRu
+                        ? "Не удалось полностью удалить локальные фото"
+                        : "Could not fully delete local images",
+                    );
+                  }
                 }}
               >
                 <Trash2 className="h-4 w-4 me-1" />
@@ -176,4 +268,10 @@ function DataPage() {
       </div>
     </div>
   );
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 }
