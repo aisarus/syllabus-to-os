@@ -15,41 +15,42 @@ Last updated: 2026-07-12
 - `P0-005 Build multi-file upload queue` — complete and verified on Dashboard and Materials.
 - `P0-006 Add duplicate detection` — complete and verified across exact, likely, queue and legacy upload paths.
 - `P0-007 Add intake review and correction` — complete and verified.
-- `P0-008 Replace material detail with a true workspace` — next.
+- `P0-008 Replace material detail with a true workspace` — complete; CI verification pending for the documentation sync commit.
+- `P0-009 Add chunk editing tools` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Intake review before persistence
+### True material workspace
 
-- Extracted queue items pause in a review state instead of being silently saved.
-- Added editable title, material type, course, topic and tags.
-- Added detected language, word count, page count and extraction diagnostics.
-- Added a readable extracted-text preview with automatic text direction.
-- Added explicit warnings for partial, unsupported, no-text and error results.
-- Added save, save without course, retry extraction and discard actions.
-- Discard does not create a material record.
-- Retry reuses duplicate decisions but performs extraction again.
-- Duplicate review happens before metadata review.
-- Saving persists corrected metadata, chunks and the source fingerprint together.
-- The pasted-text path continues to expose title, type, course and full source text before save.
+- Replaced the tabbed material-detail screen with a responsive three-part workspace.
+- Added a source navigator with material-wide search, active-chunk navigation and multi-chunk selection.
+- Added select-all, clear-selection and copy-selected-text actions.
+- Added page, section and character-count context for source chunks.
+- Added an honest full raw-text fallback when stored chunks are unavailable.
+- Added editable title, type, course, topic and tags using the existing store mutators.
+- Added extraction status, language, diagnostics, file metadata and source counts.
+- Added existing output counts, direct quiz links and persisted generation-history visibility.
+- Connected note, flashcard and quiz generation actions to the current material, course, topic and selected chunk IDs.
+- Preserved the existing localStorage data model; no migration or destructive rewrite was introduced.
+- The layout uses normal responsive grid flow without fixed canvas, absolute-positioned room UI, trackers or timers.
 
 ## Verification state
 
-- Documentation verification passed.
-- TypeScript passed.
-- ESLint passed.
-- Production build passed.
-- The successful run covers the queue review dialog and extraction-before-persistence workflow.
+- The implementation reuses `getChunksByMaterial`, existing material/output relationships, store mutators and `AIGenerateButton` initial-context inputs.
+- Source text renders with automatic direction, supporting long Hebrew and mixed RTL/LTR content.
+- Empty source state and raw-text fallback are explicit rather than fabricated.
+- `TASKS.md` was not rewritten in this pass because it is a large shared planning document and `STATUS.md` is explicitly authoritative until checkbox updates can be applied safely.
+- CI must pass on the documentation sync commit before `P0-008` is considered fully verified.
 
 ## Next execution target
 
-1. Replace material detail with a responsive three-part workspace.
-2. Add chunk navigation, text search and multi-chunk selection.
-3. Add editable metadata and honest raw-text fallback.
-4. Connect existing outputs and AI actions to the selected source context.
+1. Inspect existing chunk mutators and dependent `sourceChunkIds` handling.
+2. Implement the first dependency-safe slice of `P0-009`: edit chunk title/text and persist changes.
+3. Add split, adjacent merge, reorder and guarded deletion in subsequent atomic passes.
+4. Ensure deleted or merged chunk IDs are removed or replaced safely in dependent notes, flashcards and quiz questions.
 
 ## Blockers
 
-None.
+None unless CI reports a concrete failure.
