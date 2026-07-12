@@ -15,8 +15,8 @@ Last updated: 2026-07-12
 - `P0-005 Build multi-file upload queue` — complete and verified on Dashboard and Materials.
 - `P0-006 Add duplicate detection` — complete and verified across exact, likely, queue and legacy upload paths.
 - `P0-007 Add intake review and correction` — complete and verified.
-- `P0-008 Replace material detail with a true workspace` — implemented and stabilized; CI validation in progress.
-- `P0-009 Add chunk editing tools` — next after validation.
+- `P0-008 Replace material detail with a true workspace` — complete and verified.
+- `P0-009 Add chunk editing tools` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
@@ -39,16 +39,19 @@ Last updated: 2026-07-12
 
 ## Verification state
 
-- A pull request from `agent/validate-material-workspace` runs documentation verification, TypeScript, ESLint and production build against the stabilized implementation.
-- Do not mark `P0-008` fully verified until that run succeeds.
+- Documentation verification passed.
+- TypeScript passed.
+- ESLint passed.
+- Production build passed.
+- The successful run covers the stabilized source-selection implementation.
 
 ## Next execution target
 
-1. Fix any concrete CI failure.
-2. Mark `P0-008` complete after the full suite passes.
-3. Begin `P0-009` with edit-title and edit-text chunk tools.
-4. Add split, adjacent merge, reorder and guarded deletion in dependency-safe slices.
+1. Begin `P0-009` with edit-title and edit-text chunk tools.
+2. Add split, adjacent merge and reorder in dependency-safe slices.
+3. Add guarded deletion with safe dependent-source cleanup.
+4. Keep source references intact when IDs are replaced or removed.
 
 ## Blockers
 
-None unless CI reports a concrete failure.
+None.
