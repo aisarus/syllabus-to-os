@@ -1,0 +1,38 @@
+.academic-content-theme {
+  --radius: 0.45rem;
+  --background: #0d100e;
+  --surface: #151916;
+  --surface-2: #1a1f1b;
+  --foreground: #eee2c8;
+  --card: #171c18;
+  --card-foreground: #eee2c8;
+  --popover: #191e1a;
+  --popover-foreground: #eee2c8;
+  --primary: #c7924f;
+  --primary-foreground: #11130f;
+  --secondary: #222720;
+  --secondary-foreground: #e9dec4;
+  --muted: #20251f;
+  --muted-foreground: #9e9889;
+  --accent: #252b23;
+  --accent-foreground: #f4e9cf;
+  --destructive: #a85b4d;
+  --destructive-foreground: #fff4e8;
+  --border: rgba(201, 151, 82, 0.2);
+  --input: rgba(230, 214, 179, 0.12);
+  --ring: #c7924f;
+  --sidebar: #0d100e;
+  --sidebar-foreground: #eee2c8;
+  --sidebar-primary: #c7924f;
+  --sidebar-primary-foreground: #11130f;
+  --sidebar-accent: #222720;
+  --sidebar-accent-foreground: #f4e9cf;
+  --sidebar-border: rgba(201, 151, 82, 0.2);
+  --sidebar-ring: #c7924f;
+}
+
+.academic-content-theme body {
+  background: #0d100e;
+  color: #eee2c8;
+  font-family: "Source Sans 3", "Inter", system-ui, sans-serif;
+}
