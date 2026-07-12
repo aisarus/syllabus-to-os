@@ -107,6 +107,8 @@ export function AIDraftModal(props: AIDraftModalProps) {
           </DialogTitle>
         </DialogHeader>
 
+        {state === "idle" && children}
+
         {state === "loading" && (
           <div className="py-10 text-center text-sm text-muted-foreground">
             <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />
