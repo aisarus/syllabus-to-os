@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import academicCss from "../content-workspace-global.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppProvider } from "@/lib/app-context";
 import { Toaster } from "@/components/ui/sonner";
@@ -70,40 +71,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lamdan — Personal study workspace" },
+      { title: "Lamdan — Study content system" },
       {
         name: "description",
         content:
-          "Personal Obsidian-style study workspace: programs, courses, notes, flashcards, quizzes, assignments — stored locally.",
+          "A local-first workspace for courses, study materials, notes, flashcards and quizzes.",
       },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Lamdan — Personal study workspace" },
-      { name: "twitter:title", content: "Lamdan — Personal study workspace" },
+      { property: "og:title", content: "Lamdan — Study content system" },
+      { name: "twitter:title", content: "Lamdan — Study content system" },
       {
         property: "og:description",
         content:
-          "Personal Obsidian-style study workspace: programs, courses, notes, flashcards, quizzes, assignments — stored locally.",
+          "A local-first workspace for courses, study materials, notes, flashcards and quizzes.",
       },
       {
         name: "twitter:description",
         content:
-          "Personal Obsidian-style study workspace: programs, courses, notes, flashcards, quizzes, assignments — stored locally.",
-      },
-      {
-        property: "og:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/da19855f-d0ad-49e7-b2f0-ce36d360f43f/id-preview-7460ba6b--04c80f14-1f8f-4c2f-a81e-f6a48365c265.lovable.app-1783370020490.png",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/da19855f-d0ad-49e7-b2f0-ce36d360f43f/id-preview-7460ba6b--04c80f14-1f8f-4c2f-a81e-f6a48365c265.lovable.app-1783370020490.png",
+          "A local-first workspace for courses, study materials, notes, flashcards and quizzes.",
       },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: academicCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -121,7 +113,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="ru" dir="ltr" className="dark">
+    <html lang="ru" dir="ltr" className="dark academic-content-theme">
       <head>
         <HeadContent />
       </head>
