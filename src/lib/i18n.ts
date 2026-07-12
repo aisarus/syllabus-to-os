@@ -489,6 +489,132 @@ export type Dict = {
   docxUnsupportedHint: string;
   pdfUnsupportedHint: string;
   ingestionErrorHint: string;
+  // study room shell
+  navHome: string;
+  navStudySession: string;
+  navImportSyllabus: string;
+  navMoreTools: string;
+  studyRoomSubtitle: string;
+  localWorkspace: string;
+  sidebarQuote: string;
+  mainNavigationAria: string;
+  openNavigationAria: string;
+  closeNavigationAria: string;
+  closeMenuAria: string;
+  lamdanHomeAria: string;
+  // dashboard room
+  dashRoomEyebrow: string;
+  dashGreetingMorning: string;
+  dashGreetingAfternoon: string;
+  dashGreetingEvening: string;
+  dashGreetingNight: string;
+  dashGreetingTail: string;
+  dashSubtitle: string;
+  searchLibraryPlaceholder: string;
+  searchLibraryAria: string;
+  todayLabel: string;
+  openCalendar: string;
+  continueStudying: string;
+  viewAllCourses: string;
+  viewAllCoursesShort: string;
+  studyToolsAria: string;
+  shortcutOpenArchive: string;
+  shortcutContinueWriting: string;
+  shortcutReviewDeck: string;
+  shortcutStart45: string;
+  focusSession: string;
+  // courses room
+  yourLibraryEyebrow: string;
+  libraryNoteLabel: string;
+  libraryNoteBody: string;
+  // materials room
+  archiveEyebrow: string;
+  materialsSubtitle: string;
+  upload: string;
+  foldersAria: string;
+  folderLectureNotes: string;
+  folderSlides: string;
+  folderReadings: string;
+  folderExams: string;
+  folderArticles: string;
+  folderOther: string;
+  searchArchivePlaceholder: string;
+  searchArchiveAria: string;
+  listViewAria: string;
+  gridViewAria: string;
+  materialsListAria: string;
+  colName: string;
+  colCourse: string;
+  colDate: string;
+  colSize: string;
+  generalFolder: string;
+  ledgerKnowledgeLabel: string;
+  ledgerKnowledgeBody: string;
+  // notes room
+  commonplaceEyebrow: string;
+  newNote: string;
+  notesIndexLabel: string;
+  searchNotesPlaceholder: string;
+  searchNotesAria: string;
+  notebookQuote: string;
+  classNotesCategory: string;
+  untitledNote: string;
+  keyIdeaHeading: string;
+  diagramAria: string;
+  stickyThought: string;
+  pin: string;
+  savedLocally: string;
+  notesGatheredSuffix: string;
+  // calendar room
+  calendarEyebrow: string;
+  calendarSubtitle: string;
+  weekViewLabel: string;
+  timeColLabel: string;
+  monthViewLabel: string;
+  calendarQuote: string;
+  weekdayMon: string;
+  weekdayTue: string;
+  weekdayWed: string;
+  weekdayThu: string;
+  weekdayFri: string;
+  weekdaySat: string;
+  weekdaySun: string;
+  // study session room
+  focusEyebrow: string;
+  focusSubtitle: string;
+  ambientSounds: string;
+  currentSessionLabel: string;
+  changeCourse: string;
+  todaysGoalLabel: string;
+  focusTimeLabel: string;
+  focusRunning: string;
+  focusReady: string;
+  start: string;
+  pause: string;
+  finish: string;
+  soundRain: string;
+  soundRainDesc: string;
+  soundCafe: string;
+  soundCafeDesc: string;
+  soundFireplace: string;
+  soundFireplaceDesc: string;
+  soundForest: string;
+  soundForestDesc: string;
+  soundVolumeAria: string;
+  // quizzes room
+  practicePaperEyebrow: string;
+  quizzesSubtitle: string;
+  quizzesGenerate: string;
+  quizQuestionsLabel: string;
+  quizNameLabel: string;
+  quizDateLabel: string;
+  checkAnswers: string;
+  tryAgain: string;
+  quizResultLabel: string;
+  excellentRecall: string;
+  reviewCorrections: string;
+  examNoteLabel: string;
+  examNoteBody: string;
 };
 
 const en: Dict = {
@@ -703,7 +829,7 @@ const en: Dict = {
   studyPlanIntro: "Rule-based suggestions built from your own data.",
   planWhyCardsDue: "cards are due today",
   planWhyLowScore: "best quiz score is below 70%",
-  planWhyLearning: "topic still in \"learning\" status",
+  planWhyLearning: 'topic still in "learning" status',
   planWhyDeadline: "assignment deadline soon",
   planWhyExamSoon: "exam soon",
   planWhyStaleCourse: "no recent activity on this course",
@@ -716,7 +842,8 @@ const en: Dict = {
   serverEndpoint: "Server endpoint (planned)",
   noKeyInFrontend: "No secret keys will be stored in this app.",
   importSyllabus: "Import syllabus",
-  importSyllabusIntro: "Import an XLSX syllabus/ידיעון or a structured JSON structure into real programs and courses.",
+  importSyllabusIntro:
+    "Import an XLSX syllabus/ידיעון or a structured JSON structure into real programs and courses.",
   syllabusTabXlsx: "XLSX file",
   syllabusTabJson: "Structured JSON",
   syllabusChooseXlsx: "Choose XLSX file",
@@ -754,7 +881,8 @@ const en: Dict = {
   syllabusTopicsImported: "topics imported",
   syllabusTopicsSplitHelp: "Topic cells are split by newline or semicolon.",
   syllabusUploadTitle: "Upload syllabus / program file",
-  syllabusUploadHelp: "Upload a program file or syllabus. Lamdan will try to detect semesters, courses, credits, and instructors automatically.",
+  syllabusUploadHelp:
+    "Upload a program file or syllabus. Lamdan will try to detect semesters, courses, credits, and instructors automatically.",
   syllabusAutoParse: "Auto-parse",
   syllabusParsing: "Parsing…",
   syllabusStepReading: "Reading workbook",
@@ -776,7 +904,8 @@ const en: Dict = {
   syllabusDetectedCourses: "Courses",
   syllabusWarnings: "Warnings",
   syllabusIgnoredRows: "Ignored rows",
-  syllabusIgnoredRowsHelp: "Rows the parser skipped. Review anything that should have been imported.",
+  syllabusIgnoredRowsHelp:
+    "Rows the parser skipped. Review anything that should have been imported.",
   syllabusConvertToCourse: "Convert to course",
   syllabusIgnorePermanently: "Ignore",
   syllabusViewCells: "View cells",
@@ -796,7 +925,8 @@ const en: Dict = {
   syllabusDupNew: "Import as new",
   syllabusAIImprove: "Improve parsing with AI",
   syllabusAINotConnected: "AI parsing is not available",
-  syllabusAIHint: "AI can help fix complex tables, but import only happens after your confirmation.",
+  syllabusAIHint:
+    "AI can help fix complex tables, but import only happens after your confirmation.",
   syllabusAIRunning: "Asking AI…",
   syllabusAIFailed: "AI could not refine this draft",
   syllabusNoCoursesDetected: "No course rows detected. Try Advanced mapping.",
@@ -843,7 +973,8 @@ const en: Dict = {
   chunksEmpty: "No chunks yet. Generate chunks from text.",
   materialsEmptyV2: "Upload a material or paste text to begin.",
   materialNoTextExtracted: "Text was not extracted. Paste it manually or try another format.",
-  materialUnsupportedPaste: "This file format is not connected for extraction. Paste text below manually.",
+  materialUnsupportedPaste:
+    "This file format is not connected for extraction. Paste text below manually.",
   langRu: "Russian",
   langEn: "English",
   langHe: "Hebrew",
@@ -959,6 +1090,133 @@ const en: Dict = {
   aiAppendToNotes: "Append to assignment notes",
   aiSaveAsNote: "Save as note",
   copyFailed: "Copy failed",
+  // study room shell
+  navHome: "Home",
+  navStudySession: "Study session",
+  navImportSyllabus: "Import syllabus",
+  navMoreTools: "More tools",
+  studyRoomSubtitle: "study room",
+  localWorkspace: "local workspace",
+  sidebarQuote: "Everything you need is already on the shelf.",
+  mainNavigationAria: "Main navigation",
+  openNavigationAria: "Open navigation",
+  closeNavigationAria: "Close navigation",
+  closeMenuAria: "Close menu",
+  lamdanHomeAria: "Lamdan home",
+  // dashboard room
+  dashRoomEyebrow: "Study room",
+  dashGreetingMorning: "Good morning,",
+  dashGreetingAfternoon: "Good afternoon,",
+  dashGreetingEvening: "Good evening,",
+  dashGreetingNight: "Good night,",
+  dashGreetingTail: "let's continue your journey.",
+  dashSubtitle: "Focus, learn, and grow — one page at a time.",
+  searchLibraryPlaceholder: "Search your library…",
+  searchLibraryAria: "Search your library",
+  todayLabel: "Today",
+  openCalendar: "Open calendar",
+  continueStudying: "Continue studying",
+  viewAllCourses: "View all courses",
+  viewAllCoursesShort: "View all\ncourses",
+  studyToolsAria: "Study tools",
+  shortcutOpenArchive: "Open the archive",
+  shortcutContinueWriting: "Continue writing",
+  shortcutReviewDeck: "Review a deck",
+  shortcutStart45: "Start 45 minutes",
+  focusSession: "Focus session",
+  // courses room
+  yourLibraryEyebrow: "Your library",
+  libraryNoteLabel: "LIBRARY NOTE",
+  libraryNoteBody:
+    "A course becomes easier to return to when every note, card and deadline has a visible home.",
+  // materials room
+  archiveEyebrow: "The archive",
+  materialsSubtitle: "Folders, readings and lecture files — all in one ledger.",
+  upload: "Upload",
+  foldersAria: "Material folders",
+  folderLectureNotes: "Lecture Notes",
+  folderSlides: "Slides",
+  folderReadings: "Readings",
+  folderExams: "Exams",
+  folderArticles: "Articles",
+  folderOther: "Other",
+  searchArchivePlaceholder: "Search the archive…",
+  searchArchiveAria: "Search materials",
+  listViewAria: "List view",
+  gridViewAria: "Grid view",
+  materialsListAria: "Material list",
+  colName: "Name",
+  colCourse: "Course",
+  colDate: "Date",
+  colSize: "Size",
+  generalFolder: "General",
+  ledgerKnowledgeLabel: "Knowledge",
+  ledgerKnowledgeBody: "stored today\nis power\nused tomorrow.",
+  // notes room
+  commonplaceEyebrow: "Your commonplace book",
+  newNote: "New note",
+  notesIndexLabel: "INDEX",
+  searchNotesPlaceholder: "Search",
+  searchNotesAria: "Search notes",
+  notebookQuote: "Writing is thinking made visible.",
+  classNotesCategory: "Class notes",
+  untitledNote: "Untitled note",
+  keyIdeaHeading: "Key idea",
+  diagramAria: "Simple social structure diagram",
+  stickyThought: "Any system becomes easier to understand when its relationships are visible.",
+  pin: "Pin",
+  savedLocally: "Saved locally",
+  notesGatheredSuffix: "notes gathered across your courses",
+  // calendar room
+  calendarEyebrow: "This week",
+  calendarSubtitle: "A quiet overview of classes, deadlines and study time.",
+  weekViewLabel: "Week",
+  timeColLabel: "TIME",
+  monthViewLabel: "Month",
+  calendarQuote: "Discipline is choosing between what you want now and what you want most.",
+  weekdayMon: "Mon",
+  weekdayTue: "Tue",
+  weekdayWed: "Wed",
+  weekdayThu: "Thu",
+  weekdayFri: "Fri",
+  weekdaySat: "Sat",
+  weekdaySun: "Sun",
+  // study session room
+  focusEyebrow: "A protected hour",
+  focusSubtitle: "One course, one goal, one quiet stretch of time.",
+  ambientSounds: "Ambient sounds",
+  currentSessionLabel: "CURRENT SESSION",
+  changeCourse: "Change course",
+  todaysGoalLabel: "TODAY'S GOAL",
+  focusTimeLabel: "FOCUS TIME",
+  focusRunning: "Stay with the page",
+  focusReady: "Ready when you are",
+  start: "Start",
+  pause: "Pause",
+  finish: "Finish",
+  soundRain: "Rain",
+  soundRainDesc: "soft window rain",
+  soundCafe: "Cafe",
+  soundCafeDesc: "quiet room tone",
+  soundFireplace: "Fireplace",
+  soundFireplaceDesc: "low warm crackle",
+  soundForest: "Forest",
+  soundForestDesc: "leaves and birds",
+  soundVolumeAria: "Ambient sound volume",
+  // quizzes room
+  practicePaperEyebrow: "Practice paper",
+  quizzesSubtitle: "A short review before the real exam.",
+  quizzesGenerate: "Generate quiz",
+  quizQuestionsLabel: "Questions",
+  quizNameLabel: "Name",
+  quizDateLabel: "Date",
+  checkAnswers: "Check answers",
+  tryAgain: "Try again",
+  quizResultLabel: "RESULT",
+  excellentRecall: "Excellent recall",
+  reviewCorrections: "Review the green corrections",
+  examNoteLabel: "EXAM NOTE",
+  examNoteBody: "Read every option before choosing. Similar wording is often the real challenge.",
 };
 
 const ru: Dict = {
@@ -1186,7 +1444,8 @@ const ru: Dict = {
   serverEndpoint: "Серверный endpoint (в планах)",
   noKeyInFrontend: "Секретные ключи не хранятся в приложении.",
   importSyllabus: "Импорт силабуса",
-  importSyllabusIntro: "Загрузите XLSX-силабус/ידיעון или структурированный JSON и превратите его в реальные программы и курсы.",
+  importSyllabusIntro:
+    "Загрузите XLSX-силабус/ידיעון или структурированный JSON и превратите его в реальные программы и курсы.",
   syllabusTabXlsx: "XLSX файл",
   syllabusTabJson: "Структурированный JSON",
   syllabusChooseXlsx: "Выбрать XLSX файл",
@@ -1194,7 +1453,8 @@ const ru: Dict = {
   syllabusHeaderRow: "Строка заголовков",
   syllabusSheetPreview: "Предпросмотр листа",
   syllabusColumnMapping: "Сопоставление колонок",
-  syllabusMappingHelp: "Укажите, какая колонка содержит каждое поле курса. Обязательна только «Название».",
+  syllabusMappingHelp:
+    "Укажите, какая колонка содержит каждое поле курса. Обязательна только «Название».",
   syllabusColTitle: "Название (обязательно)",
   syllabusColOriginalTitle: "Оригинальное название",
   syllabusColNumber: "Номер курса",
@@ -1224,7 +1484,8 @@ const ru: Dict = {
   syllabusTopicsImported: "тем импортировано",
   syllabusTopicsSplitHelp: "Ячейки с темами разбиваются по переводу строки или «;».",
   syllabusUploadTitle: "Загрузите файл силабуса / программы",
-  syllabusUploadHelp: "Загрузите файл программы или силлабус. Lamdan сам попробует найти семестры, курсы, кредиты и преподавателей.",
+  syllabusUploadHelp:
+    "Загрузите файл программы или силлабус. Lamdan сам попробует найти семестры, курсы, кредиты и преподавателей.",
   syllabusAutoParse: "Автоматически разобрать",
   syllabusParsing: "Разбираем…",
   syllabusStepReading: "Чтение книги",
@@ -1246,7 +1507,8 @@ const ru: Dict = {
   syllabusDetectedCourses: "Курсов",
   syllabusWarnings: "Предупреждений",
   syllabusIgnoredRows: "Пропущенные строки",
-  syllabusIgnoredRowsHelp: "Строки, которые парсер не импортировал. Проверьте, если что-то важное пропало.",
+  syllabusIgnoredRowsHelp:
+    "Строки, которые парсер не импортировал. Проверьте, если что-то важное пропало.",
   syllabusConvertToCourse: "Сделать курсом",
   syllabusIgnorePermanently: "Пропустить",
   syllabusViewCells: "Показать ячейки",
@@ -1266,7 +1528,8 @@ const ru: Dict = {
   syllabusDupNew: "Импортировать как новый",
   syllabusAIImprove: "Улучшить разбор с ИИ",
   syllabusAINotConnected: "ИИ-разбор недоступен",
-  syllabusAIHint: "ИИ может помочь исправить сложные таблицы, но импорт произойдёт только после вашего подтверждения.",
+  syllabusAIHint:
+    "ИИ может помочь исправить сложные таблицы, но импорт произойдёт только после вашего подтверждения.",
   syllabusAIRunning: "Спрашиваем ИИ…",
   syllabusAIFailed: "ИИ не смог улучшить черновик",
   syllabusNoCoursesDetected: "Курсы не найдены. Попробуйте «Расширенная настройка».",
@@ -1313,7 +1576,8 @@ const ru: Dict = {
   chunksEmpty: "Чанков пока нет. Сгенерируйте чанки из текста.",
   materialsEmptyV2: "Загрузите материал или вставьте текст, чтобы начать.",
   materialNoTextExtracted: "Текст не извлечён. Вставьте его вручную или попробуйте другой формат.",
-  materialUnsupportedPaste: "Этот формат файла не подключён для извлечения. Вставьте текст ниже вручную.",
+  materialUnsupportedPaste:
+    "Этот формат файла не подключён для извлечения. Вставьте текст ниже вручную.",
   langRu: "Русский",
   langEn: "Английский",
   langHe: "Иврит",
@@ -1429,6 +1693,134 @@ const ru: Dict = {
   aiAppendToNotes: "Добавить в заметки задания",
   aiSaveAsNote: "Сохранить как заметку",
   copyFailed: "Не удалось скопировать",
+  // study room shell
+  navHome: "Главная",
+  navStudySession: "Учебная сессия",
+  navImportSyllabus: "Импорт программы",
+  navMoreTools: "Ещё инструменты",
+  studyRoomSubtitle: "учебная",
+  localWorkspace: "локальное пространство",
+  sidebarQuote: "Всё, что нужно, уже на полке.",
+  mainNavigationAria: "Основная навигация",
+  openNavigationAria: "Открыть навигацию",
+  closeNavigationAria: "Закрыть навигацию",
+  closeMenuAria: "Закрыть меню",
+  lamdanHomeAria: "Ламдан — на главную",
+  // dashboard room
+  dashRoomEyebrow: "Учебная комната",
+  dashGreetingMorning: "Доброе утро,",
+  dashGreetingAfternoon: "Добрый день,",
+  dashGreetingEvening: "Добрый вечер,",
+  dashGreetingNight: "Доброй ночи,",
+  dashGreetingTail: "продолжим ваш путь.",
+  dashSubtitle: "Сосредоточься, учись и расти — страница за страницей.",
+  searchLibraryPlaceholder: "Поиск по библиотеке…",
+  searchLibraryAria: "Поиск по библиотеке",
+  todayLabel: "Сегодня",
+  openCalendar: "Открыть расписание",
+  continueStudying: "Продолжить учёбу",
+  viewAllCourses: "Все курсы",
+  viewAllCoursesShort: "Все\nкурсы",
+  studyToolsAria: "Инструменты",
+  shortcutOpenArchive: "Открыть архив",
+  shortcutContinueWriting: "Продолжить писать",
+  shortcutReviewDeck: "Повторить колоду",
+  shortcutStart45: "Начать 45 минут",
+  focusSession: "Сессия фокуса",
+  // courses room
+  yourLibraryEyebrow: "Ваша библиотека",
+  libraryNoteLabel: "ЗАМЕТКА",
+  libraryNoteBody:
+    "К курсу проще вернуться, когда у каждой заметки, карточки и дедлайна есть своё место.",
+  // materials room
+  archiveEyebrow: "Архив",
+  materialsSubtitle: "Папки, чтения и лекционные файлы — всё в одном журнале.",
+  upload: "Загрузить",
+  foldersAria: "Папки материалов",
+  folderLectureNotes: "Лекции",
+  folderSlides: "Слайды",
+  folderReadings: "Чтения",
+  folderExams: "Экзамены",
+  folderArticles: "Статьи",
+  folderOther: "Прочее",
+  searchArchivePlaceholder: "Поиск по архиву…",
+  searchArchiveAria: "Поиск материалов",
+  listViewAria: "Список",
+  gridViewAria: "Плитка",
+  materialsListAria: "Список материалов",
+  colName: "Название",
+  colCourse: "Курс",
+  colDate: "Дата",
+  colSize: "Размер",
+  generalFolder: "Общее",
+  ledgerKnowledgeLabel: "Знание",
+  ledgerKnowledgeBody: "сохранённое сегодня —\nсила\nзавтрашнего дня.",
+  // notes room
+  commonplaceEyebrow: "Ваша тетрадь мыслей",
+  newNote: "Новая заметка",
+  notesIndexLabel: "УКАЗАТЕЛЬ",
+  searchNotesPlaceholder: "Поиск",
+  searchNotesAria: "Поиск по заметкам",
+  notebookQuote: "Письмо — это мысль, ставшая видимой.",
+  classNotesCategory: "Лекции",
+  untitledNote: "Без названия",
+  keyIdeaHeading: "Ключевая идея",
+  diagramAria: "Простая диаграмма социальной структуры",
+  stickyThought: "Любую систему проще понять, когда видны её связи.",
+  pin: "Закрепить",
+  savedLocally: "Сохранено локально",
+  notesGatheredSuffix: "заметок собрано в ваших курсах",
+  // calendar room
+  calendarEyebrow: "Эта неделя",
+  calendarSubtitle: "Спокойный обзор занятий, дедлайнов и учебного времени.",
+  weekViewLabel: "Неделя",
+  timeColLabel: "ВРЕМЯ",
+  monthViewLabel: "Месяц",
+  calendarQuote:
+    "Дисциплина — это выбор между тем, чего хочешь сейчас, и тем, чего хочешь больше всего.",
+  weekdayMon: "Пн",
+  weekdayTue: "Вт",
+  weekdayWed: "Ср",
+  weekdayThu: "Чт",
+  weekdayFri: "Пт",
+  weekdaySat: "Сб",
+  weekdaySun: "Вс",
+  // study session room
+  focusEyebrow: "Защищённый час",
+  focusSubtitle: "Один курс, одна цель, один тихий отрезок времени.",
+  ambientSounds: "Фоновые звуки",
+  currentSessionLabel: "ТЕКУЩАЯ СЕССИЯ",
+  changeCourse: "Сменить курс",
+  todaysGoalLabel: "ЦЕЛЬ ДНЯ",
+  focusTimeLabel: "ВРЕМЯ ФОКУСА",
+  focusRunning: "Оставайся со страницей",
+  focusReady: "Готовы, когда вы готовы",
+  start: "Старт",
+  pause: "Пауза",
+  finish: "Завершить",
+  soundRain: "Дождь",
+  soundRainDesc: "тихий дождь за окном",
+  soundCafe: "Кафе",
+  soundCafeDesc: "спокойный зал",
+  soundFireplace: "Камин",
+  soundFireplaceDesc: "тёплое потрескивание",
+  soundForest: "Лес",
+  soundForestDesc: "листья и птицы",
+  soundVolumeAria: "Громкость фоновых звуков",
+  // quizzes room
+  practicePaperEyebrow: "Пробный лист",
+  quizzesSubtitle: "Короткое повторение перед настоящим экзаменом.",
+  quizzesGenerate: "Сгенерировать тест",
+  quizQuestionsLabel: "Вопросы",
+  quizNameLabel: "Имя",
+  quizDateLabel: "Дата",
+  checkAnswers: "Проверить ответы",
+  tryAgain: "Ещё раз",
+  quizResultLabel: "РЕЗУЛЬТАТ",
+  excellentRecall: "Отличная память",
+  reviewCorrections: "Посмотрите зелёные исправления",
+  examNoteLabel: "ЭКЗАМЕН.  ЗАМЕТКА",
+  examNoteBody: "Читайте все варианты, прежде чем выбрать. Похожие формулировки — самое сложное.",
 };
 
 export const dicts: Record<Lang, Dict> = { en, ru };
