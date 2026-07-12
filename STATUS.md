@@ -29,29 +29,31 @@ Last updated: 2026-07-12
 - `P0-019 Remove remaining fake and disconnected UI` — complete and verified.
 - `P0-020 Create evaluation fixtures` — complete and verified.
 - `P0-021 Add durable image intake and OCR review` — complete and verified.
-- `P0-022 Validate live OCR and harden visual-source reliability` — next.
+- `P0-022 Validate live OCR and harden visual-source reliability` — in progress; lifecycle and backup honesty complete.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
+### Visual-source lifecycle and backup honesty
+
+- Added IndexedDB storage statistics for original images and OCR drafts.
+- Added explicit full-clear and orphan-pruning operations for browser-local visual data.
+- Added an application-level lifecycle janitor that removes image and OCR records after their material is deleted, reset or replaced by imported data.
+- Preserved the original visual-source creation timestamp when a source image is replaced.
+- Made the Data page show the number and total size of browser-local photographs and OCR drafts.
+- Made JSON backup limitations explicit: applied OCR text and relationships are exported, but original image blobs and separate OCR drafts are not yet included.
+- Made destructive JSON import explicitly clear current browser-local images and OCR drafts after confirmation.
+- Made full reset delete localStorage text data and IndexedDB visual data together.
+- Updated the core UI and OCR contracts so lifecycle deletion and backup disclosure cannot silently regress.
+
 ### Durable image intake and reviewed OCR/HTR
 
-- Moved OCR, handwriting and photographed mathematics from a late optional phase into the core universal-intake and Material Workspace roadmap.
-- Added JPEG, PNG and WebP intake from Dashboard and Materials through the existing multi-file queue.
-- Added durable browser-local IndexedDB storage for original images and OCR drafts, separate from localStorage text entities.
-- Added honest image-intake review with a source preview before material persistence.
-- Added browser image preparation with orientation-aware decoding, edge resizing and payload limits.
-- Added a multimodal server boundary and `/api/ai/ocr-image` route using the existing Lovable AI Gateway configuration.
-- Added strict OCR/HTR prompting for printed Hebrew, handwriting, whiteboards, mixed RTL/LTR pages and photographed mathematics.
-- Explicitly forbade solving exercises, completing unreadable text or inventing mathematical symbols and steps.
-- Added side-by-side source-image and OCR-region review inside the material flow.
-- Added editable region type, text, order, confidence display, uncertain tokens and normalized mathematical expressions.
-- Added manual transcription when the AI provider is unavailable or the user prefers to transcribe directly.
-- Kept OCR output as a separate draft until the user explicitly applies it.
-- Applying an approved draft creates normal material chunks and updates searchable source text without silently overwriting it during OCR reruns.
-- Added a permanent `verify:image-ocr-contract` check to local verification and CI.
-- Rewrote `ROADMAP.md` so OCR/HTR belongs to Phases 1–2; Phase 7 now covers audio, video and advanced visual understanding.
+- OCR, handwriting and photographed mathematics are part of core universal intake and Material Workspace phases.
+- JPEG, PNG and WebP intake works through the shared queue.
+- Original images and OCR drafts are stored separately from approved searchable text.
+- Multimodal OCR/HTR has a strict server boundary and editable review workflow.
+- Reviewed regions can become normal material chunks only through an explicit apply action.
 
 ## Verification state
 
@@ -64,7 +66,7 @@ Last updated: 2026-07-12
 - Quiz Studio v1 contract verification passed.
 - Core UI honesty and actionability contract verification passed.
 - Evaluation fixture coverage verification passed.
-- Durable image intake and OCR review contract verification passed.
+- Durable image intake, OCR review, lifecycle cleanup and backup-honesty contract verification passed.
 - Deterministic syllabus, grounding, multilingual and OCR evaluation suites passed.
 - TypeScript passed.
 - ESLint passed.
@@ -76,8 +78,7 @@ Last updated: 2026-07-12
 2. Save provider candidates and enforce the P0-020 CER, WER, critical-token, math-expression, line-order and abstention thresholds.
 3. Add image crop, rotation, deskew and contrast preparation for difficult phone photographs.
 4. Add region-coordinate overlays so selecting OCR text highlights the exact image area.
-5. Make material deletion and full-data reset remove corresponding IndexedDB image and OCR records.
-6. Document and surface that current JSON backup does not yet include original image blobs.
+5. Build a real visual backup format or cloud migration that includes original image blobs.
 
 ## Blockers
 
