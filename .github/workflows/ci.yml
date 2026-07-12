@@ -51,7 +51,35 @@ jobs:
         run: npm run typecheck
 
       - name: Lint
-        run: npm run lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint 2>&1 | tee lint-output.txt
 
       - name: Build production bundle
-        run: npm run build
+        id: build
+        continue-on-error: true
+        run: npm run build 2>&1 | tee build-output.txt
+
+      - name: Generate formatting patch after lint failure
+        if: steps.lint.outcome == 'failure'
+        run: |
+          npm run format
+          git diff -- . ':!bun.lock' > prettier-fix.patch
+
+      - name: Upload failure diagnostics
+        if: steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-diagnostics
+          path: |
+            lint-output.txt
+            build-output.txt
+            prettier-fix.patch
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Fail when quality gates fail
+        if: steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
+        run: |
+          echo "One or more quality gates failed. Download the ci-diagnostics artifact for details."
+          exit 1
