@@ -168,6 +168,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const viewportStyle = immersiveDashboard
     ? ({ "--immersive-scale": immersiveScale } as CSSProperties)
     : undefined;
+  const liveLayerStyle = immersiveDashboard ? ({ opacity: 0 } as CSSProperties) : undefined;
 
   return (
     <div
@@ -183,10 +184,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           immersiveDashboard && "study-app-shell--reference-canvas",
         )}
       >
-        <div className="study-app-shell__top-trim" aria-hidden="true" />
-        <div className="study-app-shell__bottom-plinth" aria-hidden="true" />
+        <div className="study-app-shell__top-trim" aria-hidden="true" style={liveLayerStyle} />
+        <div className="study-app-shell__bottom-plinth" aria-hidden="true" style={liveLayerStyle} />
 
-        <aside className="study-cabinet" aria-label="Lamdan navigation cabinet">
+        <aside
+          className="study-cabinet"
+          aria-label="Lamdan navigation cabinet"
+          style={liveLayerStyle}
+        >
           <span className="study-cabinet__sconce" aria-hidden="true" />
           <div className="study-cabinet__top">
             <BrandPlaque />
@@ -217,7 +222,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        <div className="study-stage">
+        <div className="study-stage" style={liveLayerStyle}>
           <div className="study-stage__side-shadow" aria-hidden="true" />
           <header className="mobile-study-header">
             <button
@@ -234,7 +239,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         {mobileOpen && (
-          <div className="mobile-cabinet-layer">
+          <div className="mobile-cabinet-layer" style={liveLayerStyle}>
             <button
               className="mobile-cabinet-layer__veil"
               onClick={() => setMobileOpen(false)}
