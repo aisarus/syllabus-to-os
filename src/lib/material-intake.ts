@@ -19,6 +19,14 @@ export interface MaterialIntakeOptions {
   existingMaterialId?: string;
 }
 
+export interface PreparedFileIntake {
+  fileName: string;
+  mimeType?: string;
+  fileSize: number;
+  extraction: IngestResult;
+  inferredType: MaterialType;
+}
+
 export interface MaterialIntakeResult {
   ok: boolean;
   outcome: MaterialIntakeOutcome;
@@ -43,6 +51,26 @@ export function normalizeMaterialTitle(title: string | undefined, fallback: stri
   return normalized || fallback.trim() || "Material";
 }
 
+export function normalizeComparableText(value: string): string {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[\u0591-\u05c7]/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/[\p{P}\p{S}]+/gu, "")
+    .trim();
+}
+
+export function normalizeComparableFileName(value: string): string {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/\.[^.]+$/, "")
+    .replace(/(?:\s*[-_]?(?:copy|копия|עותק)|\s*\(\d+\))$/u, "")
+    .replace(/[\s_-]+/g, " ")
+    .trim();
+}
+
 export function intakeOutcome(status: MaterialProcessingStatus): MaterialIntakeOutcome {
   switch (status) {
     case "ready":
@@ -57,25 +85,41 @@ export function intakeOutcome(status: MaterialProcessingStatus): MaterialIntakeO
   }
 }
 
+export async function prepareFileIntake(file: File): Promise<PreparedFileIntake> {
+  return {
+    fileName: file.name,
+    mimeType: file.type || undefined,
+    fileSize: file.size,
+    extraction: await ingestFile(file),
+    inferredType: inferMaterialType(file.name),
+  };
+}
+
+export function persistPreparedFile(
+  prepared: PreparedFileIntake,
+  options: MaterialIntakeOptions = {},
+): MaterialIntakeResult {
+  return persistMaterial(
+    prepared.extraction,
+    "uploaded_file",
+    {
+      ...options,
+      title: normalizeMaterialTitle(options.title, prepared.fileName),
+      type: options.type ?? prepared.inferredType,
+    },
+    {
+      fileName: prepared.fileName,
+      mimeType: prepared.mimeType,
+      fileSize: prepared.fileSize,
+    },
+  );
+}
+
 export async function intakeFile(
   file: File,
   options: MaterialIntakeOptions = {},
 ): Promise<MaterialIntakeResult> {
-  const extraction = await ingestFile(file);
-  return persistMaterial(
-    extraction,
-    "uploaded_file",
-    {
-      ...options,
-      title: normalizeMaterialTitle(options.title, file.name),
-      type: options.type ?? inferMaterialType(file.name),
-    },
-    {
-      fileName: file.name,
-      mimeType: file.type || undefined,
-      fileSize: file.size,
-    },
-  );
+  return persistPreparedFile(await prepareFileIntake(file), options);
 }
 
 export function intakeText(
