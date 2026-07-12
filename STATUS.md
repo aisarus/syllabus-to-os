@@ -14,39 +14,37 @@ Last updated: 2026-07-12
 - `P0-004 Create one shared intake service` — complete and verified.
 - `P0-005 Build multi-file upload queue` — complete and verified on Dashboard and Materials.
 - `P0-006 Add duplicate detection` — complete and verified across exact, likely, queue and legacy upload paths.
-- `P0-007 Add intake review and correction` — next.
+- `P0-007 Add intake review and correction` — implemented for queued files; validation in progress.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Duplicate review
+### Intake review before persistence
 
-- Exact matches use persistent SHA-256 fingerprints.
-- Likely matches compare normalized file names and sizes.
-- Likely matches also compare normalized extracted text when enough text is available.
-- Extraction is separated from persistence so a possible duplicate can be reviewed before any material record is saved.
-- Prepared extraction is reused after the user chooses keep both or safe replace, avoiding a second extraction pass.
-- The queue never merges automatically.
-- Explicit queue choices remain skip, keep both and replace only when no linked outputs can be orphaned.
-- Dashboard and the Materials multi-file launcher use the same guarded queue.
-- The remaining legacy single-file Materials upload performs the same exact and likely checks and requires an explicit keep-both confirmation before persistence.
+- Extracted queue items now pause in a review state instead of being silently saved.
+- Added editable title, material type, course, topic and tags.
+- Added detected language, word count, page count and extraction diagnostics.
+- Added a readable extracted-text preview with automatic text direction.
+- Added explicit warnings for partial, unsupported, no-text and error results.
+- Added save, save without course, retry extraction and discard actions.
+- Discard does not create a material record.
+- Retry reuses duplicate decisions but performs extraction again.
+- Duplicate review still happens before metadata review.
+- Saving persists corrected metadata, chunks and the source fingerprint together.
 
 ## Verification state
 
-- Documentation verification passed.
-- TypeScript passed.
-- ESLint passed.
-- Production build passed.
-- The successful run covers likely matching, extraction-before-persistence and the guarded legacy upload path together.
+- A pull request from `agent/validate-intake-review` runs documentation verification, TypeScript, ESLint and production build against the current review workflow.
+- Do not mark `P0-007` complete until that run succeeds and the direct pasted-text path is confirmed to remain editable before save.
 
 ## Next execution target
 
-1. Begin `P0-007` intake review and correction.
-2. Add editable title, material type, course, topic and tags before persistence.
-3. Show extracted-text preview and partial/unsupported warnings.
-4. Support save, save without course, retry and discard without creating hidden records.
+1. Fix any concrete CI failure.
+2. Confirm pasted text still exposes title, type, course and full source text before save.
+3. Mark `P0-007` complete after the full suite passes.
+4. Begin `P0-008` Material Workspace.
 
 ## Blockers
 
-None.
+None unless CI reports a concrete failure.
