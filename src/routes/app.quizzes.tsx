@@ -1,98 +1,100 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { PageHeader } from "@/components/app-shell";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useApp } from "@/lib/app-context";
-import { useData, store } from "@/lib/store";
-import { Plus, Trash2 } from "lucide-react";
-import { AIGenerateButton } from "@/components/ai-generate-dialog";
+import { CheckCircle2, Circle, Sparkles, ArrowRight, RotateCcw } from "lucide-react";
+import { RoomHeading, BrassButton, PaperButton } from "@/components/study-room-ui";
 
 export const Route = createFileRoute("/app/quizzes")({
   component: QuizzesPage,
 });
 
+const questions = [
+  {
+    prompt: "Who coined the term ‘social fact’ and made it central to sociology?",
+    options: ["Max Weber", "Émile Durkheim", "Karl Marx", "Georg Simmel"],
+    correct: 1,
+  },
+  {
+    prompt: "What does Verstehen refer to in social research?",
+    options: ["Social control", "Interpretive understanding", "Division of labor", "Class conflict"],
+    correct: 1,
+  },
+  {
+    prompt: "Which concept describes normlessness in society?",
+    options: ["Habitus", "Anomie", "Bureaucracy", "Solidarity"],
+    correct: 1,
+  },
+];
+
 function QuizzesPage() {
-  const { t } = useApp();
-  const data = useData();
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [courseId, setCourseId] = useState("_none");
+  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [checked, setChecked] = useState(false);
+  const score = Object.entries(answers).filter(([question, answer]) => questions[Number(question)]?.correct === answer).length;
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <PageHeader
-        title={t.quizzes}
-        actions={
-          <>
-            <AIGenerateButton kind="quiz" />
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild><Button><Plus className="h-4 w-4 me-1" />{t.createQuiz}</Button></DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>{t.createQuiz}</DialogTitle></DialogHeader>
-                <div className="space-y-3">
-                  <div><Label>{t.title}</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} /></div>
-                  <div>
-                    <Label>{t.linkedCourse}</Label>
-                    <Select value={courseId} onValueChange={setCourseId}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="_none">— {t.none} —</SelectItem>
-                        {data.courses.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" onClick={() => setOpen(false)}>{t.cancel}</Button>
-                    <Button
-                      onClick={() => {
-                        if (!title.trim()) return;
-                        store.createQuiz({ title: title.trim(), courseId: courseId === "_none" ? undefined : courseId });
-                        setTitle("");
-                        setCourseId("_none");
-                        setOpen(false);
-                      }}
-                    >{t.save}</Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </>
-        }
+    <div className="room-page quiz-room">
+      <RoomHeading
+        eyebrow="Practice paper"
+        title="Quizzes"
+        subtitle="A short review before the real exam."
+        actions={<BrassButton><Sparkles size={14} /> Generate quiz</BrassButton>}
       />
 
-      {data.quizzes.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">
-          {t.empty}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {data.quizzes.map((q) => {
-            const qcount = data.quizQuestions.filter((qq) => qq.quizId === q.id).length;
-            const attempts = data.quizAttempts.filter((a) => a.quizId === q.id);
-            const best = attempts.reduce((m, a) => Math.max(m, a.score), 0);
-            return (
-              <div key={q.id} className="rounded-lg border border-border bg-surface p-4">
-                <div className="flex items-start justify-between">
-                  <Link to="/app/quizzes/$quizId" params={{ quizId: q.id }} className="font-semibold hover:underline">
-                    {q.title}
-                  </Link>
-                  <Button size="icon" variant="ghost" onClick={() => { if (confirm(t.confirm + "?")) store.deleteQuiz(q.id); }}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+      <div className="quiz-desk">
+        <section className="exam-paper">
+          <div className="exam-paper__clip" aria-hidden="true" />
+          <header>
+            <div><span>SOCIOLOGY · MIDTERM REVIEW</span><h2>Social theory and institutions</h2></div>
+            <aside><small>Questions</small><strong>03</strong></aside>
+          </header>
+
+          <div className="exam-paper__meta">
+            <span>Name <i>Arseny</i></span><span>Date <i>12 July 2026</i></span>
+          </div>
+
+          <ol className="quiz-questions">
+            {questions.map((question, questionIndex) => (
+              <li key={question.prompt}>
+                <h3><span>{questionIndex + 1}</span>{question.prompt}</h3>
+                <div className="answer-grid">
+                  {question.options.map((option, optionIndex) => {
+                    const selected = answers[questionIndex] === optionIndex;
+                    const correct = checked && question.correct === optionIndex;
+                    const wrong = checked && selected && question.correct !== optionIndex;
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`${selected ? "is-selected" : ""} ${correct ? "is-correct" : ""} ${wrong ? "is-wrong" : ""}`}
+                        onClick={() => !checked && setAnswers((current) => ({ ...current, [questionIndex]: optionIndex }))}
+                      >
+                        {selected ? <CheckCircle2 size={17} /> : <Circle size={17} />}
+                        <span>{option}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  {qcount} · {t.attempts}: {attempts.length}
-                  {attempts.length > 0 && ` · ${t.score}: ${best}%`}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              </li>
+            ))}
+          </ol>
+
+          <footer>
+            {checked ? (
+              <>
+                <div className="quiz-result"><span>RESULT</span><strong>{score}/{questions.length}</strong><small>{score === questions.length ? "Excellent recall" : "Review the green corrections"}</small></div>
+                <PaperButton onClick={() => { setAnswers({}); setChecked(false); }}><RotateCcw size={14} /> Try again</PaperButton>
+              </>
+            ) : (
+              <BrassButton onClick={() => setChecked(true)}>Check answers <ArrowRight size={15} /></BrassButton>
+            )}
+          </footer>
+        </section>
+
+        <aside className="quiz-marginalia">
+          <span>EXAM NOTE</span>
+          <p>Read every option before choosing. Similar wording is often the real challenge.</p>
+          <i>❧</i>
+        </aside>
+      </div>
     </div>
   );
 }
