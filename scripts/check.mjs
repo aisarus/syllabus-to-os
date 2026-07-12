@@ -1,0 +1,24 @@
+import { spawnSync } from "node:child_process";
+
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const checks = ["verify:docs", "typecheck", "lint", "build"];
+
+for (const script of checks) {
+  console.log(`\n==> npm run ${script}`);
+  const result = spawnSync(npmCommand, ["run", script], {
+    cwd: process.cwd(),
+    env: process.env,
+    stdio: "inherit",
+  });
+
+  if (result.error) {
+    console.error(result.error);
+    process.exit(1);
+  }
+
+  if (result.status !== 0) {
+    process.exit(result.status ?? 1);
+  }
+}
+
+console.log("\nAll Lamdan checks passed.");
