@@ -91,11 +91,12 @@ requireMarker(
 requireMarker(search, "Clear search", "Search no-result state is not actionable.");
 
 for (const marker of [
-  "Импорт полностью заменит все текущие данные Lamdan",
-  "Import will completely replace all current Lamdan data",
+  "Импорт полностью заменит текстовые данные Lamdan",
+  "Import will replace Lamdan text data",
   "importJSON(raw)",
+  "clearAllVisualSourceData",
   "store.reset()",
-  "Экспортировать пока нечего",
+  "Экспортировать текстовые данные пока нечего",
 ]) {
   requireMarker(data, marker, `Data management lost a required safeguard or explanation: ${marker}`);
 }
@@ -110,10 +111,18 @@ for (const marker of [
 ]) {
   requireMarker(settings, marker, `Settings diagnostics/localization lost required behavior: ${marker}`);
 }
-forbidMarker(settings, "Local personal study workspace. Data is stored only in your browser.", "Hardcoded English footer returned to settings.");
+forbidMarker(
+  settings,
+  "Local personal study workspace. Data is stored only in your browser.",
+  "Hardcoded English footer returned to settings.",
+);
 
 requireMarker(dashboard, "courseWithoutCode", "Dashboard course-code fallback is no longer localized.");
-forbidMarker(dashboard, 'course.number || "COURSE"', "Dashboard returned to the hardcoded English COURSE fallback.");
+forbidMarker(
+  dashboard,
+  'course.number || "COURSE"',
+  "Dashboard returned to the hardcoded English COURSE fallback.",
+);
 
 for (const [name, content, marker] of [
   ["notes", notesRoute, "NotesLibrary"],
