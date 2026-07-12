@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Copy,
   Files,
   Loader2,
   RotateCcw,
@@ -23,20 +24,36 @@ import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
 import { formatFileSize } from "@/lib/document-ingestion";
 import {
+  fingerprintFile,
+  materialIdForFingerprint,
+  rememberMaterialFingerprint,
+} from "@/lib/material-fingerprints";
+import {
   intakeFile,
   type MaterialIntakeOptions,
   type MaterialIntakeOutcome,
 } from "@/lib/material-intake";
-import { uid } from "@/lib/store";
+import { uid, useData, type AppData } from "@/lib/store";
 
 export type MaterialQueueStatus =
   | "queued"
   | "extracting"
+  | "duplicate"
   | "ready"
   | "partial"
   | "unsupported"
   | "error"
-  | "cancelled";
+  | "cancelled"
+  | "skipped";
+
+type DuplicateDecision = "keep_both" | "replace";
+
+interface QueueDuplicate {
+  kind: "material" | "queue";
+  id: string;
+  title: string;
+  canReplace: boolean;
+}
 
 export interface MaterialQueueItem {
   id: string;
@@ -46,6 +63,9 @@ export interface MaterialQueueItem {
   status: MaterialQueueStatus;
   message?: string;
   materialId?: string;
+  fingerprint?: string;
+  duplicate?: QueueDuplicate;
+  duplicateDecision?: DuplicateDecision;
   options: Omit<MaterialIntakeOptions, "existingMaterialId">;
 }
 
@@ -58,6 +78,7 @@ interface MaterialIntakeQueueContextValue {
   retry: (id: string) => void;
   cancel: (id: string) => void;
   remove: (id: string) => void;
+  resolveDuplicate: (id: string, action: "skip" | DuplicateDecision) => void;
   clearFinished: () => void;
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -67,14 +88,21 @@ const MaterialIntakeQueueContext = createContext<MaterialIntakeQueueContextValue
 const MAX_CONCURRENCY = 2;
 
 export function MaterialIntakeQueueProvider({ children }: { children: ReactNode }) {
+  const data = useData();
   const [items, setItems] = useState<MaterialQueueItem[]>([]);
   const [open, setOpen] = useState(false);
   const itemsRef = useRef(items);
+  const dataRef = useRef(data);
   const runningRef = useRef(new Set<string>());
+  const fingerprintsInFlightRef = useRef(new Map<string, string>());
 
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
+
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
 
   const enqueueFiles = useCallback<MaterialIntakeQueueContextValue["enqueueFiles"]>(
     (files, options = {}) => {
@@ -106,11 +134,49 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
       ),
     );
 
+    let ownedFingerprint: string | undefined;
     try {
+      const fingerprint = item.fingerprint ?? (await fingerprintFile(item.file));
+      if (fingerprint && !item.duplicateDecision) {
+        const duplicate = findExactDuplicate(
+          fingerprint,
+          item,
+          dataRef.current,
+          itemsRef.current,
+          fingerprintsInFlightRef.current,
+        );
+        if (duplicate) {
+          setItems((current) =>
+            current.map((candidate) =>
+              candidate.id === id
+                ? {
+                    ...candidate,
+                    status: "duplicate",
+                    fingerprint,
+                    duplicate,
+                    message: undefined,
+                  }
+                : candidate,
+            ),
+          );
+          return;
+        }
+      }
+
+      if (fingerprint && !item.duplicateDecision) {
+        fingerprintsInFlightRef.current.set(fingerprint, id);
+        ownedFingerprint = fingerprint;
+      }
+
+      const replaceMaterialId =
+        item.duplicateDecision === "replace" && item.duplicate?.kind === "material"
+          ? item.duplicate.id
+          : undefined;
       const result = await intakeFile(item.file, {
         ...item.options,
-        existingMaterialId: item.materialId,
+        existingMaterialId: replaceMaterialId ?? item.materialId,
       });
+      rememberMaterialFingerprint(result.material.id, fingerprint);
       setItems((current) =>
         current.map((candidate) =>
           candidate.id === id
@@ -119,6 +185,8 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
                 status: queueStatusFromOutcome(result.outcome),
                 message: result.message,
                 materialId: result.material.id,
+                fingerprint,
+                duplicate: undefined,
               }
             : candidate,
         ),
@@ -137,6 +205,9 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
       );
     } finally {
       runningRef.current.delete(id);
+      if (ownedFingerprint && fingerprintsInFlightRef.current.get(ownedFingerprint) === id) {
+        fingerprintsInFlightRef.current.delete(ownedFingerprint);
+      }
     }
   }, []);
 
@@ -153,7 +224,15 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
     if (runningRef.current.has(id)) return;
     setItems((current) =>
       current.map((item) =>
-        item.id === id ? { ...item, status: "queued", message: undefined } : item,
+        item.id === id
+          ? {
+              ...item,
+              status: "queued",
+              message: undefined,
+              duplicate: undefined,
+              duplicateDecision: undefined,
+            }
+          : item,
       ),
     );
     setOpen(true);
@@ -172,10 +251,35 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
     setItems((current) => current.filter((item) => item.id !== id));
   }, []);
 
+  const resolveDuplicate = useCallback<MaterialIntakeQueueContextValue["resolveDuplicate"]>(
+    (id, action) => {
+      setItems((current) =>
+        current.map((item) => {
+          if (item.id !== id || item.status !== "duplicate") return item;
+          if (action === "skip") {
+            return {
+              ...item,
+              status: "skipped",
+              message: undefined,
+              duplicateDecision: undefined,
+            };
+          }
+          if (action === "replace" && !item.duplicate?.canReplace) return item;
+          return {
+            ...item,
+            status: "queued",
+            message: undefined,
+            duplicateDecision: action,
+          };
+        }),
+      );
+      setOpen(true);
+    },
+    [],
+  );
+
   const clearFinished = useCallback(() => {
-    setItems((current) =>
-      current.filter((item) => item.status === "queued" || item.status === "extracting"),
-    );
+    setItems((current) => current.filter((item) => isActiveStatus(item.status)));
   }, []);
 
   const value = useMemo<MaterialIntakeQueueContextValue>(
@@ -185,11 +289,12 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
       retry,
       cancel,
       remove,
+      resolveDuplicate,
       clearFinished,
       open,
       setOpen,
     }),
-    [items, enqueueFiles, retry, cancel, remove, clearFinished, open],
+    [items, enqueueFiles, retry, cancel, remove, resolveDuplicate, clearFinished, open],
   );
 
   return (
@@ -210,12 +315,10 @@ export function useMaterialIntakeQueue(): MaterialIntakeQueueContextValue {
 
 function MaterialIntakeQueuePanel() {
   const { lang } = useApp();
-  const { items, retry, cancel, remove, clearFinished, open, setOpen } =
+  const { items, retry, cancel, remove, resolveDuplicate, clearFinished, open, setOpen } =
     useMaterialIntakeQueue();
   const isRu = lang === "ru";
-  const activeCount = items.filter(
-    (item) => item.status === "queued" || item.status === "extracting",
-  ).length;
+  const activeCount = items.filter((item) => isActiveStatus(item.status)).length;
   const finishedCount = items.length - activeCount;
 
   if (items.length === 0) return null;
@@ -229,7 +332,9 @@ function MaterialIntakeQueuePanel() {
       >
         <Files className="h-4 w-4 text-primary" />
         {isRu ? "Загрузка материалов" : "Material intake"}
-        <span className="rounded bg-background px-1.5 py-0.5 text-xs">{activeCount || items.length}</span>
+        <span className="rounded bg-background px-1.5 py-0.5 text-xs">
+          {activeCount || items.length}
+        </span>
         <ChevronUp className="h-4 w-4" />
       </button>
     );
@@ -238,7 +343,7 @@ function MaterialIntakeQueuePanel() {
   return (
     <section
       aria-label={isRu ? "Очередь загрузки материалов" : "Material upload queue"}
-      className="fixed bottom-4 end-4 z-[80] w-[min(440px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border bg-surface shadow-2xl"
+      className="fixed bottom-4 end-4 z-[80] w-[min(480px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border bg-surface shadow-2xl"
     >
       <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
         <div className="min-w-0">
@@ -247,13 +352,17 @@ function MaterialIntakeQueuePanel() {
             {isRu ? "Очередь материалов" : "Material queue"}
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {activeCount > 0
+            {items.some((item) => item.status === "duplicate")
               ? isRu
-                ? `Обрабатывается: ${activeCount}`
-                : `Processing: ${activeCount}`
-              : isRu
-                ? "Обработка завершена"
-                : "Processing complete"}
+                ? "Найдены дубликаты — выбери действие"
+                : "Duplicates found — choose an action"
+              : activeCount > 0
+                ? isRu
+                  ? `Обрабатывается: ${activeCount}`
+                  : `Processing: ${activeCount}`
+                : isRu
+                  ? "Обработка завершена"
+                  : "Processing complete"}
           </p>
         </div>
         <div className="flex items-center gap-1">
@@ -273,7 +382,7 @@ function MaterialIntakeQueuePanel() {
         </div>
       </header>
 
-      <div className="max-h-[min(58svh,420px)] overflow-y-auto p-2">
+      <div className="max-h-[min(62svh,480px)] overflow-y-auto p-2">
         {items.map((item) => (
           <QueueRow
             key={item.id}
@@ -282,6 +391,7 @@ function MaterialIntakeQueuePanel() {
             onRetry={() => retry(item.id)}
             onCancel={() => cancel(item.id)}
             onRemove={() => remove(item.id)}
+            onDuplicateAction={(action) => resolveDuplicate(item.id, action)}
           />
         ))}
       </div>
@@ -295,66 +405,98 @@ function QueueRow({
   onRetry,
   onCancel,
   onRemove,
+  onDuplicateAction,
 }: {
   item: MaterialQueueItem;
   isRu: boolean;
   onRetry: () => void;
   onCancel: () => void;
   onRemove: () => void;
+  onDuplicateAction: (action: "skip" | DuplicateDecision) => void;
 }) {
   const status = queueStatusCopy(item.status, isRu);
   const canRetry = ["partial", "unsupported", "error"].includes(item.status);
   const canRemove = item.status !== "extracting";
 
   return (
-    <div className="flex items-start gap-3 rounded-md border border-transparent px-2 py-2.5 hover:border-border hover:bg-background/50">
-      <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded border border-border bg-background">
-        <QueueStatusIcon status={item.status} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium" title={item.name}>
-          {item.name}
+    <div className="rounded-md border border-transparent px-2 py-2.5 hover:border-border hover:bg-background/50">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded border border-border bg-background">
+          <QueueStatusIcon status={item.status} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-medium" title={item.name}>
+            {item.name}
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+            <span>{formatFileSize(item.size)}</span>
+            <span>{status}</span>
+          </div>
+          {item.message && (
+            <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{item.message}</p>
+          )}
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
-          <span>{formatFileSize(item.size)}</span>
-          <span>{status}</span>
+        <div className="flex shrink-0 items-center gap-1">
+          {item.status === "queued" && (
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label={isRu ? "Отменить" : "Cancel"}
+              onClick={onCancel}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {canRetry && (
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label={isRu ? "Повторить" : "Retry"}
+              onClick={onRetry}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {canRemove && item.status !== "queued" && item.status !== "duplicate" && (
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label={isRu ? "Убрать из очереди" : "Remove from queue"}
+              onClick={onRemove}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
-        {item.message && (
-          <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{item.message}</p>
-        )}
       </div>
-      <div className="flex shrink-0 items-center gap-1">
-        {item.status === "queued" && (
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label={isRu ? "Отменить" : "Cancel"}
-            onClick={onCancel}
-          >
-            <X className="h-3.5 w-3.5" />
-          </Button>
-        )}
-        {canRetry && (
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label={isRu ? "Повторить" : "Retry"}
-            onClick={onRetry}
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-          </Button>
-        )}
-        {canRemove && item.status !== "queued" && (
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label={isRu ? "Убрать из очереди" : "Remove from queue"}
-            onClick={onRemove}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        )}
-      </div>
+
+      {item.status === "duplicate" && item.duplicate && (
+        <div className="ms-10 mt-2 rounded-md border border-yellow-500/25 bg-yellow-500/5 p-2.5">
+          <p className="text-xs text-foreground">
+            {isRu ? "Точная копия: " : "Exact duplicate: "}
+            <strong>{item.duplicate.title}</strong>
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {isRu
+              ? "Lamdan ничего не объединяет автоматически."
+              : "Lamdan never merges sources automatically."}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Button size="sm" variant="ghost" onClick={() => onDuplicateAction("skip")}>
+              {isRu ? "Пропустить" : "Skip"}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => onDuplicateAction("keep_both")}>
+              <Copy className="h-3.5 w-3.5 me-1" />
+              {isRu ? "Сохранить обе" : "Keep both"}
+            </Button>
+            {item.duplicate.canReplace && (
+              <Button size="sm" onClick={() => onDuplicateAction("replace")}>
+                {isRu ? "Заменить источник" : "Replace source"}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -363,7 +505,9 @@ function QueueStatusIcon({ status }: { status: MaterialQueueStatus }) {
   if (status === "extracting") return <Loader2 className="h-4 w-4 animate-spin text-primary" />;
   if (status === "ready") return <CheckCircle2 className="h-4 w-4 text-emerald-400" />;
   if (status === "queued") return <Files className="h-4 w-4 text-muted-foreground" />;
-  if (status === "cancelled") return <X className="h-4 w-4 text-muted-foreground" />;
+  if (status === "cancelled" || status === "skipped") {
+    return <X className="h-4 w-4 text-muted-foreground" />;
+  }
   return <AlertTriangle className="h-4 w-4 text-yellow-400" />;
 }
 
@@ -383,12 +527,65 @@ function queueStatusFromOutcome(outcome: MaterialIntakeOutcome): MaterialQueueSt
 function queueStatusCopy(status: MaterialQueueStatus, isRu: boolean): string {
   const copy: Record<MaterialQueueStatus, [string, string]> = {
     queued: ["В очереди", "Queued"],
-    extracting: ["Извлекаю текст", "Extracting"],
+    extracting: ["Проверяю и извлекаю", "Checking and extracting"],
+    duplicate: ["Точный дубликат", "Exact duplicate"],
     ready: ["Готово", "Ready"],
     partial: ["Частично", "Partial"],
     unsupported: ["Не поддерживается", "Unsupported"],
     error: ["Ошибка", "Error"],
     cancelled: ["Отменено", "Cancelled"],
+    skipped: ["Пропущено", "Skipped"],
   };
   return copy[status][isRu ? 0 : 1];
+}
+
+function isActiveStatus(status: MaterialQueueStatus): boolean {
+  return status === "queued" || status === "extracting" || status === "duplicate";
+}
+
+function findExactDuplicate(
+  fingerprint: string,
+  currentItem: MaterialQueueItem,
+  data: AppData,
+  queueItems: MaterialQueueItem[],
+  inFlight: Map<string, string>,
+): QueueDuplicate | undefined {
+  const indexedMaterialId = materialIdForFingerprint(fingerprint);
+  if (indexedMaterialId && indexedMaterialId !== currentItem.materialId) {
+    const material = data.materials.find((candidate) => candidate.id === indexedMaterialId);
+    if (material) {
+      return {
+        kind: "material",
+        id: material.id,
+        title: material.title,
+        canReplace: canSafelyReplaceMaterial(data, material.id),
+      };
+    }
+  }
+
+  const ownerId = inFlight.get(fingerprint);
+  const queueDuplicate = queueItems.find(
+    (candidate) =>
+      candidate.id !== currentItem.id &&
+      (candidate.id === ownerId || candidate.fingerprint === fingerprint) &&
+      candidate.status !== "cancelled" &&
+      candidate.status !== "skipped",
+  );
+  if (!queueDuplicate) return undefined;
+  return {
+    kind: "queue",
+    id: queueDuplicate.id,
+    title: queueDuplicate.name,
+    canReplace: false,
+  };
+}
+
+function canSafelyReplaceMaterial(data: AppData, materialId: string): boolean {
+  return !(
+    data.materialOutputs.some((output) => output.materialId === materialId) ||
+    data.notes.some((note) => note.materialId === materialId) ||
+    data.flashcards.some((card) => card.materialId === materialId) ||
+    data.quizzes.some((quiz) => quiz.materialId === materialId) ||
+    data.presentationOutlines.some((outline) => outline.materialId === materialId)
+  );
 }
