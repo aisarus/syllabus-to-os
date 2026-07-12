@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-const manifestPath = resolve(process.cwd(), "evals/fixtures.json");
+const manifestPath = resolve(process.cwd(), "evals/manifest.json");
 const runnerPath = resolve(process.cwd(), "scripts/run-evals.mjs");
 const ocrContractPath = resolve(process.cwd(), "src/lib/ocr-contract.ts");
 const [manifestText, runner, ocrContract] = await Promise.all([
@@ -115,7 +115,7 @@ for (const marker of [
 for (const marker of [
   'export const OCR_PROMPT_VERSION = "ocr-draft-v1"',
   'export type OCRSourceStyle = "printed" | "handwritten" | "whiteboard" | "mixed"',
-  'kind: OCRRegionKind',
+  "kind: OCRRegionKind",
   "normalizedMath?: string",
   "uncertainTokens: string[]",
   "requiresReview: boolean",
