@@ -14,7 +14,6 @@ export function VisualSourceLifecycle() {
     () => data.materials.map((material) => material.id).sort(),
     [data.materials],
   );
-  const materialKey = materialIds.join("|");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -23,7 +22,7 @@ export function VisualSourceLifecycle() {
       });
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [materialKey]);
+  }, [materialIds]);
 
   return null;
 }
