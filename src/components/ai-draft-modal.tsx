@@ -12,8 +12,11 @@ import {
   Copy,
   Loader2,
   RefreshCw,
+  ShieldCheck,
+  ShieldAlert,
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import type { AITrustMetadata } from "@/lib/ai";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -32,6 +35,8 @@ interface AIDraftModalProps {
   error?: string;
   warnings?: string[];
   sourceChunks?: AIDraftSource[];
+  trust?: AITrustMetadata;
+  notFoundInSources?: boolean;
   onSave?: () => void;
   saveDisabled?: boolean;
   onRegenerate?: () => void;
@@ -50,6 +55,8 @@ export function AIDraftModal(props: AIDraftModalProps) {
     error,
     warnings,
     sourceChunks,
+    trust,
+    notFoundInSources,
     onSave,
     saveDisabled,
     onRegenerate,
@@ -150,6 +157,18 @@ export function AIDraftModal(props: AIDraftModalProps) {
 
         {state === "ready" && (
           <div className="space-y-3">
+            {notFoundInSources && (
+              <div className="rounded-md border border-orange-500/40 bg-orange-500/10 p-3 text-xs text-orange-100">
+                <div className="flex items-start gap-2">
+                  <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>
+                    {isRu
+                      ? "В выбранных источниках не хватило информации для части или всего результата. Проверь предупреждения и не сохраняй неподтверждённые формулировки как факт."
+                      : "The selected sources did not contain enough information for part or all of this output. Review the warnings before saving unsupported statements."}
+                  </p>
+                </div>
+              </div>
+            )}
             {warnings && warnings.length > 0 && (
               <div className="space-y-1 rounded-md border border-yellow-500/40 bg-yellow-500/10 p-2 text-xs">
                 <div className="font-medium text-yellow-300">{t.aiWarnings}</div>
@@ -161,6 +180,7 @@ export function AIDraftModal(props: AIDraftModalProps) {
               </div>
             )}
             {children}
+            {trust && <TrustPanel trust={trust} isRu={isRu} />}
             {sourceChunks && sourceChunks.length > 0 && (
               <div className="rounded-md border border-border bg-surface p-2 text-xs">
                 <div className="mb-1 text-muted-foreground">
@@ -203,5 +223,59 @@ export function AIDraftModal(props: AIDraftModalProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function TrustPanel({ trust, isRu }: { trust: AITrustMetadata; isRu: boolean }) {
+  const hasProblems = trust.rejectedSourceChunkIds.length > 0 || trust.uncitedItemCount > 0;
+  const Icon = hasProblems ? ShieldAlert : ShieldCheck;
+
+  return (
+    <div
+      className={`rounded-md border p-3 text-xs ${
+        hasProblems
+          ? "border-yellow-500/35 bg-yellow-500/5"
+          : "border-emerald-500/25 bg-emerald-500/5"
+      }`}
+    >
+      <div className="flex items-start gap-2">
+        <Icon
+          className={`mt-0.5 h-4 w-4 shrink-0 ${
+            hasProblems ? "text-yellow-300" : "text-emerald-300"
+          }`}
+        />
+        <div className="min-w-0 flex-1">
+          <div className="font-medium">
+            {hasProblems
+              ? isRu
+                ? "Нужна проверка источников"
+                : "Source review required"
+              : isRu
+                ? "Ссылки на источники прошли проверку"
+                : "Source references validated"}
+          </div>
+          <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+            <dt>{isRu ? "Модель" : "Model"}</dt>
+            <dd className="truncate text-foreground" title={trust.model}>
+              {trust.model}
+            </dd>
+            <dt>{isRu ? "Версия промпта" : "Prompt version"}</dt>
+            <dd className="text-foreground">{trust.promptVersion}</dd>
+            <dt>{isRu ? "Выбрано источников" : "Requested sources"}</dt>
+            <dd className="text-foreground">{trust.requestedSourceChunkIds.length}</dd>
+            <dt>{isRu ? "Неизвестных ID удалено" : "Unknown IDs removed"}</dt>
+            <dd className="text-foreground">{trust.rejectedSourceChunkIds.length}</dd>
+            <dt>{isRu ? "Элементов без цитаты" : "Uncited items"}</dt>
+            <dd className="text-foreground">{trust.uncitedItemCount}</dd>
+          </dl>
+          {trust.rejectedSourceChunkIds.length > 0 && (
+            <p className="mt-2 break-all text-[10px] text-yellow-200">
+              {isRu ? "Отклонённые ID: " : "Rejected IDs: "}
+              {trust.rejectedSourceChunkIds.join(", ")}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
