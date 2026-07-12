@@ -1,7 +1,13 @@
 import { ingestFile, ingestPastedText, type IngestResult } from "./document-ingestion";
 import {
+  fingerprintFile,
+  materialIdForFingerprint,
+  rememberMaterialFingerprint,
+} from "./material-fingerprints";
+import {
   store,
   updateData,
+  type AppData,
   type Material,
   type MaterialProcessingStatus,
   type MaterialSourceMode,
@@ -33,6 +39,13 @@ export interface MaterialIntakeResult {
   material: Material;
   extraction: IngestResult;
   message?: string;
+}
+
+export class DuplicateIntakeSkippedError extends Error {
+  constructor() {
+    super("Duplicate material was skipped.");
+    this.name = "DuplicateIntakeSkippedError";
+  }
 }
 
 export function inferMaterialType(value: string): MaterialType {
@@ -119,7 +132,17 @@ export async function intakeFile(
   file: File,
   options: MaterialIntakeOptions = {},
 ): Promise<MaterialIntakeResult> {
-  return persistPreparedFile(await prepareFileIntake(file), options);
+  const prepared = await prepareFileIntake(file);
+  const fingerprint = await fingerprintFile(file);
+  const duplicate = findBrowserDuplicate(prepared, fingerprint, options.existingMaterialId);
+
+  if (duplicate && !confirmKeepBoth(duplicate.title)) {
+    throw new DuplicateIntakeSkippedError();
+  }
+
+  const result = persistPreparedFile(prepared, options);
+  rememberMaterialFingerprint(result.material.id, fingerprint);
+  return result;
 }
 
 export function intakeText(
@@ -198,6 +221,60 @@ function persistMaterial(
     extraction,
     message: extraction.message,
   };
+}
+
+function findBrowserDuplicate(
+  prepared: PreparedFileIntake,
+  fingerprint: string | undefined,
+  existingMaterialId: string | undefined,
+): Material | undefined {
+  const data = loadBrowserData();
+  if (!data) return undefined;
+
+  if (fingerprint) {
+    const indexedId = materialIdForFingerprint(fingerprint);
+    const exact = data.materials.find(
+      (material) => material.id === indexedId && material.id !== existingMaterialId,
+    );
+    if (exact) return exact;
+  }
+
+  const comparableName = normalizeComparableFileName(prepared.fileName);
+  const comparableText = normalizeComparableText(prepared.extraction.rawText);
+  return data.materials.find((material) => {
+    if (material.id === existingMaterialId) return false;
+    const sameText =
+      comparableText.length >= 120 &&
+      normalizeComparableText(material.rawText) === comparableText;
+    const sameMetadata =
+      prepared.fileSize > 0 &&
+      material.fileSize === prepared.fileSize &&
+      normalizeComparableFileName(material.fileName || material.title) === comparableName;
+    return sameText || sameMetadata;
+  });
+}
+
+function loadBrowserData(): AppData | undefined {
+  if (typeof localStorage === "undefined") return undefined;
+  try {
+    const parsed = JSON.parse(localStorage.getItem("lamdan.data.v1") || "null");
+    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.materials)) {
+      return undefined;
+    }
+    return parsed as AppData;
+  } catch {
+    return undefined;
+  }
+}
+
+function confirmKeepBoth(existingTitle: string): boolean {
+  if (typeof window === "undefined" || typeof window.confirm !== "function") return true;
+  const isRu = document.documentElement.lang === "ru";
+  return window.confirm(
+    isRu
+      ? `Похожий материал уже существует: «${existingTitle}».\n\nНажми OK, чтобы сохранить обе копии, или Отмена, чтобы пропустить файл.`
+      : `A similar material already exists: “${existingTitle}”.\n\nChoose OK to keep both copies or Cancel to skip this file.`,
+  );
 }
 
 function normalizeTags(tags: string[] | undefined): string[] {
