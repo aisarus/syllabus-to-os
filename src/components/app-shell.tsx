@@ -47,7 +47,7 @@ const coreNav: ReadonlyArray<NavItem> = [
 ];
 
 const utilityNav: ReadonlyArray<NavItem> = [
-  { to: "/app/import-syllabus", labelKey: "importSyllabus", icon: FileInput },
+  { to: "/app/course-syllabus", labelKey: "importSyllabus", icon: FileInput },
   { to: "/app/search", labelKey: "searchNav", icon: Search },
   { to: "/app/data", labelKey: "data", icon: Database },
   { to: "/app/settings", labelKey: "settings", icon: Settings },
