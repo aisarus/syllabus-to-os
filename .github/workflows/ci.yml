@@ -65,6 +65,9 @@ jobs:
       - name: Verify Quiz Studio contract
         run: npm run verify:quiz-studio-contract
 
+      - name: Verify core UI audit contract
+        run: npm run verify:core-ui-audit
+
       - name: Typecheck
         id: typecheck
         continue-on-error: true

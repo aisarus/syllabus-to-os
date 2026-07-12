@@ -26,28 +26,31 @@ Last updated: 2026-07-12
 - `P0-016 Upgrade Notes to a reliable editor` — complete and verified.
 - `P0-017 Add Flashcard Studio v1` — complete and verified.
 - `P0-018 Add Quiz Studio v1` — complete and verified.
-- `P0-019 Remove remaining fake and disconnected UI` — next.
+- `P0-019 Remove remaining fake and disconnected UI` — complete and verified.
+- `P0-020 Create evaluation fixtures` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Quiz Studio v1
+### Core UI honesty and release-readiness audit
 
-- Replaced the minimal quiz list and detail route with a persistent Quiz Studio library and editor.
-- Added editable quiz title plus course, topic and material relationships.
-- Added question creation, deletion and persistent reordering without a destructive store migration.
-- Added inline editing for prompt, options, correct answer and explanation.
-- Added strict validation for missing prompts, insufficient options, empty options, duplicate options and invalid correct-answer indexes.
-- Invalid questions remain visible for correction but are blocked from practice and exam modes.
-- Added practice mode with immediate correct/incorrect feedback, explanations and source links.
-- Added exam mode that postpones answers, explanations and source details until submission.
-- Recorded completed attempts without promoting attempts or scores into the dashboard identity.
-- Added exact source-chunk selection per question and direct links back to source materials.
-- Added exact and likely duplicate-question detection.
-- Added guarded duplicate merging that unions source references and deletes other questions only after explicit confirmation.
-- Added a permanent `verify:quiz-studio-contract` regression check to local checks and CI.
-- Preserved the existing quiz, question and attempt schema.
+- Replaced the remaining status/tracking-first course list with a content-first course library.
+- Removed visible completion status controls and filters from Courses while preserving the underlying compatibility field.
+- Removed silent assignment of manually created courses to the first program.
+- Added explicit optional program selection, course search and real content-derived counts.
+- Added actionable course empty and no-result states.
+- Made course deletion detach and preserve linked materials, notes, flashcards, quizzes and presentation outlines before removing the course and topics.
+- Fixed global note-search results so they open the exact note editor.
+- Added actionable global-search empty and no-result states.
+- Localized the dashboard course-code fallback instead of displaying a hardcoded English label.
+- Added explicit loading, ready and error states plus retry to AI diagnostics.
+- Localized the Settings browser-storage disclosure.
+- Added explicit destructive confirmation before backup import replaces local data.
+- Added real library counts, disabled-action explanations and success/error feedback to data management.
+- Updated the route inventory with verified release-readiness results for every active core and system route.
+- Added a permanent `verify:core-ui-audit` regression check to local checks and CI.
+- Preserved all deferred assignment, calendar, session, progress and presentation data and routes without promoting them to navigation.
 
 ## Verification state
 
@@ -58,16 +61,17 @@ Last updated: 2026-07-12
 - Reliable Notes editor contract verification passed.
 - Flashcard Studio v1 contract verification passed.
 - Quiz Studio v1 contract verification passed.
+- Core UI honesty and actionability contract verification passed.
 - TypeScript passed.
 - ESLint passed.
 - Production build passed.
 
 ## Next execution target
 
-1. Begin `P0-019` by auditing every active core route and visible control.
-2. Remove remaining demo content and decorative counters not derived from real data.
-3. Replace dead controls with working flows or honest disabled states.
-4. Normalize empty, loading, error and localization states.
+1. Begin `P0-020` with deterministic evaluation fixtures for syllabus, grounded generation and multilingual content.
+2. Add expected outputs and machine-readable scoring rules.
+3. Add a repeatable evaluation command that never depends on vibes.
+4. Document baseline results and failure categories.
 
 ## Blockers
 

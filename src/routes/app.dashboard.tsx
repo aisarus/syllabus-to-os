@@ -79,6 +79,7 @@ function Dashboard() {
         materials: "Материалы",
         quizzes: "Тесты",
         open: "Открыть",
+        courseWithoutCode: "БЕЗ КОДА",
       }
     : {
         eyebrow: "Content workspace",
@@ -113,6 +114,7 @@ function Dashboard() {
         materials: "Materials",
         quizzes: "Quizzes",
         open: "Open",
+        courseWithoutCode: "NO CODE",
       };
 
   const recentMaterials = [...data.materials]
@@ -256,7 +258,7 @@ function Dashboard() {
                     params={{ courseId: course.id }}
                     className="cw-course-card"
                   >
-                    <span className="cw-course-card__code">{course.number || "COURSE"}</span>
+                    <span className="cw-course-card__code">{course.number || copy.courseWithoutCode}</span>
                     <h3>{course.title}</h3>
                     <span className="cw-course-card__counts">
                       <span>{materialCount} {copy.files}</span>

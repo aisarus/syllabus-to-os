@@ -9,6 +9,7 @@ const checks = [
   "verify:notes-editor-contract",
   "verify:flashcard-studio-contract",
   "verify:quiz-studio-contract",
+  "verify:core-ui-audit",
   "typecheck",
   "lint",
   "build",

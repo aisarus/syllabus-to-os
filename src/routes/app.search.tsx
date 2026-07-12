@@ -100,7 +100,14 @@ function SearchPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <PageHeader title={t.searchNav} />
+      <PageHeader
+        title={t.searchNav}
+        subtitle={
+          lang === "ru"
+            ? "Ищи по курсам, материалам, фрагментам, конспектам, карточкам и вопросам."
+            : "Search courses, materials, chunks, notes, flashcards, and questions."
+        }
+      />
       <div className="relative mb-3">
         <SearchIcon className="absolute start-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -132,11 +139,19 @@ function SearchPage() {
 
       {!query.trim() ? (
         <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">
-          {t.searchPlaceholderGlobal}
+          {lang === "ru"
+            ? "Введи слово, термин, название курса или фразу из материала."
+            : "Enter a term, course title, or phrase from a source."}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">
-          {t.searchNoResults}
+        <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center">
+          <strong>{t.searchNoResults}</strong>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {lang === "ru" ? "Измени запрос или выбери область «Все»." : "Change the query or select the All scope."}
+          </p>
+          <Button size="sm" variant="outline" className="mt-4" onClick={() => { setQuery(""); setScope("all"); }}>
+            {lang === "ru" ? "Очистить поиск" : "Clear search"}
+          </Button>
         </div>
       ) : (
         <div className="space-y-2">
@@ -207,7 +222,7 @@ function ResultLink({ hit }: { hit: SearchHit }) {
       );
     case "note":
       return (
-        <Link to="/app/notes" className={className}>
+        <Link to="/app/notes/$noteId" params={{ noteId: hit.id }} className={className}>
           {t.open}
         </Link>
       );
