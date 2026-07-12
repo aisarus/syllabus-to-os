@@ -115,6 +115,7 @@ export type Dict = {
   emptyShelfTitle: string;
   emptyShelfHint: string;
   addFirstCourse: string;
+  creditsInvalid: string;
   // notes
   createNote: string;
   content: string;
@@ -598,6 +599,7 @@ const en: Dict = {
   emptyShelfTitle: "Your shelf is empty",
   emptyShelfHint: "Add your first course to begin",
   addFirstCourse: "Add your first course",
+  creditsInvalid: "Credits must be a number ≥ 0",
   createNote: "Create note",
   content: "Content",
   tags: "Tags (comma separated)",
@@ -1067,6 +1069,7 @@ const ru: Dict = {
   emptyShelfTitle: "Полка пока пуста",
   emptyShelfHint: "Добавьте первый курс, чтобы начать",
   addFirstCourse: "Добавить первый курс",
+  creditsInvalid: "Кредиты — число ≥ 0",
   createNote: "Создать заметку",
   content: "Содержимое",
   tags: "Теги (через запятую)",
@@ -1430,3 +1433,17 @@ const ru: Dict = {
 
 export const dicts: Record<Lang, Dict> = { en, ru };
 export const t = dicts;
+
+export function coursesOnShelf(lang: Lang, n: number): string {
+  if (lang === "ru") {
+    const mod100 = n % 100;
+    const mod10 = n % 10;
+    let word: string;
+    if (mod100 >= 11 && mod100 <= 14) word = "курсов";
+    else if (mod10 === 1) word = "курс";
+    else if (mod10 >= 2 && mod10 <= 4) word = "курса";
+    else word = "курсов";
+    return `${n} ${word} на полке`;
+  }
+  return `${n} ${n === 1 ? "course" : "courses"} on the shelf`;
+}
