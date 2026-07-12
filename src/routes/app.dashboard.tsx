@@ -150,17 +150,22 @@ function Dashboard() {
             </span>
             <strong>{copy.date}</strong>
           </div>
-          <ol>
-            {copy.schedule.map(([time, title, meta]) => (
-              <li key={`${time}-${title}`}>
-                <time>{time}</time>
-                <span>
-                  <strong>{title}</strong>
-                  <small>{meta}</small>
-                </span>
-              </li>
-            ))}
-          </ol>
+          {todayEvents.length ? (
+            <ol>
+              {todayEvents.map((ev) => (
+                <li key={ev.id}>
+                  <time>{ev.startTime ?? "—"}</time>
+                  <span>
+                    <strong>{ev.title}</strong>
+                    {ev.notes ? <small>{ev.notes}</small> : null}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="today-note__empty">{copy.emptySchedule}</p>
+          )}
+
           <Link to="/app/calendar">
             {copy.openCalendar} <ArrowUpRight size={13} />
           </Link>
