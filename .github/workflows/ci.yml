@@ -62,6 +62,9 @@ jobs:
       - name: Verify Flashcard Studio contract
         run: npm run verify:flashcard-studio-contract
 
+      - name: Verify Quiz Studio contract
+        run: npm run verify:quiz-studio-contract
+
       - name: Typecheck
         id: typecheck
         continue-on-error: true

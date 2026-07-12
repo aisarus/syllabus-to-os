@@ -4,7 +4,7 @@ Last updated: 2026-07-12
 
 ## Current milestone
 
-**Milestone F — Product-quality content editors**
+**Milestone G — Validation and release readiness**
 
 ## Task status
 
@@ -25,28 +25,29 @@ Last updated: 2026-07-12
 - `P0-015 Build Course Workspace v1` — complete and verified.
 - `P0-016 Upgrade Notes to a reliable editor` — complete and verified.
 - `P0-017 Add Flashcard Studio v1` — complete and verified.
-- `P0-018 Add Quiz Studio v1` — next.
+- `P0-018 Add Quiz Studio v1` — complete and verified.
+- `P0-019 Remove remaining fake and disconnected UI` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Flashcard Studio v1
+### Quiz Studio v1
 
-- Replaced the compact card grid with a bulk-first flashcard curation workspace.
-- Added search plus course, topic, material and card-status filters.
-- Added inline front and back editing so large generated sets can be reviewed without opening individual dialogs.
-- Added select-visible and persistent bulk selection.
-- Added guarded bulk deletion with explicit confirmation.
-- Added bulk course, topic and material relinking while preserving exact source-chunk references.
-- Added exact and likely duplicate detection.
-- Added duplicate review and merge that preserves one card's review history, unions source references and deletes only after confirmation.
-- Preserved the existing spaced-repetition review mode and kept it visually secondary to content curation.
-- Kept source material links and source-reference counts visible on every card.
-- Added CSV export for selected or currently filtered cards.
-- Added CSV import preview and validation before card creation.
-- Added a permanent `verify:flashcard-studio-contract` regression check to local checks and CI.
-- Preserved the existing flashcard schema and review scheduling data.
+- Replaced the minimal quiz list and detail route with a persistent Quiz Studio library and editor.
+- Added editable quiz title plus course, topic and material relationships.
+- Added question creation, deletion and persistent reordering without a destructive store migration.
+- Added inline editing for prompt, options, correct answer and explanation.
+- Added strict validation for missing prompts, insufficient options, empty options, duplicate options and invalid correct-answer indexes.
+- Invalid questions remain visible for correction but are blocked from practice and exam modes.
+- Added practice mode with immediate correct/incorrect feedback, explanations and source links.
+- Added exam mode that postpones answers, explanations and source details until submission.
+- Recorded completed attempts without promoting attempts or scores into the dashboard identity.
+- Added exact source-chunk selection per question and direct links back to source materials.
+- Added exact and likely duplicate-question detection.
+- Added guarded duplicate merging that unions source references and deletes other questions only after explicit confirmation.
+- Added a permanent `verify:quiz-studio-contract` regression check to local checks and CI.
+- Preserved the existing quiz, question and attempt schema.
 
 ## Verification state
 
@@ -56,16 +57,17 @@ Last updated: 2026-07-12
 - Course Workspace v1 contract verification passed.
 - Reliable Notes editor contract verification passed.
 - Flashcard Studio v1 contract verification passed.
+- Quiz Studio v1 contract verification passed.
 - TypeScript passed.
 - ESLint passed.
 - Production build passed.
 
 ## Next execution target
 
-1. Begin `P0-018` Quiz Studio v1.
-2. Add complete question editing, reordering and validation.
-3. Separate practice mode from exam mode.
-4. Preserve source references and duplicate-question review.
+1. Begin `P0-019` by auditing every active core route and visible control.
+2. Remove remaining demo content and decorative counters not derived from real data.
+3. Replace dead controls with working flows or honest disabled states.
+4. Normalize empty, loading, error and localization states.
 
 ## Blockers
 
