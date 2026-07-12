@@ -2,12 +2,13 @@
 
 ## 1. Product definition
 
-Lamdan is an AI-first study-content workspace for university students in Israel.
+Lamdan is an AI-first study-content workspace for university and pre-academic students in Israel.
 
-The product accepts academic chaos — syllabi, PDFs, presentations, documents, spreadsheets, pasted text, images, links and lecture recordings — and turns it into a structured, reusable study system:
+The product accepts academic chaos — syllabi, PDFs, presentations, documents, spreadsheets, pasted text, photographs, handwritten notebooks, whiteboards, links and lecture recordings — and turns it into a structured, reusable study system:
 
 - courses and topics;
-- extracted and searchable materials;
+- extracted and searchable source materials;
+- reviewed OCR and lecture transcripts;
 - clear notes and explanations;
 - flashcards;
 - quizzes and exam practice;
@@ -17,7 +18,7 @@ Lamdan is not primarily a timer, habit tracker, calendar dashboard, streak app o
 
 The core promise is:
 
-> Upload a study source once. Lamdan understands it, keeps it in context and turns it into every study format you need.
+> Upload any study source once. Lamdan preserves it, helps you verify what it understood and turns the approved content into every study format you need.
 
 ## 2. Target user
 
@@ -27,51 +28,59 @@ A university or pre-academic student in Israel who studies in Hebrew or English 
 
 ### Primary pains
 
-- Course materials are spread across Moodle, WhatsApp, email, Google Drive and personal files.
+- Course materials are spread across Moodle, WhatsApp, email, Google Drive, recordings, photographs and personal files.
 - The student partially understands Hebrew academic content.
 - The student does not reliably write notes during class.
 - The student depends on other students' notes but does not fully understand them.
-- ChatGPT can process a document, but the student must repeatedly upload context and recreate prompts.
-- Notes, cards and quizzes are disconnected from the source and from each other.
+- Important material exists only as a phone photo, handwritten notebook page or whiteboard.
+- Mathematics written by hand is difficult to reuse because ordinary OCR loses signs, exponents and intermediate steps.
+- ChatGPT can process a source, but the student must repeatedly upload context and recreate prompts.
+- Notes, cards and quizzes are disconnected from the original source and from one another.
 - The student has no persistent course-level memory.
 
 ## 3. Product principles
 
 1. **Content first.** Every major feature must improve ingestion, understanding, transformation or retrieval of study content.
 2. **Maximum useful autonomy.** Lamdan should infer material type, language, course and useful next actions with minimal configuration.
-3. **Human confirmation before persistence.** AI-generated outputs are editable drafts until the user saves them.
-4. **Sources remain visible.** Notes, cards, answers and quiz questions should preserve links to material chunks and pages.
-5. **Mixed-language by design.** Hebrew, Russian and English may coexist inside one course and one document.
-6. **No fake intelligence.** Never invent progress, mastery, citations or source support.
-7. **One stable interface.** The permanent visual foundation is Academic Content Workspace, not an illustrated room.
-8. **Local-first until the core loop is excellent.** Cloud infrastructure should not slow down product validation.
+3. **Human confirmation before persistence.** AI-generated and OCR-generated outputs remain editable drafts until the user explicitly applies or saves them.
+4. **Sources remain visible.** Notes, cards, answers and quiz questions preserve links to source chunks, pages, timestamps or image regions where available.
+5. **Mixed-language by design.** Hebrew, Russian, English and Arabic may coexist inside one course, document or photographed page.
+6. **OCR is ingestion, not a late add-on.** A phone photo and a PDF are both first-class study sources.
+7. **Uncertainty must be visible.** Unreadable handwriting, ambiguous symbols and low-confidence regions must trigger review or abstention rather than invention.
+8. **Mathematics is structured content.** Visible handwriting and normalized expressions are preserved separately; one never silently replaces the other.
+9. **No fake intelligence.** Never invent progress, mastery, citations, source support, missing words or mathematical steps.
+10. **One stable interface.** The permanent visual foundation is Academic Content Workspace, not an illustrated room.
+11. **Local-first until the core loop is excellent.** Cloud infrastructure should not slow down product validation.
 
-## 4. Current baseline — MVP 0
+## 4. Current baseline
 
-The current repository already contains:
+The repository currently contains:
 
-- local-first storage;
+- local-first application data;
 - courses and topics;
-- material ingestion and text extraction for several document formats;
-- material chunks;
-- notes;
-- flashcards;
-- quizzes and quiz attempts;
-- syllabus import foundations;
-- server-side AI routes for notes, flashcards, quizzes and presentation outlines;
-- editable AI drafts before save;
+- universal multi-file material intake;
+- text extraction for common document formats;
+- persistent material chunks and source relationships;
+- material workspaces;
+- notes, flashcards and quizzes with real editors;
+- syllabus import and course-workspace foundations;
+- server-side AI routes for study transformations;
+- editable AI drafts and citation validation;
+- deterministic evaluation fixtures for syllabus, grounding, multilingual output and OCR;
+- an OCR/HTR data contract for regions, confidence, uncertainty and normalized mathematics;
 - RU/EN application localization;
 - the Academic Content Workspace shell and dashboard.
 
-The current product is a functional foundation, but not yet a complete product loop. The priority is to make one path excellent:
+The current execution path is:
 
 ```text
-Import course or syllabus
-→ upload material
-→ Lamdan understands and structures it
+import syllabus or create course
+→ upload document or photograph
+→ extract text or create reviewed OCR draft
+→ approve source chunks
 → generate note, flashcards and quiz
-→ review and save
-→ return later and continue from the same course context
+→ review and save outputs
+→ return later with source relationships intact
 ```
 
 ---
@@ -80,7 +89,7 @@ Import course or syllabus
 
 ## Phase 0 — Foundation lock
 
-**Status:** substantially complete.
+**Status:** complete.
 
 ### Goal
 
@@ -92,56 +101,84 @@ Freeze the product identity, visual system and architectural boundaries so later
 - Primary navigation limited to Courses, Materials, Notes, Flashcards and Quizzes.
 - Trackers, timers, streaks and decorative analytics removed from the core shell.
 - Design and agent guardrails committed to the repository.
-- Existing localStorage schema preserved.
+- Existing local data remains migratable.
 
 ### Exit criteria
 
 - No generated room backgrounds or fixed visual canvases.
-- All new primary UI uses the shared layout and token system.
+- All primary UI uses the shared layout and token system.
 - Dashboard shows only real content or honest empty states.
 
 ---
 
-## Phase 1 — Reliable content intake
+## Phase 1 — Reliable universal intake
 
-**Priority:** P0 — next.
+**Priority:** P0.
+
+**Status:** document intake complete; durable image intake and OCR review in progress.
 
 ### Goal
 
-Make Lamdan the easiest place to put any study material.
+Make Lamdan the easiest place to put any study source, including a photograph taken directly from a student's phone.
 
 ### User experience
 
-The user can drag, paste or upload a source into one universal intake. Lamdan determines what it is, extracts what it can, reports limitations honestly and stores it in the library.
+The user can drag, paste or upload a source into one universal intake. Lamdan determines what it is, extracts what it can, preserves the original source, reports limitations honestly and sends uncertain content to review.
 
-### Features
+### Document intake
 
-- Universal intake on Dashboard and Materials.
-- Multi-file upload queue.
+- Dashboard and Materials share one intake pipeline.
+- Multi-file queue with independent retry and failure states.
 - Pasted text.
 - PDF, DOCX, XLSX, CSV, TXT, Markdown, HTML, JSON, XML and YAML.
 - Reliable duplicate detection.
 - File type and material type classification.
 - Automatic language detection: Hebrew, Russian, English, Arabic, mixed or unknown.
 - Suggested course and topic association.
-- Processing states: queued, extracting, ready, partial, unsupported, error.
-- Clear error recovery.
 - File metadata and extraction diagnostics.
-- Preview of extracted text before downstream generation.
+- Preview before persistence.
+
+### Image and OCR intake
+
+- JPEG, PNG and WebP upload from Dashboard and Materials.
+- Durable local image storage so the original survives reload.
+- Source-style selection: printed page, handwriting, whiteboard or mixed page.
+- Multimodal OCR/HTR request behind a provider boundary.
+- Editable OCR draft instead of automatic trusted text.
+- Ordered regions with text, kind, confidence, uncertain tokens and optional image coordinates.
+- Separate visible transcription and normalized mathematics.
+- Manual transcription fallback when AI is unavailable.
+- Explicit abstention for unreadable images.
+- Apply reviewed OCR regions as normal material chunks.
+
+### Processing states
+
+- queued;
+- extracting;
+- awaiting review;
+- ready;
+- partial;
+- unsupported;
+- error;
+- cancelled.
 
 ### Israeli specialization
 
 - Hebrew and RTL-safe previews.
+- Mixed Hebrew/Russian/English region editing.
+- Hebrew cursive handwriting is treated as uncertain by default.
 - Israeli course-code and syllabus heuristics.
 - Recognition of common Hebrew academic headings.
-- Mixed Hebrew/Russian/English text handling.
+- Mathematics keeps left-to-right expressions readable inside RTL instructions.
 
 ### Exit criteria
 
-- A user can upload a real course pack without losing track of failed files.
-- Every material has a visible processing status.
-- Extracted text survives reload.
-- Unsupported content is never reported as successfully processed.
+- A user can upload a real mixed course pack without losing failed files.
+- A photograph survives page reload before OCR is run.
+- The user can compare the image with an editable OCR draft.
+- Handwritten math preserves signs, variables and intermediate steps after review.
+- Unsupported or unreadable content is never reported as clean extracted text.
+- Approved text survives reload and becomes normal source chunks.
 
 ---
 
@@ -149,16 +186,19 @@ The user can drag, paste or upload a source into one universal intake. Lamdan de
 
 **Priority:** P0.
 
+**Status:** core workspace complete; visual-source layer in progress.
+
 ### Goal
 
-Turn every uploaded material into an active workspace rather than a dead file entry.
+Turn every uploaded material into an active source workspace rather than a dead file entry.
 
 ### Core screen
 
-Each material opens into a three-part workspace:
+Each material can expose:
 
-- source or page navigation;
-- extracted text and selected chunks;
+- original document, image or transcript context;
+- page, timestamp or OCR-region navigation;
+- reviewed text and selectable chunks;
 - actions and generated outputs.
 
 ### Features
@@ -169,34 +209,53 @@ Each material opens into a three-part workspace:
 - Select one or multiple chunks.
 - Rename, tag and link to course/topic.
 - Manual correction of extracted text.
-- Split, merge and reorder chunks.
-- Source page references where available.
-- Existing outputs panel: notes, cards, quizzes and outlines created from this source.
-- Quick actions: explain, summarize, translate, simplify, create note, create cards, create quiz.
+- Split, merge, reorder and delete chunks safely.
+- Source page or section references where available.
+- Existing outputs panel for notes, cards, quizzes and outlines.
+- Quick actions: explain, summarize, translate, simplify, create note, create cards and create quiz.
+
+### Visual-source workspace
+
+- Original image and OCR editor on the same screen.
+- Region ordering and classification: heading, paragraph, list, math, table, diagram or unknown.
+- Low-confidence and uncertain-token indicators.
+- Manual region creation and deletion.
+- Visible mathematical transcription plus normalized expression.
+- Future image overlay using normalized region coordinates.
+- Re-run OCR without overwriting the last approved material text.
+- Explicit apply action that replaces source chunks only after review.
 
 ### Exit criteria
 
-- The user can identify exactly which source sections will be sent to AI.
+- A user can identify exactly which source sections will be sent to AI.
 - Every saved output preserves material and chunk relationships.
-- The material page becomes the main origin point for content generation.
+- A photographed source remains inspectable after OCR is applied.
+- OCR reruns do not silently overwrite reviewed text.
+- The material page is the main origin point for content generation.
 
 ---
 
-## Phase 3 — Autonomous AI transformation
+## Phase 3 — Autonomous, source-grounded transformation
 
 **Priority:** P0.
 
+**Status:** first complete loop implemented; quality hardening continues.
+
 ### Goal
 
-Make the main Lamdan promise real: one source becomes multiple high-quality study formats with minimal prompting.
+Make the central Lamdan promise real: one approved source becomes multiple high-quality study formats with minimal prompting.
 
 ### AI pipeline
 
 1. Detect material type, source language and likely course context.
-2. Suggest useful transformations.
-3. Generate an editable draft.
-4. Show source support and warnings.
-5. Save only after confirmation.
+2. Extract document text or obtain a reviewed OCR/transcript draft.
+3. Let the user approve the source chunks.
+4. Suggest useful transformations.
+5. Generate an editable draft.
+6. Show source support and warnings.
+7. Save only after confirmation.
+
+Unreviewed OCR guesses must not be treated as stronger evidence than the approved material chunks.
 
 ### Note generation
 
@@ -206,44 +265,43 @@ Make the main Lamdan promise real: one source becomes multiple high-quality stud
 - Key concepts and definitions.
 - Russian explanation with original Hebrew or English terms preserved.
 - Compare source with an existing note and show missing content.
-- Merge several sources into one note.
+- Merge several approved sources into one note.
 
 ### Flashcard generation
 
 - Term → definition.
 - Question → answer.
 - Cloze deletion.
-- Hebrew ↔ Russian and Hebrew ↔ English language cards.
+- Hebrew ↔ Russian and Hebrew ↔ English cards.
 - Card quality cleanup.
 - Duplicate detection.
 - Split overloaded cards.
-- Generate plausible distractor concepts where useful.
+- No card when the supporting answer is absent from approved sources.
 
 ### Quiz generation
 
-- Single-choice questions.
-- Multiple-choice questions.
-- True/false.
-- Short answer.
-- Source-based questions.
+- Single-choice and multiple-choice questions.
+- True/false and short answer later.
 - Realistic wrong answers.
 - Explanations linked to source chunks.
 - Difficulty and question-count controls.
+- No invented mathematical result from an ambiguous photographed solution.
 
 ### AI trust layer
 
 - Source citations.
-- “Not found in the selected sources” state.
+- “Not found in selected sources” state.
 - Confidence and warning labels where relevant.
+- Unknown source IDs removed.
 - Regenerate one item rather than the whole output.
 - Never overwrite user content silently.
 
 ### Exit criteria
 
-- From one material, the user can create and save a useful note, card set and quiz without writing a complex prompt.
-- Outputs are editable.
+- From one approved material, the user can save a useful note, card set and quiz without a complex prompt.
+- Outputs remain editable.
 - Source relationships remain intact.
-- AI failures do not destroy or duplicate saved content.
+- AI and OCR failures do not destroy or duplicate approved content.
 
 ---
 
@@ -251,19 +309,20 @@ Make the main Lamdan promise real: one source becomes multiple high-quality stud
 
 **Priority:** P0/P1.
 
+**Status:** v1 implemented; deeper intelligence continues.
+
 ### Goal
 
 Turn a syllabus into a persistent course brain.
 
 ### Syllabus import
 
-- PDF, DOCX, XLSX, image and pasted-text syllabus intake.
+- PDF, DOCX, XLSX, photograph and pasted-text syllabus intake.
+- Photographed syllabus first passes through the normal OCR review workflow.
 - Extract course title, code, instructor, credits and semester.
-- Extract weekly topics.
-- Extract reading list.
-- Extract assignments, exams and grading structure.
+- Extract weekly topics, reading list, assignments, exams and grading structure.
 - Show confidence for every extracted field.
-- Confirmation and correction screen before applying changes.
+- Confirmation and correction before applying changes.
 - Duplicate-safe reimport.
 
 ### Course Workspace
@@ -273,7 +332,7 @@ Turn a syllabus into a persistent course brain.
 - Materials grouped by topic.
 - Notes, cards and quizzes linked to the course.
 - Course-level AI actions.
-- Ask across all selected course sources.
+- Ask across explicitly selected course sources.
 - Create a combined exam pack.
 - Identify uncovered syllabus topics.
 
@@ -282,6 +341,7 @@ Turn a syllabus into a persistent course brain.
 Lamdan should know:
 
 - which sources belong to the course;
+- which source text was manually approved;
 - which terms are important;
 - which outputs already exist;
 - which syllabus topics have no material;
@@ -289,8 +349,8 @@ Lamdan should know:
 
 ### Exit criteria
 
-- Importing a syllabus creates a usable course structure.
-- Adding later materials improves the same course context.
+- Importing a digital or photographed syllabus creates a usable course structure.
+- Adding later documents, recordings and photographs improves the same course context.
 - The user no longer needs to re-explain the course to AI.
 
 ---
@@ -299,13 +359,15 @@ Lamdan should know:
 
 **Priority:** P1.
 
+**Status:** reliable Markdown editor v1 implemented.
+
 ### Goal
 
 Make notes the editable, connected center of understanding.
 
 ### Editor
 
-- Rich-text or Markdown editing.
+- Markdown or rich-text editing.
 - Headings, lists, tables, quotes, callouts and checklists.
 - RTL and mixed-direction editing.
 - Inline source references.
@@ -316,64 +378,62 @@ Make notes the editable, connected center of understanding.
 
 ### AI actions inside notes
 
-- Rewrite selected text.
-- Explain selected text.
-- Translate while preserving terms.
-- Expand or shorten.
+- Rewrite, explain, translate, expand or shorten selected text.
+- Preserve original Hebrew terminology.
 - Convert selection to cards or questions.
-- Compare note against source.
+- Compare note against sources.
 - Merge notes.
 - Find contradictions and duplicates.
 - Suggest questions for the lecturer.
 
 ### Exit criteria
 
-- A student can use Lamdan as their main note workspace.
+- A student can use Lamdan as the main note workspace.
 - Generated notes can evolve through manual editing without losing source links.
 
 ---
 
-## Phase 6 — Flashcard and quiz studio
+## Phase 6 — Flashcard and quiz studios
 
 **Priority:** P1.
 
-### Goal
-
-Make generated practice content easy to curate and genuinely useful.
+**Status:** v1 implemented.
 
 ### Flashcard studio
 
-- Decks by course, topic and material.
+- Cards grouped by course, topic and material.
 - Bulk editing.
 - Merge, split and deduplicate cards.
-- Import and export CSV and Anki-compatible formats.
+- CSV import/export and later Anki-compatible formats.
 - Review mode.
-- Optional spaced repetition retained as a background mechanism, not a dashboard identity.
+- Optional spaced repetition as a background mechanism, not a dashboard identity.
 
 ### Quiz studio
 
-- Question editor.
-- Reorder and categorize questions.
+- Full question editor.
+- Reorder and validate questions.
 - Practice and exam modes.
 - Configurable feedback timing.
-- Question generation from one or several sources.
+- Generation from one or several approved sources.
 - Export printable exam and answer sheet.
 - Import teacher question lists.
 
 ### Exit criteria
 
-- AI-generated content can be corrected quickly.
-- A user can build a high-quality exam set without recreating questions manually.
+- AI-generated practice content can be corrected quickly.
+- A user can build a high-quality exam set without recreating every item manually.
 
 ---
 
-## Phase 7 — Audio, images and OCR
+## Phase 7 — Audio, video and advanced visual understanding
 
 **Priority:** P1/P2.
 
+**Important:** basic photo intake, OCR, handwriting review and photographed mathematics belong to Phases 1–2. They are no longer postponed to this phase.
+
 ### Goal
 
-Support students who do not write complete lecture notes.
+Support sources that require long-running transcription or deeper visual interpretation.
 
 ### Audio
 
@@ -381,17 +441,19 @@ Support students who do not write complete lecture notes.
 - Lecture transcription.
 - Speaker segmentation where possible.
 - Timestamped transcript.
-- Language and mixed-language detection.
+- Hebrew and mixed-language detection.
 - Link transcript sections to generated notes and cards.
-- Optional live-recording workflow later.
+- Optional live recording later.
 
-### Images
+### Advanced visual understanding
 
-- Photograph of a page, board or handwritten note.
-- OCR for Hebrew and English.
-- Manual correction screen.
-- Image region selection.
-- Diagram and table extraction where feasible.
+- Multi-page photo batches.
+- Crop, rotate, deskew and contrast controls.
+- Image-region overlay and selection.
+- Table reconstruction.
+- Diagram-label extraction.
+- Geometry and chart descriptions limited to visible evidence.
+- Comparison of OCR providers using the permanent evaluation suite.
 
 ### Video and links
 
@@ -401,8 +463,8 @@ Support students who do not write complete lecture notes.
 
 ### Exit criteria
 
-- A lecture recording can become a transcript, note, card set and quiz.
-- OCR limitations are visible and correctable.
+- A lecture recording can become a reviewed transcript, note, card set and quiz.
+- Complex visual sources remain correctable and source-linked.
 
 ---
 
@@ -417,10 +479,10 @@ Make the full library searchable and answerable without losing source trust.
 ### Features
 
 - Global full-text search.
-- Search inside PDFs and transcripts.
+- Search inside PDFs, approved OCR text and transcripts.
 - Natural-language search.
 - Filters by course, topic, source type, language and date.
-- Ask a question across selected courses or materials.
+- Ask across selected courses or materials.
 - Answers with source references.
 - “Where did I study this?” retrieval.
 - Compare theories or definitions across sources.
@@ -434,7 +496,7 @@ Make the full library searchable and answerable without losing source trust.
 
 ### Exit criteria
 
-- The user can find a concept even when they do not remember the filename.
+- The user can find a concept without remembering the filename or whether it came from a PDF, photo or recording.
 - Every AI answer can show where its claims came from.
 
 ---
@@ -445,19 +507,20 @@ Make the full library searchable and answerable without losing source trust.
 
 ### Goal
 
-Build a defensible specialization beyond a generic document AI tool.
+Build a defensible specialization beyond a generic document-AI tool.
 
 ### Features
 
 - Strong Hebrew academic language support.
 - Russian explanations that preserve Hebrew terminology.
+- Hebrew printed and handwritten evaluation sets.
 - University-specific syllabus patterns.
 - Israeli semester and credit conventions.
 - Common course structures and exam formats.
 - Hebrew date, name and course-code extraction.
-- Mixed RTL/LTR quality assurance.
+- Mixed RTL/LTR quality assurance, including mathematics.
 - Optional Arabic UI and explanation support later.
-- Institution templates for Bar-Ilan, Tel Aviv University, Hebrew University and others, added only after real data validation.
+- Institution templates only after real-data validation.
 
 ### Exit criteria
 
@@ -477,26 +540,26 @@ Move from a single-device tool to a dependable personal service.
 
 - Authentication.
 - Cloud database.
-- Object storage for source files.
+- Object storage for documents, images and recordings.
 - Multi-device sync.
 - Offline cache.
 - Conflict handling.
 - Automatic backups.
-- Export all user data.
+- Export all user data, including original visual sources.
 - Account deletion.
 - Storage quotas.
 - Background processing queue.
-- Job retry and failure recovery.
+- Long OCR and transcription job retry.
 
 ### Migration rule
 
-The current local-first data must be exportable and migratable. Cloud adoption must not silently erase existing local data.
+Current local-first text data, OCR drafts and IndexedDB image sources must have an explicit migration path. Cloud adoption must not silently erase or strand local content.
 
 ### Exit criteria
 
-- A user can switch devices without losing content.
-- Long AI and transcription jobs survive browser closure.
-- Data export and deletion work reliably.
+- A user can switch devices without losing approved text or original sources.
+- Long OCR and transcription jobs survive browser closure.
+- Export and deletion work reliably.
 
 ---
 
@@ -510,7 +573,7 @@ Allow useful sharing without turning Lamdan into a social network.
 
 ### Features
 
-- Share a read-only note, card deck or quiz.
+- Share a read-only note, deck or quiz.
 - Export a course pack.
 - Collaborate on selected notes.
 - Import another student's shared pack with provenance.
@@ -538,12 +601,13 @@ Allow useful sharing without turning Lamdan into a social network.
 - Moodle or LMS import where technically permitted.
 - Email attachment intake.
 - Browser extension: save article to Lamdan.
-- Mobile share sheet.
+- Mobile share sheet for sending photographs directly to intake.
 - API and webhooks for advanced users.
 
 Automation examples:
 
-- New material added to a course → classify and suggest outputs.
+- New material added → classify and suggest outputs.
+- New photograph added → create OCR draft and wait for review.
 - New syllabus version uploaded → show changed dates and requirements.
 - Lecture transcript ready → create draft note and suggested cards.
 
@@ -563,8 +627,8 @@ Add adaptive learning without returning to meaningless tracking dashboards.
 - Recommend which source to reopen.
 - Generate targeted practice from mistakes.
 - Detect syllabus topics with no notes or practice content.
-- Build an exam preparation pack.
-- Estimate coverage, not fake mastery.
+- Build an exam-preparation pack.
+- Estimate content coverage, not fake mastery.
 
 ### Still not the product identity
 
@@ -592,22 +656,22 @@ Any progress feature must lead directly to a content action.
 - Security review.
 - Privacy policy and terms.
 - Copyright and academic-integrity policy.
-- AI cost controls.
+- AI and OCR cost controls.
 - Abuse prevention.
 - Support workflow.
 
 ### Possible plans
 
-- Free: limited storage and AI transformations.
+- Free: limited storage, OCR pages and AI transformations.
 - Student: larger library, transcription and advanced generation.
 - Pro: heavy usage, large courses and exports.
-- Institutional pilot: managed cohorts or accessibility support, only after the personal product works.
+- Institutional pilot: managed cohorts or accessibility support only after the personal product works.
 
 ### Core business metric
 
 The strongest metric is not time spent in the app. It is:
 
-> How many uploaded sources successfully become saved, reused study outputs?
+> How many uploaded sources successfully become approved, saved and reused study outputs?
 
 ---
 
@@ -619,21 +683,23 @@ The strongest metric is not time spent in the app. It is:
 - Add stable deck or collection entities when needed.
 - Add processing-job entities before background cloud jobs.
 - Add migrations before changing stored schemas.
+- Preserve original visual source, OCR draft and approved text as separate layers.
 - Never infer mastery directly from file views.
 
-## B. AI architecture
+## B. AI and OCR architecture
 
 - Provider abstraction.
 - Structured outputs validated by schemas.
-- Retry and timeout behavior.
+- Multimodal requests isolated behind a server boundary.
+- Retry, timeout and rate-limit behavior.
 - Per-operation prompts rather than one universal chat prompt.
-- Evaluation dataset using real Israeli academic documents.
-- Cost and token accounting.
 - Prompt and model versioning.
+- Cost and token accounting.
+- OCR provider comparison on private or licensed real-photo packs.
 
 ## C. Quality and evaluation
 
-Create permanent evaluation sets for:
+Maintain permanent evaluation sets for:
 
 - Hebrew syllabus extraction;
 - mixed-language document extraction;
@@ -642,23 +708,28 @@ Create permanent evaluation sets for:
 - quiz distractor quality;
 - citation correctness;
 - hallucination rate;
-- OCR and transcription accuracy.
+- printed Hebrew OCR;
+- handwritten Hebrew HTR;
+- photographed mathematics;
+- unreadable-image abstention;
+- audio transcription accuracy.
 
 ## D. Privacy and safety
 
 - Do not expose API keys in the browser.
 - Minimize storage of source documents.
-- Make deletion real and verifiable.
+- Explain clearly that browser-local images are not automatically cloud-backed.
+- Make deletion real and verifiable across localStorage, IndexedDB and future cloud storage.
 - Warn users before processing sensitive materials.
 - Keep generated academic content distinguishable from original sources.
 
 ## E. UX consistency
 
 - One design system.
-- One universal intake model.
-- One AI draft review pattern.
+- One universal intake model for documents and photographs.
+- One editable draft-review pattern for AI, OCR and transcripts.
 - One source-link pattern.
-- Honest empty, loading, partial and error states.
+- Honest empty, loading, partial, review and error states.
 - Desktop and mobile acceptance checks for every major workflow.
 
 ---
@@ -667,23 +738,21 @@ Create permanent evaluation sets for:
 
 ## Now — P0
 
-1. Stabilize the new shell and dashboard.
-2. Finish universal material intake.
-3. Build the Material Workspace.
-4. Make note, flashcard and quiz generation excellent.
-5. Complete syllabus → course structure flow.
-6. Remove remaining fake or disconnected UI.
-7. Add build, typecheck and smoke-test CI.
+1. Keep the shell, routes and CI stable.
+2. Complete durable image intake and OCR review.
+3. Validate live OCR on real printed Hebrew, handwriting and mathematics.
+4. Harden source-grounded note, flashcard and quiz generation.
+5. Complete syllabus → course structure flow for digital and photographed syllabi.
+6. Run a closed personal pilot with one complete real course.
 
 ## Next — P1
 
-1. Real note editor.
-2. Flashcard and quiz studios.
-3. Audio transcription.
-4. OCR and image intake.
-5. Global and semantic search.
-6. Course-level AI.
-7. Israeli academic specialization and evaluation.
+1. Audio transcription.
+2. Multi-page image batches and visual-region overlays.
+3. Global and semantic search across documents, OCR and transcripts.
+4. Course-level AI and exam-pack generation.
+5. Israeli academic specialization and evaluation.
+6. Rich note export and advanced source comparison.
 
 ## Later — P2
 
@@ -707,30 +776,36 @@ Create permanent evaluation sets for:
 
 # 8. Immediate implementation sequence
 
-The next development sequence should be atomic and testable:
+Completed sequence:
 
 1. Add CI for build, typecheck and lint.
-2. Audit all current routes against the new shell.
-3. Remove or hide tracking-first routes from primary product flows.
-4. Finish multi-file upload and processing queue.
-5. Create a polished material detail workspace.
-6. Connect AI actions directly to selected chunks.
-7. Improve the draft editor and save flow.
-8. Add an output history to every material.
-9. Complete syllabus review and confirmation UI.
-10. Build a course workspace using real topics and materials.
-11. Upgrade Notes into a serious editor.
-12. Add bulk card and quiz editing.
-13. Create real-world evaluation fixtures in Hebrew, Russian and English.
-14. Run the first closed personal pilot using one complete real course.
+2. Normalize routes and remove tracking-first primary flows.
+3. Complete universal document intake and multi-file queue.
+4. Build Material Workspace, source selection and output history.
+5. Connect grounded AI actions and editable drafts.
+6. Complete syllabus review and Course Workspace v1.
+7. Build reliable Notes, Flashcard Studio and Quiz Studio.
+8. Remove remaining fake and disconnected UI.
+9. Add deterministic evaluation fixtures, including OCR and handwriting.
 
-The first major product milestone is reached when one real Israeli course can live entirely inside Lamdan from syllabus import through exam preparation.
+Current sequence:
+
+10. Store uploaded photographs durably in the browser.
+11. Connect multimodal OCR/HTR behind the provider boundary.
+12. Build side-by-side image and OCR-region review.
+13. Apply reviewed OCR to ordinary material chunks.
+14. Validate on a private real-photo pack and fix failure categories.
+15. Add multi-page image intake and visual overlays.
+16. Add audio transcription with the same review-and-apply model.
+17. Run the first closed personal pilot using one complete real course.
+
+The first major product milestone is reached when one real Israeli course can live entirely inside Lamdan from photographed or digital syllabus import through exam preparation.
 
 # 9. Milestone definitions
 
 ## M1 — Useful personal tool
 
-A single user can import a course, upload materials, generate and edit outputs, and return to them reliably.
+A single user can import a course, upload documents or photographs, approve extracted content, generate and edit outputs and return to them reliably.
 
 ## M2 — Complete semester workspace
 
@@ -742,11 +817,11 @@ A small group of Israeli students can onboard themselves and complete the core l
 
 ## M4 — Cloud product
 
-Accounts, sync, reliable background jobs and privacy controls are production-ready.
+Accounts, sync, reliable background jobs, source storage and privacy controls are production-ready.
 
 ## M5 — Differentiated Israeli study platform
 
-Lamdan demonstrates superior handling of Israeli syllabi, Hebrew academic content and multilingual explanation workflows.
+Lamdan demonstrates superior handling of Israeli syllabi, Hebrew academic content, handwriting, photographed mathematics and multilingual explanation workflows.
 
 # 10. Product decision rule
 
@@ -756,5 +831,6 @@ Before adding any feature, ask:
 2. Does it reduce repeated prompting or repeated organization work?
 3. Can it preserve or improve source trust?
 4. Will a student use it in a real course this semester?
+5. For visual sources, does it preserve the original and expose uncertainty rather than hiding it?
 
 If the answer is no, the feature does not belong in the core roadmap.
