@@ -20,43 +20,40 @@ Last updated: 2026-07-12
 - `P0-010 Add material output history` — complete and verified.
 - `P0-011 Connect AI actions to material selection` — complete and verified.
 - `P0-012 Upgrade AI draft review` — complete and verified.
-- `P0-013 Add AI trust and citation layer` — next.
+- `P0-013 Add AI trust and citation layer` — implemented; CI validation pending.
+- `P0-014 Complete syllabus review and confirmation` — next after validation.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Reliable AI draft review
+### AI trust and citation layer
 
-- Added explicit idle, loading, error, ready and saved states.
-- Added unsaved-change protection for cancel, escape and overlay-close paths.
-- Added an idempotent save lock and a visible confirmation after exactly one save.
-- Preserved selected material, course, topic and chunk context after generation failures and retries.
-- Added draft validity checks that prevent empty notes, cards, questions and presentation structures from being saved.
-- Added complete note title, content and tag editing.
-- Added card creation, deletion, reordering and scoped one-card AI replacement.
-- Added quiz question creation, deletion, reordering and scoped one-question AI replacement.
-- Added editing and validation for question options, correct answers and explanations.
-- Added presentation slide creation, deletion and reordering.
-- Split the implementation into focused draft editors and a reusable draft-session component.
-- Extended the AI regression contract to cover saved state, idempotent save, unsaved-change protection and scoped item regeneration.
+- Strengthened server prompts to prohibit invented facts, source IDs and page numbers.
+- Added explicit `notFoundInSources` behavior when the selected material cannot support the requested result.
+- Added a versioned prompt contract: `study-grounding-v1`.
+- Validates every AI-returned `sourceChunkId` against the actual request scope.
+- Removes unknown source IDs and exposes them through warnings and trust diagnostics.
+- Counts generated notes, cards, questions and slides that lack a validated citation.
+- Preserves original Hebrew academic terminology in multilingual generation instructions.
+- Added model, prompt version, requested source IDs, rejected source IDs and uncited-item count to typed frontend draft metadata.
+- Added an in-draft trust panel showing validated state or a source-review warning.
+- Added an explicit warning when information is not found in selected sources.
+- Extended the permanent AI contract check to cover prompt versioning, citation validation, unknown-ID rejection and trust UI.
 - Preserved the existing store schema and localStorage data.
 
 ## Verification state
 
-- Documentation verification passed.
-- Selected-source and AI draft review contract verification passed.
-- TypeScript passed.
-- ESLint passed.
-- Production build passed.
+- A pull request must run documentation, AI contract, TypeScript, ESLint and production-build checks against the complete implementation.
+- Do not mark `P0-013` verified until every quality gate passes.
 
 ## Next execution target
 
-1. Begin `P0-013` structured source trust and citation validation.
-2. Validate every returned source chunk ID against the actual request scope.
-3. Show unsupported or uncited generated items honestly.
-4. Add prompt/model metadata for debugging without exposing secrets.
+1. Fix any concrete CI failure in the trust layer.
+2. Mark `P0-013` complete after the full suite passes.
+3. Begin `P0-014` by auditing current syllabus intake, deterministic parsing and review-state boundaries.
+4. Keep all syllabus store mutations behind explicit user confirmation.
 
 ## Blockers
 
-None.
+None unless CI reports a concrete failure.
