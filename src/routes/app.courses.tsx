@@ -1,93 +1,165 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { Plus, Search, SlidersHorizontal } from "lucide-react";
-import { CourseBook, WoodenShelf, RoomHeading, BrassButton } from "@/components/study-room-ui";
-import { useData } from "@/lib/store";
+import { CourseBook, WoodenShelf, RoomHeading, BrassButton, EmptyInk } from "@/components/study-room-ui";
+import { EmptyBookSlot } from "@/components/lamdan/empty-book-slot";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useApp } from "@/lib/app-context";
+import { useData, store, type Course } from "@/lib/store";
+import { courseTone } from "@/lib/course-tone";
 
 export const Route = createFileRoute("/app/courses")({
   component: CoursesPage,
 });
 
-const samples = [
-  ["SOC101", "Introduction to Sociology", 72, "forest"],
-  ["GOV202", "Government in Israel", 54, "rust"],
-  ["HEB110", "Academic Hebrew", 81, "ochre"],
-  ["ECO201", "Economics Principles", 38, "moss"],
-  ["PSY120", "Psychology", 65, "wine"],
-  ["STA105", "Statistics Basics", 45, "umber"],
-  ["ENG210", "Academic English", 70, "navy"],
-] as const;
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
 
 function CoursesPage() {
+  const { t } = useApp();
   const data = useData();
-  const courses = data.courses.length
-    ? data.courses.slice(0, 8).map((course, index) => ({
-        id: course.id,
-        code: course.number || `CRS${index + 1}`,
-        title: course.title,
-        progress: [72, 54, 81, 38, 65, 45, 70, 31][index] || 50,
-        tone: (["forest", "rust", "ochre", "moss", "wine", "umber", "navy"] as const)[index % 7],
-      }))
-    : samples.map((sample, index) => ({
-        id: `sample-${index}`,
-        code: sample[0],
-        title: sample[1],
-        progress: sample[2],
-        tone: sample[3],
-      }));
+  const [open, setOpen] = useState(false);
+  const courses = data.courses;
+  const isEmpty = courses.length === 0;
+  const rows = chunk(courses, 4);
 
   return (
     <div className="room-page courses-room">
       <RoomHeading
         eyebrow="Your library"
-        title="Courses"
-        subtitle={`${courses.length} books currently on the shelf`}
-        actions={<BrassButton><Plus size={15} /> New course</BrassButton>}
+        title={t.courses}
+        subtitle={isEmpty ? t.emptyShelfHint : `${courses.length}`}
+        actions={
+          <BrassButton onClick={() => setOpen(true)}>
+            <Plus size={15} /> {t.createCourse}
+          </BrassButton>
+        }
       />
 
       <div className="shelf-toolbar">
-        <label><Search size={15} /><input placeholder="Find a course…" aria-label="Find a course" /></label>
-        <button type="button"><SlidersHorizontal size={14} /> Sort by semester</button>
+        <label><Search size={15} /><input placeholder={t.search} aria-label={t.search} /></label>
+        <button type="button"><SlidersHorizontal size={14} /> {t.semester}</button>
       </div>
 
       <div className="course-library">
-        <WoodenShelf>
-          <div className="course-library__row">
-            {courses.slice(0, 4).map((course) => (
-              <CourseBook
-                key={course.id}
-                code={course.code}
-                title={course.title}
-                progress={course.progress}
-                tone={course.tone}
-                to={data.courses.length ? `/app/courses/${course.id}` : "/app/courses"}
-              />
-            ))}
-          </div>
-        </WoodenShelf>
-        <WoodenShelf>
-          <div className="course-library__row">
-            {courses.slice(4).map((course) => (
-              <CourseBook
-                key={course.id}
-                code={course.code}
-                title={course.title}
-                progress={course.progress}
-                tone={course.tone}
-                to={data.courses.length ? `/app/courses/${course.id}` : "/app/courses"}
-              />
-            ))}
-            <button type="button" className="empty-book-slot">
-              <span><Plus size={22} /></span>
-              <strong>Add new course</strong>
-            </button>
-          </div>
-        </WoodenShelf>
+        {isEmpty ? (
+          <WoodenShelf>
+            <div className="course-library__row">
+              <EmptyInk>
+                <strong style={{ display: "block", fontFamily: "var(--font-display)", fontSize: 18 }}>
+                  {t.emptyShelfTitle}
+                </strong>
+                <span>{t.emptyShelfHint}</span>
+              </EmptyInk>
+              <EmptyBookSlot label={t.addFirstCourse} onClick={() => setOpen(true)} />
+            </div>
+          </WoodenShelf>
+        ) : (
+          rows.map((row, rowIndex) => {
+            const isLast = rowIndex === rows.length - 1;
+            return (
+              <WoodenShelf key={rowIndex}>
+                <div className="course-library__row">
+                  {row.map((course, i) => (
+                    <CourseBook
+                      key={course.id}
+                      code={course.number || `#${rowIndex * 4 + i + 1}`}
+                      title={course.title}
+                      progress={null}
+                      tone={courseTone(course.id)}
+                      to={`/app/courses/${course.id}`}
+                    />
+                  ))}
+                  {isLast && row.length < 4 && (
+                    <EmptyBookSlot label={t.createCourse} onClick={() => setOpen(true)} />
+                  )}
+                </div>
+              </WoodenShelf>
+            );
+          })
+        )}
       </div>
 
       <aside className="library-marginalia">
-        <span>LIBRARY NOTE · 12 JUL</span>
+        <span>LIBRARY NOTE</span>
         <p>A course becomes easier to return to when every note, card and deadline has a visible home.</p>
       </aside>
+
+      <CreateCourseDialog open={open} onOpenChange={setOpen} />
     </div>
+  );
+}
+
+function CreateCourseDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  const { t } = useApp();
+  const [title, setTitle] = useState("");
+  const [number, setNumber] = useState("");
+  const [semester, setSemester] = useState("");
+  const [credits, setCredits] = useState("");
+  const [instructor, setInstructor] = useState("");
+
+  const reset = () => {
+    setTitle(""); setNumber(""); setSemester(""); setCredits(""); setInstructor("");
+  };
+
+  const submit = () => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    const patch: Omit<Course, "id" | "createdAt" | "order"> = {
+      title: trimmed,
+      number: number.trim() || undefined,
+      semester: semester.trim() || undefined,
+      credits: credits.trim() ? Number(credits) : undefined,
+      instructor: instructor.trim() || undefined,
+      status: "not_started",
+    };
+    store.createCourse(patch);
+    reset();
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}
+    >
+      <DialogContent>
+        <DialogHeader><DialogTitle>{t.createCourse}</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>{t.title} *</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>{t.courseNumber}</Label>
+              <Input value={number} onChange={(e) => setNumber(e.target.value)} />
+            </div>
+            <div>
+              <Label>{t.semester}</Label>
+              <Input value={semester} onChange={(e) => setSemester(e.target.value)} />
+            </div>
+            <div>
+              <Label>{t.credits}</Label>
+              <Input type="number" inputMode="numeric" value={credits} onChange={(e) => setCredits(e.target.value)} />
+            </div>
+            <div>
+              <Label>{t.instructor}</Label>
+              <Input value={instructor} onChange={(e) => setInstructor(e.target.value)} />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => { onOpenChange(false); reset(); }}>{t.cancel}</Button>
+          <Button onClick={submit} disabled={!title.trim()}>{t.save}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

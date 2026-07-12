@@ -112,6 +112,9 @@ export type Dict = {
   courseMaterials: string;
   readinessScore: string;
   readinessFormula: string;
+  emptyShelfTitle: string;
+  emptyShelfHint: string;
+  addFirstCourse: string;
   // notes
   createNote: string;
   content: string;
@@ -592,6 +595,9 @@ const en: Dict = {
   courseMaterials: "Materials",
   readinessScore: "Readiness score",
   readinessFormula: "40% topics · 25% quizzes · 20% cards · 15% assignments",
+  emptyShelfTitle: "Your shelf is empty",
+  emptyShelfHint: "Add your first course to begin",
+  addFirstCourse: "Add your first course",
   createNote: "Create note",
   content: "Content",
   tags: "Tags (comma separated)",
@@ -1058,6 +1064,9 @@ const ru: Dict = {
   courseMaterials: "Материалы",
   readinessScore: "Оценка готовности",
   readinessFormula: "40% темы · 25% тесты · 20% карточки · 15% задания",
+  emptyShelfTitle: "Полка пока пуста",
+  emptyShelfHint: "Добавьте первый курс, чтобы начать",
+  addFirstCourse: "Добавить первый курс",
   createNote: "Создать заметку",
   content: "Содержимое",
   tags: "Теги (через запятую)",
