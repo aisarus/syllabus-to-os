@@ -9,7 +9,13 @@ export const Route = createFileRoute("/app/dashboard")({
 });
 
 const fallbackCourses = [
-  { id: "soc", code: "SOC101", title: "Introduction to Sociology", progress: 72, tone: "forest" as const },
+  {
+    id: "soc",
+    code: "SOC101",
+    title: "Introduction to Sociology",
+    progress: 72,
+    tone: "forest" as const,
+  },
   { id: "gov", code: "GOV202", title: "Government in Israel", progress: 54, tone: "rust" as const },
   { id: "heb", code: "HEB110", title: "Academic Hebrew", progress: 81, tone: "ochre" as const },
 ];
@@ -49,8 +55,14 @@ function Dashboard() {
         <div className="dashboard-scene__ivy dashboard-scene__ivy--right" aria-hidden="true" />
 
         <div className="dashboard-copy">
-          <p className="room-eyebrow"><Sparkles size={12} /> {t.dashRoomEyebrow}</p>
-          <h1 id="dashboard-title">{greeting}<br />{t.dashGreetingTail}</h1>
+          <p className="room-eyebrow">
+            <Sparkles size={12} /> {t.dashRoomEyebrow}
+          </p>
+          <h1 id="dashboard-title">
+            {greeting}
+            <br />
+            {t.dashGreetingTail}
+          </h1>
           <p>{t.dashSubtitle}</p>
           <label className="library-search">
             <Search size={17} />
@@ -61,21 +73,45 @@ function Dashboard() {
 
         <PaperPanel pinned className="today-note">
           <div className="today-note__heading">
-            <span><CalendarDays size={14} /> {t.todayLabel}</span>
+            <span>
+              <CalendarDays size={14} /> {t.todayLabel}
+            </span>
             <strong>{todayStr}</strong>
           </div>
           <ol>
-            <li><time>11:30</time><span><strong>Academic Hebrew</strong><small>Room 204 · 90 min</small></span></li>
-            <li><time>15:00</time><span><strong>Review Sociology</strong><small>24 flashcards</small></span></li>
-            <li><time>19:30</time><span><strong>Government Essay</strong><small>Outline only</small></span></li>
+            <li>
+              <time>11:30</time>
+              <span>
+                <strong>Academic Hebrew</strong>
+                <small>Room 204 · 90 min</small>
+              </span>
+            </li>
+            <li>
+              <time>15:00</time>
+              <span>
+                <strong>Review Sociology</strong>
+                <small>24 flashcards</small>
+              </span>
+            </li>
+            <li>
+              <time>19:30</time>
+              <span>
+                <strong>Government Essay</strong>
+                <small>Outline only</small>
+              </span>
+            </li>
           </ol>
-          <Link to="/app/calendar">{t.openCalendar} <ArrowUpRight size={13} /></Link>
+          <Link to="/app/calendar">
+            {t.openCalendar} <ArrowUpRight size={13} />
+          </Link>
         </PaperPanel>
 
         <div className="continue-block">
           <div className="continue-block__label">
             <span>{t.continueStudying}</span>
-            <Link to="/app/courses">{t.viewAllCourses} <ArrowUpRight size={12} /></Link>
+            <Link to="/app/courses">
+              {t.viewAllCourses} <ArrowUpRight size={12} />
+            </Link>
           </div>
           <WoodenShelf className="dashboard-bookshelf">
             <div className="dashboard-books">
@@ -102,12 +138,27 @@ function Dashboard() {
       </section>
 
       <section className="desk-shortcuts" aria-label={t.studyToolsAria}>
-        <Link to="/app/materials"><span>01</span><strong>{t.materials}</strong><small>{t.shortcutOpenArchive}</small></Link>
-        <Link to="/app/notes"><span>02</span><strong>{t.notes}</strong><small>{t.shortcutContinueWriting}</small></Link>
-        <Link to="/app/flashcards"><span>03</span><strong>{t.flashcards}</strong><small>{t.shortcutReviewDeck}</small></Link>
-        <Link to="/app/study-session"><span>04</span><strong>{t.focusSession}</strong><small>{t.shortcutStart45}</small></Link>
+        <Link to="/app/materials">
+          <span>01</span>
+          <strong>{t.materials}</strong>
+          <small>{t.shortcutOpenArchive}</small>
+        </Link>
+        <Link to="/app/notes">
+          <span>02</span>
+          <strong>{t.notes}</strong>
+          <small>{t.shortcutContinueWriting}</small>
+        </Link>
+        <Link to="/app/flashcards">
+          <span>03</span>
+          <strong>{t.flashcards}</strong>
+          <small>{t.shortcutReviewDeck}</small>
+        </Link>
+        <Link to="/app/study-session">
+          <span>04</span>
+          <strong>{t.focusSession}</strong>
+          <small>{t.shortcutStart45}</small>
+        </Link>
       </section>
     </div>
   );
 }
-

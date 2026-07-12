@@ -42,8 +42,12 @@ function MaterialsPage() {
         subtitle={t.materialsSubtitle}
         actions={
           <>
-            <PaperButton><FileInput size={14} /> {t.import}</PaperButton>
-            <BrassButton><Upload size={14} /> {t.upload}</BrassButton>
+            <PaperButton>
+              <FileInput size={14} /> {t.import}
+            </PaperButton>
+            <BrassButton>
+              <Upload size={14} /> {t.upload}
+            </BrassButton>
           </>
         }
       />
@@ -58,10 +62,17 @@ function MaterialsPage() {
       </section>
 
       <div className="materials-toolbar">
-        <label><Search size={15} /><input placeholder={t.searchArchivePlaceholder} aria-label={t.searchArchiveAria} /></label>
+        <label>
+          <Search size={15} />
+          <input placeholder={t.searchArchivePlaceholder} aria-label={t.searchArchiveAria} />
+        </label>
         <div>
-          <button type="button" aria-label={t.listViewAria} className="is-active"><List size={15} /></button>
-          <button type="button" aria-label={t.gridViewAria}><Grid2X2 size={15} /></button>
+          <button type="button" aria-label={t.listViewAria} className="is-active">
+            <List size={15} />
+          </button>
+          <button type="button" aria-label={t.gridViewAria}>
+            <Grid2X2 size={15} />
+          </button>
         </div>
       </div>
 
@@ -82,11 +93,17 @@ function MaterialsPage() {
               <tr key={row[5]}>
                 <td>
                   {data.materials.length ? (
-                    <Link to="/app/materials/$materialId" params={{ materialId: row[5] }}>{row[0]}</Link>
-                  ) : row[0]}
+                    <Link to="/app/materials/$materialId" params={{ materialId: row[5] }}>
+                      {row[0]}
+                    </Link>
+                  ) : (
+                    row[0]
+                  )}
                 </td>
                 <td>{row[1]}</td>
-                <td><span className="ink-label">{row[2]}</span></td>
+                <td>
+                  <span className="ink-label">{row[2]}</span>
+                </td>
                 <td>{row[3]}</td>
                 <td>{row[4]}</td>
               </tr>

@@ -62,7 +62,9 @@ function BrandPlaque() {
   const { t } = useApp();
   return (
     <Link to="/app/dashboard" className="brand-plaque" aria-label={t.lamdanHomeAria}>
-      <span className="brand-plaque__seal"><Leaf size={15} /></span>
+      <span className="brand-plaque__seal">
+        <Leaf size={15} />
+      </span>
       <span>
         <strong>{t.appName}</strong>
         <small>{t.studyRoomSubtitle}</small>
@@ -86,7 +88,9 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
               onClick={onNavigate}
               className={cn("cabinet-nav__item", active && "is-active")}
             >
-              <span className="cabinet-nav__icon"><Icon size={15} strokeWidth={1.7} /></span>
+              <span className="cabinet-nav__icon">
+                <Icon size={15} strokeWidth={1.7} />
+              </span>
               <span>{t[item.labelKey] as string}</span>
               <ChevronRight className="cabinet-nav__arrow" size={13} />
             </Link>
@@ -120,7 +124,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="study-app-shell">
       <aside className="study-cabinet" aria-label={t.mainNavigationAria}>
-        <div className="study-cabinet__top"><BrandPlaque /></div>
+        <div className="study-cabinet__top">
+          <BrandPlaque />
+        </div>
         <div className="study-cabinet__vine study-cabinet__vine--left" aria-hidden="true" />
         <div className="study-cabinet__vine study-cabinet__vine--right" aria-hidden="true" />
         <NavList pathname={pathname} />
@@ -142,7 +148,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="study-stage">
         <header className="mobile-study-header">
-          <button type="button" onClick={() => setMobileOpen(true)} aria-label={t.openNavigationAria}>
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label={t.openNavigationAria}
+          >
             <Menu size={21} />
           </button>
           <BrandPlaque />
@@ -153,11 +163,21 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {mobileOpen && (
         <div className="mobile-cabinet-layer">
-          <button className="mobile-cabinet-layer__veil" onClick={() => setMobileOpen(false)} aria-label={t.closeNavigationAria} />
+          <button
+            className="mobile-cabinet-layer__veil"
+            onClick={() => setMobileOpen(false)}
+            aria-label={t.closeNavigationAria}
+          />
           <aside className="mobile-cabinet">
             <div className="mobile-cabinet__header">
               <BrandPlaque />
-              <button type="button" onClick={() => setMobileOpen(false)} aria-label={t.closeMenuAria}><X size={20} /></button>
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                aria-label={t.closeMenuAria}
+              >
+                <X size={20} />
+              </button>
             </div>
             <NavList pathname={pathname} onNavigate={() => setMobileOpen(false)} />
           </aside>

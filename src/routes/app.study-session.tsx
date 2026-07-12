@@ -40,7 +40,9 @@ function StudySessionPage() {
   }, [running, seconds]);
 
   const time = useMemo(() => {
-    const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const minutes = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
     const rest = (seconds % 60).toString().padStart(2, "0");
     return `${minutes}:${rest}`;
   }, [seconds]);
@@ -53,7 +55,11 @@ function StudySessionPage() {
         eyebrow={t.focusEyebrow}
         title={t.navStudySession}
         subtitle={t.focusSubtitle}
-        actions={<PaperButton><Music2 size={14} /> {t.ambientSounds}</PaperButton>}
+        actions={
+          <PaperButton>
+            <Music2 size={14} /> {t.ambientSounds}
+          </PaperButton>
+        }
       />
 
       <section className="focus-desk">
@@ -69,7 +75,10 @@ function StudySessionPage() {
           {goals.map((g) => (
             <label key={g.id}>
               <input type="checkbox" defaultChecked={g.checked} />
-              <i><Check size={12} /></i> {g.label}
+              <i>
+                <Check size={12} />
+              </i>{" "}
+              {g.label}
             </label>
           ))}
         </aside>
@@ -93,17 +102,44 @@ function StudySessionPage() {
         <aside className="focus-card focus-card--sounds">
           <span>{t.ambientSounds.toUpperCase()}</span>
           {sounds.map((s) => (
-            <button key={s.id} type="button" className={soundId === s.id ? "is-active" : ""} onClick={() => setSoundId(s.id)}>
-              <span>{s.name}</span><small>{s.desc}</small>
+            <button
+              key={s.id}
+              type="button"
+              className={soundId === s.id ? "is-active" : ""}
+              onClick={() => setSoundId(s.id)}
+            >
+              <span>{s.name}</span>
+              <small>{s.desc}</small>
             </button>
           ))}
           <input type="range" min="0" max="100" defaultValue="48" aria-label={t.soundVolumeAria} />
         </aside>
 
         <div className="focus-controls">
-          <button type="button" onClick={() => setRunning((value) => !value)}>{running ? <Pause size={16} /> : <Play size={16} />}{running ? t.pause : t.start}</button>
-          <button type="button" onClick={() => { setRunning(false); setSeconds(totalSeconds); }}><RotateCcw size={16} />{t.reset}</button>
-          <button type="button" onClick={() => { setRunning(false); setSeconds(0); }}><Square size={15} />{t.finish}</button>
+          <button type="button" onClick={() => setRunning((value) => !value)}>
+            {running ? <Pause size={16} /> : <Play size={16} />}
+            {running ? t.pause : t.start}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setRunning(false);
+              setSeconds(totalSeconds);
+            }}
+          >
+            <RotateCcw size={16} />
+            {t.reset}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setRunning(false);
+              setSeconds(0);
+            }}
+          >
+            <Square size={15} />
+            {t.finish}
+          </button>
         </div>
 
         <div className="focus-desk__props" aria-hidden="true" />

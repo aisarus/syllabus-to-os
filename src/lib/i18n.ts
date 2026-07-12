@@ -829,7 +829,7 @@ const en: Dict = {
   studyPlanIntro: "Rule-based suggestions built from your own data.",
   planWhyCardsDue: "cards are due today",
   planWhyLowScore: "best quiz score is below 70%",
-  planWhyLearning: "topic still in \"learning\" status",
+  planWhyLearning: 'topic still in "learning" status',
   planWhyDeadline: "assignment deadline soon",
   planWhyExamSoon: "exam soon",
   planWhyStaleCourse: "no recent activity on this course",
@@ -842,7 +842,8 @@ const en: Dict = {
   serverEndpoint: "Server endpoint (planned)",
   noKeyInFrontend: "No secret keys will be stored in this app.",
   importSyllabus: "Import syllabus",
-  importSyllabusIntro: "Import an XLSX syllabus/ידיעון or a structured JSON structure into real programs and courses.",
+  importSyllabusIntro:
+    "Import an XLSX syllabus/ידיעון or a structured JSON structure into real programs and courses.",
   syllabusTabXlsx: "XLSX file",
   syllabusTabJson: "Structured JSON",
   syllabusChooseXlsx: "Choose XLSX file",
@@ -880,7 +881,8 @@ const en: Dict = {
   syllabusTopicsImported: "topics imported",
   syllabusTopicsSplitHelp: "Topic cells are split by newline or semicolon.",
   syllabusUploadTitle: "Upload syllabus / program file",
-  syllabusUploadHelp: "Upload a program file or syllabus. Lamdan will try to detect semesters, courses, credits, and instructors automatically.",
+  syllabusUploadHelp:
+    "Upload a program file or syllabus. Lamdan will try to detect semesters, courses, credits, and instructors automatically.",
   syllabusAutoParse: "Auto-parse",
   syllabusParsing: "Parsing…",
   syllabusStepReading: "Reading workbook",
@@ -902,7 +904,8 @@ const en: Dict = {
   syllabusDetectedCourses: "Courses",
   syllabusWarnings: "Warnings",
   syllabusIgnoredRows: "Ignored rows",
-  syllabusIgnoredRowsHelp: "Rows the parser skipped. Review anything that should have been imported.",
+  syllabusIgnoredRowsHelp:
+    "Rows the parser skipped. Review anything that should have been imported.",
   syllabusConvertToCourse: "Convert to course",
   syllabusIgnorePermanently: "Ignore",
   syllabusViewCells: "View cells",
@@ -922,7 +925,8 @@ const en: Dict = {
   syllabusDupNew: "Import as new",
   syllabusAIImprove: "Improve parsing with AI",
   syllabusAINotConnected: "AI parsing is not available",
-  syllabusAIHint: "AI can help fix complex tables, but import only happens after your confirmation.",
+  syllabusAIHint:
+    "AI can help fix complex tables, but import only happens after your confirmation.",
   syllabusAIRunning: "Asking AI…",
   syllabusAIFailed: "AI could not refine this draft",
   syllabusNoCoursesDetected: "No course rows detected. Try Advanced mapping.",
@@ -969,7 +973,8 @@ const en: Dict = {
   chunksEmpty: "No chunks yet. Generate chunks from text.",
   materialsEmptyV2: "Upload a material or paste text to begin.",
   materialNoTextExtracted: "Text was not extracted. Paste it manually or try another format.",
-  materialUnsupportedPaste: "This file format is not connected for extraction. Paste text below manually.",
+  materialUnsupportedPaste:
+    "This file format is not connected for extraction. Paste text below manually.",
   langRu: "Russian",
   langEn: "English",
   langHe: "Hebrew",
@@ -1122,7 +1127,8 @@ const en: Dict = {
   // courses room
   yourLibraryEyebrow: "Your library",
   libraryNoteLabel: "LIBRARY NOTE",
-  libraryNoteBody: "A course becomes easier to return to when every note, card and deadline has a visible home.",
+  libraryNoteBody:
+    "A course becomes easier to return to when every note, card and deadline has a visible home.",
   // materials room
   archiveEyebrow: "The archive",
   materialsSubtitle: "Folders, readings and lecture files — all in one ledger.",
@@ -1438,7 +1444,8 @@ const ru: Dict = {
   serverEndpoint: "Серверный endpoint (в планах)",
   noKeyInFrontend: "Секретные ключи не хранятся в приложении.",
   importSyllabus: "Импорт силабуса",
-  importSyllabusIntro: "Загрузите XLSX-силабус/ידיעון или структурированный JSON и превратите его в реальные программы и курсы.",
+  importSyllabusIntro:
+    "Загрузите XLSX-силабус/ידיעון или структурированный JSON и превратите его в реальные программы и курсы.",
   syllabusTabXlsx: "XLSX файл",
   syllabusTabJson: "Структурированный JSON",
   syllabusChooseXlsx: "Выбрать XLSX файл",
@@ -1446,7 +1453,8 @@ const ru: Dict = {
   syllabusHeaderRow: "Строка заголовков",
   syllabusSheetPreview: "Предпросмотр листа",
   syllabusColumnMapping: "Сопоставление колонок",
-  syllabusMappingHelp: "Укажите, какая колонка содержит каждое поле курса. Обязательна только «Название».",
+  syllabusMappingHelp:
+    "Укажите, какая колонка содержит каждое поле курса. Обязательна только «Название».",
   syllabusColTitle: "Название (обязательно)",
   syllabusColOriginalTitle: "Оригинальное название",
   syllabusColNumber: "Номер курса",
@@ -1476,7 +1484,8 @@ const ru: Dict = {
   syllabusTopicsImported: "тем импортировано",
   syllabusTopicsSplitHelp: "Ячейки с темами разбиваются по переводу строки или «;».",
   syllabusUploadTitle: "Загрузите файл силабуса / программы",
-  syllabusUploadHelp: "Загрузите файл программы или силлабус. Lamdan сам попробует найти семестры, курсы, кредиты и преподавателей.",
+  syllabusUploadHelp:
+    "Загрузите файл программы или силлабус. Lamdan сам попробует найти семестры, курсы, кредиты и преподавателей.",
   syllabusAutoParse: "Автоматически разобрать",
   syllabusParsing: "Разбираем…",
   syllabusStepReading: "Чтение книги",
@@ -1498,7 +1507,8 @@ const ru: Dict = {
   syllabusDetectedCourses: "Курсов",
   syllabusWarnings: "Предупреждений",
   syllabusIgnoredRows: "Пропущенные строки",
-  syllabusIgnoredRowsHelp: "Строки, которые парсер не импортировал. Проверьте, если что-то важное пропало.",
+  syllabusIgnoredRowsHelp:
+    "Строки, которые парсер не импортировал. Проверьте, если что-то важное пропало.",
   syllabusConvertToCourse: "Сделать курсом",
   syllabusIgnorePermanently: "Пропустить",
   syllabusViewCells: "Показать ячейки",
@@ -1518,7 +1528,8 @@ const ru: Dict = {
   syllabusDupNew: "Импортировать как новый",
   syllabusAIImprove: "Улучшить разбор с ИИ",
   syllabusAINotConnected: "ИИ-разбор недоступен",
-  syllabusAIHint: "ИИ может помочь исправить сложные таблицы, но импорт произойдёт только после вашего подтверждения.",
+  syllabusAIHint:
+    "ИИ может помочь исправить сложные таблицы, но импорт произойдёт только после вашего подтверждения.",
   syllabusAIRunning: "Спрашиваем ИИ…",
   syllabusAIFailed: "ИИ не смог улучшить черновик",
   syllabusNoCoursesDetected: "Курсы не найдены. Попробуйте «Расширенная настройка».",
@@ -1565,7 +1576,8 @@ const ru: Dict = {
   chunksEmpty: "Чанков пока нет. Сгенерируйте чанки из текста.",
   materialsEmptyV2: "Загрузите материал или вставьте текст, чтобы начать.",
   materialNoTextExtracted: "Текст не извлечён. Вставьте его вручную или попробуйте другой формат.",
-  materialUnsupportedPaste: "Этот формат файла не подключён для извлечения. Вставьте текст ниже вручную.",
+  materialUnsupportedPaste:
+    "Этот формат файла не подключён для извлечения. Вставьте текст ниже вручную.",
   langRu: "Русский",
   langEn: "Английский",
   langHe: "Иврит",
@@ -1718,7 +1730,8 @@ const ru: Dict = {
   // courses room
   yourLibraryEyebrow: "Ваша библиотека",
   libraryNoteLabel: "ЗАМЕТКА",
-  libraryNoteBody: "К курсу проще вернуться, когда у каждой заметки, карточки и дедлайна есть своё место.",
+  libraryNoteBody:
+    "К курсу проще вернуться, когда у каждой заметки, карточки и дедлайна есть своё место.",
   // materials room
   archiveEyebrow: "Архив",
   materialsSubtitle: "Папки, чтения и лекционные файлы — всё в одном журнале.",
@@ -1763,7 +1776,8 @@ const ru: Dict = {
   weekViewLabel: "Неделя",
   timeColLabel: "ВРЕМЯ",
   monthViewLabel: "Месяц",
-  calendarQuote: "Дисциплина — это выбор между тем, чего хочешь сейчас, и тем, чего хочешь больше всего.",
+  calendarQuote:
+    "Дисциплина — это выбор между тем, чего хочешь сейчас, и тем, чего хочешь больше всего.",
   weekdayMon: "Пн",
   weekdayTue: "Вт",
   weekdayWed: "Ср",

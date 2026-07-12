@@ -44,30 +44,47 @@ function CalendarPage() {
         subtitle={t.calendarSubtitle}
         actions={
           <div className="calendar-heading-actions">
-            <PaperButton aria-label={t.back}><ChevronLeft size={14} /></PaperButton>
+            <PaperButton aria-label={t.back}>
+              <ChevronLeft size={14} />
+            </PaperButton>
             <PaperButton>{t.today}</PaperButton>
-            <PaperButton aria-label={t.upcoming}><ChevronRight size={14} /></PaperButton>
+            <PaperButton aria-label={t.upcoming}>
+              <ChevronRight size={14} />
+            </PaperButton>
           </div>
         }
       />
 
       <section className="calendar-board">
         <div className="calendar-board__top">
-          <div><CalendarDays size={15} /><strong>{monthTitle}</strong></div>
-          <div><button type="button" className="is-active">{t.weekViewLabel}</button><button type="button">{t.monthViewLabel}</button></div>
+          <div>
+            <CalendarDays size={15} />
+            <strong>{monthTitle}</strong>
+          </div>
+          <div>
+            <button type="button" className="is-active">
+              {t.weekViewLabel}
+            </button>
+            <button type="button">{t.monthViewLabel}</button>
+          </div>
         </div>
 
         <div className="week-grid">
           <div className="week-grid__corner">{t.timeColLabel}</div>
           {days.map(([label, date], index) => (
             <div key={label} className={index === 2 ? "week-day is-today" : "week-day"}>
-              <span>{label}</span><strong>{date}</strong>
+              <span>{label}</span>
+              <strong>{date}</strong>
             </div>
           ))}
           {["09:00", "11:00", "13:00", "15:00", "17:00", "19:00"].map((time, row) => (
-            <div key={time} className="week-time" style={{ gridRow: row + 2 }}>{time}</div>
+            <div key={time} className="week-time" style={{ gridRow: row + 2 }}>
+              {time}
+            </div>
           ))}
-          {Array.from({ length: 42 }).map((_, index) => <div key={index} className="week-cell" />)}
+          {Array.from({ length: 42 }).map((_, index) => (
+            <div key={index} className="week-cell" />
+          ))}
           {events.map((event) => (
             <button
               key={`${event.day}-${event.row}-${event.title}`}
@@ -75,10 +92,13 @@ function CalendarPage() {
               className={`paper-event paper-event--${event.tone}`}
               style={{ gridColumn: event.day + 2, gridRow: event.row + 2 }}
             >
-              <strong>{event.title}</strong><small>{event.meta}</small>
+              <strong>{event.title}</strong>
+              <small>{event.meta}</small>
             </button>
           ))}
-          <div className="calendar-now" style={{ gridRow: 4 }}><span /></div>
+          <div className="calendar-now" style={{ gridRow: 4 }}>
+            <span />
+          </div>
         </div>
 
         <aside className="calendar-quote">

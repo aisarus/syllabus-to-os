@@ -56,7 +56,11 @@ function NotesPage() {
         eyebrow={t.commonplaceEyebrow}
         title={t.notes}
         subtitle={`${notes.length} ${t.notesGatheredSuffix}`}
-        actions={<BrassButton><Plus size={15} /> {t.newNote}</BrassButton>}
+        actions={
+          <BrassButton>
+            <Plus size={15} /> {t.newNote}
+          </BrassButton>
+        }
       />
 
       <div className="notebook-scene">
@@ -65,12 +69,19 @@ function NotesPage() {
           <div className="notebook-page notebook-page--index">
             <div className="notebook-page__header">
               <span>{t.notesIndexLabel}</span>
-              <label><Search size={13} /><input aria-label={t.searchNotesAria} placeholder={t.searchNotesPlaceholder} /></label>
+              <label>
+                <Search size={13} />
+                <input aria-label={t.searchNotesAria} placeholder={t.searchNotesPlaceholder} />
+              </label>
             </div>
             <ul className="note-index">
               {notes.map((note, index) => (
                 <li key={note.id}>
-                  <button type="button" className={active?.id === note.id ? "is-active" : ""} onClick={() => setActiveId(note.id)}>
+                  <button
+                    type="button"
+                    className={active?.id === note.id ? "is-active" : ""}
+                    onClick={() => setActiveId(note.id)}
+                  >
                     <span>{String(index + 1).padStart(2, "0")}</span>
                     <strong>{note.title}</strong>
                     <small>{note.category}</small>
@@ -82,7 +93,9 @@ function NotesPage() {
           </div>
 
           <div className="notebook-binding" aria-hidden="true">
-            {Array.from({ length: 10 }).map((_, index) => <span key={index} />)}
+            {Array.from({ length: 10 }).map((_, index) => (
+              <span key={index} />
+            ))}
           </div>
 
           <article className="notebook-page notebook-page--writing">
@@ -94,19 +107,30 @@ function NotesPage() {
               <time>{active?.date}</time>
             </header>
             <div className="notebook-lines">
-              <p contentEditable suppressContentEditableWarning>{active?.body}</p>
+              <p contentEditable suppressContentEditableWarning>
+                {active?.body}
+              </p>
               <h3>{t.keyIdeaHeading}</h3>
               <p contentEditable suppressContentEditableWarning>
-                Institutions do not exist separately from people: they shape repeated actions, while repeated actions keep institutions alive.
+                Institutions do not exist separately from people: they shape repeated actions, while
+                repeated actions keep institutions alive.
               </p>
               <div className="hand-drawn-diagram" aria-label={t.diagramAria}>
-                <span>individual</span><i /><span>group</span><i /><span>institution</span>
+                <span>individual</span>
+                <i />
+                <span>group</span>
+                <i />
+                <span>institution</span>
               </div>
             </div>
             <aside className="sticky-thought">{t.stickyThought}</aside>
             <footer>
-              <button type="button"><Pin size={14} /> {t.pin}</button>
-              <button type="button"><Trash2 size={14} /> {t.delete}</button>
+              <button type="button">
+                <Pin size={14} /> {t.pin}
+              </button>
+              <button type="button">
+                <Trash2 size={14} /> {t.delete}
+              </button>
               <span>{t.savedLocally}</span>
             </footer>
           </article>
