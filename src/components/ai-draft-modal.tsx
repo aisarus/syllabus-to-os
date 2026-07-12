@@ -16,8 +16,8 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
-import type { AITrustMetadata } from "@/lib/ai";
-import type { ReactNode } from "react";
+import type { AIDraftMetadata, AITrustMetadata } from "@/lib/ai";
+import { Children, isValidElement, type ReactNode } from "react";
 import { toast } from "sonner";
 
 export type AIDraftState = "idle" | "loading" | "error" | "ready" | "saved";
@@ -65,6 +65,9 @@ export function AIDraftModal(props: AIDraftModalProps) {
     children,
   } = props;
   const isRu = lang === "ru";
+  const childMetadata = findDraftMetadata(children);
+  const resolvedTrust = trust ?? childMetadata.trust;
+  const resolvedNotFound = notFoundInSources ?? childMetadata.notFoundInSources;
 
   const doCopy = () => {
     if (!copyText) return;
@@ -157,7 +160,7 @@ export function AIDraftModal(props: AIDraftModalProps) {
 
         {state === "ready" && (
           <div className="space-y-3">
-            {notFoundInSources && (
+            {resolvedNotFound && (
               <div className="rounded-md border border-orange-500/40 bg-orange-500/10 p-3 text-xs text-orange-100">
                 <div className="flex items-start gap-2">
                   <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
@@ -180,7 +183,7 @@ export function AIDraftModal(props: AIDraftModalProps) {
               </div>
             )}
             {children}
-            {trust && <TrustPanel trust={trust} isRu={isRu} />}
+            {resolvedTrust && <TrustPanel trust={resolvedTrust} isRu={isRu} />}
             {sourceChunks && sourceChunks.length > 0 && (
               <div className="rounded-md border border-border bg-surface p-2 text-xs">
                 <div className="mb-1 text-muted-foreground">
@@ -224,6 +227,14 @@ export function AIDraftModal(props: AIDraftModalProps) {
       </DialogContent>
     </Dialog>
   );
+}
+
+function findDraftMetadata(children: ReactNode): Partial<AIDraftMetadata> {
+  for (const child of Children.toArray(children)) {
+    if (!isValidElement<{ draft?: AIDraftMetadata }>(child)) continue;
+    if (child.props.draft) return child.props.draft;
+  }
+  return {};
 }
 
 function TrustPanel({ trust, isRu }: { trust: AITrustMetadata; isRu: boolean }) {
