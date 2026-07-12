@@ -13,7 +13,8 @@ Last updated: 2026-07-12
 - `P0-003 Remove tracking-first product flows` — complete in primary navigation and the course workspace.
 - `P0-004 Create one shared intake service` — complete and verified.
 - `P0-005 Build multi-file upload queue` — complete and verified on Dashboard and Materials.
-- `P0-006 Add duplicate detection` — exact and likely duplicate handling implemented across queue and legacy upload paths; final validation in progress.
+- `P0-006 Add duplicate detection` — complete and verified across exact, likely, queue and legacy upload paths.
+- `P0-007 Add intake review and correction` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
@@ -29,20 +30,23 @@ Last updated: 2026-07-12
 - The queue never merges automatically.
 - Explicit queue choices remain skip, keep both and replace only when no linked outputs can be orphaned.
 - Dashboard and the Materials multi-file launcher use the same guarded queue.
-- The remaining legacy single-file Materials upload now performs the same exact and likely checks and requires an explicit keep-both confirmation before persistence.
+- The remaining legacy single-file Materials upload performs the same exact and likely checks and requires an explicit keep-both confirmation before persistence.
 
 ## Verification state
 
-- Exact duplicate behavior is already verified by documentation, TypeScript, ESLint and production-build CI.
-- A new pull-request run validates likely matching, extraction-before-persistence and the guarded legacy upload path together.
-- Do not mark `P0-006` complete until that run succeeds.
+- Documentation verification passed.
+- TypeScript passed.
+- ESLint passed.
+- Production build passed.
+- The successful run covers likely matching, extraction-before-persistence and the guarded legacy upload path together.
 
 ## Next execution target
 
-1. Fix any concrete CI failure.
-2. Mark `P0-006` fully complete after the full suite passes.
-3. Begin `P0-007` intake review and correction with editable title, type, course, topic, tags and extracted-text preview before save.
+1. Begin `P0-007` intake review and correction.
+2. Add editable title, material type, course, topic and tags before persistence.
+3. Show extracted-text preview and partial/unsupported warnings.
+4. Support save, save without course, retry and discard without creating hidden records.
 
 ## Blockers
 
-None unless CI reports a concrete failure.
+None.
