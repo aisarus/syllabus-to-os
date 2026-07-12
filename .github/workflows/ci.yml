@@ -59,6 +59,9 @@ jobs:
       - name: Verify Notes editor contract
         run: npm run verify:notes-editor-contract
 
+      - name: Verify Flashcard Studio contract
+        run: npm run verify:flashcard-studio-contract
+
       - name: Typecheck
         id: typecheck
         continue-on-error: true
