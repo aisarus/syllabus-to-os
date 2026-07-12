@@ -28,9 +28,17 @@ export interface StoredOCRDraft {
   updatedAt: number;
 }
 
+export interface VisualSourceStorageStats {
+  imageCount: number;
+  ocrDraftCount: number;
+  totalImageBytes: number;
+}
+
 export function isSupportedVisualSource(file: Pick<File, "type" | "size" | "name">): boolean {
   return (
-    SUPPORTED_VISUAL_SOURCE_MIMES.includes(file.type as (typeof SUPPORTED_VISUAL_SOURCE_MIMES)[number]) &&
+    SUPPORTED_VISUAL_SOURCE_MIMES.includes(
+      file.type as (typeof SUPPORTED_VISUAL_SOURCE_MIMES)[number],
+    ) &&
     file.size > 0 &&
     file.size <= MAX_VISUAL_SOURCE_BYTES
   );
@@ -46,13 +54,14 @@ export async function putMaterialVisualSource(materialId: string, file: File): P
   }
 
   const now = Date.now();
+  const existing = await getMaterialVisualSource(materialId);
   const record: StoredVisualSource = {
     materialId,
     fileName: file.name,
     mimeType: file.type,
     size: file.size,
     blob: file,
-    createdAt: now,
+    createdAt: existing?.createdAt ?? now,
     updatedAt: now,
   };
   await writeRecord(IMAGE_STORE, record);
@@ -95,6 +104,40 @@ export async function deleteMaterialOCRDraft(materialId: string): Promise<void> 
   await deleteRecord(db, OCR_STORE, materialId);
 }
 
+export async function clearAllVisualSourceData(): Promise<void> {
+  const db = await openDatabase();
+  await Promise.all([clearStore(db, IMAGE_STORE), clearStore(db, OCR_STORE)]);
+}
+
+export async function pruneVisualSourceData(validMaterialIds: Iterable<string>): Promise<number> {
+  const validIds = new Set(validMaterialIds);
+  const db = await openDatabase();
+  const [imageKeys, draftKeys] = await Promise.all([
+    readAllKeys(db, IMAGE_STORE),
+    readAllKeys(db, OCR_STORE),
+  ]);
+  const orphanIds = new Set(
+    [...imageKeys, ...draftKeys]
+      .map(String)
+      .filter((materialId) => !validIds.has(materialId)),
+  );
+  await Promise.all([...orphanIds].map((materialId) => deleteMaterialVisualData(materialId)));
+  return orphanIds.size;
+}
+
+export async function getVisualSourceStorageStats(): Promise<VisualSourceStorageStats> {
+  const db = await openDatabase();
+  const [images, drafts] = await Promise.all([
+    readAllRecords<StoredVisualSource>(db, IMAGE_STORE),
+    readAllRecords<StoredOCRDraft>(db, OCR_STORE),
+  ]);
+  return {
+    imageCount: images.length,
+    ocrDraftCount: drafts.length,
+    totalImageBytes: images.reduce((sum, image) => sum + image.size, 0),
+  };
+}
+
 function openDatabase(): Promise<IDBDatabase> {
   if (typeof indexedDB === "undefined") {
     return Promise.reject(new Error("IndexedDB is not available in this browser."));
@@ -123,8 +166,10 @@ async function writeRecord(storeName: string, value: unknown): Promise<void> {
     const transaction = db.transaction(storeName, "readwrite");
     transaction.objectStore(storeName).put(value);
     transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error ?? new Error("Could not save local visual data."));
-    transaction.onabort = () => reject(transaction.error ?? new Error("Visual-data save was aborted."));
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Could not save local visual data."));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("Visual-data save was aborted."));
   });
 }
 
@@ -138,12 +183,44 @@ async function readRecord<T>(storeName: string, key: string): Promise<T | undefi
   });
 }
 
+function readAllRecords<T>(db: IDBDatabase, storeName: string): Promise<T[]> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, "readonly");
+    const request = transaction.objectStore(storeName).getAll();
+    request.onsuccess = () => resolve(request.result as T[]);
+    request.onerror = () => reject(request.error ?? new Error("Could not inspect local visual data."));
+  });
+}
+
+function readAllKeys(db: IDBDatabase, storeName: string): Promise<IDBValidKey[]> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, "readonly");
+    const request = transaction.objectStore(storeName).getAllKeys();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error("Could not inspect visual-data keys."));
+  });
+}
+
 function deleteRecord(db: IDBDatabase, storeName: string, key: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(storeName, "readwrite");
     transaction.objectStore(storeName).delete(key);
     transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error ?? new Error("Could not delete local visual data."));
-    transaction.onabort = () => reject(transaction.error ?? new Error("Visual-data deletion was aborted."));
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Could not delete local visual data."));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("Visual-data deletion was aborted."));
+  });
+}
+
+function clearStore(db: IDBDatabase, storeName: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, "readwrite");
+    transaction.objectStore(storeName).clear();
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Could not clear local visual data."));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("Visual-data clearing was aborted."));
   });
 }
