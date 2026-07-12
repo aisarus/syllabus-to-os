@@ -66,7 +66,10 @@ function MaterialWorkspace({ material }: { material: Material }) {
   const data = useData();
   const navigate = useNavigate();
   const isRu = lang === "ru";
-  const chunks = getChunksByMaterial(data, material.id);
+  const chunks = useMemo(
+    () => getChunksByMaterial(data, material.id),
+    [data.materialChunks, material.id],
+  );
   const course = data.courses.find((item) => item.id === material.courseId);
   const topic = data.topics.find((item) => item.id === material.topicId);
   const sourceItems = useMemo<SourceItem[]>(
@@ -93,12 +96,14 @@ function MaterialWorkspace({ material }: { material: Material }) {
   useEffect(() => {
     const validIds = new Set(sourceItems.map((item) => item.id));
     setSelectedIds((current) => {
-      const next = new Set([...current].filter((id) => validIds.has(id)));
-      if (current.size === 0 && next.size === 0) return current;
-      return next;
+      const nextValues = [...current].filter((id) => validIds.has(id));
+      if (nextValues.length === current.size) return current;
+      return new Set(nextValues);
     });
-    if (!validIds.has(activeId)) setActiveId(sourceItems[0]?.id ?? "");
-  }, [sourceItems, activeId]);
+    setActiveId((current) =>
+      validIds.has(current) ? current : (sourceItems[0]?.id ?? ""),
+    );
+  }, [sourceItems]);
 
   const filteredItems = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -241,14 +246,24 @@ function MaterialWorkspace({ material }: { material: Material }) {
                   <div
                     key={item.id}
                     className={`mb-1 rounded-md border p-2 transition-colors ${
-                      active ? "border-primary/50 bg-primary/5" : "border-transparent hover:border-border"
+                      active
+                        ? "border-primary/50 bg-primary/5"
+                        : "border-transparent hover:border-border"
                     }`}
                   >
                     <div className="flex items-start gap-2">
                       <button
                         type="button"
                         className="mt-0.5 text-primary"
-                        aria-label={selected ? (isRu ? "Снять выбор" : "Deselect") : isRu ? "Выбрать" : "Select"}
+                        aria-label={
+                          selected
+                            ? isRu
+                              ? "Снять выбор"
+                              : "Deselect"
+                            : isRu
+                              ? "Выбрать"
+                              : "Select"
+                        }
                         onClick={() =>
                           setSelectedIds((current) => {
                             const next = new Set(current);
@@ -258,7 +273,11 @@ function MaterialWorkspace({ material }: { material: Material }) {
                           })
                         }
                       >
-                        {selected ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                        {selected ? (
+                          <CheckSquare2 className="h-4 w-4" />
+                        ) : (
+                          <Square className="h-4 w-4" />
+                        )}
                       </button>
                       <button
                         type="button"
@@ -266,7 +285,9 @@ function MaterialWorkspace({ material }: { material: Material }) {
                         onClick={() => setActiveId(item.id)}
                       >
                         <strong className="block truncate text-sm">
-                          {item.title || item.section || `${isRu ? "Фрагмент" : "Chunk"} ${index + 1}`}
+                          {item.title ||
+                            item.section ||
+                            `${isRu ? "Фрагмент" : "Chunk"} ${index + 1}`}
                         </strong>
                         <span className="mt-1 block text-[11px] text-muted-foreground">
                           {sourceMeta(item, isRu)}
@@ -287,10 +308,13 @@ function MaterialWorkspace({ material }: { material: Material }) {
           <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-serif text-xl font-semibold">
-                {activeItem?.title || activeItem?.section || (isRu ? "Извлечённый текст" : "Extracted text")}
+                {activeItem?.title ||
+                  activeItem?.section ||
+                  (isRu ? "Извлечённый текст" : "Extracted text")}
               </h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                {selectedItems.length} {isRu ? "выбрано" : "selected"} · {selectedText.length.toLocaleString()} {isRu ? "знаков" : "characters"}
+                {selectedItems.length} {isRu ? "выбрано" : "selected"} ·{" "}
+                {selectedText.length.toLocaleString()} {isRu ? "знаков" : "characters"}
               </p>
             </div>
             <Button variant="outline" size="sm" onClick={copySelected} disabled={!selectedText}>
@@ -301,14 +325,21 @@ function MaterialWorkspace({ material }: { material: Material }) {
 
           <div className="min-h-[520px] p-5 md:p-7">
             {activeItem ? (
-              <article dir="auto" className="whitespace-pre-wrap text-[15px] leading-7 text-foreground">
+              <article
+                dir="auto"
+                className="whitespace-pre-wrap text-[15px] leading-7 text-foreground"
+              >
                 {activeItem.text}
               </article>
             ) : (
               <div className="flex min-h-[420px] items-center justify-center text-center text-muted-foreground">
                 <div>
                   <FileText className="mx-auto mb-3 h-8 w-8" />
-                  <p>{isRu ? "В материале пока нет извлечённого текста" : "This material has no extracted text yet"}</p>
+                  <p>
+                    {isRu
+                      ? "В материале пока нет извлечённого текста"
+                      : "This material has no extracted text yet"}
+                  </p>
                 </div>
               </div>
             )}
@@ -317,7 +348,9 @@ function MaterialWorkspace({ material }: { material: Material }) {
 
         <aside className="space-y-4">
           <section className="rounded-lg border border-border bg-surface p-4">
-            <h2 className="font-semibold">{isRu ? "Создать из выбранного" : "Create from selection"}</h2>
+            <h2 className="font-semibold">
+              {isRu ? "Создать из выбранного" : "Create from selection"}
+            </h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {isRu
                 ? "AI получит только выбранные фрагменты и сохранит связь с источником."
@@ -351,7 +384,9 @@ function MaterialWorkspace({ material }: { material: Material }) {
             </div>
             {!selectedText && (
               <p className="mt-2 text-xs text-yellow-200">
-                {isRu ? "Сначала выбери хотя бы один фрагмент." : "Select at least one source section first."}
+                {isRu
+                  ? "Сначала выбери хотя бы один фрагмент."
+                  : "Select at least one source section first."}
               </p>
             )}
           </section>
@@ -380,14 +415,24 @@ function MetadataPanel({ material }: { material: Material }) {
           <label className="text-xs text-muted-foreground">{isRu ? "Тип" : "Type"}</label>
           <Select
             value={material.type}
-            onValueChange={(value) => store.updateMaterial(material.id, { type: value as MaterialType })}
+            onValueChange={(value) =>
+              store.updateMaterial(material.id, { type: value as MaterialType })
+            }
           >
             <SelectTrigger className="mt-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {(
-                ["syllabus", "lecture", "article", "assignment", "presentation", "exam", "other"] as const
+                [
+                  "syllabus",
+                  "lecture",
+                  "article",
+                  "assignment",
+                  "presentation",
+                  "exam",
+                  "other",
+                ] as const
               ).map((value) => (
                 <SelectItem key={value} value={value}>
                   {typeCopy(value, isRu)}
@@ -398,7 +443,9 @@ function MetadataPanel({ material }: { material: Material }) {
         </div>
 
         <div>
-          <label className="text-xs text-muted-foreground">{isRu ? "Курс" : "Course"}</label>
+          <label className="text-xs text-muted-foreground">
+            {isRu ? "Курс" : "Course"}
+          </label>
           <Select
             value={material.courseId ?? "_none"}
             onValueChange={(value) =>
@@ -471,7 +518,9 @@ function MetadataPanel({ material }: { material: Material }) {
           <dt className="text-muted-foreground">{isRu ? "Метод" : "Method"}</dt>
           <dd>{material.extractionMethod ?? "—"}</dd>
           <dt className="text-muted-foreground">{isRu ? "Файл" : "File"}</dt>
-          <dd className="truncate" title={material.fileName}>{material.fileName ?? "—"}</dd>
+          <dd className="truncate" title={material.fileName}>
+            {material.fileName ?? "—"}
+          </dd>
         </dl>
       </div>
     </section>
@@ -493,14 +542,28 @@ function OutputsPanel({ material }: { material: Material }) {
   return (
     <section className="rounded-lg border border-border bg-surface p-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-semibold">{isRu ? "Создано из материала" : "Created from material"}</h2>
+        <h2 className="font-semibold">
+          {isRu ? "Создано из материала" : "Created from material"}
+        </h2>
         <Layers3 className="h-4 w-4 text-primary" />
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <OutputCount to="/app/notes" label={isRu ? "Конспекты" : "Notes"} count={notes.length} />
-        <OutputCount to="/app/flashcards" label={isRu ? "Карточки" : "Cards"} count={cards.length} />
-        <OutputCount to="/app/quizzes" label={isRu ? "Тесты" : "Quizzes"} count={quizzes.length} />
-        <OutputCount to="/app/presentations" label={isRu ? "Планы" : "Outlines"} count={outlines.length} />
+        <OutputCount
+          to="/app/flashcards"
+          label={isRu ? "Карточки" : "Cards"}
+          count={cards.length}
+        />
+        <OutputCount
+          to="/app/quizzes"
+          label={isRu ? "Тесты" : "Quizzes"}
+          count={quizzes.length}
+        />
+        <OutputCount
+          to="/app/presentations"
+          label={isRu ? "Планы" : "Outlines"}
+          count={outlines.length}
+        />
       </div>
 
       {quizzes.length > 0 && (
@@ -541,7 +604,10 @@ function OutputsPanel({ material }: { material: Material }) {
 
 function OutputCount({ to, label, count }: { to: string; label: string; count: number }) {
   return (
-    <Link to={to as never} className="rounded-md border border-border bg-background p-2 hover:bg-accent">
+    <Link
+      to={to as never}
+      className="rounded-md border border-border bg-background p-2 hover:bg-accent"
+    >
       <span className="block text-lg font-semibold">{count}</span>
       <span className="text-[11px] text-muted-foreground">{label}</span>
     </Link>
