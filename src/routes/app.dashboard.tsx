@@ -10,10 +10,9 @@ import {
   Layers3,
   NotebookPen,
 } from "lucide-react";
-import { toast } from "sonner";
 import { AIGenerateButton } from "@/components/ai-generate-dialog";
+import { useMaterialIntakeQueue } from "@/components/material-intake-queue";
 import { useApp } from "@/lib/app-context";
-import { intakeFile } from "@/lib/material-intake";
 import { useData } from "@/lib/store";
 
 export const Route = createFileRoute("/app/dashboard")({
@@ -23,11 +22,11 @@ export const Route = createFileRoute("/app/dashboard")({
 function Dashboard() {
   const data = useData();
   const { lang } = useApp();
+  const { enqueueFiles } = useMaterialIntakeQueue();
   const isRu = lang === "ru";
   const now = new Date();
   const hour = now.getHours();
   const fileInput = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
 
   const greeting = isRu
@@ -56,11 +55,10 @@ function Dashboard() {
           weekday: "long",
         }).format(now),
         intakeLabel: "Единый вход",
-        intakeTitle: "Добавь любой учебный материал",
+        intakeTitle: "Добавь учебные материалы",
         intakeBody:
-          "Силлабус, PDF, документ, таблица или текст попадут в общую библиотеку. Lamdan извлечёт содержимое и подготовит его для дальнейшей генерации.",
-        chooseFile: "Выбрать файл",
-        importing: "Обрабатываю…",
+          "Выбери или перетащи сразу несколько файлов. Lamdan обработает их в очереди, а ты сможешь продолжать работать.",
+        chooseFiles: "Выбрать файлы",
         importSyllabus: "Импортировать силлабус",
         aiLabel: "AI-преобразование",
         aiTitle: "Создай результат из материала",
@@ -70,7 +68,7 @@ function Dashboard() {
         quiz: "Создать тест",
         recent: "Последние материалы",
         allMaterials: "Все материалы",
-        noMaterials: "Материалов пока нет. Загрузи первый файл выше.",
+        noMaterials: "Материалов пока нет. Загрузи первые файлы выше.",
         courses: "Курсы",
         allCourses: "Все курсы",
         noCourses: "Курсов пока нет. Начни с импорта силлабуса.",
@@ -81,9 +79,6 @@ function Dashboard() {
         materials: "Материалы",
         quizzes: "Тесты",
         open: "Открыть",
-        uploadSuccess: "Материал добавлен",
-        uploadPartial: "Материал добавлен, но извлечение текста выполнено не полностью",
-        uploadError: "Материал сохранён с ошибкой обработки",
       }
     : {
         eyebrow: "Content workspace",
@@ -94,11 +89,10 @@ function Dashboard() {
           weekday: "long",
         }).format(now),
         intakeLabel: "Universal intake",
-        intakeTitle: "Add any study material",
+        intakeTitle: "Add study materials",
         intakeBody:
-          "A syllabus, PDF, document, spreadsheet or pasted text enters one library. Lamdan extracts the content and prepares it for generation.",
-        chooseFile: "Choose file",
-        importing: "Processing…",
+          "Choose or drop several files at once. Lamdan processes them in a queue while you continue working.",
+        chooseFiles: "Choose files",
         importSyllabus: "Import syllabus",
         aiLabel: "AI transformation",
         aiTitle: "Create an output from a material",
@@ -108,7 +102,7 @@ function Dashboard() {
         quiz: "Create quiz",
         recent: "Recent materials",
         allMaterials: "All materials",
-        noMaterials: "No materials yet. Upload the first file above.",
+        noMaterials: "No materials yet. Upload your first files above.",
         courses: "Courses",
         allCourses: "All courses",
         noCourses: "No courses yet. Start by importing a syllabus.",
@@ -119,9 +113,6 @@ function Dashboard() {
         materials: "Materials",
         quizzes: "Quizzes",
         open: "Open",
-        uploadSuccess: "Material added",
-        uploadPartial: "Material added, but text extraction was incomplete",
-        uploadError: "Material saved with a processing error",
       };
 
   const recentMaterials = [...data.materials]
@@ -129,30 +120,16 @@ function Dashboard() {
     .slice(0, 5);
   const courses = [...data.courses].sort((a, b) => a.order - b.order).slice(0, 4);
 
-  const upload = async (file?: File) => {
-    if (!file || uploading) return;
-    setUploading(true);
-    try {
-      const result = await intakeFile(file);
-      if (result.outcome === "success") {
-        toast.success(copy.uploadSuccess);
-      } else if (result.outcome === "partial") {
-        toast.warning(result.message || copy.uploadPartial);
-      } else {
-        toast.error(result.message || copy.uploadError);
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : copy.uploadError);
-    } finally {
-      setUploading(false);
-      if (fileInput.current) fileInput.current.value = "";
-    }
+  const addFiles = (files?: FileList | null) => {
+    if (!files || files.length === 0) return;
+    enqueueFiles(files);
+    if (fileInput.current) fileInput.current.value = "";
   };
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragging(false);
-    void upload(event.dataTransfer.files?.[0]);
+    addFiles(event.dataTransfer.files);
   };
 
   return (
@@ -185,18 +162,18 @@ function Dashboard() {
             <input
               ref={fileInput}
               type="file"
+              multiple
               hidden
               accept=".pdf,.docx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.xml,.yaml,.yml"
-              onChange={(event) => void upload(event.target.files?.[0])}
+              onChange={(event) => addFiles(event.target.files)}
             />
             <button
               type="button"
               className="cw-action"
               onClick={() => fileInput.current?.click()}
-              disabled={uploading}
             >
               <FileUp size={17} />
-              {uploading ? copy.importing : copy.chooseFile}
+              {copy.chooseFiles}
             </button>
             <Link to="/app/import-syllabus" className="cw-action-secondary">
               <FileInput size={17} />
@@ -297,31 +274,19 @@ function Dashboard() {
       <section aria-label={copy.library} className="cw-library-strip">
         <Link to="/app/materials" className="cw-library-link">
           <FolderOpen size={24} />
-          <span>
-            <strong>{copy.materials}</strong>
-            <small>{data.materials.length} · {copy.open}</small>
-          </span>
+          <span><strong>{copy.materials}</strong><small>{data.materials.length} · {copy.open}</small></span>
         </Link>
         <Link to="/app/notes" className="cw-library-link">
           <NotebookPen size={24} />
-          <span>
-            <strong>{copy.note.replace(/^Создать |^Create /, "")}</strong>
-            <small>{data.notes.length} · {copy.open}</small>
-          </span>
+          <span><strong>{copy.note.replace(/^Создать |^Create /, "")}</strong><small>{data.notes.length} · {copy.open}</small></span>
         </Link>
         <Link to="/app/flashcards" className="cw-library-link">
           <Layers3 size={24} />
-          <span>
-            <strong>{copy.cards.replace(/^Создать |^Create /, "")}</strong>
-            <small>{data.flashcards.length} · {copy.open}</small>
-          </span>
+          <span><strong>{copy.cards.replace(/^Создать |^Create /, "")}</strong><small>{data.flashcards.length} · {copy.open}</small></span>
         </Link>
         <Link to="/app/quizzes" className="cw-library-link">
           <CircleHelp size={24} />
-          <span>
-            <strong>{copy.quizzes}</strong>
-            <small>{data.quizzes.length} · {copy.open}</small>
-          </span>
+          <span><strong>{copy.quizzes}</strong><small>{data.quizzes.length} · {copy.open}</small></span>
         </Link>
       </section>
     </div>
