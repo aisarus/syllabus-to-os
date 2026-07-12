@@ -10,6 +10,8 @@ const checks = [
   "verify:flashcard-studio-contract",
   "verify:quiz-studio-contract",
   "verify:core-ui-audit",
+  "verify:evaluation-fixtures",
+  "eval",
   "typecheck",
   "lint",
   "build",
