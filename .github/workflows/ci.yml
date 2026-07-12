@@ -50,6 +50,9 @@ jobs:
       - name: Verify selected-source AI contract
         run: npm run verify:ai-source-contract
 
+      - name: Verify syllabus review contract
+        run: npm run verify:syllabus-review-contract
+
       - name: Typecheck
         id: typecheck
         continue-on-error: true
