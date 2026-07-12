@@ -5,6 +5,11 @@ import {
   rememberMaterialFingerprint,
 } from "./material-fingerprints";
 import {
+  isSupportedVisualSource,
+  putMaterialVisualSource,
+  MAX_VISUAL_SOURCE_BYTES,
+} from "./visual-source-store";
+import {
   store,
   updateData,
   type AppData,
@@ -31,6 +36,8 @@ export interface PreparedFileIntake {
   fileSize: number;
   extraction: IngestResult;
   inferredType: MaterialType;
+  isVisualSource: boolean;
+  sourceFile?: File;
 }
 
 export interface MaterialIntakeResult {
@@ -99,12 +106,16 @@ export function intakeOutcome(status: MaterialProcessingStatus): MaterialIntakeO
 }
 
 export async function prepareFileIntake(file: File): Promise<PreparedFileIntake> {
+  const isVisualSource = isVisualSourceCandidate(file);
+  const extraction = isVisualSource ? prepareVisualExtraction(file) : await ingestFile(file);
   return {
     fileName: file.name,
     mimeType: file.type || undefined,
     fileSize: file.size,
-    extraction: await ingestFile(file),
+    extraction,
     inferredType: inferMaterialType(file.name),
+    isVisualSource,
+    sourceFile: isVisualSource ? file : undefined,
   };
 }
 
@@ -112,7 +123,7 @@ export function persistPreparedFile(
   prepared: PreparedFileIntake,
   options: MaterialIntakeOptions = {},
 ): MaterialIntakeResult {
-  return persistMaterial(
+  const result = persistMaterial(
     prepared.extraction,
     "uploaded_file",
     {
@@ -126,6 +137,20 @@ export function persistPreparedFile(
       fileSize: prepared.fileSize,
     },
   );
+
+  if (prepared.isVisualSource && prepared.sourceFile && isSupportedVisualSource(prepared.sourceFile)) {
+    void putMaterialVisualSource(result.material.id, prepared.sourceFile).catch((error) => {
+      store.updateMaterial(result.material.id, {
+        processingStatus: "error",
+        processingMessage:
+          error instanceof Error
+            ? `Image metadata was saved, but the local image could not be stored: ${error.message}`
+            : "Image metadata was saved, but the local image could not be stored.",
+      });
+    });
+  }
+
+  return result;
 }
 
 export async function intakeFile(
@@ -223,6 +248,39 @@ function persistMaterial(
   };
 }
 
+function prepareVisualExtraction(file: File): IngestResult {
+  if (!isSupportedVisualSource(file)) {
+    return {
+      rawText: "",
+      chunks: [],
+      status: "unsupported",
+      message:
+        file.size > MAX_VISUAL_SOURCE_BYTES
+          ? "Image is larger than the 20 MB local limit."
+          : "OCR currently accepts JPEG, PNG and WebP images. Convert this image before upload.",
+      wordCount: 0,
+      charCount: 0,
+      sourceLanguage: "unknown",
+    };
+  }
+  return {
+    rawText: "",
+    chunks: [],
+    status: "no_text",
+    message: "Image will be stored locally. Open the material to run OCR and review the transcription.",
+    extractionMethod: "manual",
+    pageCount: 1,
+    wordCount: 0,
+    charCount: 0,
+    sourceLanguage: "unknown",
+  };
+}
+
+function isVisualSourceCandidate(file: Pick<File, "name" | "type">): boolean {
+  if (file.type.startsWith("image/")) return true;
+  return /\.(?:jpe?g|png|webp|heic|heif)$/i.test(file.name);
+}
+
 function findBrowserDuplicate(
   prepared: PreparedFileIntake,
   fingerprint: string | undefined,
@@ -273,7 +331,7 @@ function confirmKeepBoth(existingTitle: string): boolean {
   return window.confirm(
     isRu
       ? `Похожий материал уже существует: «${existingTitle}».\n\nНажми OK, чтобы сохранить обе копии, или Отмена, чтобы пропустить файл.`
-      : `A similar material already exists: “${existingTitle}”.\n\nChoose OK to keep both copies or Cancel to skip this file.`,
+      : `A similar material already exists: “${existingTitle}”.\n\nChoose OK to keep both copies or Cancel to skip the file.`,
   );
 }
 
