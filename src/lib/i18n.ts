@@ -115,6 +115,7 @@ export type Dict = {
   emptyShelfTitle: string;
   emptyShelfHint: string;
   addFirstCourse: string;
+  creditsInvalid: string;
   // notes
   createNote: string;
   content: string;
@@ -598,6 +599,7 @@ const en: Dict = {
   emptyShelfTitle: "Your shelf is empty",
   emptyShelfHint: "Add your first course to begin",
   addFirstCourse: "Add your first course",
+  creditsInvalid: "Credits must be a number ≥ 0",
   createNote: "Create note",
   content: "Content",
   tags: "Tags (comma separated)",
