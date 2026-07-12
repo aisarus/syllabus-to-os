@@ -12,7 +12,7 @@ Last updated: 2026-07-12
 - `P0-002 Audit and normalize all active routes` — complete for the current shell.
 - `P0-003 Remove tracking-first product flows` — complete in primary navigation and the course workspace.
 - `P0-004 Create one shared intake service` — complete and verified.
-- `P0-005 Build multi-file upload queue` — implemented on Dashboard and Materials; final CI validation in progress.
+- `P0-005 Build multi-file upload queue` — complete and verified on Dashboard and Materials.
 - `P0-006 Add duplicate detection` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
@@ -34,16 +34,18 @@ Last updated: 2026-07-12
 
 ## Verification state
 
-- The initial queue implementation passed documentation verification, TypeScript, ESLint and production build in pull-request CI.
-- This final validation run covers the Materials-route launcher added after that successful queue run.
-- Do not mark `P0-005` complete until the current pull-request run succeeds.
+- Documentation verification passed.
+- TypeScript passed.
+- ESLint passed.
+- Production build passed.
+- The successful validation run includes the Materials-route multi-file launcher.
 
 ## Next execution target
 
-1. Merge the validation status after CI succeeds.
-2. Mark `P0-005` complete.
-3. Begin `P0-006` with exact duplicate preflight and an explicit user choice instead of automatic merging.
+1. Begin `P0-006` with exact duplicate preflight.
+2. Add explicit choices to skip or keep both; never merge automatically.
+3. Add likely-duplicate detection only after exact duplicate behavior is stable.
 
 ## Blockers
 
-None unless CI reports a concrete failure.
+None.
