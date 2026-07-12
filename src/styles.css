@@ -1348,6 +1348,35 @@ select {
   .quiz-result { margin-right: 0; }
 }
 
+/* Lamdan paper dialog surface (reuses paper-panel look) */
+.paper-dialog {
+  color: #3f2717 !important;
+  background:
+    linear-gradient(rgba(255,255,255,.08), rgba(255,255,255,0)),
+    url('/assets/study-room/paper-grain.webp'),
+    #e5d2a7 !important;
+  background-size: auto, 190px 70px, auto !important;
+  border: 1px solid rgba(88,53,25,.28) !important;
+  box-shadow: 0 22px 44px rgba(0,0,0,.5), inset 0 0 30px rgba(110,72,31,.10) !important;
+  border-radius: 6px !important;
+}
+.paper-dialog [data-slot="dialog-title"],
+.paper-dialog h2 { font-family: var(--font-display); color: #3f2717; }
+.paper-dialog label { color: #4a2f1c; font-size: 12px; letter-spacing: .04em; }
+.paper-dialog input,
+.paper-dialog textarea {
+  color: #2c1a0e;
+  background: rgba(255,247,225,.55);
+  border: 1px solid rgba(88,53,25,.28);
+}
+.paper-dialog input:focus-visible,
+.paper-dialog textarea:focus-visible {
+  border-color: #b1843f;
+  box-shadow: 0 0 0 2px rgba(177,132,63,.28);
+  outline: none;
+}
+.paper-dialog .paper-dialog__error { color: #8a2a1a; font-size: 11px; margin-top: 4px; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }

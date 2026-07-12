@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import { CourseBook, WoodenShelf, RoomHeading, BrassButton, EmptyInk } from "@/components/study-room-ui";
 import { EmptyBookSlot } from "@/components/lamdan/empty-book-slot";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useApp } from "@/lib/app-context";
 import { useData, store, type Course } from "@/lib/store";
 import { courseTone } from "@/lib/course-tone";
+import { coursesOnShelf } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/courses")({
   component: CoursesPage,
@@ -22,19 +23,20 @@ function chunk<T>(arr: T[], size: number): T[][] {
 }
 
 function CoursesPage() {
-  const { t } = useApp();
+  const { t, lang } = useApp();
   const data = useData();
   const [open, setOpen] = useState(false);
   const courses = data.courses;
   const isEmpty = courses.length === 0;
   const rows = chunk(courses, 4);
+  const lastRowFull = !isEmpty && rows[rows.length - 1].length === 4;
 
   return (
     <div className="room-page courses-room">
       <RoomHeading
         eyebrow="Your library"
         title={t.courses}
-        subtitle={isEmpty ? t.emptyShelfHint : `${courses.length}`}
+        subtitle={isEmpty ? t.emptyShelfHint : coursesOnShelf(lang, courses.length)}
         actions={
           <BrassButton onClick={() => setOpen(true)}>
             <Plus size={15} /> {t.createCourse}
@@ -61,28 +63,38 @@ function CoursesPage() {
             </div>
           </WoodenShelf>
         ) : (
-          rows.map((row, rowIndex) => {
-            const isLast = rowIndex === rows.length - 1;
-            return (
-              <WoodenShelf key={rowIndex}>
+          <>
+            {rows.map((row, rowIndex) => {
+              const isLast = rowIndex === rows.length - 1;
+              return (
+                <WoodenShelf key={rowIndex}>
+                  <div className="course-library__row">
+                    {row.map((course, i) => (
+                      <CourseBook
+                        key={course.id}
+                        code={course.number || `#${rowIndex * 4 + i + 1}`}
+                        title={course.title}
+                        progress={null}
+                        progressLabel={t.notStarted}
+                        tone={courseTone(course.id)}
+                        to={`/app/courses/${course.id}`}
+                      />
+                    ))}
+                    {isLast && !lastRowFull && (
+                      <EmptyBookSlot label={t.createCourse} onClick={() => setOpen(true)} />
+                    )}
+                  </div>
+                </WoodenShelf>
+              );
+            })}
+            {lastRowFull && (
+              <WoodenShelf>
                 <div className="course-library__row">
-                  {row.map((course, i) => (
-                    <CourseBook
-                      key={course.id}
-                      code={course.number || `#${rowIndex * 4 + i + 1}`}
-                      title={course.title}
-                      progress={null}
-                      tone={courseTone(course.id)}
-                      to={`/app/courses/${course.id}`}
-                    />
-                  ))}
-                  {isLast && row.length < 4 && (
-                    <EmptyBookSlot label={t.createCourse} onClick={() => setOpen(true)} />
-                  )}
+                  <EmptyBookSlot label={t.createCourse} onClick={() => setOpen(true)} />
                 </div>
               </WoodenShelf>
-            );
-          })
+            )}
+          </>
         )}
       </div>
 
@@ -104,18 +116,35 @@ function CreateCourseDialog({ open, onOpenChange }: { open: boolean; onOpenChang
   const [credits, setCredits] = useState("");
   const [instructor, setInstructor] = useState("");
 
+  const creditsError = useMemo(() => {
+    const raw = credits.trim();
+    if (!raw) return null;
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < 0) return t.creditsInvalid;
+    return null;
+  }, [credits, t.creditsInvalid]);
+
+  const canSave = title.trim().length > 0 && !creditsError;
+
   const reset = () => {
     setTitle(""); setNumber(""); setSemester(""); setCredits(""); setInstructor("");
   };
 
   const submit = () => {
     const trimmed = title.trim();
-    if (!trimmed) return;
+    if (!trimmed || creditsError) return;
+    const rawCredits = credits.trim();
+    let creditsValue: number | undefined;
+    if (rawCredits) {
+      const n = Number(rawCredits);
+      if (Number.isFinite(n) && n >= 0) creditsValue = n;
+      else return;
+    }
     const patch: Omit<Course, "id" | "createdAt" | "order"> = {
       title: trimmed,
       number: number.trim() || undefined,
       semester: semester.trim() || undefined,
-      credits: credits.trim() ? Number(credits) : undefined,
+      credits: creditsValue,
       instructor: instructor.trim() || undefined,
       status: "not_started",
     };
@@ -129,7 +158,7 @@ function CreateCourseDialog({ open, onOpenChange }: { open: boolean; onOpenChang
       open={open}
       onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}
     >
-      <DialogContent>
+      <DialogContent className="paper-dialog">
         <DialogHeader><DialogTitle>{t.createCourse}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div>
@@ -147,7 +176,19 @@ function CreateCourseDialog({ open, onOpenChange }: { open: boolean; onOpenChang
             </div>
             <div>
               <Label>{t.credits}</Label>
-              <Input type="number" inputMode="numeric" value={credits} onChange={(e) => setCredits(e.target.value)} />
+              <Input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="any"
+                value={credits}
+                onChange={(e) => setCredits(e.target.value)}
+                aria-invalid={!!creditsError}
+                aria-describedby={creditsError ? "credits-error" : undefined}
+              />
+              {creditsError && (
+                <p id="credits-error" className="paper-dialog__error">{creditsError}</p>
+              )}
             </div>
             <div>
               <Label>{t.instructor}</Label>
@@ -157,7 +198,7 @@ function CreateCourseDialog({ open, onOpenChange }: { open: boolean; onOpenChang
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => { onOpenChange(false); reset(); }}>{t.cancel}</Button>
-          <Button onClick={submit} disabled={!title.trim()}>{t.save}</Button>
+          <Button onClick={submit} disabled={!canSave}>{t.save}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
