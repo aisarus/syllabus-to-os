@@ -13,47 +13,15 @@ import {
 import { CourseBook, WoodenShelf, PaperPanel } from "@/components/study-room-ui";
 import { useData } from "@/lib/store";
 import { useApp } from "@/lib/app-context";
+import { courseTone } from "@/lib/course-tone";
+
 
 export const Route = createFileRoute("/app/dashboard")({
   component: Dashboard,
 });
 
-const fallbackCourses = {
-  ru: [
-    {
-      id: "code",
-      code: "6.15",
-      title: "Введение в программирование",
-      progress: 72,
-      tone: "forest" as const,
-    },
-    {
-      id: "arch",
-      code: "1.59",
-      title: "Архитектура компьютеров и ОС",
-      progress: 54,
-      tone: "rust" as const,
-    },
-    { id: "data", code: "1.62", title: "Структуры данных", progress: 81, tone: "ochre" as const },
-  ],
-  en: [
-    {
-      id: "code",
-      code: "6.15",
-      title: "Introduction to Programming",
-      progress: 72,
-      tone: "forest" as const,
-    },
-    {
-      id: "arch",
-      code: "1.59",
-      title: "Computer Architecture & OS",
-      progress: 54,
-      tone: "rust" as const,
-    },
-    { id: "data", code: "1.62", title: "Data Structures", progress: 81, tone: "ochre" as const },
-  ],
-};
+
+
 
 function Dashboard() {
   const data = useData();
@@ -95,12 +63,11 @@ function Dashboard() {
           ["Конспекты", "Продолжить запись"],
           ["Карточки", "Повторить колоду"],
           ["Фокус-сессия", "Запустить на 45 мин"],
-        ],
-        schedule: [
-          ["11:30", "Академический иврит", "Аудитория 204 · 90 мин"],
-          ["15:00", "Обзор социологии", "24 карточки"],
-          ["19:30", "Эссе по государственному управлению", "Онлайн · только черновик"],
-        ],
+        ] as const,
+        emptyShelf: "Твоя полка пуста",
+        emptyShelfHint: "Добавь первый курс, чтобы начать путь.",
+        emptySchedule: "На сегодня ничего не запланировано.",
+        notStarted: "Не начат",
       }
     : {
         eyebrow: "Study room",
@@ -119,23 +86,25 @@ function Dashboard() {
           ["Notes", "Continue writing"],
           ["Flashcards", "Review a deck"],
           ["Focus session", "Start 45 minutes"],
-        ],
-        schedule: [
-          ["11:30", "Academic Hebrew", "Room 204 · 90 min"],
-          ["15:00", "Review Sociology", "24 flashcards"],
-          ["19:30", "Government Essay", "Online · outline only"],
-        ],
+        ] as const,
+        emptyShelf: "Your shelf is empty",
+        emptyShelfHint: "Add your first course to begin.",
+        emptySchedule: "Nothing scheduled for today.",
+        notStarted: "Not started",
       };
 
-  const courses = data.courses.length
-    ? data.courses.slice(0, 3).map((course, index) => ({
-        id: course.id,
-        code: course.number || ["6.15", "1.59", "1.62"][index] || "COURSE",
-        title: course.title,
-        progress: [72, 54, 81][index] || 60,
-        tone: (["forest", "rust", "ochre"] as const)[index % 3],
-      }))
-    : fallbackCourses[lang];
+  const todayStr = now.toISOString().slice(0, 10);
+  const todayEvents = data.calendarEvents
+    .filter((e) => e.date === todayStr)
+    .sort((a, b) => (a.startTime ?? "").localeCompare(b.startTime ?? ""));
+
+  const shelfCourses = data.courses.slice(0, 3).map((course) => ({
+    id: course.id,
+    code: course.number || course.title.slice(0, 4).toUpperCase(),
+    title: course.title,
+    tone: courseTone(course.id),
+  }));
+
 
   const shortcutIcons = [FolderArchive, NotebookPen, Layers3, TimerReset] as const;
   const shortcutRoutes = [
@@ -181,17 +150,22 @@ function Dashboard() {
             </span>
             <strong>{copy.date}</strong>
           </div>
-          <ol>
-            {copy.schedule.map(([time, title, meta]) => (
-              <li key={`${time}-${title}`}>
-                <time>{time}</time>
-                <span>
-                  <strong>{title}</strong>
-                  <small>{meta}</small>
-                </span>
-              </li>
-            ))}
-          </ol>
+          {todayEvents.length ? (
+            <ol>
+              {todayEvents.map((ev) => (
+                <li key={ev.id}>
+                  <time>{ev.startTime ?? "—"}</time>
+                  <span>
+                    <strong>{ev.title}</strong>
+                    {ev.notes ? <small>{ev.notes}</small> : null}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="today-note__empty">{copy.emptySchedule}</p>
+          )}
+
           <Link to="/app/calendar">
             {copy.openCalendar} <ArrowUpRight size={13} />
           </Link>
@@ -206,16 +180,24 @@ function Dashboard() {
           </div>
           <WoodenShelf className="dashboard-bookshelf">
             <div className="dashboard-books">
-              {courses.map((course) => (
-                <CourseBook
-                  key={course.id}
-                  code={course.code}
-                  title={course.title}
-                  progress={course.progress}
-                  tone={course.tone}
-                  to={data.courses.length ? `/app/courses/${course.id}` : "/app/courses"}
-                />
-              ))}
+              {shelfCourses.length ? (
+                shelfCourses.map((course) => (
+                  <CourseBook
+                    key={course.id}
+                    code={course.code}
+                    title={course.title}
+                    progress={null}
+                    progressLabel={copy.notStarted}
+                    tone={course.tone}
+                    to={`/app/courses/${course.id}`}
+                  />
+                ))
+              ) : (
+                <p className="dashboard-books__empty">
+                  <strong>{copy.emptyShelf}</strong>
+                  <small>{copy.emptyShelfHint}</small>
+                </p>
+              )}
               <Link to="/app/courses" className="all-courses-book">
                 <span>
                   <Plus size={22} />
@@ -225,6 +207,7 @@ function Dashboard() {
               </Link>
             </div>
           </WoodenShelf>
+
         </div>
 
         <div className="dashboard-scene__desk" aria-hidden="true" />
