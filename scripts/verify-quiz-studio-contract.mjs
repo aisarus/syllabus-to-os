@@ -34,8 +34,8 @@ for (const marker of [
 }
 
 for (const marker of [
-  'setMode("practice")',
-  'setMode("exam")',
+  'startMode("practice")',
+  'startMode("exam")',
   "Invalid questions remain editable but are never silently included",
   "writeQuestionOrder",
   "moveQuestion",
