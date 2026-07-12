@@ -569,6 +569,7 @@ export type Dict = {
   calendarEyebrow: string;
   calendarSubtitle: string;
   weekViewLabel: string;
+  timeColLabel: string;
   monthViewLabel: string;
   calendarQuote: string;
   weekdayMon: string;
