@@ -13,6 +13,7 @@
     "format": "prettier --write .",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
+    "verify:syllabus-review-contract": "node scripts/verify-syllabus-review-contract.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {
