@@ -20,7 +20,7 @@ export function MaterialIntakeRouteLauncher() {
         type="file"
         multiple
         hidden
-        accept=".pdf,.docx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.xml,.yaml,.yml"
+        accept=".pdf,.docx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.xml,.yaml,.yml,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
         onChange={(event) => {
           if (event.target.files?.length) enqueueFiles(event.target.files);
           event.target.value = "";
@@ -28,7 +28,7 @@ export function MaterialIntakeRouteLauncher() {
       />
       <Button variant="outline" onClick={() => inputRef.current?.click()}>
         <FileUp className="h-4 w-4 me-1" />
-        {lang === "ru" ? "Загрузить несколько файлов" : "Upload multiple files"}
+        {lang === "ru" ? "Загрузить файлы или фото" : "Upload files or photos"}
       </Button>
     </div>
   );
