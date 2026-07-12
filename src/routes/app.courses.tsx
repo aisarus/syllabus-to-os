@@ -118,11 +118,8 @@ function CoursesPage() {
       </div>
 
       <aside className="library-marginalia">
-        <span>LIBRARY NOTE</span>
-        <p>
-          A course becomes easier to return to when every note, card and deadline has a visible
-          home.
-        </p>
+        <span>{t.libraryNoteLabel}</span>
+        <p>{t.libraryNoteBody}</p>
       </aside>
 
       <CreateCourseDialog open={open} onOpenChange={setOpen} />
