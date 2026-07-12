@@ -23,6 +23,7 @@
     "verify:quiz-studio-contract": "node scripts/verify-quiz-studio-contract.mjs",
     "verify:core-ui-audit": "node scripts/verify-core-ui-audit.mjs",
     "verify:evaluation-fixtures": "node scripts/verify-evaluation-fixtures.mjs",
+    "verify:image-ocr-contract": "node scripts/verify-image-ocr-contract.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {

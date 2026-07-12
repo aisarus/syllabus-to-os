@@ -11,6 +11,7 @@ const checks = [
   "verify:quiz-studio-contract",
   "verify:core-ui-audit",
   "verify:evaluation-fixtures",
+  "verify:image-ocr-contract",
   "eval",
   "typecheck",
   "lint",

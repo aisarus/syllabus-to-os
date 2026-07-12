@@ -15,28 +15,61 @@ export function isGeminiConfigured(): boolean {
 }
 
 export function getGeminiModelName(): string {
-  const m = process.env.LOVABLE_AI_MODEL?.trim();
-  return m && m.length > 0 ? m : DEFAULT_GEMINI_MODEL;
+  const model = process.env.LOVABLE_AI_MODEL?.trim();
+  return model && model.length > 0 ? model : DEFAULT_GEMINI_MODEL;
 }
 
 export type GeminiResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string; details?: string };
 
-/**
- * Ask the Lovable AI Gateway for a strict-JSON response and parse it.
- * schemaDescription is included in the prompt as guidance for the model.
- */
+interface TextContentPart {
+  type: "text";
+  text: string;
+}
+
+interface ImageContentPart {
+  type: "image_url";
+  image_url: { url: string };
+}
+
+type UserContent = string | Array<TextContentPart | ImageContentPart>;
+
+/** Ask the Lovable AI Gateway for a strict-JSON text response. */
 export async function generateGeminiJSON<T = unknown>(
   prompt: string,
   schemaDescription: string,
 ): Promise<GeminiResult<T>> {
+  return requestJSON<T>(
+    `${prompt}\n\nReturn ONLY a strict JSON object. No markdown, no commentary.\n\nExpected schema (informal):\n${schemaDescription}`,
+  );
+}
+
+/** Ask a multimodal model to inspect one browser-prepared image and return strict JSON. */
+export async function generateGeminiVisionJSON<T = unknown>(
+  prompt: string,
+  schemaDescription: string,
+  imageDataUrl: string,
+): Promise<GeminiResult<T>> {
+  if (!/^data:image\/(?:jpeg|png|webp);base64,/i.test(imageDataUrl)) {
+    return { ok: false, error: "Unsupported image payload" };
+  }
+  return requestJSON<T>([
+    {
+      type: "text",
+      text: `${prompt}\n\nReturn ONLY a strict JSON object. No markdown, no commentary.\n\nExpected schema (informal):\n${schemaDescription}`,
+    },
+    { type: "image_url", image_url: { url: imageDataUrl } },
+  ]);
+}
+
+async function requestJSON<T>(content: UserContent): Promise<GeminiResult<T>> {
   const key = process.env.LOVABLE_API_KEY?.trim();
   if (!key) return { ok: false, error: "Lovable AI is not configured" };
   const model = getGeminiModelName();
 
   try {
-    const res = await fetch(LOVABLE_AI_URL, {
+    const response = await fetch(LOVABLE_AI_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,23 +80,34 @@ export async function generateGeminiJSON<T = unknown>(
         model,
         temperature: 0.1,
         response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "user",
-            content: `${prompt}\n\nReturn ONLY a strict JSON object. No markdown, no commentary.\n\nExpected schema (informal):\n${schemaDescription}`,
-          },
-        ],
+        messages: [{ role: "user", content }],
       }),
     });
 
-    if (!res.ok) {
-      const errText = await res.text().catch(() => "");
-      if (res.status === 429) return { ok: false, error: "AI rate limit exceeded, try again later", details: errText.slice(0, 500) };
-      if (res.status === 402) return { ok: false, error: "AI credits exhausted for this workspace", details: errText.slice(0, 500) };
-      return { ok: false, error: `AI call failed (${res.status})`, details: errText.slice(0, 500) };
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      if (response.status === 429) {
+        return {
+          ok: false,
+          error: "AI rate limit exceeded, try again later",
+          details: errorText.slice(0, 500),
+        };
+      }
+      if (response.status === 402) {
+        return {
+          ok: false,
+          error: "AI credits exhausted for this workspace",
+          details: errorText.slice(0, 500),
+        };
+      }
+      return {
+        ok: false,
+        error: `AI call failed (${response.status})`,
+        details: errorText.slice(0, 500),
+      };
     }
 
-    const data = (await res.json()) as {
+    const data = (await response.json()) as {
       choices?: Array<{ message?: { content?: string } }>;
     };
     const text = (data.choices?.[0]?.message?.content ?? "").trim();
@@ -74,9 +118,9 @@ export async function generateGeminiJSON<T = unknown>(
       return { ok: false, error: "AI returned invalid JSON", details: text.slice(0, 500) };
     }
     return { ok: true, data: parsed.value as T };
-  } catch (e) {
-    const msg = (e as Error).message || "AI call failed";
-    return { ok: false, error: "AI call failed", details: msg };
+  } catch (error) {
+    const message = (error as Error).message || "AI call failed";
+    return { ok: false, error: "AI call failed", details: message };
   }
 }
 
@@ -88,11 +132,11 @@ function safeParseJSON(text: string): { ok: true; value: unknown } | { ok: false
   const first = trimmed.indexOf("{");
   const last = trimmed.lastIndexOf("}");
   if (first >= 0 && last > first) attempts.push(trimmed.slice(first, last + 1));
-  for (const a of attempts) {
+  for (const attempt of attempts) {
     try {
-      return { ok: true, value: JSON.parse(a) };
+      return { ok: true, value: JSON.parse(attempt) };
     } catch {
-      /* try next */
+      // Try the next representation.
     }
   }
   return { ok: false };

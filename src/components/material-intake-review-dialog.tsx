@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, FileText, RotateCcw, Trash2 } from "lucide-react";
+import { AlertTriangle, FileImage, FileText, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -46,6 +46,7 @@ export function MaterialIntakeReviewDialog({
   const [courseId, setCourseId] = useState("_none");
   const [topicId, setTopicId] = useState("_none");
   const [tags, setTags] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!item || !prepared) return;
@@ -55,6 +56,16 @@ export function MaterialIntakeReviewDialog({
     setTopicId(item.options.topicId ?? "_none");
     setTags(item.options.tags?.join(", ") ?? "");
   }, [item, prepared]);
+
+  useEffect(() => {
+    if (!prepared?.isVisualSource || !item?.file) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(item.file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [item?.file, prepared?.isVisualSource]);
 
   const topics = useMemo(
     () =>
@@ -66,7 +77,7 @@ export function MaterialIntakeReviewDialog({
 
   if (!item || !prepared) return null;
 
-  const warning = warningCopy(prepared.extraction.status, isRu);
+  const warning = warningCopy(prepared.extraction.status, isRu, prepared.isVisualSource);
   const patch = (withoutCourse: boolean): MaterialReviewPatch => ({
     title: title.trim() || prepared.fileName,
     type,
@@ -81,17 +92,21 @@ export function MaterialIntakeReviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92svh] max-w-4xl overflow-y-auto">
+      <DialogContent className="max-h-[92svh] max-w-5xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isRu ? "Проверить материал" : "Review material"}</DialogTitle>
           <DialogDescription>
-            {isRu
-              ? "Исправь распознанные данные до сохранения в библиотеку."
-              : "Correct detected metadata before the material enters your library."}
+            {prepared.isVisualSource
+              ? isRu
+                ? "Проверь фотографию и метаданные. После сохранения открой материал, чтобы запустить OCR и исправить распознавание."
+                : "Review the image and metadata. After saving, open the material to run OCR and correct the transcription."
+              : isRu
+                ? "Исправь распознанные данные до сохранения в библиотеку."
+                : "Correct detected metadata before the material enters your library."}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
           <div className="space-y-4">
             <div>
               <Label>{isRu ? "Название" : "Title"}</Label>
@@ -101,9 +116,7 @@ export function MaterialIntakeReviewDialog({
             <div>
               <Label>{isRu ? "Тип материала" : "Material type"}</Label>
               <Select value={type} onValueChange={(value) => setType(value as MaterialType)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {(
                     [
@@ -133,15 +146,11 @@ export function MaterialIntakeReviewDialog({
                   setTopicId("_none");
                 }}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">— {isRu ? "Без курса" : "No course"} —</SelectItem>
                   {data.courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.title}
-                    </SelectItem>
+                    <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -150,15 +159,11 @@ export function MaterialIntakeReviewDialog({
             <div>
               <Label>{isRu ? "Тема" : "Topic"}</Label>
               <Select value={topicId} onValueChange={setTopicId} disabled={courseId === "_none"}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">— {isRu ? "Без темы" : "No topic"} —</SelectItem>
                   {topics.map((topic) => (
-                    <SelectItem key={topic.id} value={topic.id}>
-                      {topic.title}
-                    </SelectItem>
+                    <SelectItem key={topic.id} value={topic.id}>{topic.title}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -192,16 +197,34 @@ export function MaterialIntakeReviewDialog({
 
           <div className="min-w-0">
             <Label className="mb-2 flex items-center gap-1.5">
-              <FileText className="h-4 w-4" />
-              {isRu ? "Извлечённый текст" : "Extracted text"}
+              {prepared.isVisualSource ? <FileImage className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+              {prepared.isVisualSource
+                ? isRu ? "Исходная фотография" : "Source image"
+                : isRu ? "Извлечённый текст" : "Extracted text"}
             </Label>
-            <textarea
-              readOnly
-              dir="auto"
-              className="min-h-[430px] w-full resize-y rounded-md border border-input bg-background p-3 font-mono text-sm leading-relaxed"
-              value={prepared.extraction.rawText}
-              placeholder={isRu ? "Текст не извлечён" : "No text was extracted"}
-            />
+            {prepared.isVisualSource ? (
+              previewUrl ? (
+                <div className="flex min-h-[430px] items-center justify-center overflow-hidden rounded-md border border-input bg-background p-3">
+                  <img
+                    src={previewUrl}
+                    alt={prepared.fileName}
+                    className="max-h-[65svh] max-w-full object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="flex min-h-[430px] items-center justify-center rounded-md border border-dashed border-border text-sm text-muted-foreground">
+                  {isRu ? "Предпросмотр недоступен" : "Preview unavailable"}
+                </div>
+              )
+            ) : (
+              <textarea
+                readOnly
+                dir="auto"
+                className="min-h-[430px] w-full resize-y rounded-md border border-input bg-background p-3 font-mono text-sm leading-relaxed"
+                value={prepared.extraction.rawText}
+                placeholder={isRu ? "Текст не извлечён" : "No text was extracted"}
+              />
+            )}
           </div>
         </div>
 
@@ -215,7 +238,7 @@ export function MaterialIntakeReviewDialog({
               }}
             >
               <RotateCcw className="h-4 w-4 me-1" />
-              {isRu ? "Извлечь заново" : "Retry extraction"}
+              {isRu ? "Обработать заново" : "Retry processing"}
             </Button>
             <Button
               variant="ghost"
@@ -245,7 +268,9 @@ export function MaterialIntakeReviewDialog({
                 onOpenChange(false);
               }}
             >
-              {isRu ? "Сохранить" : "Save"}
+              {prepared.isVisualSource
+                ? isRu ? "Сохранить и перейти к OCR" : "Save for OCR"
+                : isRu ? "Сохранить" : "Save"}
             </Button>
           </div>
         </DialogFooter>
@@ -254,7 +279,12 @@ export function MaterialIntakeReviewDialog({
   );
 }
 
-function warningCopy(status: string, isRu: boolean): string | undefined {
+function warningCopy(status: string, isRu: boolean, isVisualSource: boolean): string | undefined {
+  if (isVisualSource && status === "no_text") {
+    return isRu
+      ? "Фото будет храниться локально в этом браузере. OCR создаст отдельный редактируемый черновик; распознавание не считается подтверждённым, пока ты его не применишь."
+      : "The photo will be stored locally in this browser. OCR creates a separate editable draft; recognition is not trusted until you apply it.";
+  }
   switch (status) {
     case "partial":
       return isRu
@@ -266,12 +296,12 @@ function warningCopy(status: string, isRu: boolean): string | undefined {
         : "This format is not fully supported. You may save the record, but AI will not receive its content.";
     case "no_text":
       return isRu
-        ? "В файле не найден текст. Возможно, позже потребуется OCR."
-        : "No text was found. OCR may be required later.";
+        ? "В файле не найден текст. Может потребоваться OCR."
+        : "No text was found. OCR may be required.";
     case "error":
       return isRu
-        ? "Во время извлечения произошла ошибка. Сохраняй только если запись всё равно нужна."
-        : "Extraction failed. Save only if you still need the source record.";
+        ? "Во время обработки произошла ошибка. Сохраняй только если запись всё равно нужна."
+        : "Processing failed. Save only if you still need the source record.";
     default:
       return undefined;
   }

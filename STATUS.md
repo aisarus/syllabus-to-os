@@ -28,27 +28,30 @@ Last updated: 2026-07-12
 - `P0-018 Add Quiz Studio v1` — complete and verified.
 - `P0-019 Remove remaining fake and disconnected UI` — complete and verified.
 - `P0-020 Create evaluation fixtures` — complete and verified.
-- `P0-021 Add durable image intake and OCR review` — next.
+- `P0-021 Add durable image intake and OCR review` — complete and verified.
+- `P0-022 Validate live OCR and harden visual-source reliability` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Deterministic evaluation and OCR readiness
+### Durable image intake and reviewed OCR/HTR
 
-- Added a versioned offline evaluation manifest with explicit per-suite thresholds.
-- Added deterministic scoring for structured syllabus extraction, grounded generation and multilingual terminology preservation.
-- Added recorded positive baselines plus deliberately bad negative controls; CI fails if a negative control passes.
-- Added OCR fixtures for printed Hebrew, handwritten Hebrew, handwritten mathematics and unreadable-photo abstention.
-- Added OCR metrics for character error rate, word error rate, critical-token recall, math-expression recall, line order and hallucinated-token rate.
-- Added explicit review and abstention gates so handwriting and unreadable photos cannot pass by returning confident invented text.
-- Added support for external candidate directories so private or licensed real-photo packs can be evaluated without committing personal notebook images.
-- Added a typed OCR/HTR draft contract with ordered regions, source style, languages, bounding boxes, confidence, uncertain tokens, warnings and normalized mathematics.
-- Added normalization, validation and OCR-region-to-material-chunk helpers for the future live provider integration.
-- Documented the OCR pipeline, handwriting-specific risks, math preservation rules, durable image-storage boundary and privacy policy.
-- Added `npm run eval`, `npm run eval:ocr`, `npm run eval:json` and `npm run verify:evaluation-fixtures`.
-- Added fixture verification and deterministic evaluation to canonical local checks and CI.
-- Did not claim live OCR support: the current task creates the benchmark and integration contract, while actual photo storage/provider/review UI remains P0-021.
+- Moved OCR, handwriting and photographed mathematics from a late optional phase into the core universal-intake and Material Workspace roadmap.
+- Added JPEG, PNG and WebP intake from Dashboard and Materials through the existing multi-file queue.
+- Added durable browser-local IndexedDB storage for original images and OCR drafts, separate from localStorage text entities.
+- Added honest image-intake review with a source preview before material persistence.
+- Added browser image preparation with orientation-aware decoding, edge resizing and payload limits.
+- Added a multimodal server boundary and `/api/ai/ocr-image` route using the existing Lovable AI Gateway configuration.
+- Added strict OCR/HTR prompting for printed Hebrew, handwriting, whiteboards, mixed RTL/LTR pages and photographed mathematics.
+- Explicitly forbade solving exercises, completing unreadable text or inventing mathematical symbols and steps.
+- Added side-by-side source-image and OCR-region review inside the material flow.
+- Added editable region type, text, order, confidence display, uncertain tokens and normalized mathematical expressions.
+- Added manual transcription when the AI provider is unavailable or the user prefers to transcribe directly.
+- Kept OCR output as a separate draft until the user explicitly applies it.
+- Applying an approved draft creates normal material chunks and updates searchable source text without silently overwriting it during OCR reruns.
+- Added a permanent `verify:image-ocr-contract` check to local verification and CI.
+- Rewrote `ROADMAP.md` so OCR/HTR belongs to Phases 1–2; Phase 7 now covers audio, video and advanced visual understanding.
 
 ## Verification state
 
@@ -61,6 +64,7 @@ Last updated: 2026-07-12
 - Quiz Studio v1 contract verification passed.
 - Core UI honesty and actionability contract verification passed.
 - Evaluation fixture coverage verification passed.
+- Durable image intake and OCR review contract verification passed.
 - Deterministic syllabus, grounding, multilingual and OCR evaluation suites passed.
 - TypeScript passed.
 - ESLint passed.
@@ -68,12 +72,13 @@ Last updated: 2026-07-12
 
 ## Next execution target
 
-1. Add durable local image storage so a photographed page survives reload and can be retried.
-2. Connect a multimodal OCR/HTR provider behind the `ocr-contract.ts` boundary.
-3. Build a correction screen with image regions, confidence, uncertain tokens and mixed RTL/LTR support.
-4. Preserve both visible handwritten math and normalized expressions before creating material chunks.
-5. Run the live provider against a private real-photo pack and require the P0-020 thresholds before release.
+1. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
+2. Save provider candidates and enforce the P0-020 CER, WER, critical-token, math-expression, line-order and abstention thresholds.
+3. Add image crop, rotation, deskew and contrast preparation for difficult phone photographs.
+4. Add region-coordinate overlays so selecting OCR text highlights the exact image area.
+5. Make material deletion and full-data reset remove corresponding IndexedDB image and OCR records.
+6. Document and surface that current JSON backup does not yet include original image blobs.
 
 ## Blockers
 
-- Live OCR requires a deliberate provider choice and durable image/blob storage; neither is faked in the current build.
+- Code, contracts, typecheck, lint and production build pass, but real OCR quality is not yet verified because the repository intentionally contains no private student notebook photographs.

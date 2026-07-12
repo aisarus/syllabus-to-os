@@ -71,6 +71,9 @@ jobs:
       - name: Verify evaluation fixture coverage
         run: npm run verify:evaluation-fixtures
 
+      - name: Verify image OCR contract
+        run: npm run verify:image-ocr-contract
+
       - name: Run deterministic evaluation suites
         run: npm run eval
 
