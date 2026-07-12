@@ -4,6 +4,9 @@ import { resolve } from "node:path";
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
 const [
   visualStore,
+  lifecycle,
+  appRoute,
+  dataRoute,
   intake,
   reviewDialog,
   queue,
@@ -18,6 +21,9 @@ const [
   roadmap,
 ] = await Promise.all([
   read("src/lib/visual-source-store.ts"),
+  read("src/components/visual-source-lifecycle.tsx"),
+  read("src/routes/app.tsx"),
+  read("src/routes/app.data.tsx"),
   read("src/lib/material-intake.ts"),
   read("src/components/material-intake-review-dialog.tsx"),
   read("src/components/material-intake-queue.tsx"),
@@ -48,9 +54,34 @@ for (const marker of [
   "getMaterialVisualSource",
   "putMaterialOCRDraft",
   "getMaterialOCRDraft",
+  "deleteMaterialVisualData",
+  "clearAllVisualSourceData",
+  "pruneVisualSourceData",
+  "getVisualSourceStorageStats",
   "MAX_VISUAL_SOURCE_BYTES",
 ]) {
   requireMarker(visualStore, marker, `Durable visual-source storage is missing: ${marker}`);
+}
+
+for (const marker of [
+  "export function VisualSourceLifecycle",
+  "pruneVisualSourceData(materialIds)",
+  "Could not prune orphaned Lamdan visual data",
+]) {
+  requireMarker(lifecycle, marker, `Visual-source lifecycle cleanup is missing: ${marker}`);
+}
+requireMarker(appRoute, "<VisualSourceLifecycle />", "The app shell no longer activates visual-source cleanup.");
+
+for (const marker of [
+  "getVisualSourceStorageStats",
+  "clearAllVisualSourceData",
+  "исходные фото в неё не входят",
+  "original images are not included",
+  "JSON-копия их не содержит",
+  "source images and OCR drafts",
+  "IndexedDB",
+]) {
+  requireMarker(dataRoute, marker, `Data management is not honest about visual sources: ${marker}`);
 }
 
 for (const marker of [
@@ -119,7 +150,7 @@ for (const marker of [
 }
 
 requireMarker(ocrRoute, 'createFileRoute("/api/ai/ocr-image")', "OCR API route is missing.");
-requireMarker(ocrRoute, 'runOCRGeneration(body)', "OCR API route no longer uses the trusted OCR pipeline.");
+requireMarker(ocrRoute, "runOCRGeneration(body)", "OCR API route no longer uses the trusted OCR pipeline.");
 
 for (const marker of [
   "generateGeminiVisionJSON",
@@ -146,4 +177,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Durable image intake, OCR/HTR review and roadmap integration contract passed.");
+console.log("Durable image intake, OCR/HTR review, lifecycle cleanup and backup honesty passed.");
