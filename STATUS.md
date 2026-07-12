@@ -8,51 +8,46 @@ Last updated: 2026-07-12
 
 ## Task status
 
-- `P0-001 Add continuous integration` — implemented.
-- `P0-002 Audit and normalize all active routes` — implemented for the current shell; route inventory is documented in `docs/ROUTE_AUDIT.md`.
-- `P0-003 Remove tracking-first product flows` — implemented in the primary shell and core course workspace. Deferred route data remains intact.
-- `P0-004 Create one shared intake service` — implemented; Dashboard and Materials now use `src/lib/material-intake.ts`.
-- `P0-005 Build multi-file upload queue` — next after CI is green.
+- `P0-001 Add continuous integration` — complete and verified.
+- `P0-002 Audit and normalize all active routes` — complete for the current shell.
+- `P0-003 Remove tracking-first product flows` — complete in primary navigation and the course workspace.
+- `P0-004 Create one shared intake service` — complete and verified.
+- `P0-005 Build multi-file upload queue` — implemented for the global Dashboard intake; validation in progress.
+- `P0-006 Add duplicate detection` — next after queue validation.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Stable product foundation
+### Verified baseline
 
-- Classified all `/app` routes as core, system, deferred or legacy-hidden.
-- Normalized Courses list and course detail layouts for desktop and mobile.
-- Removed the topic progress bar, upcoming events and assignment tracking from the core course workspace without deleting stored data.
-- Kept only Materials, Notes, Flashcards and Quizzes as course-content destinations.
-- Preserved direct URLs for deferred routes.
+- Pull-request CI passed documentation verification, TypeScript, ESLint and the production build.
+- The validated status update was squash-merged into `main`.
 
-### Shared material intake
+### Multi-file material queue
 
-- Added `src/lib/material-intake.ts`.
-- Centralized filename/content material-type inference.
-- Centralized title and tag normalization.
-- Centralized persistence of extraction metadata and chunks.
-- Added structured outcomes: success, partial, unsupported and error.
-- Routed Dashboard file uploads through the shared service.
-- Routed Materials file uploads and pasted text through the same service.
-- Kept failed and unsupported sources honest by storing their real processing status instead of marking them ready.
-- Improved Materials filters, dialogs and narrow-screen layout while removing hardcoded fallback copy from the visible UI.
+- Added a session-level queue provider mounted above the `/app` shell.
+- Added multi-file selection and drag-and-drop on Dashboard.
+- Added controlled extraction concurrency of two files.
+- Added per-file states: queued, extracting, ready, partial, unsupported, error and cancelled.
+- Added retry, cancel, remove and clear-finished controls.
+- Kept the queue visible across route navigation during the same browser session.
+- Added a collapsible responsive queue panel.
+- Made retry idempotent by updating the existing material record and replacing its chunks instead of creating another saved material.
+- Preserved store schema and existing localStorage data.
 
 ## Verification state
 
-- Store schema and localStorage compatibility are unchanged.
-- No calendar, assignment, study-session, presentation or user-content data was deleted.
-- Pull-request CI confirmed documentation verification and TypeScript pass.
-- The first validation run failed at ESLint; the production build was skipped by the original workflow.
-- CI now continues through build and uploads `lint-output.txt`, `build-output.txt` and a generated `prettier-fix.patch` as the `ci-diagnostics` artifact when a quality gate fails.
-- A new pull-request run is pending. Do not claim a clean build until it succeeds.
+- A pull request from `agent/validate-multifile-queue` is used to run documentation verification, typecheck, lint and production build against the current queue implementation.
+- Do not mark `P0-005` complete until that run succeeds and the Materials page is reviewed for direct multi-file entry.
 
 ## Next execution target
 
-1. Download the diagnostics artifact from the next pull-request run if lint or build fails.
-2. Apply the exact formatting or code fixes and rerun CI.
-3. Start `P0-005` with a session-level multi-file queue and controlled concurrency only after the current baseline is green.
+1. Fix any concrete CI failure from the queue validation pull request.
+2. Route the Materials upload action into the same global multi-file queue.
+3. Mark `P0-005` complete only after both Dashboard and Materials can enqueue multiple files and retry remains idempotent.
+4. Begin exact and likely duplicate detection as `P0-006`.
 
 ## Blockers
 
-None. The remaining validation work is mechanical and driven by CI output.
+None unless CI reports a concrete failure.
