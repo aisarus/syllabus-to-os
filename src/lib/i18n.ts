@@ -1165,6 +1165,7 @@ const en: Dict = {
   calendarEyebrow: "This week",
   calendarSubtitle: "A quiet overview of classes, deadlines and study time.",
   weekViewLabel: "Week",
+  timeColLabel: "TIME",
   monthViewLabel: "Month",
   calendarQuote: "Discipline is choosing between what you want now and what you want most.",
   weekdayMon: "Mon",
