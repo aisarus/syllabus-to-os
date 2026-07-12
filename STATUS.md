@@ -13,7 +13,7 @@ Last updated: 2026-07-12
 - `P0-003 Remove tracking-first product flows` — complete in primary navigation and the course workspace.
 - `P0-004 Create one shared intake service` — complete and verified.
 - `P0-005 Build multi-file upload queue` — complete and verified on Dashboard and Materials.
-- `P0-006 Add duplicate detection` — exact duplicate preflight implemented; validation in progress.
+- `P0-006 Add duplicate detection` — exact duplicate preflight implemented; typecheck fix in progress.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
@@ -33,16 +33,18 @@ Last updated: 2026-07-12
 
 ## Verification state
 
-- A pull request from `agent/validate-exact-duplicates` runs documentation verification, TypeScript, ESLint and production build against the current implementation.
-- Do not mark exact duplicate detection complete until that run succeeds.
+- Documentation verification passed in the first validation run.
+- The first validation run failed at TypeScript before lint and build.
+- CI now captures typecheck, lint and build diagnostics in one artifact instead of skipping later checks.
+- A new pull-request run is pending and will provide the exact compiler output if the failure remains.
 
 ## Next execution target
 
-1. Fix any concrete CI failure.
-2. Mark exact duplicate preflight verified.
+1. Read the captured TypeScript diagnostic and fix it.
+2. Mark exact duplicate preflight verified only after the full CI suite passes.
 3. Add likely-duplicate detection using filename, size and normalized extracted text without automatically merging records.
 4. Remove or redirect the remaining legacy single-file Materials upload path so every file upload uses the same duplicate guard.
 
 ## Blockers
 
-None unless CI reports a concrete failure.
+None. The current failure is a concrete compiler issue, not a product blocker.
