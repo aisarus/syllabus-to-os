@@ -29,9 +29,13 @@ import {
   rememberMaterialFingerprint,
 } from "@/lib/material-fingerprints";
 import {
-  intakeFile,
+  normalizeComparableFileName,
+  normalizeComparableText,
+  persistPreparedFile,
+  prepareFileIntake,
   type MaterialIntakeOptions,
   type MaterialIntakeOutcome,
+  type PreparedFileIntake,
 } from "@/lib/material-intake";
 import { uid, useData, type AppData } from "@/lib/store";
 
@@ -47,12 +51,15 @@ export type MaterialQueueStatus =
   | "skipped";
 
 type DuplicateDecision = "keep_both" | "replace";
+type DuplicateMatch = "exact" | "likely";
 
 interface QueueDuplicate {
   kind: "material" | "queue";
+  match: DuplicateMatch;
   id: string;
   title: string;
   canReplace: boolean;
+  reason: "fingerprint" | "content" | "metadata";
 }
 
 export interface MaterialQueueItem {
@@ -64,6 +71,7 @@ export interface MaterialQueueItem {
   message?: string;
   materialId?: string;
   fingerprint?: string;
+  prepared?: PreparedFileIntake;
   duplicate?: QueueDuplicate;
   duplicateDecision?: DuplicateDecision;
   options: Omit<MaterialIntakeOptions, "existingMaterialId">;
@@ -138,27 +146,15 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
     try {
       const fingerprint = item.fingerprint ?? (await fingerprintFile(item.file));
       if (fingerprint && !item.duplicateDecision) {
-        const duplicate = findExactDuplicate(
+        const exactDuplicate = findExactDuplicate(
           fingerprint,
           item,
           dataRef.current,
           itemsRef.current,
           fingerprintsInFlightRef.current,
         );
-        if (duplicate) {
-          setItems((current) =>
-            current.map((candidate) =>
-              candidate.id === id
-                ? {
-                    ...candidate,
-                    status: "duplicate",
-                    fingerprint,
-                    duplicate,
-                    message: undefined,
-                  }
-                : candidate,
-            ),
-          );
+        if (exactDuplicate) {
+          pauseForDuplicate(id, fingerprint, undefined, exactDuplicate, setItems);
           return;
         }
       }
@@ -168,11 +164,25 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
         ownedFingerprint = fingerprint;
       }
 
+      const prepared = item.prepared ?? (await prepareFileIntake(item.file));
+      if (!item.duplicateDecision) {
+        const likelyDuplicate = findLikelyDuplicate(
+          prepared,
+          item,
+          dataRef.current,
+          itemsRef.current,
+        );
+        if (likelyDuplicate) {
+          pauseForDuplicate(id, fingerprint, prepared, likelyDuplicate, setItems);
+          return;
+        }
+      }
+
       const replaceMaterialId =
         item.duplicateDecision === "replace" && item.duplicate?.kind === "material"
           ? item.duplicate.id
           : undefined;
-      const result = await intakeFile(item.file, {
+      const result = persistPreparedFile(prepared, {
         ...item.options,
         existingMaterialId: replaceMaterialId ?? item.materialId,
       });
@@ -186,6 +196,7 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
                 message: result.message,
                 materialId: result.material.id,
                 fingerprint,
+                prepared: undefined,
                 duplicate: undefined,
               }
             : candidate,
@@ -261,6 +272,7 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
               ...item,
               status: "skipped",
               message: undefined,
+              prepared: undefined,
               duplicateDecision: undefined,
             };
           }
@@ -354,8 +366,8 @@ function MaterialIntakeQueuePanel() {
           <p className="mt-0.5 text-xs text-muted-foreground">
             {items.some((item) => item.status === "duplicate")
               ? isRu
-                ? "Найдены дубликаты — выбери действие"
-                : "Duplicates found — choose an action"
+                ? "Найдены возможные дубликаты — выбери действие"
+                : "Possible duplicates found — choose an action"
               : activeCount > 0
                 ? isRu
                   ? `Обрабатывается: ${activeCount}`
@@ -473,11 +485,11 @@ function QueueRow({
       {item.status === "duplicate" && item.duplicate && (
         <div className="ms-10 mt-2 rounded-md border border-yellow-500/25 bg-yellow-500/5 p-2.5">
           <p className="text-xs text-foreground">
-            {isRu ? "Точная копия: " : "Exact duplicate: "}
+            {duplicateHeading(item.duplicate.match, isRu)}
             <strong>{item.duplicate.title}</strong>
           </p>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            {isRu
+            {duplicateReasonCopy(item.duplicate.reason, isRu)} {isRu
               ? "Lamdan ничего не объединяет автоматически."
               : "Lamdan never merges sources automatically."}
           </p>
@@ -528,7 +540,7 @@ function queueStatusCopy(status: MaterialQueueStatus, isRu: boolean): string {
   const copy: Record<MaterialQueueStatus, [string, string]> = {
     queued: ["В очереди", "Queued"],
     extracting: ["Проверяю и извлекаю", "Checking and extracting"],
-    duplicate: ["Точный дубликат", "Exact duplicate"],
+    duplicate: ["Нужна проверка", "Needs review"],
     ready: ["Готово", "Ready"],
     partial: ["Частично", "Partial"],
     unsupported: ["Не поддерживается", "Unsupported"],
@@ -541,6 +553,29 @@ function queueStatusCopy(status: MaterialQueueStatus, isRu: boolean): string {
 
 function isActiveStatus(status: MaterialQueueStatus): boolean {
   return status === "queued" || status === "extracting" || status === "duplicate";
+}
+
+function pauseForDuplicate(
+  id: string,
+  fingerprint: string | undefined,
+  prepared: PreparedFileIntake | undefined,
+  duplicate: QueueDuplicate,
+  setItems: React.Dispatch<React.SetStateAction<MaterialQueueItem[]>>,
+) {
+  setItems((current) =>
+    current.map((candidate) =>
+      candidate.id === id
+        ? {
+            ...candidate,
+            status: "duplicate",
+            fingerprint,
+            prepared,
+            duplicate,
+            message: undefined,
+          }
+        : candidate,
+    ),
+  );
 }
 
 function findExactDuplicate(
@@ -556,9 +591,11 @@ function findExactDuplicate(
     if (material) {
       return {
         kind: "material",
+        match: "exact",
         id: material.id,
         title: material.title,
         canReplace: canSafelyReplaceMaterial(data, material.id),
+        reason: "fingerprint",
       };
     }
   }
@@ -574,9 +611,73 @@ function findExactDuplicate(
   if (!queueDuplicate) return undefined;
   return {
     kind: "queue",
+    match: "exact",
     id: queueDuplicate.id,
     title: queueDuplicate.name,
     canReplace: false,
+    reason: "fingerprint",
+  };
+}
+
+function findLikelyDuplicate(
+  prepared: PreparedFileIntake,
+  currentItem: MaterialQueueItem,
+  data: AppData,
+  queueItems: MaterialQueueItem[],
+): QueueDuplicate | undefined {
+  const comparableName = normalizeComparableFileName(prepared.fileName);
+  const comparableText = normalizeComparableText(prepared.extraction.rawText);
+
+  for (const material of data.materials) {
+    if (material.id === currentItem.materialId) continue;
+    const sameContent =
+      comparableText.length >= 120 &&
+      normalizeComparableText(material.rawText) === comparableText;
+    const sameMetadata =
+      prepared.fileSize > 0 &&
+      material.fileSize === prepared.fileSize &&
+      normalizeComparableFileName(material.fileName || material.title) === comparableName;
+    if (!sameContent && !sameMetadata) continue;
+    return {
+      kind: "material",
+      match: "likely",
+      id: material.id,
+      title: material.title,
+      canReplace: canSafelyReplaceMaterial(data, material.id),
+      reason: sameContent ? "content" : "metadata",
+    };
+  }
+
+  const queueDuplicate = queueItems.find((candidate) => {
+    if (
+      candidate.id === currentItem.id ||
+      candidate.status === "cancelled" ||
+      candidate.status === "skipped"
+    ) {
+      return false;
+    }
+    const sameMetadata =
+      candidate.size === prepared.fileSize &&
+      normalizeComparableFileName(candidate.name) === comparableName;
+    const candidateText = candidate.prepared
+      ? normalizeComparableText(candidate.prepared.extraction.rawText)
+      : "";
+    const sameContent =
+      comparableText.length >= 120 && candidateText.length >= 120 && candidateText === comparableText;
+    return sameContent || sameMetadata;
+  });
+  if (!queueDuplicate) return undefined;
+  const sameContent =
+    comparableText.length >= 120 &&
+    queueDuplicate.prepared !== undefined &&
+    normalizeComparableText(queueDuplicate.prepared.extraction.rawText) === comparableText;
+  return {
+    kind: "queue",
+    match: "likely",
+    id: queueDuplicate.id,
+    title: queueDuplicate.name,
+    canReplace: false,
+    reason: sameContent ? "content" : "metadata",
   };
 }
 
@@ -588,4 +689,18 @@ function canSafelyReplaceMaterial(data: AppData, materialId: string): boolean {
     data.quizzes.some((quiz) => quiz.materialId === materialId) ||
     data.presentationOutlines.some((outline) => outline.materialId === materialId)
   );
+}
+
+function duplicateHeading(match: DuplicateMatch, isRu: boolean): string {
+  if (match === "exact") return isRu ? "Точная копия: " : "Exact duplicate: ";
+  return isRu ? "Возможная копия: " : "Possible duplicate: ";
+}
+
+function duplicateReasonCopy(reason: QueueDuplicate["reason"], isRu: boolean): string {
+  const copy: Record<QueueDuplicate["reason"], [string, string]> = {
+    fingerprint: ["Содержимое файла полностью совпадает.", "The file contents match exactly."],
+    content: ["Извлечённый текст совпадает.", "The extracted text matches."],
+    metadata: ["Совпадают имя и размер файла.", "The file name and size match."],
+  };
+  return copy[reason][isRu ? 0 : 1];
 }
