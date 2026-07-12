@@ -13,23 +13,24 @@ Last updated: 2026-07-12
 - `P0-003 Remove tracking-first product flows` — complete in primary navigation and the course workspace.
 - `P0-004 Create one shared intake service` — complete and verified.
 - `P0-005 Build multi-file upload queue` — complete and verified on Dashboard and Materials.
-- `P0-006 Add duplicate detection` — exact duplicate preflight complete and verified; likely-duplicate detection is next.
+- `P0-006 Add duplicate detection` — complete and verified across exact, likely, queue and legacy upload paths.
+- `P0-007 Add intake review and correction` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Exact duplicate preflight
+### Duplicate review
 
-- Added persistent SHA-256 fingerprints without changing the Lamdan store schema.
-- Detects a file already saved in the material library.
-- Detects identical files submitted in the same active queue.
-- Pauses the duplicate item instead of merging or saving it automatically.
-- Offers explicit choices: skip or keep both.
-- Offers replace only when the existing material has no linked notes, cards, quizzes, outlines or output history.
-- Preserves idempotent retry behavior.
-- Keeps stale fingerprint entries harmless when their material no longer exists.
-- Works through the shared queue used by Dashboard and the Materials multi-file launcher.
+- Exact matches use persistent SHA-256 fingerprints.
+- Likely matches compare normalized file names and sizes.
+- Likely matches also compare normalized extracted text when enough text is available.
+- Extraction is separated from persistence so a possible duplicate can be reviewed before any material record is saved.
+- Prepared extraction is reused after the user chooses keep both or safe replace, avoiding a second extraction pass.
+- The queue never merges automatically.
+- Explicit queue choices remain skip, keep both and replace only when no linked outputs can be orphaned.
+- Dashboard and the Materials multi-file launcher use the same guarded queue.
+- The remaining legacy single-file Materials upload performs the same exact and likely checks and requires an explicit keep-both confirmation before persistence.
 
 ## Verification state
 
@@ -37,13 +38,14 @@ Last updated: 2026-07-12
 - TypeScript passed.
 - ESLint passed.
 - Production build passed.
-- CI now captures typecheck, lint and build diagnostics together when any gate fails.
+- The successful run covers likely matching, extraction-before-persistence and the guarded legacy upload path together.
 
 ## Next execution target
 
-1. Add likely-duplicate detection using filename, size and normalized extracted text without automatically merging records.
-2. Remove or redirect the remaining legacy single-file Materials upload path so every file upload uses the same duplicate guard.
-3. Mark `P0-006` fully complete after both exact and likely duplicate behavior are validated.
+1. Begin `P0-007` intake review and correction.
+2. Add editable title, material type, course, topic and tags before persistence.
+3. Show extracted-text preview and partial/unsupported warnings.
+4. Support save, save without course, retry and discard without creating hidden records.
 
 ## Blockers
 
