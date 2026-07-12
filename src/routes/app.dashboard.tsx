@@ -20,42 +20,8 @@ export const Route = createFileRoute("/app/dashboard")({
   component: Dashboard,
 });
 
-const fallbackCourses = {
-  ru: [
-    {
-      id: "code",
-      code: "6.15",
-      title: "Введение в программирование",
-      progress: 72,
-      tone: "forest" as const,
-    },
-    {
-      id: "arch",
-      code: "1.59",
-      title: "Архитектура компьютеров и ОС",
-      progress: 54,
-      tone: "rust" as const,
-    },
-    { id: "data", code: "1.62", title: "Структуры данных", progress: 81, tone: "ochre" as const },
-  ],
-  en: [
-    {
-      id: "code",
-      code: "6.15",
-      title: "Introduction to Programming",
-      progress: 72,
-      tone: "forest" as const,
-    },
-    {
-      id: "arch",
-      code: "1.59",
-      title: "Computer Architecture & OS",
-      progress: 54,
-      tone: "rust" as const,
-    },
-    { id: "data", code: "1.62", title: "Data Structures", progress: 81, tone: "ochre" as const },
-  ],
-};
+
+
 
 function Dashboard() {
   const data = useData();
