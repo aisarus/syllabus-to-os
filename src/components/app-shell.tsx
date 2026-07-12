@@ -34,10 +34,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type NavKey = keyof Dict;
+type LabelKey = keyof Dict;
 
-const primaryNav = [
-  { to: "/app/dashboard", labelKey: "navHome", icon: Home },
+const primaryNav: ReadonlyArray<{ to: string; labelKey: LabelKey; icon: typeof Home }> = [
+  { to: "/app/dashboard", labelKey: "dashboard", icon: Home },
   { to: "/app/courses", labelKey: "courses", icon: BookOpen },
   { to: "/app/materials", labelKey: "materials", icon: FolderOpen },
   { to: "/app/notes", labelKey: "notes", icon: FileText },
@@ -47,37 +47,44 @@ const primaryNav = [
   { to: "/app/calendar", labelKey: "calendar", icon: CalendarDays },
   { to: "/app/study-plan", labelKey: "studyPlan", icon: MapPinned },
   { to: "/app/progress", labelKey: "progress", icon: TrendingUp },
-  { to: "/app/study-session", labelKey: "navStudySession", icon: TimerReset },
+  { to: "/app/study-session", labelKey: "studySession", icon: TimerReset },
   { to: "/app/settings", labelKey: "settings", icon: Settings },
-] as const satisfies ReadonlyArray<{ to: string; labelKey: NavKey; icon: typeof Home }>;
+];
 
-const utilityNav = [
-  { to: "/app/search", labelKey: "search", icon: Search },
-  { to: "/app/import-syllabus", labelKey: "navImportSyllabus", icon: FileInput },
+const utilityNav: ReadonlyArray<{ to: string; labelKey: LabelKey; icon: typeof Home }> = [
+  { to: "/app/search", labelKey: "searchNav", icon: Search },
+  { to: "/app/import-syllabus", labelKey: "importSyllabus", icon: FileInput },
   { to: "/app/presentations", labelKey: "presentations", icon: Presentation },
   { to: "/app/data", labelKey: "data", icon: Database },
-] as const satisfies ReadonlyArray<{ to: string; labelKey: NavKey; icon: typeof Home }>;
+];
 
 function BrandPlaque() {
-  const { t } = useApp();
+  const { lang } = useApp();
   return (
-    <Link to="/app/dashboard" className="brand-plaque" aria-label={t.lamdanHomeAria}>
+    <Link
+      to="/app/dashboard"
+      className="brand-plaque"
+      aria-label={lang === "ru" ? "Главная Lamdan" : "Lamdan home"}
+    >
       <span className="brand-plaque__seal">
         <Leaf size={15} />
       </span>
       <span>
-        <strong>{t.appName}</strong>
-        <small>{t.studyRoomSubtitle}</small>
+        <strong>Lamdan</strong>
+        <small>{lang === "ru" ? "учебная комната" : "study room"}</small>
       </span>
     </Link>
   );
 }
 
 function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
-  const { t } = useApp();
+  const { t, lang } = useApp();
   return (
     <>
-      <nav className="cabinet-nav" aria-label={t.mainNavigationAria}>
+      <nav
+        className="cabinet-nav"
+        aria-label={lang === "ru" ? "Основная навигация" : "Main navigation"}
+      >
         {primaryNav.map((item) => {
           const active = pathname === item.to || pathname.startsWith(`${item.to}/`);
           const Icon = item.icon;
@@ -91,22 +98,22 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
               <span className="cabinet-nav__icon">
                 <Icon size={15} strokeWidth={1.7} />
               </span>
-              <span>{t[item.labelKey] as string}</span>
+              <span>{t[item.labelKey]}</span>
               <ChevronRight className="cabinet-nav__arrow" size={13} />
             </Link>
           );
         })}
       </nav>
 
-      <details className="utility-drawer">
-        <summary>{t.navMoreTools}</summary>
+      <details className="utility-drawer" open>
+        <summary>{lang === "ru" ? "Другие инструменты" : "More tools"}</summary>
         <div>
           {utilityNav.map((item) => {
             const Icon = item.icon;
             return (
               <Link key={item.to} to={item.to as never} onClick={onNavigate}>
                 <Icon size={14} />
-                {t[item.labelKey] as string}
+                {t[item.labelKey]}
               </Link>
             );
           })}
@@ -117,23 +124,34 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { lang, setLang, t } = useApp();
+  const { lang, setLang } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="study-app-shell">
-      <aside className="study-cabinet" aria-label={t.mainNavigationAria}>
+      <div className="study-app-shell__top-trim" aria-hidden="true" />
+      <div className="study-app-shell__bottom-plinth" aria-hidden="true" />
+
+      <aside className="study-cabinet" aria-label="Lamdan navigation cabinet">
+        <span className="study-cabinet__sconce" aria-hidden="true" />
         <div className="study-cabinet__top">
           <BrandPlaque />
         </div>
         <div className="study-cabinet__vine study-cabinet__vine--left" aria-hidden="true" />
         <div className="study-cabinet__vine study-cabinet__vine--right" aria-hidden="true" />
         <NavList pathname={pathname} />
-        <blockquote>{`“${t.sidebarQuote}”`}</blockquote>
+        <blockquote>
+          {lang === "ru"
+            ? "«Всё, что тебе нужно, уже стоит у тебя на полке.»"
+            : "“Everything you need is already on the shelf.”"}
+        </blockquote>
         <div className="study-cabinet__footer">
           <Select value={lang} onValueChange={(v) => setLang(v as Lang)}>
-            <SelectTrigger className="cabinet-language" aria-label={t.language}>
+            <SelectTrigger
+              className="cabinet-language"
+              aria-label={lang === "ru" ? "Язык" : "Language"}
+            >
               <Languages size={13} />
               <SelectValue />
             </SelectTrigger>
@@ -142,16 +160,17 @@ export function AppShell({ children }: { children: ReactNode }) {
               <SelectItem value="en">EN</SelectItem>
             </SelectContent>
           </Select>
-          <span>{t.localWorkspace}</span>
+          <span>{lang === "ru" ? "локальное пространство" : "local workspace"}</span>
         </div>
       </aside>
 
       <div className="study-stage">
+        <div className="study-stage__side-shadow" aria-hidden="true" />
         <header className="mobile-study-header">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
-            aria-label={t.openNavigationAria}
+            aria-label={lang === "ru" ? "Открыть навигацию" : "Open navigation"}
           >
             <Menu size={21} />
           </button>
@@ -166,7 +185,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <button
             className="mobile-cabinet-layer__veil"
             onClick={() => setMobileOpen(false)}
-            aria-label={t.closeNavigationAria}
+            aria-label={lang === "ru" ? "Закрыть навигацию" : "Close navigation"}
           />
           <aside className="mobile-cabinet">
             <div className="mobile-cabinet__header">
@@ -174,7 +193,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                aria-label={t.closeMenuAria}
+                aria-label={lang === "ru" ? "Закрыть меню" : "Close menu"}
               >
                 <X size={20} />
               </button>
