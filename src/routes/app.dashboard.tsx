@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
 import { useData, store, loadSampleBarIlan } from "@/lib/store";
