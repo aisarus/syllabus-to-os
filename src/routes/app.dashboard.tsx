@@ -13,6 +13,8 @@ import {
 import { CourseBook, WoodenShelf, PaperPanel } from "@/components/study-room-ui";
 import { useData } from "@/lib/store";
 import { useApp } from "@/lib/app-context";
+import { courseTone } from "@/lib/course-tone";
+
 
 export const Route = createFileRoute("/app/dashboard")({
   component: Dashboard,
