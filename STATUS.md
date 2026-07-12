@@ -18,7 +18,7 @@ Last updated: 2026-07-12
 - `P0-008 Replace material detail with a true workspace` — complete and verified.
 - `P0-009 Add chunk editing tools` — complete and verified.
 - `P0-010 Add material output history` — complete and verified.
-- `P0-011 Connect AI actions to material selection` — complete; CI validation in progress.
+- `P0-011 Connect AI actions to material selection` — complete and verified.
 - `P0-012 Upgrade AI draft review` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
@@ -33,22 +33,25 @@ Last updated: 2026-07-12
 - Confirmed that an empty source selection cannot be submitted.
 - Confirmed that saved notes, cards and quiz questions preserve `materialId`, course/topic context and `sourceChunkIds`.
 - Confirmed that global AI buttons remain available outside the Material Workspace.
-- Added `verify:ai-source-contract`, a regression check that fails when the selected-source wiring or source-linked save behavior is removed.
+- Added `verify:ai-source-contract`, a regression check that fails when selected-source wiring or source-linked save behavior is removed.
 - Added the contract check to the canonical `npm run check` command and GitHub Actions.
 - Preserved the dependency lockfile, store schema and existing localStorage data.
 
 ## Verification state
 
-- The new source-contract check is part of CI before TypeScript, ESLint and production build.
-- Do not mark `P0-011` verified until the pull-request run passes the contract check and all existing quality gates.
+- Documentation verification passed.
+- Selected-source AI contract verification passed.
+- TypeScript passed.
+- ESLint passed.
+- Production build passed.
 
 ## Next execution target
 
-1. Fix any concrete CI failure in the selected-source contract.
-2. Mark `P0-011` verified after the full suite passes.
-3. Begin `P0-012` with idempotent draft saving and explicit saved state.
-4. Add unsaved-change protection and stronger card/question editing in dependency-safe slices.
+1. Begin `P0-012` with idempotent draft saving and explicit saved state.
+2. Add unsaved-change protection.
+3. Strengthen editing, removal, addition and reordering for cards and quiz questions.
+4. Preserve selected source context after AI failures and retries.
 
 ## Blockers
 
-None unless CI reports a concrete failure.
+None.
