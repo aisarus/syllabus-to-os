@@ -180,16 +180,24 @@ function Dashboard() {
           </div>
           <WoodenShelf className="dashboard-bookshelf">
             <div className="dashboard-books">
-              {courses.map((course) => (
-                <CourseBook
-                  key={course.id}
-                  code={course.code}
-                  title={course.title}
-                  progress={course.progress}
-                  tone={course.tone}
-                  to={data.courses.length ? `/app/courses/${course.id}` : "/app/courses"}
-                />
-              ))}
+              {shelfCourses.length ? (
+                shelfCourses.map((course) => (
+                  <CourseBook
+                    key={course.id}
+                    code={course.code}
+                    title={course.title}
+                    progress={null}
+                    progressLabel={copy.notStarted}
+                    tone={course.tone}
+                    to={`/app/courses/${course.id}`}
+                  />
+                ))
+              ) : (
+                <p className="dashboard-books__empty">
+                  <strong>{copy.emptyShelf}</strong>
+                  <small>{copy.emptyShelfHint}</small>
+                </p>
+              )}
               <Link to="/app/courses" className="all-courses-book">
                 <span>
                   <Plus size={22} />
@@ -199,6 +207,7 @@ function Dashboard() {
               </Link>
             </div>
           </WoodenShelf>
+
         </div>
 
         <div className="dashboard-scene__desk" aria-hidden="true" />
