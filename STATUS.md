@@ -27,30 +27,28 @@ Last updated: 2026-07-12
 - `P0-017 Add Flashcard Studio v1` — complete and verified.
 - `P0-018 Add Quiz Studio v1` — complete and verified.
 - `P0-019 Remove remaining fake and disconnected UI` — complete and verified.
-- `P0-020 Create evaluation fixtures` — next.
+- `P0-020 Create evaluation fixtures` — complete and verified.
+- `P0-021 Add durable image intake and OCR review` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Core UI honesty and release-readiness audit
+### Deterministic evaluation and OCR readiness
 
-- Replaced the remaining status/tracking-first course list with a content-first course library.
-- Removed visible completion status controls and filters from Courses while preserving the underlying compatibility field.
-- Removed silent assignment of manually created courses to the first program.
-- Added explicit optional program selection, course search and real content-derived counts.
-- Added actionable course empty and no-result states.
-- Made course deletion detach and preserve linked materials, notes, flashcards, quizzes and presentation outlines before removing the course and topics.
-- Fixed global note-search results so they open the exact note editor.
-- Added actionable global-search empty and no-result states.
-- Localized the dashboard course-code fallback instead of displaying a hardcoded English label.
-- Added explicit loading, ready and error states plus retry to AI diagnostics.
-- Localized the Settings browser-storage disclosure.
-- Added explicit destructive confirmation before backup import replaces local data.
-- Added real library counts, disabled-action explanations and success/error feedback to data management.
-- Updated the route inventory with verified release-readiness results for every active core and system route.
-- Added a permanent `verify:core-ui-audit` regression check to local checks and CI.
-- Preserved all deferred assignment, calendar, session, progress and presentation data and routes without promoting them to navigation.
+- Added a versioned offline evaluation manifest with explicit per-suite thresholds.
+- Added deterministic scoring for structured syllabus extraction, grounded generation and multilingual terminology preservation.
+- Added recorded positive baselines plus deliberately bad negative controls; CI fails if a negative control passes.
+- Added OCR fixtures for printed Hebrew, handwritten Hebrew, handwritten mathematics and unreadable-photo abstention.
+- Added OCR metrics for character error rate, word error rate, critical-token recall, math-expression recall, line order and hallucinated-token rate.
+- Added explicit review and abstention gates so handwriting and unreadable photos cannot pass by returning confident invented text.
+- Added support for external candidate directories so private or licensed real-photo packs can be evaluated without committing personal notebook images.
+- Added a typed OCR/HTR draft contract with ordered regions, source style, languages, bounding boxes, confidence, uncertain tokens, warnings and normalized mathematics.
+- Added normalization, validation and OCR-region-to-material-chunk helpers for the future live provider integration.
+- Documented the OCR pipeline, handwriting-specific risks, math preservation rules, durable image-storage boundary and privacy policy.
+- Added `npm run eval`, `npm run eval:ocr`, `npm run eval:json` and `npm run verify:evaluation-fixtures`.
+- Added fixture verification and deterministic evaluation to canonical local checks and CI.
+- Did not claim live OCR support: the current task creates the benchmark and integration contract, while actual photo storage/provider/review UI remains P0-021.
 
 ## Verification state
 
@@ -62,17 +60,20 @@ Last updated: 2026-07-12
 - Flashcard Studio v1 contract verification passed.
 - Quiz Studio v1 contract verification passed.
 - Core UI honesty and actionability contract verification passed.
+- Evaluation fixture coverage verification passed.
+- Deterministic syllabus, grounding, multilingual and OCR evaluation suites passed.
 - TypeScript passed.
 - ESLint passed.
 - Production build passed.
 
 ## Next execution target
 
-1. Begin `P0-020` with deterministic evaluation fixtures for syllabus, grounded generation and multilingual content.
-2. Add expected outputs and machine-readable scoring rules.
-3. Add a repeatable evaluation command that never depends on vibes.
-4. Document baseline results and failure categories.
+1. Add durable local image storage so a photographed page survives reload and can be retried.
+2. Connect a multimodal OCR/HTR provider behind the `ocr-contract.ts` boundary.
+3. Build a correction screen with image regions, confidence, uncertain tokens and mixed RTL/LTR support.
+4. Preserve both visible handwritten math and normalized expressions before creating material chunks.
+5. Run the live provider against a private real-photo pack and require the P0-020 thresholds before release.
 
 ## Blockers
 
-None.
+- Live OCR requires a deliberate provider choice and durable image/blob storage; neither is faked in the current build.
