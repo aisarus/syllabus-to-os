@@ -58,7 +58,7 @@ function CalendarPage() {
         </div>
 
         <div className="week-grid">
-          <div className="week-grid__corner">{t.today.toUpperCase()}</div>
+          <div className="week-grid__corner">{t.timeColLabel}</div>
           {days.map(([label, date], index) => (
             <div key={label} className={index === 2 ? "week-day is-today" : "week-day"}>
               <span>{label}</span><strong>{date}</strong>
