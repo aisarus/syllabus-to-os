@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
 import { useData, store, loadSampleBarIlan } from "@/lib/store";
@@ -92,9 +91,32 @@ function Dashboard() {
     data.assignments.length === 0 &&
     data.flashcards.length === 0;
 
+  const hour = new Date().getHours();
+  const greeting = hour < 5
+    ? (t as any).goodNight ?? "Good night"
+    : hour < 12
+      ? (t as any).goodMorning ?? "Good morning"
+      : hour < 18
+        ? (t as any).goodAfternoon ?? "Good afternoon"
+        : (t as any).goodEvening ?? "Good evening";
+  const tagline = (t as any).heroTagline ?? "Focus, learn, and grow — one page at a time.";
+
   return (
     <div className="max-w-6xl mx-auto">
-      <PageHeader title={t.dashboard} />
+      <section className="relative overflow-hidden rounded-2xl border border-border gradient-hero p-8 md:p-10 mb-8 shadow-elegant">
+        <div className="relative z-10 max-w-2xl">
+          <div className="text-[11px] uppercase tracking-[0.2em] text-brass/80 mb-3">
+            {new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
+          </div>
+          <h1 className="font-display text-3xl md:text-5xl font-semibold leading-[1.05] tracking-tight">
+            {greeting},<br />
+            <span className="text-gradient">let&rsquo;s continue your journey.</span>
+          </h1>
+          <p className="mt-4 text-sm text-muted-foreground max-w-md">{tagline}</p>
+        </div>
+        <div className="pointer-events-none absolute -right-16 -bottom-20 h-64 w-64 rounded-full bg-brass/10 blur-3xl" />
+      </section>
+
       {isEmpty ? (
         <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center">
           <p className="text-muted-foreground mb-4">{t.emptyDashboard}</p>
