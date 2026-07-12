@@ -20,42 +20,37 @@ Last updated: 2026-07-12
 - `P0-010 Add material output history` — complete and verified.
 - `P0-011 Connect AI actions to material selection` — complete and verified.
 - `P0-012 Upgrade AI draft review` — complete and verified.
-- `P0-013 Add AI trust and citation layer` — next.
+- `P0-013 Add AI trust and citation layer` — in progress; server trust contract implemented.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Reliable AI draft review
+### AI source trust contract
 
-- Added explicit idle, loading, error, ready and saved states.
-- Added unsaved-change protection for cancel, escape and overlay-close paths.
-- Added an idempotent save lock and a visible confirmation after exactly one save.
-- Preserved selected material, course, topic and chunk context after generation failures and retries.
-- Added draft validity checks that prevent empty notes, cards, questions and presentation structures from being saved.
-- Added complete note title, content and tag editing.
-- Added card creation, deletion, reordering and scoped one-card AI replacement.
-- Added quiz question creation, deletion, reordering and scoped one-question AI replacement.
-- Added editing and validation for question options, correct answers and explanations.
-- Added presentation slide creation, deletion and reordering.
-- Split the implementation into focused draft editors and a reusable draft-session component.
-- Extended the AI regression contract to cover saved state, idempotent save, unsaved-change protection and scoped item regeneration.
+- Added a versioned AI prompt contract (`study-grounding-v1`).
+- Required structured `sourceChunkIds` for notes, flashcards, quiz questions and presentation slides.
+- Validated every returned source chunk ID against the exact chunks included in the request.
+- Removed unknown source IDs and emitted explicit RU/EN warnings instead of accepting fabricated references.
+- Added uncited-item counting and visible warnings when generated items contain no validated selected-source citation.
+- Added explicit `notFoundInSources` behavior and warnings when selected sources are insufficient.
+- Strengthened prompts against fabricated facts, source IDs and page numbers.
+- Added model, prompt version, requested source IDs and rejected source IDs as trust metadata for debugging.
 - Preserved the existing store schema and localStorage data.
 
 ## Verification state
 
-- Documentation verification passed.
-- Selected-source and AI draft review contract verification passed.
-- TypeScript passed.
-- ESLint passed.
-- Production build passed.
+- Repository state, `TASKS.md`, `STATUS.md` and the existing AI architecture were inspected before implementation.
+- The change was isolated to the server AI generation contract; no store or localStorage migration was introduced.
+- Pull request mergeability was verified and PR #13 was squash-merged into `main` as `3ea796f483ea4667317f624dbac262156f2c8d77`.
+- GitHub Actions had not yet reported a workflow run for the commit at the time of this update; CI verification remains pending.
 
 ## Next execution target
 
-1. Begin `P0-013` structured source trust and citation validation.
-2. Validate every returned source chunk ID against the actual request scope.
-3. Show unsupported or uncited generated items honestly.
-4. Add prompt/model metadata for debugging without exposing secrets.
+1. Surface trust warnings and `notFoundInSources` states in the AI draft review UI.
+2. Display supporting chunks for notes as well as cards, questions and slides.
+3. Add regression coverage for unknown IDs, uncited items and prompt/model metadata.
+4. Run and record TypeScript, ESLint, production build and AI trust contract checks.
 
 ## Blockers
 
