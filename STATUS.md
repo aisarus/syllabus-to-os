@@ -24,28 +24,29 @@ Last updated: 2026-07-12
 - `P0-014 Complete syllabus review and confirmation` — complete and verified.
 - `P0-015 Build Course Workspace v1` — complete and verified.
 - `P0-016 Upgrade Notes to a reliable editor` — complete and verified.
-- `P0-017 Add Flashcard Studio v1` — next.
+- `P0-017 Add Flashcard Studio v1` — complete and verified.
+- `P0-018 Add Quiz Studio v1` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Reliable source-linked Notes editor
+### Flashcard Studio v1
 
-- Replaced the compact inline editor with a dedicated persistent note library and detail workspace.
-- Added visible saved, unsaved, saving and error states with debounced autosave.
-- Added flush-on-navigation and before-unload protection so ordinary navigation does not lose note text.
-- Added Markdown controls for headings, lists, checklists, quotes and tables without introducing a heavy editor dependency.
-- Preserved mixed Hebrew, Russian and English editing with automatic text direction.
-- Added course, topic, material and exact source-chunk relationships.
-- Added source comparison that surfaces possibly missing source sections without claiming knowledge or mastery.
-- Added selected-text conversion into an editable flashcard or a fully validated multiple-choice question.
-- Added search across note title, body and tags plus course, material and tag filters.
-- Added safe duplication and multi-note merge preview.
-- Merging creates a new note and preserves every original note.
-- Added direct Markdown export.
-- Added a permanent `verify:notes-editor-contract` regression check to local checks and CI.
-- Preserved the current store schema and localStorage data.
+- Replaced the compact card grid with a bulk-first flashcard curation workspace.
+- Added search plus course, topic, material and card-status filters.
+- Added inline front and back editing so large generated sets can be reviewed without opening individual dialogs.
+- Added select-visible and persistent bulk selection.
+- Added guarded bulk deletion with explicit confirmation.
+- Added bulk course, topic and material relinking while preserving exact source-chunk references.
+- Added exact and likely duplicate detection.
+- Added duplicate review and merge that preserves one card's review history, unions source references and deletes only after confirmation.
+- Preserved the existing spaced-repetition review mode and kept it visually secondary to content curation.
+- Kept source material links and source-reference counts visible on every card.
+- Added CSV export for selected or currently filtered cards.
+- Added CSV import preview and validation before card creation.
+- Added a permanent `verify:flashcard-studio-contract` regression check to local checks and CI.
+- Preserved the existing flashcard schema and review scheduling data.
 
 ## Verification state
 
@@ -54,16 +55,17 @@ Last updated: 2026-07-12
 - Syllabus review and confirmation contract verification passed.
 - Course Workspace v1 contract verification passed.
 - Reliable Notes editor contract verification passed.
+- Flashcard Studio v1 contract verification passed.
 - TypeScript passed.
 - ESLint passed.
 - Production build passed.
 
 ## Next execution target
 
-1. Begin `P0-017` Flashcard Studio v1.
-2. Add course, topic and material filters plus bulk selection and relinking.
-3. Add duplicate detection and guarded merge/delete flows.
-4. Keep content editing primary and review scheduling secondary.
+1. Begin `P0-018` Quiz Studio v1.
+2. Add complete question editing, reordering and validation.
+3. Separate practice mode from exam mode.
+4. Preserve source references and duplicate-question review.
 
 ## Blockers
 

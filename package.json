@@ -16,6 +16,7 @@
     "verify:syllabus-review-contract": "node scripts/verify-syllabus-review-contract.mjs",
     "verify:course-workspace-contract": "node scripts/verify-course-workspace-contract.mjs",
     "verify:notes-editor-contract": "node scripts/verify-notes-editor-contract.mjs",
+    "verify:flashcard-studio-contract": "node scripts/verify-flashcard-studio-contract.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {
