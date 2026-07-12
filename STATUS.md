@@ -12,7 +12,7 @@ Last updated: 2026-07-12
 - `P0-002 Audit and normalize all active routes` — implemented for the current shell; route inventory is documented in `docs/ROUTE_AUDIT.md`.
 - `P0-003 Remove tracking-first product flows` — implemented in the primary shell and core course workspace. Deferred route data remains intact.
 - `P0-004 Create one shared intake service` — implemented; Dashboard and Materials now use `src/lib/material-intake.ts`.
-- `P0-005 Build multi-file upload queue` — next.
+- `P0-005 Build multi-file upload queue` — next after CI is green.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
@@ -42,15 +42,17 @@ Last updated: 2026-07-12
 
 - Store schema and localStorage compatibility are unchanged.
 - No calendar, assignment, study-session, presentation or user-content data was deleted.
-- A pull request from `agent/validate-p0-foundation` is used to trigger the repository CI against the latest main baseline plus this status update.
-- Do not claim a clean build until that pull-request workflow finishes successfully.
+- Pull-request CI confirmed documentation verification and TypeScript pass.
+- The first validation run failed at ESLint; the production build was skipped by the original workflow.
+- CI now continues through build and uploads `lint-output.txt`, `build-output.txt` and a generated `prettier-fix.patch` as the `ci-diagnostics` artifact when a quality gate fails.
+- A new pull-request run is pending. Do not claim a clean build until it succeeds.
 
 ## Next execution target
 
-1. Read the pull-request CI result and fix any concrete TypeScript, lint, documentation or build failure.
-2. Start `P0-005` with a session-level multi-file queue and controlled concurrency.
-3. Keep duplicate detection (`P0-006`) separate from queue delivery.
+1. Download the diagnostics artifact from the next pull-request run if lint or build fails.
+2. Apply the exact formatting or code fixes and rerun CI.
+3. Start `P0-005` with a session-level multi-file queue and controlled concurrency only after the current baseline is green.
 
 ## Blockers
 
-None unless CI reports a concrete failure.
+None. The remaining validation work is mechanical and driven by CI output.
