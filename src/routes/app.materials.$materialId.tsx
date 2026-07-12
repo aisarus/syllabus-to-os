@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { MaterialOutputHistory } from "@/components/material-output-history";
 import { MaterialWorkspace } from "@/components/material-workspace";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
@@ -28,5 +29,12 @@ function MaterialDetail() {
     );
   }
 
-  return <MaterialWorkspace material={material} />;
+  return (
+    <>
+      <MaterialWorkspace material={material} />
+      <div className="mx-auto max-w-[1440px]">
+        <MaterialOutputHistory material={material} />
+      </div>
+    </>
+  );
 }
