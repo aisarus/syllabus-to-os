@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { MaterialOutputHistory } from "@/components/material-output-history";
 import { MaterialWorkspace } from "@/components/material-workspace";
+import { OCRReviewPanel } from "@/components/ocr-review-panel";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
 import { useData } from "@/lib/store";
@@ -31,6 +32,9 @@ function MaterialDetail() {
 
   return (
     <>
+      <div className="mx-auto max-w-[1440px]">
+        <OCRReviewPanel material={material} />
+      </div>
       <MaterialWorkspace material={material} />
       <div className="mx-auto max-w-[1440px]">
         <MaterialOutputHistory material={material} />
