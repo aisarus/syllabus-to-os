@@ -4,7 +4,7 @@ Last updated: 2026-07-12
 
 ## Current milestone
 
-**Milestone E — Syllabus and course brain**
+**Milestone F — Product-quality content editors**
 
 ## Task status
 
@@ -22,43 +22,45 @@ Last updated: 2026-07-12
 - `P0-012 Upgrade AI draft review` — complete and verified.
 - `P0-013 Add AI trust and citation layer` — complete and verified.
 - `P0-014 Complete syllabus review and confirmation` — complete and verified.
-- `P0-015 Build Course Workspace v1` — next.
+- `P0-015 Build Course Workspace v1` — complete and verified.
+- `P0-016 Upgrade Notes to a reliable editor` — next.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
 
-### Universal syllabus review and confirmation
+### Persistent Course Workspace v1
 
-- Replaced the active spreadsheet-only mapper with a universal review workspace.
-- Added PDF, DOCX, XLSX/XLS, CSV, TXT/Markdown and pasted-text intake through the shared document extraction pipeline.
-- Added deterministic parsing for course title, code, instructor, credits, semester, description and weekly topics.
-- Added extraction and editing for readings, assignments, exams and grading sections.
-- Added overall and per-field confidence indicators plus visible uncertainty warnings.
-- Added manual add, edit, delete and exclude controls for courses and extracted list items.
-- Added previous-import detection and matching-course detection by course code or normalized title.
-- Kept every course, topic, material and note mutation behind one explicit confirmation step.
-- Added safe create, update or skip decisions per reviewed course.
-- Reimport merges topics without deleting existing topics or creating normalized-title duplicates.
-- Confirmed syllabi are stored as linked syllabus materials with extracted chunks and as reviewed syllabus notes.
-- Added a permanent `verify:syllabus-review-contract` regression check to local checks and CI.
-- Preserved current localStorage compatibility; no destructive schema migration was introduced.
+- Replaced the basic course detail page with a persistent course content workspace.
+- Added editable real course metadata, description, topics and weeks.
+- Grouped materials by topic and added an explicit unassigned-material section.
+- Surfaced syllabus topics with no linked materials without calling the result progress or mastery.
+- Added multi-file upload directly into a course through the shared material-intake pipeline.
+- Added attachment of existing unassigned library materials.
+- Added inline relinking and detaching of materials by topic.
+- Added course-scoped notes, flashcards, quizzes and presentation outlines.
+- Added inline topic relinking for generated outputs.
+- Added course-level note, flashcard and quiz generation using one explicitly selected material and exact selected chunks.
+- Added safe course deletion that detaches related content before removing the course and topics.
+- Added a permanent `verify:course-workspace-contract` regression check to local checks and CI.
+- Preserved the current store schema and localStorage data.
 
 ## Verification state
 
 - Documentation verification passed.
 - Selected-source AI contract verification passed.
 - Syllabus review and confirmation contract verification passed.
+- Course Workspace v1 contract verification passed.
 - TypeScript passed.
 - ESLint passed.
 - Production build passed.
 
 ## Next execution target
 
-1. Build `P0-015` Course Workspace v1 on top of reviewed syllabus data.
-2. Group materials by topic and surface unassigned course materials.
-3. Show notes, cards, quizzes and uncovered syllabus topics in the course.
-4. Add course-level AI actions with explicit source selection only.
+1. Begin `P0-016` with a stable note editor and visible autosave state.
+2. Preserve mixed Hebrew/Russian/English editing and source references.
+3. Add search, filters, duplicate, merge preview and Markdown export.
+4. Add source comparison and selected-text conversion without risking note data.
 
 ## Blockers
 

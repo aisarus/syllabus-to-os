@@ -5,6 +5,7 @@ const checks = [
   "verify:docs",
   "verify:ai-source-contract",
   "verify:syllabus-review-contract",
+  "verify:course-workspace-contract",
   "typecheck",
   "lint",
   "build",
