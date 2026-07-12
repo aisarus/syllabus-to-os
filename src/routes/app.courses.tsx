@@ -1,9 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Plus, Search, SlidersHorizontal } from "lucide-react";
-import { CourseBook, WoodenShelf, RoomHeading, BrassButton, EmptyInk } from "@/components/study-room-ui";
+import {
+  CourseBook,
+  WoodenShelf,
+  RoomHeading,
+  BrassButton,
+  EmptyInk,
+} from "@/components/study-room-ui";
 import { EmptyBookSlot } from "@/components/lamdan/empty-book-slot";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,8 +57,13 @@ function CoursesPage() {
       />
 
       <div className="shelf-toolbar">
-        <label><Search size={15} /><input placeholder={t.search} aria-label={t.search} /></label>
-        <button type="button"><SlidersHorizontal size={14} /> {t.semester}</button>
+        <label>
+          <Search size={15} />
+          <input placeholder={t.search} aria-label={t.search} />
+        </label>
+        <button type="button">
+          <SlidersHorizontal size={14} /> {t.semester}
+        </button>
       </div>
 
       <div className="course-library">
@@ -54,7 +71,9 @@ function CoursesPage() {
           <WoodenShelf>
             <div className="course-library__row">
               <EmptyInk>
-                <strong style={{ display: "block", fontFamily: "var(--font-display)", fontSize: 18 }}>
+                <strong
+                  style={{ display: "block", fontFamily: "var(--font-display)", fontSize: 18 }}
+                >
                   {t.emptyShelfTitle}
                 </strong>
                 <span>{t.emptyShelfHint}</span>
@@ -100,7 +119,10 @@ function CoursesPage() {
 
       <aside className="library-marginalia">
         <span>LIBRARY NOTE</span>
-        <p>A course becomes easier to return to when every note, card and deadline has a visible home.</p>
+        <p>
+          A course becomes easier to return to when every note, card and deadline has a visible
+          home.
+        </p>
       </aside>
 
       <CreateCourseDialog open={open} onOpenChange={setOpen} />
@@ -108,7 +130,13 @@ function CoursesPage() {
   );
 }
 
-function CreateCourseDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+function CreateCourseDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
   const { t } = useApp();
   const [title, setTitle] = useState("");
   const [number, setNumber] = useState("");
@@ -127,7 +155,11 @@ function CreateCourseDialog({ open, onOpenChange }: { open: boolean; onOpenChang
   const canSave = title.trim().length > 0 && !creditsError;
 
   const reset = () => {
-    setTitle(""); setNumber(""); setSemester(""); setCredits(""); setInstructor("");
+    setTitle("");
+    setNumber("");
+    setSemester("");
+    setCredits("");
+    setInstructor("");
   };
 
   const submit = () => {
@@ -156,10 +188,15 @@ function CreateCourseDialog({ open, onOpenChange }: { open: boolean; onOpenChang
   return (
     <Dialog
       open={open}
-      onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}
+      onOpenChange={(v) => {
+        onOpenChange(v);
+        if (!v) reset();
+      }}
     >
       <DialogContent className="paper-dialog">
-        <DialogHeader><DialogTitle>{t.createCourse}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{t.createCourse}</DialogTitle>
+        </DialogHeader>
         <div className="space-y-3">
           <div>
             <Label>{t.title} *</Label>
@@ -187,7 +224,9 @@ function CreateCourseDialog({ open, onOpenChange }: { open: boolean; onOpenChang
                 aria-describedby={creditsError ? "credits-error" : undefined}
               />
               {creditsError && (
-                <p id="credits-error" className="paper-dialog__error">{creditsError}</p>
+                <p id="credits-error" className="paper-dialog__error">
+                  {creditsError}
+                </p>
               )}
             </div>
             <div>
@@ -197,8 +236,18 @@ function CreateCourseDialog({ open, onOpenChange }: { open: boolean; onOpenChang
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => { onOpenChange(false); reset(); }}>{t.cancel}</Button>
-          <Button onClick={submit} disabled={!canSave}>{t.save}</Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              onOpenChange(false);
+              reset();
+            }}
+          >
+            {t.cancel}
+          </Button>
+          <Button onClick={submit} disabled={!canSave}>
+            {t.save}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

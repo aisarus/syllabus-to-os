@@ -82,7 +82,14 @@ export function PaperPanel({
   folded?: boolean;
 }) {
   return (
-    <section className={cn("paper-panel", pinned && "paper-panel--pinned", folded && "paper-panel--folded", className)}>
+    <section
+      className={cn(
+        "paper-panel",
+        pinned && "paper-panel--pinned",
+        folded && "paper-panel--folded",
+        className,
+      )}
+    >
       {pinned && <span className="paper-pin" aria-hidden="true" />}
       {children}
     </section>
@@ -101,7 +108,10 @@ export function FolderCard({
   active?: boolean;
 }) {
   return (
-    <button type="button" className={cn("folder-card", `folder-card--${tone}`, active && "is-active")}>
+    <button
+      type="button"
+      className={cn("folder-card", `folder-card--${tone}`, active && "is-active")}
+    >
       <span className="folder-card__tab" aria-hidden="true" />
       <span className="folder-card__title">{title}</span>
       <strong>{count}</strong>
@@ -110,7 +120,12 @@ export function FolderCard({
   );
 }
 
-export function RoomHeading({ eyebrow, title, subtitle, actions }: {
+export function RoomHeading({
+  eyebrow,
+  title,
+  subtitle,
+  actions,
+}: {
   eyebrow?: string;
   title: ReactNode;
   subtitle?: ReactNode;
@@ -128,21 +143,38 @@ export function RoomHeading({ eyebrow, title, subtitle, actions }: {
   );
 }
 
-export function BrassButton({ children, className, onClick, type = "button" }: {
+export function BrassButton({
+  children,
+  className,
+  onClick,
+  type = "button",
+}: {
   children: ReactNode;
   className?: string;
   onClick?: () => void;
   type?: "button" | "submit";
 }) {
-  return <button type={type} className={cn("brass-button", className)} onClick={onClick}>{children}</button>;
+  return (
+    <button type={type} className={cn("brass-button", className)} onClick={onClick}>
+      {children}
+    </button>
+  );
 }
 
-export function PaperButton({ children, className, onClick }: {
+export function PaperButton({
+  children,
+  className,
+  onClick,
+}: {
   children: ReactNode;
   className?: string;
   onClick?: () => void;
 }) {
-  return <button type="button" className={cn("paper-button", className)} onClick={onClick}>{children}</button>;
+  return (
+    <button type="button" className={cn("paper-button", className)} onClick={onClick}>
+      {children}
+    </button>
+  );
 }
 
 export function EmptyInk({ children }: { children: ReactNode }) {
