@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   quality:
-    name: Docs, types, lint and build
+    name: Contracts, types, lint and build
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -46,6 +46,9 @@ jobs:
 
       - name: Verify project documentation
         run: npm run verify:docs
+
+      - name: Verify selected-source AI contract
+        run: npm run verify:ai-source-contract
 
       - name: Typecheck
         id: typecheck

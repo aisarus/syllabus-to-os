@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "verify:docs": "node scripts/verify-docs.mjs",
+    "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {
