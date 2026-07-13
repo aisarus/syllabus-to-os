@@ -2,18 +2,29 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [domain, workspace, launcher, route, lifecycle, client, checkScript, packageJson, workflow] =
-  await Promise.all([
-    read("src/lib/multi-page-image-materials.ts"),
-    read("src/components/multi-page-image-workspace.tsx"),
-    read("src/components/material-intake-route-launcher.tsx"),
-    read("src/routes/app.materials_.$materialId.tsx"),
-    read("src/components/visual-source-lifecycle.tsx"),
-    read("src/lib/ocr-client.ts"),
-    read("scripts/check.mjs"),
-    read("package.json"),
-    read(".github/workflows/ci.yml"),
-  ]);
+const [
+  domain,
+  workspace,
+  launcher,
+  route,
+  lifecycle,
+  client,
+  backup,
+  checkScript,
+  packageJson,
+  workflow,
+] = await Promise.all([
+  read("src/lib/multi-page-image-materials.ts"),
+  read("src/components/multi-page-image-workspace.tsx"),
+  read("src/components/material-intake-route-launcher.tsx"),
+  read("src/routes/app.materials_.$materialId.tsx"),
+  read("src/components/visual-source-lifecycle.tsx"),
+  read("src/lib/ocr-client.ts"),
+  read("src/lib/visual-backup.ts"),
+  read("scripts/check.mjs"),
+  read("package.json"),
+  read(".github/workflows/ci.yml"),
+]);
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
@@ -31,6 +42,8 @@ for (const marker of [
   "applyOCRDraftToMultiPageImage",
   "refreshMultiPageMaterialAggregate",
   "visualPageIdFromChunk",
+  "getAllVisualSourceIds",
+  "getVisualSourceIdsForMaterials",
   "fingerprintFile",
   "skippedDuplicates",
   "pageNumber",
@@ -69,6 +82,16 @@ for (const marker of [
   requireMarker(launcher, marker, `Multi-page intake choice is missing: ${marker}`);
 }
 
+for (const marker of [
+  "getAllVisualSourceIds(data)",
+  "getVisualSourceIdsForMaterials",
+  "Skipped visual payload without a material or image page",
+  "getMultiPageVisualPages(material)",
+  "Source image is missing for page",
+]) {
+  requireMarker(backup, marker, `Full ZIP backup does not preserve page-level visuals: ${marker}`);
+}
+
 requireMarker(route, "isMultiPageImageMaterial", "Material detail does not detect multi-page images.");
 requireMarker(route, "MultiPageImageWorkspace", "Material detail does not open the multi-page workspace.");
 requireMarker(lifecycle, "getAllVisualSourceIds", "Lifecycle pruning does not preserve page-level visual ids.");
@@ -98,5 +121,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Multi-page image intake, page-aware OCR/preprocessing, partial retry and explicit apply contract passed.",
+  "Multi-page image intake, page-aware OCR/preprocessing, partial retry, explicit apply and full backup contract passed.",
 );
