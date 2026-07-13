@@ -65,23 +65,31 @@ function loadImage(blob: Blob, signal?: AbortSignal): Promise<HTMLImageElement> 
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(blob);
     const image = new Image();
-    const abort = () => {
+    let settled = false;
+    const cleanup = () => {
+      signal?.removeEventListener("abort", abort);
       URL.revokeObjectURL(url);
+    };
+    const abort = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
       image.src = "";
       reject(new DOMException("OCR was cancelled.", "AbortError"));
     };
     signal?.addEventListener("abort", abort, { once: true });
     image.onload = () => {
-      signal?.removeEventListener("abort", abort);
-      URL.revokeObjectURL(url);
+      if (settled) return;
+      settled = true;
+      cleanup();
       resolve(image);
     };
     image.onerror = () => {
-      signal?.removeEventListener("abort", abort);
-      URL.revokeObjectURL(url);
+      if (settled) return;
+      settled = true;
+      cleanup();
       reject(new Error("The browser could not decode this image."));
     };
-    image.src = URL.createObjectURL(blob);
-    URL.revokeObjectURL(url);
+    image.src = url;
   });
 }
