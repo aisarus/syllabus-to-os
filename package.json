@@ -20,6 +20,7 @@
     "eval:global-search": "node --experimental-strip-types scripts/run-global-search-evals.mjs",
     "eval:store-safety": "node --experimental-strip-types scripts/run-store-safety-evals.mjs",
     "eval:study-command": "node --experimental-strip-types scripts/run-study-command-center-evals.mjs",
+    "eval:study-pack": "node --experimental-strip-types scripts/run-study-pack-evals.mjs",
     "e2e:critical": "node scripts/run-critical-browser-e2e-wrapper.mjs",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
@@ -41,6 +42,7 @@
     "verify:global-search-v2-contract": "node scripts/verify-global-search-v2-contract.mjs",
     "verify:store-safety-contract": "node scripts/verify-store-safety-contract.mjs",
     "verify:study-command-center-contract": "node scripts/verify-study-command-center-contract.mjs",
+    "verify:study-pack-contract": "node scripts/verify-study-pack-contract.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {

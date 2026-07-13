@@ -135,6 +135,44 @@ export interface PresentationDraft extends AIDraftMetadata {
   slides: SlideDraft[];
 }
 
+export type StudyPackActivity = "orient" | "learn" | "recall" | "practice" | "repair";
+
+export interface StudyPackStepDraft {
+  title: string;
+  purpose: string;
+  durationMinutes: number;
+  activity: StudyPackActivity;
+  sourceChunkIds: string[];
+}
+
+export interface StudyPackTermDraft {
+  term: string;
+  explanation: string;
+  sourceChunkIds: string[];
+}
+
+export interface StudyPackUnclearAreaDraft {
+  description: string;
+  sourceChunkIds: string[];
+}
+
+export interface StudyPackDraft extends AIDraftMetadata {
+  title: string;
+  orientation: string;
+  orientationSourceChunkIds: string[];
+  estimatedMinutes: number;
+  steps: StudyPackStepDraft[];
+  note: {
+    title: string;
+    content: string;
+    sourceChunkIds: string[];
+  };
+  keyTerms: StudyPackTermDraft[];
+  cards: FlashcardDraft[];
+  questions: QuizQuestionDraft[];
+  unclearAreas: StudyPackUnclearAreaDraft[];
+}
+
 export interface SimplifyDraft extends AIDraftMetadata {
   title: string;
   text: string;
@@ -222,6 +260,8 @@ export const generateQuizDraft = (input: AIGenerationInput) =>
   postAI<QuizDraft>("/api/ai/generate-quiz", input);
 export const generatePresentationOutlineDraft = (input: AIGenerationInput) =>
   postAI<PresentationDraft>("/api/ai/generate-presentation-outline", input);
+export const generateStudyPackDraft = (input: AIGenerationInput) =>
+  postAI<StudyPackDraft>("/api/ai/generate-study-pack", input);
 export const simplifyTextDraft = (input: AIGenerationInput) =>
   postAI<SimplifyDraft>("/api/ai/simplify-text", input);
 export const translateTextDraft = (input: AIGenerationInput) =>

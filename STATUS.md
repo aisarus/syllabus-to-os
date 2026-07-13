@@ -6,7 +6,7 @@ Last updated: 2026-07-13
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation, while the first M2 product layer — a real-data Study Command Center — is now implemented in the current branch.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. The first M2 layer, Study Command Center, is merged; the next vertical layer, Lecture-to-Study-Pack, is implemented in the current branch and under verification.
 
 ## Completed task state
 
@@ -21,35 +21,47 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-003 Critical browser end-to-end coverage` — complete and verified; PR #33 CI passed.
 - `P1-004 Add local-first global search v2` — complete and verified; PR #34 CI passed.
 - `P1-005 Store persistence and source-integrity hardening` — complete and verified; PR #35 CI passed and merged.
+- `P1-011 Study Command Center v1` — complete and verified; PR #36 full CI and critical browser end-to-end passed and merged.
 
 ## Current implementation pass
 
-### P1-011 — Study Command Center v1
+### P1-012 — Lecture-to-Study-Pack
 
-**Status:** implemented on `agent/academic-autopilot-roadmap`; full CI and browser verification pending.
+**Status:** implemented on `agent/lecture-study-pack`; full CI, review and browser verification pending.
 
 Delivered:
 
-- deterministic prioritization over real assignments, exam events, due cards, quiz attempts, source state and course coverage;
-- overdue assignments outrank optional content generation;
-- imminent exams without quiz attempts create visible risks;
-- non-ready sources and courses without sources remain visible;
-- ready materials without saved outputs produce Study Pack preparation actions;
-- empty workspaces receive an honest intake action;
-- one main action plus bounded 20/45/90 minute session plans;
-- quick wins, risks and real counters;
-- direct links to courses, materials, assignments, cards and quizzes;
-- RU/EN dashboard copy;
-- responsive pseudo-3D Academic Content Workspace styling;
-- deterministic evaluation scenarios and a permanent repository contract.
+- primary “Prepare me from this lecture” action on material detail;
+- selected approved source chunks only;
+- one combined editable draft rather than disconnected generation dialogs;
+- concise orientation and realistic total duration;
+- ordered orient/learn/recall/practice/repair steps;
+- clean structured note;
+- source-linked key terminology;
+- deduplicated atomic flashcards;
+- diagnostic questions with four unique options, one answer and grounded explanations;
+- explicit unclear areas and `notFoundInSources` instead of model-memory gap filling;
+- unknown source IDs are rejected and uncited items are counted;
+- user review and correction before any save;
+- approved pack persists as normal first-class note, flashcards and quiz entities;
+- source references remain attached to each saved item;
+- no claim that finishing the pack proves mastery;
+- deterministic helper evaluations and a permanent trust contract;
+- package, local check and GitHub Actions wiring.
 
-The implementation intentionally does not add a mastery percentage, readiness score or schema migration.
+Current v1 boundaries:
+
+- one material at a time;
+- at most eight selected source chunks / 20,000 characters;
+- no persistent dedicated `StudyPack` entity yet;
+- no section-level AI regeneration yet;
+- no completion evidence or first-step Study Cockpit yet;
+- live provider quality still requires real Hebrew course material.
 
 ### Academic Autopilot roadmap
 
-`ROADMAP.md`, `TASKS.md` and `PLANS.md` now define the connected product sequence:
+`ROADMAP.md`, `TASKS.md` and `PLANS.md` define the connected sequence:
 
-- `P1-012` Lecture-to-Study-Pack;
 - `P1-013` concept graph and evidence model;
 - `P1-014` Exam Engine;
 - `P1-015` Assignment Copilot;
@@ -62,14 +74,13 @@ The implementation intentionally does not add a mastery percentage, readiness sc
 
 Pending on the current branch:
 
-- Study Command Center deterministic evaluation;
-- Study Command Center contract;
-- existing documentation and OCR contracts after roadmap rewrite;
+- Study Pack contract and deterministic evaluations;
+- all existing documentation, source-integrity and OCR contracts;
 - TypeScript;
 - ESLint and formatting;
-- production build;
+- production build and generated route tree;
 - critical browser end-to-end execution;
-- visual check at desktop and mobile widths.
+- review of save behavior and mobile-width modal usability.
 
 The branch must not merge until the full quality workflow passes.
 
@@ -89,9 +100,9 @@ The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved 
 
 ## Next execution targets
 
-1. Verify `P1-011` in CI and fix all failures.
-2. Run a desktop/mobile browser inspection of the command center.
-3. Merge only after all repository gates pass.
+1. Verify `P1-012` in CI and fix every failure.
+2. Review Study Pack trust, save and mobile behavior.
+3. Merge PR #37 only after all repository gates pass.
 4. Run `P1-006` and `P1-007` when private inputs are supplied.
 5. Execute `P1-008` and fix pilot blockers.
-6. Begin `P1-012 Lecture-to-Study-Pack` as the next major vertical slice.
+6. Start `P1-013 Concept graph and evidence model` after Study Pack is stable.
