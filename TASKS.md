@@ -794,6 +794,38 @@ Use Lamdan for one complete real course instead of testing isolated screens.
 
 ---
 
+## P0-022A — Image Preprocessing Workspace
+
+- **Status:** [x]
+- **Priority:** P0
+- **Size:** L
+- **Depends on:** P0-021 durable image intake and OCR review
+- **Branch:** `agent/p0-022-image-preprocessing`
+
+### Goal
+
+Let a student prepare a real photo of a notebook, whiteboard or page before OCR without ever replacing the original image.
+
+### Scope
+
+- Store the original source blob, a versioned serializable recipe and one derived preview as separate IndexedDB records.
+- Support quarter-turn rotation, fine rotation, crop, automatic and manual deskew, grayscale, brightness, contrast, threshold and optional sharpening.
+- Use a Worker for decode, deskew and heavy pixel processing; expose decode/canvas failures clearly and retain a bounded fallback for older browsers.
+- Let the student explicitly choose original or processed source for OCR, restore that choice after reload and reset safely to original.
+- Keep the OCR draft/review/apply workflow intact.
+
+### Acceptance criteria
+
+- Source photo, processing recipe and selected OCR source survive reload.
+- Reset removes the derived preview and returns OCR to the original.
+- OCR receives the exact selected blob rather than a guessed or overwritten source.
+- The UI makes original vs processed state visible on desktop and mobile layouts.
+- Original blobs are never overwritten, and at most one current derived blob is retained per material.
+- EXIF orientation is respected while rendering the preview.
+- `npm run check` and `verify:image-preprocessing-contract` pass.
+
+---
+
 # Dependency summary
 
 ```text

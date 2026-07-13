@@ -1,9 +1,17 @@
 import type { OCRDraft } from "./ocr-contract";
+import {
+  imageProcessingRecipeKey,
+  normalizeImageProcessingRecipe,
+  type ImageProcessingRecipe,
+  type ImageSourceSelection,
+} from "./image-preprocessing";
 
 const DATABASE_NAME = "lamdan-visual-sources";
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 const IMAGE_STORE = "images";
 const OCR_STORE = "ocrDrafts";
+const PROCESSING_STORE = "imageProcessing";
+const PROCESSED_IMAGE_STORE = "processedImages";
 
 export const MAX_VISUAL_SOURCE_BYTES = 20 * 1024 * 1024;
 export const SUPPORTED_VISUAL_SOURCE_MIMES = ["image/jpeg", "image/png", "image/webp"] as const;
@@ -24,10 +32,43 @@ export interface StoredOCRDraft {
   updatedAt: number;
 }
 
+/** Small, JSON-serializable state. The source blob and derived blob live elsewhere. */
+export interface StoredImageProcessingState {
+  materialId: string;
+  recipe: ImageProcessingRecipe;
+  selectedSource: ImageSourceSelection;
+  sourceUpdatedAt: number;
+  updatedAt: number;
+}
+
+/** Exactly one derived image cache per material; the original stays in IMAGE_STORE. */
+export interface StoredProcessedVisualSource {
+  materialId: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+  blob: Blob;
+  width: number;
+  height: number;
+  recipeKey: string;
+  sourceUpdatedAt: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface OCRImageSource {
+  kind: ImageSourceSelection;
+  source: StoredVisualSource | StoredProcessedVisualSource;
+}
+
 export interface VisualSourceStorageStats {
   imageCount: number;
+  processedImageCount: number;
   ocrDraftCount: number;
+  /** Original-source bytes only, retained for truthful JSON-backup UI copy. */
   totalImageBytes: number;
+  processedImageBytes: number;
+  totalVisualBytes: number;
 }
 
 export function isSupportedVisualSource(file: Pick<File, "type" | "size" | "name">): boolean {
@@ -61,6 +102,9 @@ export async function putMaterialVisualSource(materialId: string, file: File): P
     updatedAt: now,
   };
   await writeRecord(IMAGE_STORE, record);
+  // A replacement upload must never reuse a recipe or derived raster from the
+  // previous source. The original has already been saved when this cleanup runs.
+  await deleteMaterialImageProcessing(materialId);
 }
 
 export async function getMaterialVisualSource(
@@ -73,11 +117,109 @@ export async function hasMaterialVisualSource(materialId: string): Promise<boole
   return Boolean(await getMaterialVisualSource(materialId));
 }
 
+export async function getMaterialImageProcessingState(
+  materialId: string,
+): Promise<StoredImageProcessingState | undefined> {
+  return readRecord<StoredImageProcessingState>(PROCESSING_STORE, materialId);
+}
+
+export async function putMaterialImageProcessingState(
+  materialId: string,
+  recipe: Partial<ImageProcessingRecipe>,
+  selectedSource: ImageSourceSelection,
+  sourceUpdatedAt: number,
+): Promise<StoredImageProcessingState> {
+  const existing = await getMaterialImageProcessingState(materialId);
+  const record: StoredImageProcessingState = {
+    materialId,
+    recipe: normalizeImageProcessingRecipe(recipe),
+    selectedSource,
+    sourceUpdatedAt,
+    updatedAt: Date.now(),
+  };
+  if (existing?.sourceUpdatedAt !== sourceUpdatedAt) {
+    await deleteRecord(await openDatabase(), PROCESSED_IMAGE_STORE, materialId);
+  }
+  await writeRecord(PROCESSING_STORE, record);
+  return record;
+}
+
+export async function getMaterialProcessedVisualSource(
+  materialId: string,
+): Promise<StoredProcessedVisualSource | undefined> {
+  return readRecord<StoredProcessedVisualSource>(PROCESSED_IMAGE_STORE, materialId);
+}
+
+export async function putMaterialProcessedVisualSource(
+  materialId: string,
+  input: Omit<
+    StoredProcessedVisualSource,
+    "materialId" | "size" | "createdAt" | "updatedAt" | "recipeKey"
+  > & { recipe: Partial<ImageProcessingRecipe> },
+): Promise<StoredProcessedVisualSource> {
+  const existing = await getMaterialProcessedVisualSource(materialId);
+  const recipe = normalizeImageProcessingRecipe(input.recipe);
+  const now = Date.now();
+  const record: StoredProcessedVisualSource = {
+    materialId,
+    fileName: input.fileName,
+    mimeType: input.mimeType,
+    size: input.blob.size,
+    blob: input.blob,
+    width: input.width,
+    height: input.height,
+    recipeKey: imageProcessingRecipeKey(recipe),
+    sourceUpdatedAt: input.sourceUpdatedAt,
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  };
+  await writeRecord(PROCESSED_IMAGE_STORE, record);
+  return record;
+}
+
+/**
+ * Returns the exact blob that OCR should use. A stale, missing or mismatched
+ * derived cache safely falls back to the immutable original instead of failing.
+ */
+export async function getMaterialOCRImageSource(
+  materialId: string,
+): Promise<OCRImageSource | undefined> {
+  const [original, processing] = await Promise.all([
+    getMaterialVisualSource(materialId),
+    getMaterialImageProcessingState(materialId),
+  ]);
+  if (!original) return undefined;
+  if (processing?.selectedSource !== "processed") {
+    return { kind: "original", source: original };
+  }
+
+  const processed = await getMaterialProcessedVisualSource(materialId);
+  if (
+    processed &&
+    processed.sourceUpdatedAt === original.updatedAt &&
+    processed.sourceUpdatedAt === processing.sourceUpdatedAt &&
+    processed.recipeKey === imageProcessingRecipeKey(processing.recipe)
+  ) {
+    return { kind: "processed", source: processed };
+  }
+  return { kind: "original", source: original };
+}
+
+export async function deleteMaterialImageProcessing(materialId: string): Promise<void> {
+  const db = await openDatabase();
+  await Promise.all([
+    deleteRecord(db, PROCESSING_STORE, materialId),
+    deleteRecord(db, PROCESSED_IMAGE_STORE, materialId),
+  ]);
+}
+
 export async function deleteMaterialVisualData(materialId: string): Promise<void> {
   const db = await openDatabase();
   await Promise.all([
     deleteRecord(db, IMAGE_STORE, materialId),
     deleteRecord(db, OCR_STORE, materialId),
+    deleteRecord(db, PROCESSING_STORE, materialId),
+    deleteRecord(db, PROCESSED_IMAGE_STORE, materialId),
   ]);
 }
 
@@ -102,18 +244,27 @@ export async function deleteMaterialOCRDraft(materialId: string): Promise<void> 
 
 export async function clearAllVisualSourceData(): Promise<void> {
   const db = await openDatabase();
-  await Promise.all([clearStore(db, IMAGE_STORE), clearStore(db, OCR_STORE)]);
+  await Promise.all([
+    clearStore(db, IMAGE_STORE),
+    clearStore(db, OCR_STORE),
+    clearStore(db, PROCESSING_STORE),
+    clearStore(db, PROCESSED_IMAGE_STORE),
+  ]);
 }
 
 export async function pruneVisualSourceData(validMaterialIds: Iterable<string>): Promise<number> {
   const validIds = new Set(validMaterialIds);
   const db = await openDatabase();
-  const [imageKeys, draftKeys] = await Promise.all([
+  const [imageKeys, draftKeys, processingKeys, processedImageKeys] = await Promise.all([
     readAllKeys(db, IMAGE_STORE),
     readAllKeys(db, OCR_STORE),
+    readAllKeys(db, PROCESSING_STORE),
+    readAllKeys(db, PROCESSED_IMAGE_STORE),
   ]);
   const orphanIds = new Set(
-    [...imageKeys, ...draftKeys].map(String).filter((materialId) => !validIds.has(materialId)),
+    [...imageKeys, ...draftKeys, ...processingKeys, ...processedImageKeys]
+      .map(String)
+      .filter((materialId) => !validIds.has(materialId)),
   );
   await Promise.all([...orphanIds].map((materialId) => deleteMaterialVisualData(materialId)));
   return orphanIds.size;
@@ -121,14 +272,20 @@ export async function pruneVisualSourceData(validMaterialIds: Iterable<string>):
 
 export async function getVisualSourceStorageStats(): Promise<VisualSourceStorageStats> {
   const db = await openDatabase();
-  const [images, drafts] = await Promise.all([
+  const [images, drafts, processedImages] = await Promise.all([
     readAllRecords<StoredVisualSource>(db, IMAGE_STORE),
     readAllRecords<StoredOCRDraft>(db, OCR_STORE),
+    readAllRecords<StoredProcessedVisualSource>(db, PROCESSED_IMAGE_STORE),
   ]);
+  const totalImageBytes = images.reduce((sum, image) => sum + image.size, 0);
+  const processedImageBytes = processedImages.reduce((sum, image) => sum + image.size, 0);
   return {
     imageCount: images.length,
+    processedImageCount: processedImages.length,
     ocrDraftCount: drafts.length,
-    totalImageBytes: images.reduce((sum, image) => sum + image.size, 0),
+    totalImageBytes,
+    processedImageBytes,
+    totalVisualBytes: totalImageBytes + processedImageBytes,
   };
 }
 
@@ -146,6 +303,12 @@ function openDatabase(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(OCR_STORE)) {
         db.createObjectStore(OCR_STORE, { keyPath: "materialId" });
+      }
+      if (!db.objectStoreNames.contains(PROCESSING_STORE)) {
+        db.createObjectStore(PROCESSING_STORE, { keyPath: "materialId" });
+      }
+      if (!db.objectStoreNames.contains(PROCESSED_IMAGE_STORE)) {
+        db.createObjectStore(PROCESSED_IMAGE_STORE, { keyPath: "materialId" });
       }
     };
     request.onsuccess = () => resolve(request.result);
