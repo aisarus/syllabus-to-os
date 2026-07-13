@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { MaterialOutputHistory } from "@/components/material-output-history";
 import { MaterialWorkspace } from "@/components/material-workspace";
+import { MultiPageImageWorkspace } from "@/components/multi-page-image-workspace";
 import { OCRReviewPanel } from "@/components/ocr-review-panel";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
+import { isMultiPageImageMaterial } from "@/lib/multi-page-image-materials";
 import { useData } from "@/lib/store";
 import { ArrowLeft } from "lucide-react";
 
@@ -33,7 +35,11 @@ function MaterialDetail() {
   return (
     <>
       <div className="mx-auto max-w-[1440px]">
-        <OCRReviewPanel material={material} />
+        {isMultiPageImageMaterial(material) ? (
+          <MultiPageImageWorkspace material={material} />
+        ) : (
+          <OCRReviewPanel material={material} />
+        )}
       </div>
       <MaterialWorkspace material={material} />
       <div className="mx-auto max-w-[1440px]">
