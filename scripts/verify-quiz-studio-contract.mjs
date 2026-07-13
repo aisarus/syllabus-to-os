@@ -1,22 +1,13 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-const library = await readFile(
-  resolve(process.cwd(), "src/components/quiz-library.tsx"),
-  "utf8",
-);
-const studio = await readFile(
-  resolve(process.cwd(), "src/components/quiz-studio.tsx"),
-  "utf8",
-);
+const library = await readFile(resolve(process.cwd(), "src/components/quiz-library.tsx"), "utf8");
+const studio = await readFile(resolve(process.cwd(), "src/components/quiz-studio.tsx"), "utf8");
 const experience = await readFile(
   resolve(process.cwd(), "src/components/golden-quiz-experience.tsx"),
   "utf8",
 );
-const feedback = await readFile(
-  resolve(process.cwd(), "src/lib/golden-quiz.ts"),
-  "utf8",
-);
+const feedback = await readFile(resolve(process.cwd(), "src/lib/golden-quiz.ts"), "utf8");
 const generation = await readFile(
   resolve(process.cwd(), "src/lib/server/golden-quiz-generation.ts"),
   "utf8",
@@ -25,10 +16,7 @@ const apiRoute = await readFile(
   resolve(process.cwd(), "src/routes/api/ai/generate-quiz.ts"),
   "utf8",
 );
-const listRoute = await readFile(
-  resolve(process.cwd(), "src/routes/app.quizzes.tsx"),
-  "utf8",
-);
+const listRoute = await readFile(resolve(process.cwd(), "src/routes/app.quizzes.tsx"), "utf8");
 const detailRoute = await readFile(
   resolve(process.cwd(), "src/routes/app.quizzes_.$quizId.tsx"),
   "utf8",
@@ -120,10 +108,7 @@ requireMarker(
   "Quiz generation API no longer uses the golden quiz generator.",
 );
 requireMarker(listRoute, "QuizLibrary", "The active quiz list route no longer uses QuizLibrary.");
-for (const marker of [
-  'createFileRoute("/app/quizzes_/$quizId")',
-  "GoldenQuizExperience",
-]) {
+for (const marker of ['createFileRoute("/app/quizzes_/$quizId")', "GoldenQuizExperience"]) {
   requireMarker(
     detailRoute,
     marker,
@@ -137,4 +122,6 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("Golden bilingual quiz generation, trainer, routing and advanced editor contract passed.");
+console.log(
+  "Golden bilingual quiz generation, trainer, routing and advanced editor contract passed.",
+);

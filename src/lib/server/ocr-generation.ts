@@ -25,9 +25,7 @@ export type OCRGenerationResponse =
     }
   | { ok: false; error: string; details?: string };
 
-export async function runOCRGeneration(
-  input: OCRGenerationInput,
-): Promise<OCRGenerationResponse> {
+export async function runOCRGeneration(input: OCRGenerationInput): Promise<OCRGenerationResponse> {
   const locale = input.locale ?? "ru";
   const sourceStyle = input.sourceStyle ?? "mixed";
   const validationError = validateInput(input, locale);
@@ -91,7 +89,8 @@ export async function runOCRGeneration(
   if (!validation.valid) {
     return {
       ok: false,
-      error: locale === "ru" ? "OCR вернул некорректную структуру" : "OCR returned an invalid structure",
+      error:
+        locale === "ru" ? "OCR вернул некорректную структуру" : "OCR returned an invalid structure",
       details: validation.errors.join(", "),
     };
   }

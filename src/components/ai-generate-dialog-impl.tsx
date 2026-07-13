@@ -296,9 +296,7 @@ export function AIGenerateDialog(props: AIGenerateDialogProps) {
             options: question.options,
             correctIndex: question.correctIndex,
             explanation: question.explanation || undefined,
-            sourceChunkIds: question.sourceChunkIds?.length
-              ? question.sourceChunkIds
-              : selected,
+            sourceChunkIds: question.sourceChunkIds?.length ? question.sourceChunkIds : selected,
           });
         }
         store.recordOutput({ materialId: material.id, type: "quiz", linkedEntityId: saved.id });
@@ -311,9 +309,7 @@ export function AIGenerateDialog(props: AIGenerateDialogProps) {
             title: slide.title,
             bullets: slide.bullets,
             speakerNotes: slide.speakerNotes,
-            sourceChunkIds: slide.sourceChunkIds?.length
-              ? slide.sourceChunkIds
-              : selected,
+            sourceChunkIds: slide.sourceChunkIds?.length ? slide.sourceChunkIds : selected,
             order: index,
           })),
         });
@@ -503,7 +499,8 @@ function SourceSelection({
             ))}
           </div>
           <div className="mt-1 text-[11px] text-muted-foreground">
-            {selectedCount}/{MAX_CHUNKS} · {totalChars.toLocaleString()} / {MAX_CHARS.toLocaleString()}
+            {selectedCount}/{MAX_CHUNKS} · {totalChars.toLocaleString()} /{" "}
+            {MAX_CHARS.toLocaleString()}
           </div>
           {overLimit && <div className="text-[11px] text-destructive">{t.aiTooManyChars}</div>}
         </div>
@@ -521,11 +518,7 @@ function SourceSelection({
           onClick={onGenerate}
           disabled={!configured || selectedCount === 0 || overLimit}
           title={
-            !configured
-              ? t.aiUnavailable
-              : selectedCount === 0
-                ? t.aiNoChunksSelected
-                : undefined
+            !configured ? t.aiUnavailable : selectedCount === 0 ? t.aiNoChunksSelected : undefined
           }
         >
           <Sparkles className="h-4 w-4 me-1" />
@@ -544,7 +537,9 @@ function validateDraft(kind: AIGenerateKind, draft: DraftValue | null): boolean 
   }
   if (kind === "flashcards") {
     const value = (draft as FlashcardsDraft).cards;
-    return value.length > 0 && value.every((card) => Boolean(card.front.trim() && card.back.trim()));
+    return (
+      value.length > 0 && value.every((card) => Boolean(card.front.trim() && card.back.trim()))
+    );
   }
   if (kind === "quiz") {
     const value = draft as QuizDraft;

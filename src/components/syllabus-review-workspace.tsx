@@ -54,7 +54,8 @@ interface CourseDecision {
   match?: DuplicateCourseMatch;
 }
 
-const ACCEPTED = ".pdf,.docx,.xlsx,.xls,.csv,.txt,.md,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+const ACCEPTED =
+  ".pdf,.docx,.xlsx,.xls,.csv,.txt,.md,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 export function SyllabusReviewWorkspace() {
   const { lang } = useApp();
@@ -97,8 +98,14 @@ export function SyllabusReviewWorkspace() {
     try {
       const result = await ingestSyllabusFile(file);
       initialize(result.source, result.draft);
-      if (result.source.extraction.status === "partial" || result.source.extraction.status === "no_text") {
-        toast.warning(result.source.extraction.message || (isRu ? "Текст извлечён частично" : "Text was extracted partially"));
+      if (
+        result.source.extraction.status === "partial" ||
+        result.source.extraction.status === "no_text"
+      ) {
+        toast.warning(
+          result.source.extraction.message ||
+            (isRu ? "Текст извлечён частично" : "Text was extracted partially"),
+        );
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : String(error));
@@ -145,7 +152,8 @@ export function SyllabusReviewWorkspace() {
             const match = findDuplicateCourse(data, course);
             return [
               course.id,
-              existing ?? (match ? { action: "update" as const, match } : { action: "create" as const }),
+              existing ??
+                (match ? { action: "update" as const, match } : { action: "create" as const }),
             ];
           }),
         ),
@@ -166,9 +174,9 @@ export function SyllabusReviewWorkspace() {
     setNewInstitution("");
   };
 
-  const selectedCourses = draft?.courses.filter(
-    (course) => course.include && decisions[course.id]?.action !== "skip",
-  ) ?? [];
+  const selectedCourses =
+    draft?.courses.filter((course) => course.include && decisions[course.id]?.action !== "skip") ??
+    [];
   const previousImports = source ? previousImportMatches(data, source.fileName) : 0;
   const lowConfidenceCount = selectedCourses.filter((course) => course.confidence < 0.6).length;
   const duplicateCount = Object.values(decisions).filter((decision) => decision.match).length;
@@ -241,7 +249,9 @@ export function SyllabusReviewWorkspace() {
       affectedCourses.push(course);
 
       const existingTopics = data.topics.filter((topic) => topic.courseId === course.id);
-      const topicByTitle = new Map(existingTopics.map((topic) => [normalizedTitle(topic.title), topic]));
+      const topicByTitle = new Map(
+        existingTopics.map((topic) => [normalizedTitle(topic.title), topic]),
+      );
       reviewed.topics.forEach((title, index) => {
         const key = normalizedTitle(title);
         const existing = topicByTitle.get(key);
@@ -271,7 +281,7 @@ export function SyllabusReviewWorkspace() {
         : store.createMaterial({
             title: source.fileName.replace(/\.[^.]+$/, "") || reviewed.title,
             type: "syllabus",
-            sourceMode: source.sourceType === "text" ? "paste" : "upload",
+            sourceMode: source.sourceType === "text" ? "pasted_text" : "uploaded_file",
             fileName: source.fileName,
             courseId: course.id,
             tags: ["syllabus"],
@@ -393,8 +403,18 @@ export function SyllabusReviewWorkspace() {
                 }}
               />
               <Button className="mt-5" onClick={() => fileRef.current?.click()} disabled={busy}>
-                {busy ? <RefreshCw className="h-4 w-4 me-1 animate-spin" /> : <FileUp className="h-4 w-4 me-1" />}
-                {busy ? (isRu ? "Извлекаю…" : "Extracting…") : isRu ? "Выбрать файл" : "Choose file"}
+                {busy ? (
+                  <RefreshCw className="h-4 w-4 me-1 animate-spin" />
+                ) : (
+                  <FileUp className="h-4 w-4 me-1" />
+                )}
+                {busy
+                  ? isRu
+                    ? "Извлекаю…"
+                    : "Extracting…"
+                  : isRu
+                    ? "Выбрать файл"
+                    : "Choose file"}
               </Button>
             </div>
           ) : (
@@ -404,7 +424,11 @@ export function SyllabusReviewWorkspace() {
                 className="min-h-[300px] resize-y"
                 value={pastedText}
                 onChange={(event) => setPastedText(event.target.value)}
-                placeholder={isRu ? "Вставь сюда полный текст силлабуса…" : "Paste the full syllabus text here…"}
+                placeholder={
+                  isRu
+                    ? "Вставь сюда полный текст силлабуса…"
+                    : "Paste the full syllabus text here…"
+                }
               />
               <div className="flex justify-end">
                 <Button onClick={loadPaste}>
@@ -445,7 +469,11 @@ export function SyllabusReviewWorkspace() {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={improveWithAI} disabled={aiBusy}>
-                  {aiBusy ? <RefreshCw className="h-4 w-4 me-1 animate-spin" /> : <Sparkles className="h-4 w-4 me-1" />}
+                  {aiBusy ? (
+                    <RefreshCw className="h-4 w-4 me-1 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 me-1" />
+                  )}
                   {isRu ? "Улучшить через AI" : "Improve with AI"}
                 </Button>
                 <Button variant="ghost" onClick={reset}>
@@ -457,9 +485,15 @@ export function SyllabusReviewWorkspace() {
 
             <div className="mt-4 grid gap-3 sm:grid-cols-4">
               <SummaryCell label={isRu ? "Курсов" : "Courses"} value={draft.courses.length} />
-              <SummaryCell label={isRu ? "Тем" : "Topics"} value={draft.courses.reduce((sum, course) => sum + course.topics.length, 0)} />
+              <SummaryCell
+                label={isRu ? "Тем" : "Topics"}
+                value={draft.courses.reduce((sum, course) => sum + course.topics.length, 0)}
+              />
               <SummaryCell label={isRu ? "Совпадений" : "Matches"} value={duplicateCount} />
-              <SummaryCell label={isRu ? "Низкая уверенность" : "Low confidence"} value={lowConfidenceCount} />
+              <SummaryCell
+                label={isRu ? "Низкая уверенность" : "Low confidence"}
+                value={lowConfidenceCount}
+              />
             </div>
           </section>
 
@@ -470,7 +504,9 @@ export function SyllabusReviewWorkspace() {
                 course={course}
                 index={index}
                 decision={decisions[course.id] ?? { action: "create" }}
-                onDecision={(decision) => setDecisions((current) => ({ ...current, [course.id]: decision }))}
+                onDecision={(decision) =>
+                  setDecisions((current) => ({ ...current, [course.id]: decision }))
+                }
                 onChange={(next) =>
                   setDraft({
                     ...draft,
@@ -478,7 +514,10 @@ export function SyllabusReviewWorkspace() {
                   })
                 }
                 onDelete={() =>
-                  setDraft({ ...draft, courses: draft.courses.filter((item) => item.id !== course.id) })
+                  setDraft({
+                    ...draft,
+                    courses: draft.courses.filter((item) => item.id !== course.id),
+                  })
                 }
               />
             ))}
@@ -525,7 +564,9 @@ export function SyllabusReviewWorkspace() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">{isRu ? "Без программы" : "No program"}</SelectItem>
-                  <SelectItem value="_new">{isRu ? "Создать программу" : "Create program"}</SelectItem>
+                  <SelectItem value="_new">
+                    {isRu ? "Создать программу" : "Create program"}
+                  </SelectItem>
                   {data.programs.map((program) => (
                     <SelectItem key={program.id} value={program.id}>
                       {program.name}
@@ -535,8 +576,16 @@ export function SyllabusReviewWorkspace() {
               </Select>
               {programChoice === "_new" && (
                 <>
-                  <Input value={newProgramName} onChange={(event) => setNewProgramName(event.target.value)} placeholder={isRu ? "Название программы" : "Program name"} />
-                  <Input value={newInstitution} onChange={(event) => setNewInstitution(event.target.value)} placeholder={isRu ? "Учебное заведение" : "Institution"} />
+                  <Input
+                    value={newProgramName}
+                    onChange={(event) => setNewProgramName(event.target.value)}
+                    placeholder={isRu ? "Название программы" : "Program name"}
+                  />
+                  <Input
+                    value={newInstitution}
+                    onChange={(event) => setNewInstitution(event.target.value)}
+                    placeholder={isRu ? "Учебное заведение" : "Institution"}
+                  />
                 </>
               )}
             </div>
@@ -555,7 +604,9 @@ export function SyllabusReviewWorkspace() {
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{isRu ? "Подтвердить импорт силлабуса" : "Confirm syllabus import"}</DialogTitle>
+            <DialogTitle>
+              {isRu ? "Подтвердить импорт силлабуса" : "Confirm syllabus import"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 text-sm">
             <p>
@@ -565,9 +616,24 @@ export function SyllabusReviewWorkspace() {
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <SummaryCell label={isRu ? "Применить" : "Apply"} value={selectedCourses.length} />
-              <SummaryCell label={isRu ? "Обновить" : "Update"} value={selectedCourses.filter((course) => decisions[course.id]?.action === "update").length} />
-              <SummaryCell label={isRu ? "Создать" : "Create"} value={selectedCourses.filter((course) => decisions[course.id]?.action === "create").length} />
-              <SummaryCell label={isRu ? "Тем" : "Topics"} value={selectedCourses.reduce((sum, course) => sum + course.topics.length, 0)} />
+              <SummaryCell
+                label={isRu ? "Обновить" : "Update"}
+                value={
+                  selectedCourses.filter((course) => decisions[course.id]?.action === "update")
+                    .length
+                }
+              />
+              <SummaryCell
+                label={isRu ? "Создать" : "Create"}
+                value={
+                  selectedCourses.filter((course) => decisions[course.id]?.action === "create")
+                    .length
+                }
+              />
+              <SummaryCell
+                label={isRu ? "Тем" : "Topics"}
+                value={selectedCourses.reduce((sum, course) => sum + course.topics.length, 0)}
+              />
             </div>
             {lowConfidenceCount > 0 && (
               <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3 text-xs text-yellow-100">
@@ -609,7 +675,8 @@ function CourseReviewCard({
 }) {
   const { lang } = useApp();
   const isRu = lang === "ru";
-  const update = (patch: Partial<ReviewCourseDraft>) => onChange(normalizeReviewCourse({ ...course, ...patch }));
+  const update = (patch: Partial<ReviewCourseDraft>) =>
+    onChange(normalizeReviewCourse({ ...course, ...patch }));
 
   return (
     <article className="rounded-xl border border-border bg-surface p-4 md:p-5">
@@ -628,7 +695,8 @@ function CourseReviewCard({
           </div>
           {decision.match && (
             <p className="mt-1 text-xs text-yellow-200">
-              {isRu ? "Найден существующий курс" : "Existing course found"}: {decision.match.course.title}
+              {isRu ? "Найден существующий курс" : "Existing course found"}:{" "}
+              {decision.match.course.title}
               {decision.match.course.number ? ` · ${decision.match.course.number}` : ""}
             </p>
           )}
@@ -650,28 +718,60 @@ function CourseReviewCard({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {decision.match && <SelectItem value="update">{isRu ? "Обновить найденный" : "Update match"}</SelectItem>}
+              {decision.match && (
+                <SelectItem value="update">
+                  {isRu ? "Обновить найденный" : "Update match"}
+                </SelectItem>
+              )}
               <SelectItem value="create">{isRu ? "Создать новый" : "Create new"}</SelectItem>
               <SelectItem value="skip">{isRu ? "Пропустить" : "Skip"}</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="ghost" size="icon" aria-label={isRu ? "Удалить из черновика" : "Remove from draft"} onClick={onDelete}>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={isRu ? "Удалить из черновика" : "Remove from draft"}
+            onClick={onDelete}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <ReviewField label={isRu ? "Название курса" : "Course title"} confidence={course.fieldConfidence.title}>
-          <Input dir="auto" value={course.title} onChange={(event) => update({ title: event.target.value })} />
+        <ReviewField
+          label={isRu ? "Название курса" : "Course title"}
+          confidence={course.fieldConfidence.title}
+        >
+          <Input
+            dir="auto"
+            value={course.title}
+            onChange={(event) => update({ title: event.target.value })}
+          />
         </ReviewField>
-        <ReviewField label={isRu ? "Код курса" : "Course code"} confidence={course.fieldConfidence.number}>
-          <Input value={course.number ?? ""} onChange={(event) => update({ number: event.target.value })} />
+        <ReviewField
+          label={isRu ? "Код курса" : "Course code"}
+          confidence={course.fieldConfidence.number}
+        >
+          <Input
+            value={course.number ?? ""}
+            onChange={(event) => update({ number: event.target.value })}
+          />
         </ReviewField>
-        <ReviewField label={isRu ? "Преподаватель" : "Instructor"} confidence={course.fieldConfidence.instructor}>
-          <Input dir="auto" value={course.instructor ?? ""} onChange={(event) => update({ instructor: event.target.value })} />
+        <ReviewField
+          label={isRu ? "Преподаватель" : "Instructor"}
+          confidence={course.fieldConfidence.instructor}
+        >
+          <Input
+            dir="auto"
+            value={course.instructor ?? ""}
+            onChange={(event) => update({ instructor: event.target.value })}
+          />
         </ReviewField>
-        <ReviewField label={isRu ? "Кредиты" : "Credits"} confidence={course.fieldConfidence.credits}>
+        <ReviewField
+          label={isRu ? "Кредиты" : "Credits"}
+          confidence={course.fieldConfidence.credits}
+        >
           <Input
             inputMode="decimal"
             value={course.credits ?? ""}
@@ -681,27 +781,66 @@ function CourseReviewCard({
             }}
           />
         </ReviewField>
-        <ReviewField label={isRu ? "Семестр" : "Semester"} confidence={course.fieldConfidence.semester}>
-          <Input dir="auto" value={course.semester ?? ""} onChange={(event) => update({ semester: event.target.value })} />
+        <ReviewField
+          label={isRu ? "Семестр" : "Semester"}
+          confidence={course.fieldConfidence.semester}
+        >
+          <Input
+            dir="auto"
+            value={course.semester ?? ""}
+            onChange={(event) => update({ semester: event.target.value })}
+          />
         </ReviewField>
         <ReviewField label={isRu ? "Тип курса" : "Course type"}>
-          <Input dir="auto" value={course.type ?? ""} onChange={(event) => update({ type: event.target.value })} />
+          <Input
+            dir="auto"
+            value={course.type ?? ""}
+            onChange={(event) => update({ type: event.target.value })}
+          />
         </ReviewField>
       </div>
 
       <div className="mt-4">
-        <ReviewField label={isRu ? "Описание" : "Description"} confidence={course.fieldConfidence.description}>
-          <Textarea dir="auto" className="min-h-[110px] resize-y" value={course.description ?? ""} onChange={(event) => update({ description: event.target.value })} />
+        <ReviewField
+          label={isRu ? "Описание" : "Description"}
+          confidence={course.fieldConfidence.description}
+        >
+          <Textarea
+            dir="auto"
+            className="min-h-[110px] resize-y"
+            value={course.description ?? ""}
+            onChange={(event) => update({ description: event.target.value })}
+          />
         </ReviewField>
       </div>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
-        <EditableList title={isRu ? "Темы / недели" : "Topics / weeks"} items={course.topics} onChange={(topics) => update({ topics })} />
-        <EditableList title={isRu ? "Литература" : "Readings"} items={course.readings} onChange={(readings) => update({ readings })} />
-        <EditableList title={isRu ? "Задания" : "Assignments"} items={course.assignments} onChange={(assignments) => update({ assignments })} />
-        <EditableList title={isRu ? "Экзамены" : "Exams"} items={course.exams} onChange={(exams) => update({ exams })} />
+        <EditableList
+          title={isRu ? "Темы / недели" : "Topics / weeks"}
+          items={course.topics}
+          onChange={(topics) => update({ topics })}
+        />
+        <EditableList
+          title={isRu ? "Литература" : "Readings"}
+          items={course.readings}
+          onChange={(readings) => update({ readings })}
+        />
+        <EditableList
+          title={isRu ? "Задания" : "Assignments"}
+          items={course.assignments}
+          onChange={(assignments) => update({ assignments })}
+        />
+        <EditableList
+          title={isRu ? "Экзамены" : "Exams"}
+          items={course.exams}
+          onChange={(exams) => update({ exams })}
+        />
         <div className="lg:col-span-2">
-          <EditableList title={isRu ? "Состав оценки" : "Grading"} items={course.grading} onChange={(grading) => update({ grading })} />
+          <EditableList
+            title={isRu ? "Состав оценки" : "Grading"}
+            items={course.grading}
+            onChange={(grading) => update({ grading })}
+          />
         </div>
       </div>
 
@@ -778,10 +917,19 @@ function EditableList({
               dir="auto"
               value={item}
               onChange={(event) =>
-                onChange(items.map((current, itemIndex) => (itemIndex === index ? event.target.value : current)))
+                onChange(
+                  items.map((current, itemIndex) =>
+                    itemIndex === index ? event.target.value : current,
+                  ),
+                )
               }
             />
-            <Button size="icon" variant="ghost" aria-label={isRu ? "Удалить" : "Delete"} onClick={() => onChange(items.filter((_, itemIndex) => itemIndex !== index))}>
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label={isRu ? "Удалить" : "Delete"}
+              onClick={() => onChange(items.filter((_, itemIndex) => itemIndex !== index))}
+            >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -810,7 +958,9 @@ function ImportHistory() {
   const isRu = lang === "ru";
   return (
     <section className="rounded-xl border border-border bg-surface p-4 md:p-5">
-      <h2 className="font-serif text-xl font-semibold">{isRu ? "История импорта" : "Import history"}</h2>
+      <h2 className="font-serif text-xl font-semibold">
+        {isRu ? "История импорта" : "Import history"}
+      </h2>
       {data.syllabusImports.length === 0 ? (
         <p className="mt-2 text-sm text-muted-foreground">
           {isRu ? "Подтверждённых импортов пока нет." : "No confirmed imports yet."}
@@ -818,19 +968,35 @@ function ImportHistory() {
       ) : (
         <div className="mt-3 space-y-2">
           {data.syllabusImports.slice(0, 10).map((item) => (
-            <div key={item.id} className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-background p-3 text-xs">
-              <span className="rounded bg-primary/10 px-2 py-1 uppercase text-primary">{item.source}</span>
+            <div
+              key={item.id}
+              className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-background p-3 text-xs"
+            >
+              <span className="rounded bg-primary/10 px-2 py-1 uppercase text-primary">
+                {item.source}
+              </span>
               <span className="font-medium">{item.fileName ?? item.programName ?? "—"}</span>
               <span className="text-muted-foreground">
                 {item.courseIds.length} {isRu ? "курс(а)" : "course(s)"}
               </span>
-              <span className="ms-auto text-muted-foreground">{new Date(item.createdAt).toLocaleString(isRu ? "ru-RU" : "en-GB")}</span>
+              <span className="ms-auto text-muted-foreground">
+                {new Date(item.createdAt).toLocaleString(isRu ? "ru-RU" : "en-GB")}
+              </span>
               {item.courseIds[0] && (
-                <Link to="/app/courses/$courseId" params={{ courseId: item.courseIds[0] }} className="text-primary hover:underline">
+                <Link
+                  to="/app/courses/$courseId"
+                  params={{ courseId: item.courseIds[0] }}
+                  className="text-primary hover:underline"
+                >
                   {isRu ? "Открыть" : "Open"}
                 </Link>
               )}
-              <Button size="icon" variant="ghost" aria-label={isRu ? "Удалить запись истории" : "Delete history entry"} onClick={() => store.deleteSyllabusImport(item.id)}>
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label={isRu ? "Удалить запись истории" : "Delete history entry"}
+                onClick={() => store.deleteSyllabusImport(item.id)}
+              >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>

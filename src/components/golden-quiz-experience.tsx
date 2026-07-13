@@ -74,10 +74,7 @@ export function GoldenQuizExperience({ quizId }: { quizId: string }) {
     return {
       question: current,
       feedback,
-      options: deterministicShuffle(
-        options,
-        `options:${current.id}:attempt:${attemptNonce}`,
-      ),
+      options: deterministicShuffle(options, `options:${current.id}:attempt:${attemptNonce}`),
     };
   }, [current, attemptNonce]);
   const selectedOption = presented?.options.find(
@@ -184,8 +181,12 @@ export function GoldenQuizExperience({ quizId }: { quizId: string }) {
               >
                 <Languages className="h-4 w-4 me-1" />
                 {showTranslation
-                  ? isRu ? "Показан перевод" : "Translation shown"
-                  : isRu ? "Показать перевод" : "Show translation"}
+                  ? isRu
+                    ? "Показан перевод"
+                    : "Translation shown"
+                  : isRu
+                    ? "Показать перевод"
+                    : "Show translation"}
               </Button>
             )}
             <Button variant="outline" onClick={restart} disabled={questions.length === 0}>
@@ -201,8 +202,12 @@ export function GoldenQuizExperience({ quizId }: { quizId: string }) {
           <GraduationCap className="mx-auto h-10 w-10 text-muted-foreground" />
           <h2 className="mt-4 font-serif text-xl font-semibold">
             {rawQuestions.length === 0
-              ? isRu ? "В квизе пока нет вопросов" : "This quiz has no questions yet"
-              : isRu ? "Вопросы нужно исправить перед запуском" : "Questions need fixing before the quiz can run"}
+              ? isRu
+                ? "В квизе пока нет вопросов"
+                : "This quiz has no questions yet"
+              : isRu
+                ? "Вопросы нужно исправить перед запуском"
+                : "Questions need fixing before the quiz can run"}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             {isRu
@@ -225,8 +230,12 @@ export function GoldenQuizExperience({ quizId }: { quizId: string }) {
       ) : presented ? (
         <section className="mt-5">
           <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-            <span>{isRu ? "Вопрос" : "Question"} {index + 1} / {questions.length}</span>
-            <span>{score} {isRu ? "правильно" : "correct"}</span>
+            <span>
+              {isRu ? "Вопрос" : "Question"} {index + 1} / {questions.length}
+            </span>
+            <span>
+              {score} {isRu ? "правильно" : "correct"}
+            </span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
             <div
@@ -240,7 +249,10 @@ export function GoldenQuizExperience({ quizId }: { quizId: string }) {
               {presented.question.prompt}
             </h2>
             {showTranslation && presented.feedback.promptTranslation && (
-              <p dir="auto" className="mt-3 rounded-lg border border-border bg-background p-3 text-sm text-muted-foreground">
+              <p
+                dir="auto"
+                className="mt-3 rounded-lg border border-border bg-background p-3 text-sm text-muted-foreground"
+              >
                 {presented.feedback.promptTranslation}
               </p>
             )}
@@ -267,18 +279,30 @@ export function GoldenQuizExperience({ quizId }: { quizId: string }) {
                         {String.fromCharCode(65 + optionIndex)}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span dir="auto" className="block text-sm leading-6">{option.text}</span>
+                        <span dir="auto" className="block text-sm leading-6">
+                          {option.text}
+                        </span>
                         {showTranslation && option.translation && (
-                          <span dir="auto" className="mt-1 block text-xs leading-5 text-muted-foreground">
+                          <span
+                            dir="auto"
+                            className="mt-1 block text-xs leading-5 text-muted-foreground"
+                          >
                             {option.translation}
                           </span>
                         )}
                       </span>
-                      {answered && option.correct && <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-300" />}
-                      {answered && selected && !option.correct && <XCircle className="h-5 w-5 shrink-0 text-red-300" />}
+                      {answered && option.correct && (
+                        <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-300" />
+                      )}
+                      {answered && selected && !option.correct && (
+                        <XCircle className="h-5 w-5 shrink-0 text-red-300" />
+                      )}
                     </button>
                     {answered && option.rationale && (
-                      <p dir="auto" className="border-t border-current/10 px-4 py-3 text-xs leading-5 text-muted-foreground">
+                      <p
+                        dir="auto"
+                        className="border-t border-current/10 px-4 py-3 text-xs leading-5 text-muted-foreground"
+                      >
                         {option.rationale}
                       </p>
                     )}
@@ -302,8 +326,12 @@ export function GoldenQuizExperience({ quizId }: { quizId: string }) {
                     <XCircle className="h-5 w-5 text-red-300" />
                   )}
                   {answeredCorrectly
-                    ? isRu ? "Правильно" : "Correct"
-                    : isRu ? "Неправильно" : "Incorrect"}
+                    ? isRu
+                      ? "Правильно"
+                      : "Correct"
+                    : isRu
+                      ? "Неправильно"
+                      : "Incorrect"}
                 </div>
                 {!answeredCorrectly && (
                   <p dir="auto" className="mt-2 text-sm">
@@ -324,7 +352,8 @@ export function GoldenQuizExperience({ quizId }: { quizId: string }) {
                 )}
                 {(presented.question.sourceChunkIds?.length ?? 0) > 0 && (
                   <p className="mt-3 text-[10px] text-muted-foreground">
-                    {presented.question.sourceChunkIds?.length} {isRu ? "фрагм. источника" : "source chunks"}
+                    {presented.question.sourceChunkIds?.length}{" "}
+                    {isRu ? "фрагм. источника" : "source chunks"}
                   </p>
                 )}
               </div>
@@ -333,8 +362,12 @@ export function GoldenQuizExperience({ quizId }: { quizId: string }) {
             <div className="mt-6 flex justify-end">
               <Button disabled={!answered} onClick={next}>
                 {index >= questions.length - 1
-                  ? isRu ? "Завершить квиз" : "Finish quiz"
-                  : isRu ? "Следующий вопрос" : "Next question"}
+                  ? isRu
+                    ? "Завершить квиз"
+                    : "Finish quiz"
+                  : isRu
+                    ? "Следующий вопрос"
+                    : "Next question"}
                 <ChevronRight className="h-4 w-4 ms-1" />
               </Button>
             </div>

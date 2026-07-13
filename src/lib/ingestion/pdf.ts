@@ -43,7 +43,10 @@ export async function extractPdf(file: File): Promise<IngestResult> {
       if (it.hasEOL) pageText += "\n";
       else pageText += " ";
     }
-    pageText = pageText.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+    pageText = pageText
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
     pages.push(pageText);
     if (pageText) {
       chunks.push({

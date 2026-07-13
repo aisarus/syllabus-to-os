@@ -22,7 +22,9 @@ for (const [fileName, requiredText] of requiredDocuments) {
       failures.push(`${fileName} is missing required marker: ${requiredText}`);
     }
   } catch (error) {
-    failures.push(`${fileName} could not be read: ${error instanceof Error ? error.message : String(error)}`);
+    failures.push(
+      `${fileName} could not be read: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 

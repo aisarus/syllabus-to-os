@@ -147,9 +147,19 @@ function SearchPage() {
         <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center">
           <strong>{t.searchNoResults}</strong>
           <p className="mt-1 text-sm text-muted-foreground">
-            {lang === "ru" ? "Измени запрос или выбери область «Все»." : "Change the query or select the All scope."}
+            {lang === "ru"
+              ? "Измени запрос или выбери область «Все»."
+              : "Change the query or select the All scope."}
           </p>
-          <Button size="sm" variant="outline" className="mt-4" onClick={() => { setQuery(""); setScope("all"); }}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-4"
+            onClick={() => {
+              setQuery("");
+              setScope("all");
+            }}
+          >
             {lang === "ru" ? "Очистить поиск" : "Clear search"}
           </Button>
         </div>

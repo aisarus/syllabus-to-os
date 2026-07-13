@@ -1,12 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import {
-  ExternalLink,
-  FileQuestion,
-  FileText,
-  Layers3,
-  Presentation,
-  Trash2,
-} from "lucide-react";
+import { ExternalLink, FileQuestion, FileText, Layers3, Presentation, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
 import {
@@ -117,12 +110,7 @@ export function MaterialOutputHistory({ material }: { material: Material }) {
           ) : (
             <div className="mt-2 divide-y divide-border rounded-md border border-border bg-background">
               {history.map((output) => (
-                <HistoryRow
-                  key={output.id}
-                  output={output}
-                  material={material}
-                  isRu={isRu}
-                />
+                <HistoryRow key={output.id} output={output} material={material} isRu={isRu} />
               ))}
             </div>
           )}

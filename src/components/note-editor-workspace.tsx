@@ -16,14 +16,7 @@ import {
   Table2,
   Trash2,
 } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type MutableRefObject,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -110,24 +103,27 @@ function ExistingNoteEditor({ note }: { note: Note }) {
     [draft.content, linkedChunks],
   );
 
-  const persistDraft = useCallback((value: NoteDraftState) => {
-    setSaveState("saving");
-    try {
-      store.updateNote(note.id, {
-        title: value.title,
-        content: value.content,
-        tags: value.tags,
-        courseId: value.courseId,
-        topicId: value.topicId,
-        materialId: value.materialId,
-        sourceChunkIds: value.sourceChunkIds,
-      });
-      lastSavedRef.current = JSON.stringify(value);
-      setSaveState("saved");
-    } catch {
-      setSaveState("error");
-    }
-  }, [note.id]);
+  const persistDraft = useCallback(
+    (value: NoteDraftState) => {
+      setSaveState("saving");
+      try {
+        store.updateNote(note.id, {
+          title: value.title,
+          content: value.content,
+          tags: value.tags,
+          courseId: value.courseId,
+          topicId: value.topicId,
+          materialId: value.materialId,
+          sourceChunkIds: value.sourceChunkIds,
+        });
+        lastSavedRef.current = JSON.stringify(value);
+        setSaveState("saved");
+      } catch {
+        setSaveState("error");
+      }
+    },
+    [note.id],
+  );
 
   useEffect(() => {
     draftRef.current = draft;
@@ -166,11 +162,7 @@ function ExistingNoteEditor({ note }: { note: Note }) {
     setSelectedText(textarea.value.slice(textarea.selectionStart, textarea.selectionEnd).trim());
   };
 
-  const insertMarkdown = (
-    prefix: string,
-    suffix = "",
-    placeholder = isRu ? "текст" : "text",
-  ) => {
+  const insertMarkdown = (prefix: string, suffix = "", placeholder = isRu ? "текст" : "text") => {
     const textarea = textareaRef.current;
     if (!textarea) return;
     const start = textarea.selectionStart;
@@ -221,9 +213,7 @@ function ExistingNoteEditor({ note }: { note: Note }) {
             variant="destructive"
             size="sm"
             onClick={() => {
-              const confirmed = confirm(
-                isRu ? "Удалить этот конспект?" : "Delete this note?",
-              );
+              const confirmed = confirm(isRu ? "Удалить этот конспект?" : "Delete this note?");
               if (!confirmed) return;
               store.deleteNote(note.id);
               navigate({ to: "/app/notes" });
@@ -255,24 +245,34 @@ function ExistingNoteEditor({ note }: { note: Note }) {
                   })
                 }
               >
-                <SelectTrigger><SelectValue placeholder={isRu ? "Курс" : "Course"} /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder={isRu ? "Курс" : "Course"} />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">{isRu ? "Без курса" : "No course"}</SelectItem>
                   {data.courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <Select
                 value={draft.topicId ?? "_none"}
                 disabled={!draft.courseId}
-                onValueChange={(value) => updateDraft({ topicId: value === "_none" ? undefined : value })}
+                onValueChange={(value) =>
+                  updateDraft({ topicId: value === "_none" ? undefined : value })
+                }
               >
-                <SelectTrigger><SelectValue placeholder={isRu ? "Тема" : "Topic"} /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder={isRu ? "Тема" : "Topic"} />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">{isRu ? "Без темы" : "No topic"}</SelectItem>
                   {topics.map((topic) => (
-                    <SelectItem key={topic.id} value={topic.id}>{topic.title}</SelectItem>
+                    <SelectItem key={topic.id} value={topic.id}>
+                      {topic.title}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -283,13 +283,20 @@ function ExistingNoteEditor({ note }: { note: Note }) {
                   updateDraft({ materialId, sourceChunkIds: [] });
                 }}
               >
-                <SelectTrigger><SelectValue placeholder={isRu ? "Источник" : "Source"} /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder={isRu ? "Источник" : "Source"} />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">{isRu ? "Без источника" : "No source"}</SelectItem>
                   {data.materials
-                    .filter((item) => !draft.courseId || !item.courseId || item.courseId === draft.courseId)
+                    .filter(
+                      (item) =>
+                        !draft.courseId || !item.courseId || item.courseId === draft.courseId,
+                    )
                     .map((item) => (
-                      <SelectItem key={item.id} value={item.id}>{item.title}</SelectItem>
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.title}
+                      </SelectItem>
                     ))}
                 </SelectContent>
               </Select>
@@ -328,8 +335,12 @@ function ExistingNoteEditor({ note }: { note: Note }) {
               }
             />
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
-              <span>{draft.content.length.toLocaleString()} {isRu ? "знаков" : "characters"}</span>
-              <span>{countWords(draft.content).toLocaleString()} {isRu ? "слов" : "words"}</span>
+              <span>
+                {draft.content.length.toLocaleString()} {isRu ? "знаков" : "characters"}
+              </span>
+              <span>
+                {countWords(draft.content).toLocaleString()} {isRu ? "слов" : "words"}
+              </span>
             </div>
           </div>
         </main>
@@ -345,11 +356,19 @@ function ExistingNoteEditor({ note }: { note: Note }) {
                   : "Select text in the editor to turn it into a study item."}
             </p>
             <div className="mt-3 grid gap-2">
-              <Button variant="outline" disabled={!selectedText} onClick={() => setConvertMode("flashcard")}>
+              <Button
+                variant="outline"
+                disabled={!selectedText}
+                onClick={() => setConvertMode("flashcard")}
+              >
                 <Sparkles className="h-4 w-4 me-1" />
                 {isRu ? "Сделать карточку" : "Create flashcard"}
               </Button>
-              <Button variant="outline" disabled={!selectedText} onClick={() => setConvertMode("quiz")}>
+              <Button
+                variant="outline"
+                disabled={!selectedText}
+                onClick={() => setConvertMode("quiz")}
+              >
                 <FileQuestion className="h-4 w-4 me-1" />
                 {isRu ? "Сделать вопрос" : "Create question"}
               </Button>
@@ -358,7 +377,9 @@ function ExistingNoteEditor({ note }: { note: Note }) {
 
           <section className="rounded-xl border border-border bg-surface p-4">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="font-semibold">{isRu ? "Связь с источником" : "Source relationship"}</h2>
+              <h2 className="font-semibold">
+                {isRu ? "Связь с источником" : "Source relationship"}
+              </h2>
               {material && (
                 <Link
                   to="/app/materials/$materialId"
@@ -372,11 +393,15 @@ function ExistingNoteEditor({ note }: { note: Note }) {
             </div>
             {!material ? (
               <p className="mt-3 text-xs text-muted-foreground">
-                {isRu ? "Конспект пока не связан с материалом." : "This note is not linked to source material."}
+                {isRu
+                  ? "Конспект пока не связан с материалом."
+                  : "This note is not linked to source material."}
               </p>
             ) : sourceChunks.length === 0 ? (
               <p className="mt-3 text-xs text-muted-foreground">
-                {isRu ? "У материала нет отдельных фрагментов." : "The material has no extracted chunks."}
+                {isRu
+                  ? "У материала нет отдельных фрагментов."
+                  : "The material has no extracted chunks."}
               </p>
             ) : (
               <div className="mt-3 max-h-72 space-y-1 overflow-auto rounded-md border border-border bg-background p-1">
@@ -390,10 +415,18 @@ function ExistingNoteEditor({ note }: { note: Note }) {
                       onClick={() => toggleChunk(chunk.id)}
                     >
                       <span className="flex items-start gap-2">
-                        {checked ? <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> : <span className="mt-0.5 h-4 w-4 shrink-0 rounded border border-border" />}
+                        {checked ? (
+                          <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                        ) : (
+                          <span className="mt-0.5 h-4 w-4 shrink-0 rounded border border-border" />
+                        )}
                         <span className="min-w-0">
-                          <strong className="block truncate">{chunk.title || `${isRu ? "Фрагмент" : "Chunk"} ${chunk.order + 1}`}</strong>
-                          <span className="mt-1 block line-clamp-2 text-muted-foreground">{chunk.text}</span>
+                          <strong className="block truncate">
+                            {chunk.title || `${isRu ? "Фрагмент" : "Chunk"} ${chunk.order + 1}`}
+                          </strong>
+                          <span className="mt-1 block line-clamp-2 text-muted-foreground">
+                            {chunk.text}
+                          </span>
                         </span>
                       </span>
                     </button>
@@ -404,7 +437,9 @@ function ExistingNoteEditor({ note }: { note: Note }) {
           </section>
 
           <section className="rounded-xl border border-border bg-surface p-4">
-            <h2 className="font-semibold">{isRu ? "Сравнение с источником" : "Compare with source"}</h2>
+            <h2 className="font-semibold">
+              {isRu ? "Сравнение с источником" : "Compare with source"}
+            </h2>
             {!material || linkedChunks.length === 0 ? (
               <p className="mt-3 text-xs text-muted-foreground">
                 {isRu
@@ -426,7 +461,9 @@ function ExistingNoteEditor({ note }: { note: Note }) {
                     : "These source sections may be missing or underrepresented:"}
                 </p>
                 <ul className="mt-2 list-disc space-y-1 ps-5 text-xs text-muted-foreground">
-                  {sourceGaps.map((gap) => <li key={gap}>{gap}</li>)}
+                  {sourceGaps.map((gap) => (
+                    <li key={gap}>{gap}</li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -455,10 +492,26 @@ function MarkdownToolbar({
   const actions = [
     { icon: Heading1, label: "H1", run: () => insert("# ", "", isRu ? "Заголовок" : "Heading") },
     { icon: Heading2, label: "H2", run: () => insert("## ", "", isRu ? "Раздел" : "Section") },
-    { icon: List, label: isRu ? "Список" : "List", run: () => insert("- ", "", isRu ? "пункт" : "item") },
-    { icon: ListChecks, label: isRu ? "Чеклист" : "Checklist", run: () => insert("- [ ] ", "", isRu ? "задача" : "task") },
-    { icon: Quote, label: isRu ? "Цитата" : "Quote", run: () => insert("> ", "", isRu ? "цитата" : "quote") },
-    { icon: Table2, label: isRu ? "Таблица" : "Table", run: () => insert("| Термин | Объяснение |\n|---|---|\n| ", " |  |") },
+    {
+      icon: List,
+      label: isRu ? "Список" : "List",
+      run: () => insert("- ", "", isRu ? "пункт" : "item"),
+    },
+    {
+      icon: ListChecks,
+      label: isRu ? "Чеклист" : "Checklist",
+      run: () => insert("- [ ] ", "", isRu ? "задача" : "task"),
+    },
+    {
+      icon: Quote,
+      label: isRu ? "Цитата" : "Quote",
+      run: () => insert("> ", "", isRu ? "цитата" : "quote"),
+    },
+    {
+      icon: Table2,
+      label: isRu ? "Таблица" : "Table",
+      run: () => insert("| Термин | Объяснение |\n|---|---|\n| ", " |  |"),
+    },
   ];
   return (
     <div className="flex flex-wrap gap-1 border-b border-border bg-background/50 p-2">
@@ -569,8 +622,12 @@ function ConvertSelectionDialog({
         <DialogHeader>
           <DialogTitle>
             {mode === "flashcard"
-              ? isRu ? "Карточка из выделенного текста" : "Flashcard from selected text"
-              : isRu ? "Вопрос из выделенного текста" : "Question from selected text"}
+              ? isRu
+                ? "Карточка из выделенного текста"
+                : "Flashcard from selected text"
+              : isRu
+                ? "Вопрос из выделенного текста"
+                : "Question from selected text"}
           </DialogTitle>
         </DialogHeader>
         {mode === "flashcard" ? (
@@ -581,7 +638,12 @@ function ConvertSelectionDialog({
             </div>
             <div>
               <Label>{isRu ? "Ответ" : "Answer"}</Label>
-              <Textarea dir="auto" className="min-h-[180px]" value={back} onChange={(event) => setBack(event.target.value)} />
+              <Textarea
+                dir="auto"
+                className="min-h-[180px]"
+                value={back}
+                onChange={(event) => setBack(event.target.value)}
+              />
             </div>
           </div>
         ) : (
@@ -592,24 +654,42 @@ function ConvertSelectionDialog({
             </div>
             <div>
               <Label>{isRu ? "Вопрос" : "Question"}</Label>
-              <Input dir="auto" value={prompt} onChange={(event) => setPrompt(event.target.value)} />
+              <Input
+                dir="auto"
+                value={prompt}
+                onChange={(event) => setPrompt(event.target.value)}
+              />
             </div>
             <div className="space-y-2">
               {options.map((option, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <input type="radio" checked={correctIndex === index} onChange={() => setCorrectIndex(index)} />
+                  <input
+                    type="radio"
+                    checked={correctIndex === index}
+                    onChange={() => setCorrectIndex(index)}
+                  />
                   <Input
                     dir="auto"
                     value={option}
                     placeholder={`${isRu ? "Вариант" : "Option"} ${index + 1}`}
-                    onChange={(event) => setOptions((current) => current.map((item, itemIndex) => itemIndex === index ? event.target.value : item))}
+                    onChange={(event) =>
+                      setOptions((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? event.target.value : item,
+                        ),
+                      )
+                    }
                   />
                 </div>
               ))}
             </div>
             <div>
               <Label>{isRu ? "Объяснение" : "Explanation"}</Label>
-              <Textarea dir="auto" value={explanation} onChange={(event) => setExplanation(event.target.value)} />
+              <Textarea
+                dir="auto"
+                value={explanation}
+                onChange={(event) => setExplanation(event.target.value)}
+              />
             </div>
           </div>
         )}
@@ -688,5 +768,11 @@ function downloadMarkdown(title: string, content: string) {
 }
 
 function safeFileName(value: string): string {
-  return value.replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, " ").trim().slice(0, 120) || "note";
+  return (
+    value
+      .replace(/[\\/:*?"<>|]+/g, "-")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 120) || "note"
+  );
 }

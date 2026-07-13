@@ -29,14 +29,16 @@ import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppCoursesRouteImport } from './routes/app.courses'
 import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 import { Route as AppAssignmentsRouteImport } from './routes/app.assignments'
-import { Route as AppQuizzesQuizIdRouteImport } from './routes/app.quizzes.$quizId'
-import { Route as AppPresentationsOutlineIdRouteImport } from './routes/app.presentations.$outlineId'
-import { Route as AppMaterialsMaterialIdRouteImport } from './routes/app.materials.$materialId'
-import { Route as AppCoursesCourseIdRouteImport } from './routes/app.courses.$courseId'
+import { Route as AppQuizzesQuizIdRouteImport } from './routes/app.quizzes_.$quizId'
+import { Route as AppPresentationsOutlineIdRouteImport } from './routes/app.presentations_.$outlineId'
+import { Route as AppNotesNoteIdRouteImport } from './routes/app.notes.$noteId'
+import { Route as AppMaterialsMaterialIdRouteImport } from './routes/app.materials_.$materialId'
+import { Route as AppCoursesCourseIdRouteImport } from './routes/app.courses_.$courseId'
 import { Route as ApiAiTranslateTextRouteImport } from './routes/api/ai/translate-text'
 import { Route as ApiAiStatusRouteImport } from './routes/api/ai/status'
 import { Route as ApiAiSimplifyTextRouteImport } from './routes/api/ai/simplify-text'
 import { Route as ApiAiParseSyllabusRouteImport } from './routes/api/ai/parse-syllabus'
+import { Route as ApiAiOcrImageRouteImport } from './routes/api/ai/ocr-image'
 import { Route as ApiAiGenerateTopicExplanationRouteImport } from './routes/api/ai/generate-topic-explanation'
 import { Route as ApiAiGenerateQuizRouteImport } from './routes/api/ai/generate-quiz'
 import { Route as ApiAiGeneratePresentationOutlineRouteImport } from './routes/api/ai/generate-presentation-outline'
@@ -145,25 +147,30 @@ const AppAssignmentsRoute = AppAssignmentsRouteImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 const AppQuizzesQuizIdRoute = AppQuizzesQuizIdRouteImport.update({
-  id: '/$quizId',
-  path: '/$quizId',
-  getParentRoute: () => AppQuizzesRoute,
+  id: '/quizzes_/$quizId',
+  path: '/quizzes/$quizId',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppPresentationsOutlineIdRoute =
   AppPresentationsOutlineIdRouteImport.update({
-    id: '/$outlineId',
-    path: '/$outlineId',
-    getParentRoute: () => AppPresentationsRoute,
+    id: '/presentations_/$outlineId',
+    path: '/presentations/$outlineId',
+    getParentRoute: () => AppRoute,
   } as any)
+const AppNotesNoteIdRoute = AppNotesNoteIdRouteImport.update({
+  id: '/$noteId',
+  path: '/$noteId',
+  getParentRoute: () => AppNotesRoute,
+} as any)
 const AppMaterialsMaterialIdRoute = AppMaterialsMaterialIdRouteImport.update({
-  id: '/$materialId',
-  path: '/$materialId',
-  getParentRoute: () => AppMaterialsRoute,
+  id: '/materials_/$materialId',
+  path: '/materials/$materialId',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppCoursesCourseIdRoute = AppCoursesCourseIdRouteImport.update({
-  id: '/$courseId',
-  path: '/$courseId',
-  getParentRoute: () => AppCoursesRoute,
+  id: '/courses_/$courseId',
+  path: '/courses/$courseId',
+  getParentRoute: () => AppRoute,
 } as any)
 const ApiAiTranslateTextRoute = ApiAiTranslateTextRouteImport.update({
   id: '/api/ai/translate-text',
@@ -183,6 +190,11 @@ const ApiAiSimplifyTextRoute = ApiAiSimplifyTextRouteImport.update({
 const ApiAiParseSyllabusRoute = ApiAiParseSyllabusRouteImport.update({
   id: '/api/ai/parse-syllabus',
   path: '/api/ai/parse-syllabus',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiOcrImageRoute = ApiAiOcrImageRouteImport.update({
+  id: '/api/ai/ocr-image',
+  path: '/api/ai/ocr-image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAiGenerateTopicExplanationRoute =
@@ -224,17 +236,17 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/app/assignments': typeof AppAssignmentsRoute
   '/app/calendar': typeof AppCalendarRoute
-  '/app/courses': typeof AppCoursesRouteWithChildren
+  '/app/courses': typeof AppCoursesRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
   '/app/import-syllabus': typeof AppImportSyllabusRoute
-  '/app/materials': typeof AppMaterialsRouteWithChildren
-  '/app/notes': typeof AppNotesRoute
-  '/app/presentations': typeof AppPresentationsRouteWithChildren
+  '/app/materials': typeof AppMaterialsRoute
+  '/app/notes': typeof AppNotesRouteWithChildren
+  '/app/presentations': typeof AppPresentationsRoute
   '/app/program': typeof AppProgramRoute
   '/app/progress': typeof AppProgressRoute
-  '/app/quizzes': typeof AppQuizzesRouteWithChildren
+  '/app/quizzes': typeof AppQuizzesRoute
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
@@ -246,12 +258,14 @@ export interface FileRoutesByFullPath {
   '/api/ai/generate-presentation-outline': typeof ApiAiGeneratePresentationOutlineRoute
   '/api/ai/generate-quiz': typeof ApiAiGenerateQuizRoute
   '/api/ai/generate-topic-explanation': typeof ApiAiGenerateTopicExplanationRoute
+  '/api/ai/ocr-image': typeof ApiAiOcrImageRoute
   '/api/ai/parse-syllabus': typeof ApiAiParseSyllabusRoute
   '/api/ai/simplify-text': typeof ApiAiSimplifyTextRoute
   '/api/ai/status': typeof ApiAiStatusRoute
   '/api/ai/translate-text': typeof ApiAiTranslateTextRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
   '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
+  '/app/notes/$noteId': typeof AppNotesNoteIdRoute
   '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
   '/app/quizzes/$quizId': typeof AppQuizzesQuizIdRoute
 }
@@ -259,17 +273,17 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/assignments': typeof AppAssignmentsRoute
   '/app/calendar': typeof AppCalendarRoute
-  '/app/courses': typeof AppCoursesRouteWithChildren
+  '/app/courses': typeof AppCoursesRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
   '/app/import-syllabus': typeof AppImportSyllabusRoute
-  '/app/materials': typeof AppMaterialsRouteWithChildren
-  '/app/notes': typeof AppNotesRoute
-  '/app/presentations': typeof AppPresentationsRouteWithChildren
+  '/app/materials': typeof AppMaterialsRoute
+  '/app/notes': typeof AppNotesRouteWithChildren
+  '/app/presentations': typeof AppPresentationsRoute
   '/app/program': typeof AppProgramRoute
   '/app/progress': typeof AppProgressRoute
-  '/app/quizzes': typeof AppQuizzesRouteWithChildren
+  '/app/quizzes': typeof AppQuizzesRoute
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
@@ -281,12 +295,14 @@ export interface FileRoutesByTo {
   '/api/ai/generate-presentation-outline': typeof ApiAiGeneratePresentationOutlineRoute
   '/api/ai/generate-quiz': typeof ApiAiGenerateQuizRoute
   '/api/ai/generate-topic-explanation': typeof ApiAiGenerateTopicExplanationRoute
+  '/api/ai/ocr-image': typeof ApiAiOcrImageRoute
   '/api/ai/parse-syllabus': typeof ApiAiParseSyllabusRoute
   '/api/ai/simplify-text': typeof ApiAiSimplifyTextRoute
   '/api/ai/status': typeof ApiAiStatusRoute
   '/api/ai/translate-text': typeof ApiAiTranslateTextRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
   '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
+  '/app/notes/$noteId': typeof AppNotesNoteIdRoute
   '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
   '/app/quizzes/$quizId': typeof AppQuizzesQuizIdRoute
 }
@@ -296,17 +312,17 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/app/assignments': typeof AppAssignmentsRoute
   '/app/calendar': typeof AppCalendarRoute
-  '/app/courses': typeof AppCoursesRouteWithChildren
+  '/app/courses': typeof AppCoursesRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/data': typeof AppDataRoute
   '/app/flashcards': typeof AppFlashcardsRoute
   '/app/import-syllabus': typeof AppImportSyllabusRoute
-  '/app/materials': typeof AppMaterialsRouteWithChildren
-  '/app/notes': typeof AppNotesRoute
-  '/app/presentations': typeof AppPresentationsRouteWithChildren
+  '/app/materials': typeof AppMaterialsRoute
+  '/app/notes': typeof AppNotesRouteWithChildren
+  '/app/presentations': typeof AppPresentationsRoute
   '/app/program': typeof AppProgramRoute
   '/app/progress': typeof AppProgressRoute
-  '/app/quizzes': typeof AppQuizzesRouteWithChildren
+  '/app/quizzes': typeof AppQuizzesRoute
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/study-plan': typeof AppStudyPlanRoute
@@ -318,14 +334,16 @@ export interface FileRoutesById {
   '/api/ai/generate-presentation-outline': typeof ApiAiGeneratePresentationOutlineRoute
   '/api/ai/generate-quiz': typeof ApiAiGenerateQuizRoute
   '/api/ai/generate-topic-explanation': typeof ApiAiGenerateTopicExplanationRoute
+  '/api/ai/ocr-image': typeof ApiAiOcrImageRoute
   '/api/ai/parse-syllabus': typeof ApiAiParseSyllabusRoute
   '/api/ai/simplify-text': typeof ApiAiSimplifyTextRoute
   '/api/ai/status': typeof ApiAiStatusRoute
   '/api/ai/translate-text': typeof ApiAiTranslateTextRoute
-  '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
-  '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
-  '/app/presentations/$outlineId': typeof AppPresentationsOutlineIdRoute
-  '/app/quizzes/$quizId': typeof AppQuizzesQuizIdRoute
+  '/app/courses_/$courseId': typeof AppCoursesCourseIdRoute
+  '/app/materials_/$materialId': typeof AppMaterialsMaterialIdRoute
+  '/app/notes/$noteId': typeof AppNotesNoteIdRoute
+  '/app/presentations_/$outlineId': typeof AppPresentationsOutlineIdRoute
+  '/app/quizzes_/$quizId': typeof AppQuizzesQuizIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -356,12 +374,14 @@ export interface FileRouteTypes {
     | '/api/ai/generate-presentation-outline'
     | '/api/ai/generate-quiz'
     | '/api/ai/generate-topic-explanation'
+    | '/api/ai/ocr-image'
     | '/api/ai/parse-syllabus'
     | '/api/ai/simplify-text'
     | '/api/ai/status'
     | '/api/ai/translate-text'
     | '/app/courses/$courseId'
     | '/app/materials/$materialId'
+    | '/app/notes/$noteId'
     | '/app/presentations/$outlineId'
     | '/app/quizzes/$quizId'
   fileRoutesByTo: FileRoutesByTo
@@ -391,12 +411,14 @@ export interface FileRouteTypes {
     | '/api/ai/generate-presentation-outline'
     | '/api/ai/generate-quiz'
     | '/api/ai/generate-topic-explanation'
+    | '/api/ai/ocr-image'
     | '/api/ai/parse-syllabus'
     | '/api/ai/simplify-text'
     | '/api/ai/status'
     | '/api/ai/translate-text'
     | '/app/courses/$courseId'
     | '/app/materials/$materialId'
+    | '/app/notes/$noteId'
     | '/app/presentations/$outlineId'
     | '/app/quizzes/$quizId'
   id:
@@ -427,14 +449,16 @@ export interface FileRouteTypes {
     | '/api/ai/generate-presentation-outline'
     | '/api/ai/generate-quiz'
     | '/api/ai/generate-topic-explanation'
+    | '/api/ai/ocr-image'
     | '/api/ai/parse-syllabus'
     | '/api/ai/simplify-text'
     | '/api/ai/status'
     | '/api/ai/translate-text'
-    | '/app/courses/$courseId'
-    | '/app/materials/$materialId'
-    | '/app/presentations/$outlineId'
-    | '/app/quizzes/$quizId'
+    | '/app/courses_/$courseId'
+    | '/app/materials_/$materialId'
+    | '/app/notes/$noteId'
+    | '/app/presentations_/$outlineId'
+    | '/app/quizzes_/$quizId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -446,6 +470,7 @@ export interface RootRouteChildren {
   ApiAiGeneratePresentationOutlineRoute: typeof ApiAiGeneratePresentationOutlineRoute
   ApiAiGenerateQuizRoute: typeof ApiAiGenerateQuizRoute
   ApiAiGenerateTopicExplanationRoute: typeof ApiAiGenerateTopicExplanationRoute
+  ApiAiOcrImageRoute: typeof ApiAiOcrImageRoute
   ApiAiParseSyllabusRoute: typeof ApiAiParseSyllabusRoute
   ApiAiSimplifyTextRoute: typeof ApiAiSimplifyTextRoute
   ApiAiStatusRoute: typeof ApiAiStatusRoute
@@ -594,33 +619,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssignmentsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/quizzes/$quizId': {
-      id: '/app/quizzes/$quizId'
-      path: '/$quizId'
+    '/app/quizzes_/$quizId': {
+      id: '/app/quizzes_/$quizId'
+      path: '/quizzes/$quizId'
       fullPath: '/app/quizzes/$quizId'
       preLoaderRoute: typeof AppQuizzesQuizIdRouteImport
-      parentRoute: typeof AppQuizzesRoute
+      parentRoute: typeof AppRoute
     }
-    '/app/presentations/$outlineId': {
-      id: '/app/presentations/$outlineId'
-      path: '/$outlineId'
+    '/app/presentations_/$outlineId': {
+      id: '/app/presentations_/$outlineId'
+      path: '/presentations/$outlineId'
       fullPath: '/app/presentations/$outlineId'
       preLoaderRoute: typeof AppPresentationsOutlineIdRouteImport
-      parentRoute: typeof AppPresentationsRoute
+      parentRoute: typeof AppRoute
     }
-    '/app/materials/$materialId': {
-      id: '/app/materials/$materialId'
-      path: '/$materialId'
+    '/app/notes/$noteId': {
+      id: '/app/notes/$noteId'
+      path: '/$noteId'
+      fullPath: '/app/notes/$noteId'
+      preLoaderRoute: typeof AppNotesNoteIdRouteImport
+      parentRoute: typeof AppNotesRoute
+    }
+    '/app/materials_/$materialId': {
+      id: '/app/materials_/$materialId'
+      path: '/materials/$materialId'
       fullPath: '/app/materials/$materialId'
       preLoaderRoute: typeof AppMaterialsMaterialIdRouteImport
-      parentRoute: typeof AppMaterialsRoute
+      parentRoute: typeof AppRoute
     }
-    '/app/courses/$courseId': {
-      id: '/app/courses/$courseId'
-      path: '/$courseId'
+    '/app/courses_/$courseId': {
+      id: '/app/courses_/$courseId'
+      path: '/courses/$courseId'
       fullPath: '/app/courses/$courseId'
       preLoaderRoute: typeof AppCoursesCourseIdRouteImport
-      parentRoute: typeof AppCoursesRoute
+      parentRoute: typeof AppRoute
     }
     '/api/ai/translate-text': {
       id: '/api/ai/translate-text'
@@ -648,6 +680,13 @@ declare module '@tanstack/react-router' {
       path: '/api/ai/parse-syllabus'
       fullPath: '/api/ai/parse-syllabus'
       preLoaderRoute: typeof ApiAiParseSyllabusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/ocr-image': {
+      id: '/api/ai/ocr-image'
+      path: '/api/ai/ocr-image'
+      fullPath: '/api/ai/ocr-image'
+      preLoaderRoute: typeof ApiAiOcrImageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ai/generate-topic-explanation': {
@@ -695,93 +734,66 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AppCoursesRouteChildren {
-  AppCoursesCourseIdRoute: typeof AppCoursesCourseIdRoute
+interface AppNotesRouteChildren {
+  AppNotesNoteIdRoute: typeof AppNotesNoteIdRoute
 }
 
-const AppCoursesRouteChildren: AppCoursesRouteChildren = {
-  AppCoursesCourseIdRoute: AppCoursesCourseIdRoute,
+const AppNotesRouteChildren: AppNotesRouteChildren = {
+  AppNotesNoteIdRoute: AppNotesNoteIdRoute,
 }
 
-const AppCoursesRouteWithChildren = AppCoursesRoute._addFileChildren(
-  AppCoursesRouteChildren,
-)
-
-interface AppMaterialsRouteChildren {
-  AppMaterialsMaterialIdRoute: typeof AppMaterialsMaterialIdRoute
-}
-
-const AppMaterialsRouteChildren: AppMaterialsRouteChildren = {
-  AppMaterialsMaterialIdRoute: AppMaterialsMaterialIdRoute,
-}
-
-const AppMaterialsRouteWithChildren = AppMaterialsRoute._addFileChildren(
-  AppMaterialsRouteChildren,
-)
-
-interface AppPresentationsRouteChildren {
-  AppPresentationsOutlineIdRoute: typeof AppPresentationsOutlineIdRoute
-}
-
-const AppPresentationsRouteChildren: AppPresentationsRouteChildren = {
-  AppPresentationsOutlineIdRoute: AppPresentationsOutlineIdRoute,
-}
-
-const AppPresentationsRouteWithChildren =
-  AppPresentationsRoute._addFileChildren(AppPresentationsRouteChildren)
-
-interface AppQuizzesRouteChildren {
-  AppQuizzesQuizIdRoute: typeof AppQuizzesQuizIdRoute
-}
-
-const AppQuizzesRouteChildren: AppQuizzesRouteChildren = {
-  AppQuizzesQuizIdRoute: AppQuizzesQuizIdRoute,
-}
-
-const AppQuizzesRouteWithChildren = AppQuizzesRoute._addFileChildren(
-  AppQuizzesRouteChildren,
+const AppNotesRouteWithChildren = AppNotesRoute._addFileChildren(
+  AppNotesRouteChildren,
 )
 
 interface AppRouteChildren {
   AppAssignmentsRoute: typeof AppAssignmentsRoute
   AppCalendarRoute: typeof AppCalendarRoute
-  AppCoursesRoute: typeof AppCoursesRouteWithChildren
+  AppCoursesRoute: typeof AppCoursesRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppDataRoute: typeof AppDataRoute
   AppFlashcardsRoute: typeof AppFlashcardsRoute
   AppImportSyllabusRoute: typeof AppImportSyllabusRoute
-  AppMaterialsRoute: typeof AppMaterialsRouteWithChildren
-  AppNotesRoute: typeof AppNotesRoute
-  AppPresentationsRoute: typeof AppPresentationsRouteWithChildren
+  AppMaterialsRoute: typeof AppMaterialsRoute
+  AppNotesRoute: typeof AppNotesRouteWithChildren
+  AppPresentationsRoute: typeof AppPresentationsRoute
   AppProgramRoute: typeof AppProgramRoute
   AppProgressRoute: typeof AppProgressRoute
-  AppQuizzesRoute: typeof AppQuizzesRouteWithChildren
+  AppQuizzesRoute: typeof AppQuizzesRoute
   AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudyPlanRoute: typeof AppStudyPlanRoute
   AppStudySessionRoute: typeof AppStudySessionRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppCoursesCourseIdRoute: typeof AppCoursesCourseIdRoute
+  AppMaterialsMaterialIdRoute: typeof AppMaterialsMaterialIdRoute
+  AppPresentationsOutlineIdRoute: typeof AppPresentationsOutlineIdRoute
+  AppQuizzesQuizIdRoute: typeof AppQuizzesQuizIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAssignmentsRoute: AppAssignmentsRoute,
   AppCalendarRoute: AppCalendarRoute,
-  AppCoursesRoute: AppCoursesRouteWithChildren,
+  AppCoursesRoute: AppCoursesRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppDataRoute: AppDataRoute,
   AppFlashcardsRoute: AppFlashcardsRoute,
   AppImportSyllabusRoute: AppImportSyllabusRoute,
-  AppMaterialsRoute: AppMaterialsRouteWithChildren,
-  AppNotesRoute: AppNotesRoute,
-  AppPresentationsRoute: AppPresentationsRouteWithChildren,
+  AppMaterialsRoute: AppMaterialsRoute,
+  AppNotesRoute: AppNotesRouteWithChildren,
+  AppPresentationsRoute: AppPresentationsRoute,
   AppProgramRoute: AppProgramRoute,
   AppProgressRoute: AppProgressRoute,
-  AppQuizzesRoute: AppQuizzesRouteWithChildren,
+  AppQuizzesRoute: AppQuizzesRoute,
   AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStudyPlanRoute: AppStudyPlanRoute,
   AppStudySessionRoute: AppStudySessionRoute,
   AppIndexRoute: AppIndexRoute,
+  AppCoursesCourseIdRoute: AppCoursesCourseIdRoute,
+  AppMaterialsMaterialIdRoute: AppMaterialsMaterialIdRoute,
+  AppPresentationsOutlineIdRoute: AppPresentationsOutlineIdRoute,
+  AppQuizzesQuizIdRoute: AppQuizzesQuizIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -795,6 +807,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAiGeneratePresentationOutlineRoute: ApiAiGeneratePresentationOutlineRoute,
   ApiAiGenerateQuizRoute: ApiAiGenerateQuizRoute,
   ApiAiGenerateTopicExplanationRoute: ApiAiGenerateTopicExplanationRoute,
+  ApiAiOcrImageRoute: ApiAiOcrImageRoute,
   ApiAiParseSyllabusRoute: ApiAiParseSyllabusRoute,
   ApiAiSimplifyTextRoute: ApiAiSimplifyTextRoute,
   ApiAiStatusRoute: ApiAiStatusRoute,

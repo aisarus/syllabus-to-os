@@ -1,21 +1,10 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  Plus,
-  RefreshCw,
-  Trash2,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/lib/app-context";
-import type {
-  FlashcardsDraft,
-  NoteDraft,
-  PresentationDraft,
-  QuizDraft,
-} from "@/lib/ai";
+import type { FlashcardsDraft, NoteDraft, PresentationDraft, QuizDraft } from "@/lib/ai";
 
 export function NoteDraftEditor({
   draft,
@@ -121,7 +110,9 @@ export function FlashcardsDraftEditor({
 
       {draft.cards.length === 0 && (
         <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          {isRu ? "Добавь хотя бы одну карточку перед сохранением." : "Add at least one card before saving."}
+          {isRu
+            ? "Добавь хотя бы одну карточку перед сохранением."
+            : "Add at least one card before saving."}
         </div>
       )}
 
@@ -187,7 +178,8 @@ export function FlashcardsDraftEditor({
             placeholder={t.cardBack}
           />
           <div className="text-[10px] text-muted-foreground">
-            {(card.sourceChunkIds?.length || defaultSourceChunkIds.length).toLocaleString()} {isRu ? "источников" : "sources"}
+            {(card.sourceChunkIds?.length || defaultSourceChunkIds.length).toLocaleString()}{" "}
+            {isRu ? "источников" : "sources"}
           </div>
         </div>
       ))}
@@ -285,7 +277,9 @@ export function QuizDraftEditor({
 
       {draft.questions.length === 0 && (
         <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          {isRu ? "Добавь хотя бы один вопрос перед сохранением." : "Add at least one question before saving."}
+          {isRu
+            ? "Добавь хотя бы один вопрос перед сохранением."
+            : "Add at least one question before saving."}
         </div>
       )}
 
@@ -360,9 +354,7 @@ export function QuizDraftEditor({
                 <Input
                   dir="auto"
                   value={option}
-                  onChange={(event) =>
-                    updateOption(questionIndex, optionIndex, event.target.value)
-                  }
+                  onChange={(event) => updateOption(questionIndex, optionIndex, event.target.value)}
                 />
                 <Button
                   size="icon"
@@ -393,13 +385,12 @@ export function QuizDraftEditor({
             dir="auto"
             className="min-h-[80px] resize-y text-xs"
             value={question.explanation}
-            onChange={(event) =>
-              updateQuestion(questionIndex, { explanation: event.target.value })
-            }
+            onChange={(event) => updateQuestion(questionIndex, { explanation: event.target.value })}
             placeholder={t.explanation}
           />
           <div className="text-[10px] text-muted-foreground">
-            {(question.sourceChunkIds?.length || defaultSourceChunkIds.length).toLocaleString()} {isRu ? "источников" : "sources"}
+            {(question.sourceChunkIds?.length || defaultSourceChunkIds.length).toLocaleString()}{" "}
+            {isRu ? "источников" : "sources"}
           </div>
         </div>
       ))}

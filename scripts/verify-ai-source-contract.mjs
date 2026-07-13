@@ -106,11 +106,7 @@ for (const marker of [
   "onRegenerateItem={regenerateCard}",
   "onRegenerateItem={regenerateQuestion}",
 ]) {
-  requireMarker(
-    dialog,
-    marker,
-    `AI draft review contract is missing required behavior: ${marker}`,
-  );
+  requireMarker(dialog, marker, `AI draft review contract is missing required behavior: ${marker}`);
 }
 requireMarker(
   modal,
@@ -132,11 +128,7 @@ for (const marker of [
   "uncitedItemCount",
   "validateChunkIds",
 ]) {
-  requireMarker(
-    server,
-    marker,
-    `Server AI trust contract is missing required behavior: ${marker}`,
-  );
+  requireMarker(server, marker, `Server AI trust contract is missing required behavior: ${marker}`);
 }
 
 for (const marker of [
@@ -146,11 +138,7 @@ for (const marker of [
   "uncitedItemCount: number",
   "notFoundInSources?: boolean",
 ]) {
-  requireMarker(
-    client,
-    marker,
-    `Client AI trust contract is missing required shape: ${marker}`,
-  );
+  requireMarker(client, marker, `Client AI trust contract is missing required shape: ${marker}`);
 }
 
 for (const marker of [
@@ -161,11 +149,7 @@ for (const marker of [
   "The selected sources did not contain enough information",
   "findDraftMetadata",
 ]) {
-  requireMarker(
-    modal,
-    marker,
-    `Draft trust UI is missing required diagnostic behavior: ${marker}`,
-  );
+  requireMarker(modal, marker, `Draft trust UI is missing required diagnostic behavior: ${marker}`);
 }
 
 if (failures.length > 0) {

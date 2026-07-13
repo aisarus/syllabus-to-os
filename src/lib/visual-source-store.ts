@@ -6,11 +6,7 @@ const IMAGE_STORE = "images";
 const OCR_STORE = "ocrDrafts";
 
 export const MAX_VISUAL_SOURCE_BYTES = 20 * 1024 * 1024;
-export const SUPPORTED_VISUAL_SOURCE_MIMES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-] as const;
+export const SUPPORTED_VISUAL_SOURCE_MIMES = ["image/jpeg", "image/png", "image/webp"] as const;
 
 export interface StoredVisualSource {
   materialId: string;
@@ -117,9 +113,7 @@ export async function pruneVisualSourceData(validMaterialIds: Iterable<string>):
     readAllKeys(db, OCR_STORE),
   ]);
   const orphanIds = new Set(
-    [...imageKeys, ...draftKeys]
-      .map(String)
-      .filter((materialId) => !validIds.has(materialId)),
+    [...imageKeys, ...draftKeys].map(String).filter((materialId) => !validIds.has(materialId)),
   );
   await Promise.all([...orphanIds].map((materialId) => deleteMaterialVisualData(materialId)));
   return orphanIds.size;
@@ -155,8 +149,10 @@ function openDatabase(): Promise<IDBDatabase> {
       }
     };
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error("Could not open visual-source storage."));
-    request.onblocked = () => reject(new Error("Visual-source storage upgrade is blocked by another tab."));
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not open visual-source storage."));
+    request.onblocked = () =>
+      reject(new Error("Visual-source storage upgrade is blocked by another tab."));
   });
 }
 
@@ -188,7 +184,8 @@ function readAllRecords<T>(db: IDBDatabase, storeName: string): Promise<T[]> {
     const transaction = db.transaction(storeName, "readonly");
     const request = transaction.objectStore(storeName).getAll();
     request.onsuccess = () => resolve(request.result as T[]);
-    request.onerror = () => reject(request.error ?? new Error("Could not inspect local visual data."));
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not inspect local visual data."));
   });
 }
 
@@ -197,7 +194,8 @@ function readAllKeys(db: IDBDatabase, storeName: string): Promise<IDBValidKey[]>
     const transaction = db.transaction(storeName, "readonly");
     const request = transaction.objectStore(storeName).getAllKeys();
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error("Could not inspect visual-data keys."));
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not inspect visual-data keys."));
   });
 }
 

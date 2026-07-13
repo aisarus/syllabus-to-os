@@ -37,9 +37,7 @@ export function FlashcardExperience() {
   const [flipped, setFlipped] = useState(false);
   const [finished, setFinished] = useState(false);
 
-  const topics = data.topics.filter(
-    (topic) => courseId === "all" || topic.courseId === courseId,
-  );
+  const topics = data.topics.filter((topic) => courseId === "all" || topic.courseId === courseId);
   const filteredCards = useMemo(
     () =>
       data.flashcards
@@ -54,10 +52,7 @@ export function FlashcardExperience() {
     [data.flashcards],
   );
   const activeCards = useMemo(
-    () =>
-      reviewOnly
-        ? filteredCards.filter((card) => card.dueAt <= Date.now())
-        : filteredCards,
+    () => (reviewOnly ? filteredCards.filter((card) => card.dueAt <= Date.now()) : filteredCards),
     [filteredCards, reviewOnly],
   );
   const cards = useMemo(() => {
@@ -79,9 +74,7 @@ export function FlashcardExperience() {
 
   const startReview = () => {
     if (dueCards.length === 0) {
-      toast.info(
-        isRu ? "Сейчас нет карточек к повторению" : "No cards are due right now",
-      );
+      toast.info(isRu ? "Сейчас нет карточек к повторению" : "No cards are due right now");
       return;
     }
     setView("study");
@@ -198,20 +191,28 @@ export function FlashcardExperience() {
             setTopicId("all");
           }}
         >
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{isRu ? "Все курсы" : "All courses"}</SelectItem>
             {data.courses.map((course) => (
-              <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+              <SelectItem key={course.id} value={course.id}>
+                {course.title}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={topicId} onValueChange={setTopicId}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{isRu ? "Все темы" : "All topics"}</SelectItem>
             {topics.map((topic) => (
-              <SelectItem key={topic.id} value={topic.id}>{topic.title}</SelectItem>
+              <SelectItem key={topic.id} value={topic.id}>
+                {topic.title}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -219,7 +220,9 @@ export function FlashcardExperience() {
 
       {reviewOnly && (
         <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2 text-xs">
-          <span>{isRu ? "Показываются только карточки к повторению" : "Showing due cards only"}</span>
+          <span>
+            {isRu ? "Показываются только карточки к повторению" : "Showing due cards only"}
+          </span>
           <Button size="sm" variant="ghost" onClick={() => setReviewOnly(false)}>
             {isRu ? "Вся колода" : "Full deck"}
           </Button>
@@ -231,12 +234,18 @@ export function FlashcardExperience() {
           <Layers3 className="mx-auto h-10 w-10 text-muted-foreground" />
           <h2 className="mt-4 font-serif text-xl font-semibold">
             {reviewOnly
-              ? isRu ? "Карточек к повторению нет" : "No cards are due"
-              : isRu ? "В этой колоде пока нет карточек" : "This deck has no cards yet"}
+              ? isRu
+                ? "Карточек к повторению нет"
+                : "No cards are due"
+              : isRu
+                ? "В этой колоде пока нет карточек"
+                : "This deck has no cards yet"}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             {reviewOnly
-              ? isRu ? "Можно вернуться ко всей колоде." : "Return to the full deck."
+              ? isRu
+                ? "Можно вернуться ко всей колоде."
+                : "Return to the full deck."
               : isRu
                 ? "Сгенерируй двусторонние карточки из материала или создай их в управлении колодой."
                 : "Generate two-sided cards from a material or create them in deck management."}
@@ -266,7 +275,9 @@ export function FlashcardExperience() {
       ) : card ? (
         <>
           <div className="mt-5 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-            <span>{index + 1} / {cards.length}</span>
+            <span>
+              {index + 1} / {cards.length}
+            </span>
             <span>{flipped ? (isRu ? "Ответ" : "Answer") : isRu ? "Вопрос" : "Prompt"}</span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -284,11 +295,7 @@ export function FlashcardExperience() {
           />
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            <Button
-              variant="destructive"
-              disabled={!flipped}
-              onClick={() => advance("again")}
-            >
+            <Button variant="destructive" disabled={!flipped} onClick={() => advance("again")}>
               <X className="h-4 w-4 me-1" />
               {isRu ? "Повторить" : "Again"}
             </Button>
@@ -361,16 +368,24 @@ function StableFlashcard({
       onClick={onFlip}
       aria-label={
         flipped
-          ? isRu ? "Показать вопрос" : "Show prompt"
-          : isRu ? "Показать ответ" : "Show answer"
+          ? isRu
+            ? "Показать вопрос"
+            : "Show prompt"
+          : isRu
+            ? "Показать ответ"
+            : "Show answer"
       }
     >
       <div className="flex w-full items-center justify-between gap-3 border-b border-border pb-4 text-xs uppercase tracking-[0.18em] text-muted-foreground">
         <span>{label}</span>
         <span className="normal-case tracking-normal">
           {flipped
-            ? isRu ? "Нажми, чтобы вернуть вопрос" : "Tap to return to the prompt"
-            : isRu ? "Нажми, чтобы показать ответ" : "Tap to reveal the answer"}
+            ? isRu
+              ? "Нажми, чтобы вернуть вопрос"
+              : "Tap to return to the prompt"
+            : isRu
+              ? "Нажми, чтобы показать ответ"
+              : "Tap to reveal the answer"}
         </span>
       </div>
       <div className="flex min-h-0 flex-1 items-center justify-center py-8">

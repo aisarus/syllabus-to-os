@@ -157,7 +157,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="content-app">
-      <aside className="content-sidebar" aria-label={lang === "ru" ? "Навигация Lamdan" : "Lamdan navigation"}>
+      <aside
+        className="content-sidebar"
+        aria-label={lang === "ru" ? "Навигация Lamdan" : "Lamdan navigation"}
+      >
         <SidebarContent pathname={pathname} />
       </aside>
 

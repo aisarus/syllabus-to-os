@@ -56,15 +56,19 @@ for (const deferred of [
   "/app/calendar",
   "/app/assignments",
 ]) {
-  forbidMarker(shell, deferred, `Deferred tracking route leaked into primary navigation: ${deferred}.`);
+  forbidMarker(
+    shell,
+    deferred,
+    `Deferred tracking route leaked into primary navigation: ${deferred}.`,
+  );
 }
 
-requireMarker(courseRoute, "CourseLibrary", "Courses route no longer uses the content-first library.");
-for (const marker of [
-  "statusFilter",
-  "courseStatusLabel",
-  "programId: data.programs[0]",
-]) {
+requireMarker(
+  courseRoute,
+  "CourseLibrary",
+  "Courses route no longer uses the content-first library.",
+);
+for (const marker of ["statusFilter", "courseStatusLabel", "programId: data.programs[0]"]) {
   forbidMarker(courseLibrary, marker, `Tracking or hidden course behavior returned: ${marker}.`);
 }
 for (const marker of [
@@ -76,7 +80,11 @@ for (const marker of [
   "Самый быстрый старт — загрузить силлабус",
   "Статусы прохождения и проценты здесь намеренно не используются",
 ]) {
-  requireMarker(courseLibrary, marker, `Course library is missing a required safe/content-first behavior: ${marker}`);
+  requireMarker(
+    courseLibrary,
+    marker,
+    `Course library is missing a required safe/content-first behavior: ${marker}`,
+  );
 }
 
 for (const marker of ["intakeFile(file", "intakeText(text", "UploadDialog", "PasteDialog"]) {
@@ -98,7 +106,11 @@ for (const marker of [
   "store.reset()",
   "Экспортировать текстовые данные пока нечего",
 ]) {
-  requireMarker(data, marker, `Data management lost a required safeguard or explanation: ${marker}`);
+  requireMarker(
+    data,
+    marker,
+    `Data management lost a required safeguard or explanation: ${marker}`,
+  );
 }
 
 for (const marker of [
@@ -109,7 +121,11 @@ for (const marker of [
   "Данные хранятся только в этом браузере",
   "Data stays in this browser",
 ]) {
-  requireMarker(settings, marker, `Settings diagnostics/localization lost required behavior: ${marker}`);
+  requireMarker(
+    settings,
+    marker,
+    `Settings diagnostics/localization lost required behavior: ${marker}`,
+  );
 }
 forbidMarker(
   settings,
@@ -117,7 +133,11 @@ forbidMarker(
   "Hardcoded English footer returned to settings.",
 );
 
-requireMarker(dashboard, "courseWithoutCode", "Dashboard course-code fallback is no longer localized.");
+requireMarker(
+  dashboard,
+  "courseWithoutCode",
+  "Dashboard course-code fallback is no longer localized.",
+);
 forbidMarker(
   dashboard,
   'course.number || "COURSE"',
@@ -132,9 +152,15 @@ for (const [name, content, marker] of [
   requireMarker(content, marker, `Active ${name} route no longer uses its real editor/library.`);
 }
 
-const coreSurface = [dashboard, courseRoute, courseLibrary, materials, search, data, settings].join("\n");
+const coreSurface = [dashboard, courseRoute, courseLibrary, materials, search, data, settings].join(
+  "\n",
+);
 for (const forbidden of ["loadSampleBarIlan", "study streak", "Study streak", "fake progress"]) {
-  forbidMarker(coreSurface, forbidden, `Core UI contains forbidden demo/tracking content: ${forbidden}`);
+  forbidMarker(
+    coreSurface,
+    forbidden,
+    `Core UI contains forbidden demo/tracking content: ${forbidden}`,
+  );
 }
 
 if (failures.length) {

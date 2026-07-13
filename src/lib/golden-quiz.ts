@@ -38,7 +38,9 @@ export function formatGoldenQuizFeedback(
     sections.push(`### ${headings.promptTranslation}\n${feedback.promptTranslation.trim()}`);
   }
   if (feedback.optionTranslations?.some((value) => value.trim())) {
-    sections.push(`### ${headings.optionTranslations}\n${formatNumbered(feedback.optionTranslations)}`);
+    sections.push(
+      `### ${headings.optionTranslations}\n${formatNumbered(feedback.optionTranslations)}`,
+    );
   }
   return sections.join("\n\n").trim();
 }
@@ -82,7 +84,7 @@ export function parseGoldenQuizFeedback(
 export function hasQuizTranslation(feedback: GoldenQuizFeedback): boolean {
   return Boolean(
     feedback.promptTranslation?.trim() ||
-      feedback.optionTranslations?.some((translation) => translation.trim()),
+    feedback.optionTranslations?.some((translation) => translation.trim()),
   );
 }
 
@@ -97,11 +99,7 @@ function readSection(value: string, headings: string[]): string {
   return "";
 }
 
-function readNumberedSection(
-  value: string,
-  headings: string[],
-  count: number,
-): string[] {
+function readNumberedSection(value: string, headings: string[], count: number): string[] {
   const section = readSection(value, headings);
   const result = Array.from({ length: count }, () => "");
   for (const line of section.split(/\r?\n/)) {
@@ -114,9 +112,7 @@ function readNumberedSection(
 }
 
 function formatNumbered(values: string[]): string {
-  return values
-    .map((value, index) => `${index + 1}. ${normalizeLine(value)}`)
-    .join("\n");
+  return values.map((value, index) => `${index + 1}. ${normalizeLine(value)}`).join("\n");
 }
 
 function normalizeLine(value: string): string {

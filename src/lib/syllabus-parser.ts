@@ -117,79 +117,128 @@ export interface ParsedSyllabusDraft {
 
 const HEADER_LABELS = {
   courseNumber: [
-    "מספר קורס", "מס' קורס", 'מס"ק', "מס קורס", "קוד קורס",
-    "course number", "course no", "course code", "code", "no", "#",
-    "номер курса", "код курса", "№",
+    "מספר קורס",
+    "מס' קורס",
+    'מס"ק',
+    "מס קורס",
+    "קוד קורס",
+    "course number",
+    "course no",
+    "course code",
+    "code",
+    "no",
+    "#",
+    "номер курса",
+    "код курса",
+    "№",
   ],
   title: [
-    "שם קורס", "שם הקורס", "שם", "כותרת",
-    "course name", "course title", "title", "name", "subject",
-    "название курса", "название", "наименование",
+    "שם קורס",
+    "שם הקורס",
+    "שם",
+    "כותרת",
+    "course name",
+    "course title",
+    "title",
+    "name",
+    "subject",
+    "название курса",
+    "название",
+    "наименование",
   ],
   credits: [
-    "נ\"ז", "נ״ז", "נז", "נקודות זכות", "נקודות", "נק\"ז", "נק״ז",
-    "credits", "points", "credit", "cr",
-    "кредиты", "з.е.", "зачетные единицы",
+    'נ"ז',
+    "נ״ז",
+    "נז",
+    "נקודות זכות",
+    "נקודות",
+    'נק"ז',
+    "נק״ז",
+    "credits",
+    "points",
+    "credit",
+    "cr",
+    "кредиты",
+    "з.е.",
+    "зачетные единицы",
   ],
   instructor: [
-    "מרצה", "מרצים", "שם המרצה",
-    "instructor", "lecturer", "teacher", "professor",
-    "преподаватель", "лектор",
+    "מרצה",
+    "מרצים",
+    "שם המרצה",
+    "instructor",
+    "lecturer",
+    "teacher",
+    "professor",
+    "преподаватель",
+    "лектор",
   ],
-  notes: [
-    "הערות", "הערה",
-    "notes", "remarks", "comments",
-    "примечания", "заметки",
-  ],
-  semester: [
-    "סמסטר",
-    "semester", "term",
-    "семестр",
-  ],
-  year: [
-    "שנה", "שנת לימוד",
-    "year",
-    "год", "курс",
-  ],
-  type: [
-    "סוג", "סוג קורס",
-    "type", "course type",
-    "тип",
-  ],
-  prerequisites: [
-    "דרישות קדם", "קדם",
-    "prerequisites", "prereq", "pre-req",
-    "пререквизиты",
-  ],
-  description: [
-    "תיאור", "תיאור קורס",
-    "description", "overview",
-    "описание",
-  ],
+  notes: ["הערות", "הערה", "notes", "remarks", "comments", "примечания", "заметки"],
+  semester: ["סמסטר", "semester", "term", "семестр"],
+  year: ["שנה", "שנת לימוד", "year", "год", "курс"],
+  type: ["סוג", "סוג קורס", "type", "course type", "тип"],
+  prerequisites: ["דרישות קדם", "קדם", "prerequisites", "prereq", "pre-req", "пререквизиты"],
+  description: ["תיאור", "תיאור קורס", "description", "overview", "описание"],
 };
 
 const SEMESTER_KEYWORDS_HE = [
-  "שנה א", "שנה ב", "שנה ג", "שנה ד",
-  "סמסטר א", "סמסטר ב", "סמסטר קיץ", "סמסטר ג",
-  "קורסי חובה", "קורסי בחירה", "סמינריונים", "פרויקט גמר",
-  "חובות", "בחירה", "חובה",
+  "שנה א",
+  "שנה ב",
+  "שנה ג",
+  "שנה ד",
+  "סמסטר א",
+  "סמסטר ב",
+  "סמסטר קיץ",
+  "סמסטר ג",
+  "קורסי חובה",
+  "קורסי בחירה",
+  "סמינריונים",
+  "פרויקט גמר",
+  "חובות",
+  "בחירה",
+  "חובה",
 ];
 const SEMESTER_KEYWORDS_EN = [
-  "year 1", "year 2", "year 3", "year 4",
-  "semester a", "semester b", "semester c", "summer semester",
-  "fall semester", "spring semester",
-  "required courses", "elective courses", "seminars", "final project",
+  "year 1",
+  "year 2",
+  "year 3",
+  "year 4",
+  "semester a",
+  "semester b",
+  "semester c",
+  "summer semester",
+  "fall semester",
+  "spring semester",
+  "required courses",
+  "elective courses",
+  "seminars",
+  "final project",
 ];
 const SEMESTER_KEYWORDS_RU = [
-  "1 курс", "2 курс", "3 курс", "4 курс",
-  "семестр а", "семестр б", "летний семестр",
-  "обязательные курсы", "курсы по выбору",
+  "1 курс",
+  "2 курс",
+  "3 курс",
+  "4 курс",
+  "семестр а",
+  "семестр б",
+  "летний семестр",
+  "обязательные курсы",
+  "курсы по выбору",
 ];
 
 const TOTAL_KEYWORDS = [
-  "סה\"כ", "סה״כ", "סהכ", "סך הכל", "סה\"כ נ\"ז", "סה״כ נ״ז",
-  "total", "subtotal", "credits total", "grand total",
-  "итого", "всего",
+  'סה"כ',
+  "סה״כ",
+  "סהכ",
+  "סך הכל",
+  'סה"כ נ"ז',
+  "סה״כ נ״ז",
+  "total",
+  "subtotal",
+  "credits total",
+  "grand total",
+  "итого",
+  "всего",
 ];
 
 // ============ Helpers ============
@@ -273,8 +322,8 @@ export interface NormalizedSemesterLabel {
   semester?: string; // "A" | "B" | "Summer" | undefined
 }
 
-const HE_YEAR_LETTERS: Record<string, number> = { "א": 1, "ב": 2, "ג": 3, "ד": 4 };
-const HE_SEMESTER_LETTERS: Record<string, string> = { "א": "A", "ב": "B", "ג": "C" };
+const HE_YEAR_LETTERS: Record<string, number> = { א: 1, ב: 2, ג: 3, ד: 4 };
+const HE_SEMESTER_LETTERS: Record<string, string> = { א: "A", ב: "B", ג: "C" };
 
 export function normalizeSemesterLabel(text: string): NormalizedSemesterLabel {
   const raw = cleanCell(text);
@@ -364,8 +413,12 @@ export function isNotesRow(cells: string[]): boolean {
   const n = normalizeForMatch(joined);
   // Only classify as notes if the row starts with a notes marker and is short
   return (
-    (n.startsWith("הערה") || n.startsWith("הערות") || n.startsWith("note") || n.startsWith("notes") || n.startsWith("примечан"))
-    && filled.length <= 2
+    (n.startsWith("הערה") ||
+      n.startsWith("הערות") ||
+      n.startsWith("note") ||
+      n.startsWith("notes") ||
+      n.startsWith("примечан")) &&
+    filled.length <= 2
   );
 }
 
@@ -414,7 +467,10 @@ function bestColumnByHeader(headerRow: string[], labels: string[]): number | und
   let bestScore = 0;
   headerRow.forEach((c, i) => {
     const s = scoreHeader(c, labels);
-    if (s > bestScore) { bestScore = s; best = i; }
+    if (s > bestScore) {
+      bestScore = s;
+      best = i;
+    }
   });
   return best >= 0 ? best : undefined;
 }
@@ -437,46 +493,69 @@ export function detectColumns(headerRow: string[] | undefined, rows: string[][])
   // Content-based fallback for course number, credits, title, instructor
   const maxCols = Math.max(0, ...rows.map((r) => r.length));
   if (cols.courseNumberColumn == null) {
-    let best = -1, bestScore = 0;
+    let best = -1,
+      bestScore = 0;
     for (let c = 0; c < maxCols; c++) {
-      const score = rows.reduce((acc, r) => acc + (looksLikeCourseNumberCell(r[c] ?? "") ? 1 : 0), 0);
-      if (score > bestScore) { bestScore = score; best = c; }
+      const score = rows.reduce(
+        (acc, r) => acc + (looksLikeCourseNumberCell(r[c] ?? "") ? 1 : 0),
+        0,
+      );
+      if (score > bestScore) {
+        bestScore = score;
+        best = c;
+      }
     }
     if (bestScore >= Math.max(2, Math.floor(rows.length * 0.2))) cols.courseNumberColumn = best;
   }
   if (cols.creditsColumn == null) {
-    let best = -1, bestScore = 0;
+    let best = -1,
+      bestScore = 0;
     for (let c = 0; c < maxCols; c++) {
       if (c === cols.courseNumberColumn) continue;
       const score = rows.reduce((acc, r) => acc + (looksLikeCreditsCell(r[c] ?? "") ? 1 : 0), 0);
-      if (score > bestScore) { bestScore = score; best = c; }
+      if (score > bestScore) {
+        bestScore = score;
+        best = c;
+      }
     }
     if (bestScore >= Math.max(2, Math.floor(rows.length * 0.2))) cols.creditsColumn = best;
   }
   if (cols.titleColumn == null) {
     // Pick column with longest average non-numeric text
-    let best = -1, bestScore = 0;
+    let best = -1,
+      bestScore = 0;
     for (let c = 0; c < maxCols; c++) {
       if (c === cols.courseNumberColumn || c === cols.creditsColumn) continue;
-      let total = 0, n = 0;
+      let total = 0,
+        n = 0;
       for (const r of rows) {
         const s = cleanCell(r[c] ?? "");
         if (!s) continue;
         if (looksLikeCourseNumberCell(s)) continue;
         if (looksLikeCreditsCell(s) && s.length <= 4) continue;
-        if (/[א-תA-Za-zА-я]/.test(s)) { total += s.length; n++; }
+        if (/[א-תA-Za-zА-я]/.test(s)) {
+          total += s.length;
+          n++;
+        }
       }
       const score = n > 0 ? total / n : 0;
-      if (score > bestScore) { bestScore = score; best = c; }
+      if (score > bestScore) {
+        bestScore = score;
+        best = c;
+      }
     }
     if (best >= 0 && bestScore >= 4) cols.titleColumn = best;
   }
   if (cols.instructorColumn == null) {
-    let best = -1, bestScore = 0;
+    let best = -1,
+      bestScore = 0;
     for (let c = 0; c < maxCols; c++) {
       if ([cols.courseNumberColumn, cols.titleColumn, cols.creditsColumn].includes(c)) continue;
       const score = rows.reduce((acc, r) => acc + (looksLikeInstructorCell(r[c] ?? "") ? 1 : 0), 0);
-      if (score > bestScore) { bestScore = score; best = c; }
+      if (score > bestScore) {
+        bestScore = score;
+        best = c;
+      }
     }
     if (bestScore >= Math.max(2, Math.floor(rows.length * 0.15))) cols.instructorColumn = best;
   }
@@ -529,7 +608,8 @@ function pickBestSheet(workbook: WorkBook): string | undefined {
   for (const name of workbook.SheetNames) {
     const sh = workbook.Sheets[name];
     if (!sh) continue;
-    const rows = XLSX.utils.sheet_to_json<unknown[]>(sh, { header: 1, raw: false, defval: "", blankrows: false })
+    const rows = XLSX.utils
+      .sheet_to_json<unknown[]>(sh, { header: 1, raw: false, defval: "", blankrows: false })
       .map((r) => r.map(cleanCell));
     if (rows.length === 0) continue;
     const classified = classifyInitial(name, rows);
@@ -537,7 +617,10 @@ function pickBestSheet(workbook: WorkBook): string | undefined {
     const sections = classified.filter((c) => c.detectedType === "semester_section_row").length;
     const candidates = classified.filter((c) => c.detectedType === "unknown_row").length;
     const score = headers * 3 + sections * 2 + candidates;
-    if (score > bestScore) { bestScore = score; bestName = name; }
+    if (score > bestScore) {
+      bestScore = score;
+      bestName = name;
+    }
   }
   return bestName ?? workbook.SheetNames[0];
 }
@@ -595,9 +678,12 @@ export function parseWorkbookToSyllabusDraft(
   const primaryHeaderRow = headerRows[0];
   const columns = detectColumns(
     primaryHeaderRow?.cells,
-    rows.filter((_, i) => initial[i]?.detectedType !== "header_row"
-      && initial[i]?.detectedType !== "semester_section_row"
-      && initial[i]?.detectedType !== "empty_row"),
+    rows.filter(
+      (_, i) =>
+        initial[i]?.detectedType !== "header_row" &&
+        initial[i]?.detectedType !== "semester_section_row" &&
+        initial[i]?.detectedType !== "empty_row",
+    ),
   );
   if (primaryHeaderRow) columns.headerRowIndex = primaryHeaderRow.rowIndex;
 
@@ -669,27 +755,33 @@ export function parseWorkbookToSyllabusDraft(
       }
       case "course_row": {
         const c = row.cells;
-        const numRaw = columns.courseNumberColumn != null ? c[columns.courseNumberColumn] : undefined;
+        const numRaw =
+          columns.courseNumberColumn != null ? c[columns.courseNumberColumn] : undefined;
         const titleRaw = columns.titleColumn != null ? c[columns.titleColumn] : undefined;
         const creditsRaw = columns.creditsColumn != null ? c[columns.creditsColumn] : undefined;
-        const instructorRaw = columns.instructorColumn != null ? c[columns.instructorColumn] : undefined;
+        const instructorRaw =
+          columns.instructorColumn != null ? c[columns.instructorColumn] : undefined;
         const notesRaw = columns.notesColumn != null ? c[columns.notesColumn] : undefined;
         const typeRaw = columns.typeColumn != null ? c[columns.typeColumn] : undefined;
-        const preReqRaw = columns.prerequisitesColumn != null ? c[columns.prerequisitesColumn] : undefined;
-        const descRaw = columns.descriptionColumn != null ? c[columns.descriptionColumn] : undefined;
+        const preReqRaw =
+          columns.prerequisitesColumn != null ? c[columns.prerequisitesColumn] : undefined;
+        const descRaw =
+          columns.descriptionColumn != null ? c[columns.descriptionColumn] : undefined;
 
         let title = cleanCell(titleRaw);
         // Fallback: pick the longest text cell that isn't the course number
         if (!title || looksLikeCourseNumberCell(title)) {
           const alt = c
             .map((cell, i) => ({ cell: cleanCell(cell), i }))
-            .filter(({ cell, i }) =>
-              cell &&
-              i !== columns.courseNumberColumn &&
-              i !== columns.creditsColumn &&
-              !looksLikeCourseNumberCell(cell) &&
-              !looksLikeCreditsCell(cell) &&
-              /[א-תA-Za-zА-я]/.test(cell))
+            .filter(
+              ({ cell, i }) =>
+                cell &&
+                i !== columns.courseNumberColumn &&
+                i !== columns.creditsColumn &&
+                !looksLikeCourseNumberCell(cell) &&
+                !looksLikeCreditsCell(cell) &&
+                /[א-תA-Za-zА-я]/.test(cell),
+            )
             .sort((a, b) => b.cell.length - a.cell.length)[0];
           if (alt) title = alt.cell;
         }
@@ -703,7 +795,16 @@ export function parseWorkbookToSyllabusDraft(
           containsAny(title, SEMESTER_KEYWORDS_RU) ||
           containsAny(title, TOTAL_KEYWORDS);
         if (!title || isNumericOnly || isHeaderLabel || isSectionLabel) {
-          addIgnored(row, isNumericOnly ? "title_is_number" : isHeaderLabel ? "title_is_header_label" : isSectionLabel ? "title_is_section_label" : "no_title_detected");
+          addIgnored(
+            row,
+            isNumericOnly
+              ? "title_is_number"
+              : isHeaderLabel
+                ? "title_is_header_label"
+                : isSectionLabel
+                  ? "title_is_section_label"
+                  : "no_title_detected",
+          );
           break;
         }
 
@@ -715,7 +816,8 @@ export function parseWorkbookToSyllabusDraft(
         if (!number) warns.push("no_course_number");
         if (credits == null) warns.push("no_credits");
 
-        const confidence = 0.4 + (number ? 0.3 : 0) + (credits != null ? 0.15 : 0) + (title.length > 5 ? 0.1 : 0);
+        const confidence =
+          0.4 + (number ? 0.3 : 0) + (credits != null ? 0.15 : 0) + (title.length > 5 ? 0.1 : 0);
 
         courses.push({
           id: uid("crs"),
@@ -767,7 +869,8 @@ export function parseWorkbookToSyllabusDraft(
   }
   // Guess institution / degree from title
   if (draft.programName) {
-    if (/בר\s*אילן|bar[\s-]?ilan/i.test(draft.programName)) draft.institution = "Bar-Ilan University";
+    if (/בר\s*אילן|bar[\s-]?ilan/i.test(draft.programName))
+      draft.institution = "Bar-Ilan University";
     else if (/הדסה|hadassah/i.test(draft.programName)) draft.institution = "Hadassah";
     else if (/העברית|hebrew/i.test(draft.programName)) draft.institution = "Hebrew University";
     if (/b\.?sc|בוגר/i.test(draft.programName)) draft.degree = "BSc";
@@ -778,7 +881,8 @@ export function parseWorkbookToSyllabusDraft(
   if (!primaryHeaderRow) warnings.push("header_row_not_detected");
   if (columns.creditsColumn == null) warnings.push("credits_column_unclear");
   const lowConf = courses.filter((c) => c.confidence < 0.6).length;
-  if (lowConf > courses.length * 0.4 && courses.length > 0) warnings.push("many_low_confidence_rows");
+  if (lowConf > courses.length * 0.4 && courses.length > 0)
+    warnings.push("many_low_confidence_rows");
 
   draft.semesters = semesters;
   draft.courses = courses;
@@ -789,9 +893,8 @@ export function parseWorkbookToSyllabusDraft(
     warnings: warnings.length,
     lowConfidenceCourses: lowConf,
   };
-  const avgConf = courses.length > 0
-    ? courses.reduce((a, c) => a + c.confidence, 0) / courses.length
-    : 0;
+  const avgConf =
+    courses.length > 0 ? courses.reduce((a, c) => a + c.confidence, 0) / courses.length : 0;
   draft.confidence = Math.round(avgConf * 100) / 100;
   return draft;
 }

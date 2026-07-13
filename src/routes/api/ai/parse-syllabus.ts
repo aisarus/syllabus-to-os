@@ -1,9 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  generateGeminiJSON,
-  getGeminiModelName,
-  isGeminiConfigured,
-} from "@/lib/server/gemini";
+import { generateGeminiJSON, getGeminiModelName, isGeminiConfigured } from "@/lib/server/gemini";
 
 // POST /api/ai/parse-syllabus
 // Uses Google Gemini to refine a deterministic syllabus draft.
@@ -62,20 +58,47 @@ const SCHEMA_DESC = `{
 // ---- validation ----
 
 const HEADER_TITLE_BLACKLIST = new Set([
-  "מספר קורס", "שם קורס", 'מס"ק', "מס' קורס", "מס קורס", "קוד קורס",
-  "course number", "course name", "course title", "title", "name", "code", "no", "#",
-  'סה"כ', "סה״כ", "total", "subtotal",
+  "מספר קורס",
+  "שם קורס",
+  'מס"ק',
+  "מס' קורס",
+  "מס קורס",
+  "קוד קורס",
+  "course number",
+  "course name",
+  "course title",
+  "title",
+  "name",
+  "code",
+  "no",
+  "#",
+  'סה"כ',
+  "סה״כ",
+  "total",
+  "subtotal",
 ]);
 
 function norm(s: string): string {
-  return s.toLowerCase().replace(/["׳״'`]/g, "").replace(/\s+/g, " ").trim();
+  return s
+    .toLowerCase()
+    .replace(/["׳״'`]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 interface Draft {
-  id?: unknown; sourceFileName?: unknown; parserVersion?: unknown;
-  parserType?: unknown; confidence?: unknown;
-  institution?: unknown; programName?: unknown; degree?: unknown;
-  warnings?: unknown; semesters?: unknown; courses?: unknown; ignoredRows?: unknown;
+  id?: unknown;
+  sourceFileName?: unknown;
+  parserVersion?: unknown;
+  parserType?: unknown;
+  confidence?: unknown;
+  institution?: unknown;
+  programName?: unknown;
+  degree?: unknown;
+  warnings?: unknown;
+  semesters?: unknown;
+  courses?: unknown;
+  ignoredRows?: unknown;
 }
 
 function validateAndClean(input: unknown, fileName: string, warnings: string[]): Draft | null {
@@ -84,7 +107,8 @@ function validateAndClean(input: unknown, fileName: string, warnings: string[]):
 
   const arr = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
   const str = (v: unknown, dflt = ""): string => (typeof v === "string" ? v : dflt);
-  const num = (v: unknown, dflt = 0): number => (typeof v === "number" && Number.isFinite(v) ? v : dflt);
+  const num = (v: unknown, dflt = 0): number =>
+    typeof v === "number" && Number.isFinite(v) ? v : dflt;
   const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
   const semesters = arr(d.semesters).map((s: unknown, i) => {
@@ -119,7 +143,9 @@ function validateAndClean(input: unknown, fileName: string, warnings: string[]):
         prerequisites: str(co.prerequisites) || undefined,
         description: str(co.description) || undefined,
         notes: str(co.notes) || undefined,
-        topics: arr(co.topics).map((t) => String(t)).filter(Boolean),
+        topics: arr(co.topics)
+          .map((t) => String(t))
+          .filter(Boolean),
         confidence: clamp01(num(co.confidence, 0.5)),
         warnings: arr(co.warnings).map((w) => String(w)),
         source: {
@@ -162,7 +188,9 @@ function validateAndClean(input: unknown, fileName: string, warnings: string[]):
     institution: str(d.institution) || undefined,
     programName: str(d.programName) || undefined,
     degree: str(d.degree) || undefined,
-    warnings: arr(d.warnings).map((w) => String(w)).concat(warnings),
+    warnings: arr(d.warnings)
+      .map((w) => String(w))
+      .concat(warnings),
     semesters,
     courses,
     ignoredRows,

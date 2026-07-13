@@ -28,7 +28,10 @@ export async function extractXlsx(file: File): Promise<IngestResult> {
       Math.min(30, Math.max(...rows.map((r) => String(r[ci] ?? "").length))),
     );
     const lines = rows.map((r) =>
-      r.map((c, ci) => String(c ?? "").padEnd(widths[ci] ?? 0, " ")).join(" | ").trimEnd(),
+      r
+        .map((c, ci) => String(c ?? "").padEnd(widths[ci] ?? 0, " "))
+        .join(" | ")
+        .trimEnd(),
     );
     const sheetText = lines.join("\n");
     const header = `## Sheet: ${name}`;

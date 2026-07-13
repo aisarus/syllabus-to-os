@@ -119,9 +119,7 @@ function Dashboard() {
         courseWithoutCode: "NO CODE",
       };
 
-  const recentMaterials = [...data.materials]
-    .sort((a, b) => b.updatedAt - a.updatedAt)
-    .slice(0, 5);
+  const recentMaterials = [...data.materials].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 5);
   const courses = [...data.courses].sort((a, b) => a.order - b.order).slice(0, 4);
 
   const addFiles = (files?: FileList | null) => {
@@ -171,11 +169,7 @@ function Dashboard() {
               accept=".pdf,.docx,.xlsx,.xls,.txt,.md,.csv,.json,.html,.xml,.yaml,.yml,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
               onChange={(event) => addFiles(event.target.files)}
             />
-            <button
-              type="button"
-              className="cw-action"
-              onClick={() => fileInput.current?.click()}
-            >
+            <button type="button" className="cw-action" onClick={() => fileInput.current?.click()}>
               <FileUp size={17} />
               {copy.chooseFiles}
             </button>
@@ -250,9 +244,13 @@ function Dashboard() {
           ) : (
             <div className="cw-course-grid">
               {courses.map((course) => {
-                const materialCount = data.materials.filter((item) => item.courseId === course.id).length;
+                const materialCount = data.materials.filter(
+                  (item) => item.courseId === course.id,
+                ).length;
                 const noteCount = data.notes.filter((item) => item.courseId === course.id).length;
-                const cardCount = data.flashcards.filter((item) => item.courseId === course.id).length;
+                const cardCount = data.flashcards.filter(
+                  (item) => item.courseId === course.id,
+                ).length;
                 return (
                   <Link
                     key={course.id}
@@ -260,12 +258,20 @@ function Dashboard() {
                     params={{ courseId: course.id }}
                     className="cw-course-card"
                   >
-                    <span className="cw-course-card__code">{course.number || copy.courseWithoutCode}</span>
+                    <span className="cw-course-card__code">
+                      {course.number || copy.courseWithoutCode}
+                    </span>
                     <h3>{course.title}</h3>
                     <span className="cw-course-card__counts">
-                      <span>{materialCount} {copy.files}</span>
-                      <span>{noteCount} {copy.notes}</span>
-                      <span>{cardCount} {copy.cardCount}</span>
+                      <span>
+                        {materialCount} {copy.files}
+                      </span>
+                      <span>
+                        {noteCount} {copy.notes}
+                      </span>
+                      <span>
+                        {cardCount} {copy.cardCount}
+                      </span>
                     </span>
                   </Link>
                 );
@@ -278,19 +284,39 @@ function Dashboard() {
       <section aria-label={copy.library} className="cw-library-strip">
         <Link to="/app/materials" className="cw-library-link">
           <FolderOpen size={24} />
-          <span><strong>{copy.materials}</strong><small>{data.materials.length} · {copy.open}</small></span>
+          <span>
+            <strong>{copy.materials}</strong>
+            <small>
+              {data.materials.length} · {copy.open}
+            </small>
+          </span>
         </Link>
         <Link to="/app/notes" className="cw-library-link">
           <NotebookPen size={24} />
-          <span><strong>{copy.note.replace(/^Создать |^Create /, "")}</strong><small>{data.notes.length} · {copy.open}</small></span>
+          <span>
+            <strong>{copy.note.replace(/^Создать |^Create /, "")}</strong>
+            <small>
+              {data.notes.length} · {copy.open}
+            </small>
+          </span>
         </Link>
         <Link to="/app/flashcards" className="cw-library-link">
           <Layers3 size={24} />
-          <span><strong>{copy.cards.replace(/^Создать |^Create /, "")}</strong><small>{data.flashcards.length} · {copy.open}</small></span>
+          <span>
+            <strong>{copy.cards.replace(/^Создать |^Create /, "")}</strong>
+            <small>
+              {data.flashcards.length} · {copy.open}
+            </small>
+          </span>
         </Link>
         <Link to="/app/quizzes" className="cw-library-link">
           <CircleHelp size={24} />
-          <span><strong>{copy.quizzes}</strong><small>{data.quizzes.length} · {copy.open}</small></span>
+          <span>
+            <strong>{copy.quizzes}</strong>
+            <small>
+              {data.quizzes.length} · {copy.open}
+            </small>
+          </span>
         </Link>
       </section>
     </div>

@@ -1,14 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import {
-  Copy,
-  FileText,
-  GitMerge,
-  Plus,
-  Search,
-  Square,
-  CheckSquare2,
-  Trash2,
-} from "lucide-react";
+import { Copy, FileText, GitMerge, Plus, Search, Square, CheckSquare2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AIGenerateButton } from "@/components/ai-generate-dialog";
@@ -119,38 +110,56 @@ export function NotesLibrary() {
               className="ps-8"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder={isRu ? "Поиск по тексту, названию и тегам" : "Search title, text, and tags"}
+              placeholder={
+                isRu ? "Поиск по тексту, названию и тегам" : "Search title, text, and tags"
+              }
             />
           </div>
           <Select value={courseFilter} onValueChange={setCourseFilter}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{isRu ? "Все курсы" : "All courses"}</SelectItem>
               {data.courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                <SelectItem key={course.id} value={course.id}>
+                  {course.title}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={materialFilter} onValueChange={setMaterialFilter}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{isRu ? "Все источники" : "All sources"}</SelectItem>
               {data.materials.map((material) => (
-                <SelectItem key={material.id} value={material.id}>{material.title}</SelectItem>
+                <SelectItem key={material.id} value={material.id}>
+                  {material.title}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={tagFilter} onValueChange={setTagFilter}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{isRu ? "Все теги" : "All tags"}</SelectItem>
-              {tags.map((tag) => <SelectItem key={tag} value={tag}>{tag}</SelectItem>)}
+              {tags.map((tag) => (
+                <SelectItem key={tag} value={tag}>
+                  {tag}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>{filtered.length} {isRu ? "конспектов" : "notes"}</span>
+          <span>
+            {filtered.length} {isRu ? "конспектов" : "notes"}
+          </span>
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -175,7 +184,9 @@ export function NotesLibrary() {
           <FileText className="mx-auto h-8 w-8 text-muted-foreground" />
           <strong className="mt-3 block">{isRu ? "Ничего не найдено" : "Nothing found"}</strong>
           <p className="mt-1 text-sm text-muted-foreground">
-            {isRu ? "Измени фильтры или создай первый конспект." : "Change filters or create the first note."}
+            {isRu
+              ? "Измени фильтры или создай первый конспект."
+              : "Change filters or create the first note."}
           </p>
         </div>
       ) : (
@@ -185,11 +196,16 @@ export function NotesLibrary() {
             const course = data.courses.find((item) => item.id === note.courseId);
             const material = data.materials.find((item) => item.id === note.materialId);
             return (
-              <article key={note.id} className={`rounded-xl border bg-surface p-4 ${selected ? "border-primary/60" : "border-border"}`}>
+              <article
+                key={note.id}
+                className={`rounded-xl border bg-surface p-4 ${selected ? "border-primary/60" : "border-border"}`}
+              >
                 <div className="flex items-start gap-2">
                   <button
                     type="button"
-                    aria-label={selected ? (isRu ? "Снять выбор" : "Deselect") : isRu ? "Выбрать" : "Select"}
+                    aria-label={
+                      selected ? (isRu ? "Снять выбор" : "Deselect") : isRu ? "Выбрать" : "Select"
+                    }
                     className="mt-0.5 text-primary"
                     onClick={() =>
                       setSelectedIds((current) =>
@@ -199,9 +215,17 @@ export function NotesLibrary() {
                       )
                     }
                   >
-                    {selected ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                    {selected ? (
+                      <CheckSquare2 className="h-4 w-4" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
                   </button>
-                  <Link to="/app/notes/$noteId" params={{ noteId: note.id }} className="min-w-0 flex-1">
+                  <Link
+                    to="/app/notes/$noteId"
+                    params={{ noteId: note.id }}
+                    className="min-w-0 flex-1"
+                  >
                     <h2 className="truncate font-serif text-lg font-semibold hover:text-primary">
                       {note.title || (isRu ? "Без названия" : "Untitled")}
                     </h2>
@@ -211,10 +235,16 @@ export function NotesLibrary() {
                   </Link>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-1.5 text-[10px] text-muted-foreground">
-                  {course && <span className="rounded border border-border px-2 py-1">{course.title}</span>}
-                  {material && <span className="rounded border border-border px-2 py-1">{material.title}</span>}
+                  {course && (
+                    <span className="rounded border border-border px-2 py-1">{course.title}</span>
+                  )}
+                  {material && (
+                    <span className="rounded border border-border px-2 py-1">{material.title}</span>
+                  )}
                   {note.tags.slice(0, 4).map((tag) => (
-                    <span key={tag} className="rounded bg-primary/10 px-2 py-1 text-primary">#{tag}</span>
+                    <span key={tag} className="rounded bg-primary/10 px-2 py-1 text-primary">
+                      #{tag}
+                    </span>
                   ))}
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-3">
@@ -222,7 +252,12 @@ export function NotesLibrary() {
                     {new Date(note.updatedAt).toLocaleString(isRu ? "ru-RU" : "en-GB")}
                   </time>
                   <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" aria-label={isRu ? "Дублировать" : "Duplicate"} onClick={() => duplicate(note)}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label={isRu ? "Дублировать" : "Duplicate"}
+                      onClick={() => duplicate(note)}
+                    >
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
                     <Button
@@ -230,7 +265,9 @@ export function NotesLibrary() {
                       variant="ghost"
                       aria-label={isRu ? "Удалить" : "Delete"}
                       onClick={() => {
-                        const confirmed = confirm(isRu ? "Удалить этот конспект?" : "Delete this note?");
+                        const confirmed = confirm(
+                          isRu ? "Удалить этот конспект?" : "Delete this note?",
+                        );
                         if (!confirmed) return;
                         store.deleteNote(note.id);
                         setSelectedIds((current) => current.filter((id) => id !== note.id));
@@ -275,12 +312,19 @@ function MergeNotesDialog({
   const preview = useMemo(
     () =>
       notes
-        .map((note) => `## ${note.title || (isRu ? "Без названия" : "Untitled")}\n\n${note.content}`)
+        .map(
+          (note) => `## ${note.title || (isRu ? "Без названия" : "Untitled")}\n\n${note.content}`,
+        )
         .join("\n\n---\n\n"),
     [notes, isRu],
   );
 
-  const resolvedTitle = title || notes.map((note) => note.title).filter(Boolean).join(" + ");
+  const resolvedTitle =
+    title ||
+    notes
+      .map((note) => note.title)
+      .filter(Boolean)
+      .join(" + ");
   const resolvedContent = content || preview;
 
   const merge = () => {

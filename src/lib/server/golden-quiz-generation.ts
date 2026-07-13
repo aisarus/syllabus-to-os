@@ -1,9 +1,5 @@
 import { formatGoldenQuizFeedback } from "../golden-quiz";
-import {
-  generateGeminiJSON,
-  getGeminiModelName,
-  isGeminiConfigured,
-} from "./gemini";
+import { generateGeminiJSON, getGeminiModelName, isGeminiConfigured } from "./gemini";
 import {
   validateInput,
   type AIGenerationInput,

@@ -296,52 +296,49 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
     [],
   );
 
-  const saveReview = useCallback<MaterialIntakeQueueContextValue["saveReview"]>(
-    (id, patch) => {
-      const item = itemsRef.current.find((candidate) => candidate.id === id);
-      if (!item?.prepared || item.status !== "review") return;
-      try {
-        const replaceMaterialId =
-          item.duplicateDecision === "replace" && item.duplicate?.kind === "material"
-            ? item.duplicate.id
-            : undefined;
-        const result = persistPreparedFile(item.prepared, {
-          ...item.options,
-          ...patch,
-          existingMaterialId: replaceMaterialId ?? item.materialId,
-        });
-        rememberMaterialFingerprint(result.material.id, item.fingerprint);
-        setItems((current) =>
-          current.map((candidate) =>
-            candidate.id === id
-              ? {
-                  ...candidate,
-                  status: queueStatusFromOutcome(result.outcome),
-                  message: result.message,
-                  materialId: result.material.id,
-                  options: { ...candidate.options, ...patch },
-                  prepared: undefined,
-                  duplicate: undefined,
-                }
-              : candidate,
-          ),
-        );
-      } catch (error) {
-        setItems((current) =>
-          current.map((candidate) =>
-            candidate.id === id
-              ? {
-                  ...candidate,
-                  status: "error",
-                  message: error instanceof Error ? error.message : String(error),
-                }
-              : candidate,
-          ),
-        );
-      }
-    },
-    [],
-  );
+  const saveReview = useCallback<MaterialIntakeQueueContextValue["saveReview"]>((id, patch) => {
+    const item = itemsRef.current.find((candidate) => candidate.id === id);
+    if (!item?.prepared || item.status !== "review") return;
+    try {
+      const replaceMaterialId =
+        item.duplicateDecision === "replace" && item.duplicate?.kind === "material"
+          ? item.duplicate.id
+          : undefined;
+      const result = persistPreparedFile(item.prepared, {
+        ...item.options,
+        ...patch,
+        existingMaterialId: replaceMaterialId ?? item.materialId,
+      });
+      rememberMaterialFingerprint(result.material.id, item.fingerprint);
+      setItems((current) =>
+        current.map((candidate) =>
+          candidate.id === id
+            ? {
+                ...candidate,
+                status: queueStatusFromOutcome(result.outcome),
+                message: result.message,
+                materialId: result.material.id,
+                options: { ...candidate.options, ...patch },
+                prepared: undefined,
+                duplicate: undefined,
+              }
+            : candidate,
+        ),
+      );
+    } catch (error) {
+      setItems((current) =>
+        current.map((candidate) =>
+          candidate.id === id
+            ? {
+                ...candidate,
+                status: "error",
+                message: error instanceof Error ? error.message : String(error),
+              }
+            : candidate,
+        ),
+      );
+    }
+  }, []);
 
   const retryReview = useCallback((id: string) => {
     setItems((current) =>
@@ -632,7 +629,8 @@ function QueueRow({
             <strong>{item.duplicate.title}</strong>
           </p>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            {duplicateReasonCopy(item.duplicate.reason, isRu)} {isRu
+            {duplicateReasonCopy(item.duplicate.reason, isRu)}{" "}
+            {isRu
               ? "Lamdan ничего не объединяет автоматически."
               : "Lamdan never merges sources automatically."}
           </p>
@@ -698,10 +696,7 @@ function queueStatusCopy(status: MaterialQueueStatus, isRu: boolean): string {
 
 function isActiveStatus(status: MaterialQueueStatus): boolean {
   return (
-    status === "queued" ||
-    status === "extracting" ||
-    status === "duplicate" ||
-    status === "review"
+    status === "queued" || status === "extracting" || status === "duplicate" || status === "review"
   );
 }
 
@@ -781,8 +776,7 @@ function findLikelyDuplicate(
   for (const material of data.materials) {
     if (material.id === currentItem.materialId) continue;
     const sameContent =
-      comparableText.length >= 120 &&
-      normalizeComparableText(material.rawText) === comparableText;
+      comparableText.length >= 120 && normalizeComparableText(material.rawText) === comparableText;
     const sameMetadata =
       prepared.fileSize > 0 &&
       material.fileSize === prepared.fileSize &&
@@ -813,7 +807,9 @@ function findLikelyDuplicate(
       ? normalizeComparableText(candidate.prepared.extraction.rawText)
       : "";
     const sameContent =
-      comparableText.length >= 120 && candidateText.length >= 120 && candidateText === comparableText;
+      comparableText.length >= 120 &&
+      candidateText.length >= 120 &&
+      candidateText === comparableText;
     return sameContent || sameMetadata;
   });
   if (!queueDuplicate) return undefined;

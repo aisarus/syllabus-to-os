@@ -40,10 +40,7 @@ for (const kind of ["note", "flashcards", "quiz"]) {
   );
 }
 
-for (const marker of [
-  'createFileRoute("/app/courses_/$courseId")',
-  "CourseWorkspace",
-]) {
+for (const marker of ['createFileRoute("/app/courses_/$courseId")', "CourseWorkspace"]) {
   requireMarker(
     route,
     marker,

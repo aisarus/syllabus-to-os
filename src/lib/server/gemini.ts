@@ -20,8 +20,7 @@ export function getGeminiModelName(): string {
 }
 
 export type GeminiResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: string; details?: string };
+  { ok: true; data: T } | { ok: false; error: string; details?: string };
 
 interface TextContentPart {
   type: "text";

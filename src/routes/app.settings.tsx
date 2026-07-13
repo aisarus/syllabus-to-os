@@ -53,12 +53,18 @@ function SettingsPage() {
   const configured = diagnosticState === "ready" && aiStatus?.configured === true;
   const statusCopy =
     diagnosticState === "loading"
-      ? isRu ? "Проверяю…" : "Checking…"
+      ? isRu
+        ? "Проверяю…"
+        : "Checking…"
       : diagnosticState === "error"
-        ? isRu ? "Ошибка проверки" : "Check failed"
+        ? isRu
+          ? "Ошибка проверки"
+          : "Check failed"
         : configured
           ? aiStatus?.model || (isRu ? "Подключён" : "Connected")
-          : isRu ? "Не подключён" : "Not connected";
+          : isRu
+            ? "Не подключён"
+            : "Not connected";
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -75,7 +81,9 @@ function SettingsPage() {
           <div>
             <Label>{t.language}</Label>
             <Select value={lang} onValueChange={(value) => setLang(value as Lang)}>
-              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ru">Русский</SelectItem>
                 <SelectItem value="en">English</SelectItem>
@@ -85,7 +93,9 @@ function SettingsPage() {
           <div>
             <Label>{t.theme}</Label>
             <Select value={theme} onValueChange={(value) => setTheme(value as "dark" | "light")}>
-              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="dark">{t.dark}</SelectItem>
                 <SelectItem value="light">{t.light}</SelectItem>
@@ -125,7 +135,9 @@ function SettingsPage() {
                 aria-label={isRu ? "Проверить снова" : "Check again"}
                 onClick={() => void refreshStatus()}
               >
-                <RefreshCw className={`h-4 w-4 ${diagnosticState === "loading" ? "animate-spin" : ""}`} />
+                <RefreshCw
+                  className={`h-4 w-4 ${diagnosticState === "loading" ? "animate-spin" : ""}`}
+                />
               </Button>
             </div>
           </div>
@@ -136,14 +148,17 @@ function SettingsPage() {
             <div className="text-muted-foreground">{t.aiConfigured}</div>
             <div>{diagnosticState === "loading" ? "—" : configured ? t.yes : t.no}</div>
             <div className="text-muted-foreground">{t.aiModel}</div>
-            <div>{diagnosticState === "loading" ? "—" : aiStatus?.model ?? "—"}</div>
+            <div>{diagnosticState === "loading" ? "—" : (aiStatus?.model ?? "—")}</div>
           </div>
 
           {diagnosticState === "error" && (
             <div className="rounded-md border border-red-500/25 bg-red-500/5 p-3 text-xs text-red-200">
               <strong>{isRu ? "Не удалось проверить AI" : "AI status check failed"}</strong>
               <p className="mt-1 break-words text-muted-foreground">
-                {aiStatus?.error || (isRu ? "Сервер не вернул понятную ошибку." : "The server returned no readable error.")}
+                {aiStatus?.error ||
+                  (isRu
+                    ? "Сервер не вернул понятную ошибку."
+                    : "The server returned no readable error.")}
               </p>
             </div>
           )}
@@ -160,7 +175,8 @@ function SettingsPage() {
         <section className="rounded-lg border border-border bg-surface p-6 space-y-2">
           <h2 className="text-sm font-semibold">{t.syllabusParserDiag}</h2>
           <p className="text-xs">
-            <span className="text-muted-foreground">{t.syllabusParserVersion}:</span> {PARSER_VERSION}
+            <span className="text-muted-foreground">{t.syllabusParserVersion}:</span>{" "}
+            {PARSER_VERSION}
           </p>
           <p className="text-xs text-muted-foreground">{t.syllabusSupportedFormats}</p>
           <div className="pt-3 border-t border-border">
@@ -179,7 +195,9 @@ function SettingsPage() {
               ].map((label) => (
                 <li key={label} className="rounded border border-border bg-background px-2 py-1.5">
                   <span>{label}</span>
-                  <span className={`ms-1 ${configured ? "text-green-400" : "text-muted-foreground"}`}>
+                  <span
+                    className={`ms-1 ${configured ? "text-green-400" : "text-muted-foreground"}`}
+                  >
                     · {configured ? t.statusEnabled : t.statusDisabled}
                   </span>
                 </li>

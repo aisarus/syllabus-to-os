@@ -70,7 +70,11 @@ for (const marker of [
 ]) {
   requireMarker(lifecycle, marker, `Visual-source lifecycle cleanup is missing: ${marker}`);
 }
-requireMarker(appRoute, "<VisualSourceLifecycle />", "The app shell no longer activates visual-source cleanup.");
+requireMarker(
+  appRoute,
+  "<VisualSourceLifecycle />",
+  "The app shell no longer activates visual-source cleanup.",
+);
 
 for (const marker of [
   "getVisualSourceStorageStats",
@@ -104,7 +108,11 @@ for (const marker of [
   requireMarker(reviewDialog, marker, `Image intake review lost required behavior: ${marker}`);
 }
 
-requireMarker(queue, "prepareFileIntake(item.file)", "Image intake no longer uses the shared queue pipeline.");
+requireMarker(
+  queue,
+  "prepareFileIntake(item.file)",
+  "Image intake no longer uses the shared queue pipeline.",
+);
 for (const content of [dashboard, launcher]) {
   requireMarker(content, ".jpg", "A primary intake surface no longer accepts JPEG images.");
   requireMarker(content, ".png", "A primary intake surface no longer accepts PNG images.");
@@ -116,7 +124,11 @@ for (const marker of [
   "OCRReviewPanel",
   "MaterialWorkspace",
 ]) {
-  requireMarker(detailRoute, marker, `Material detail route is missing required behavior: ${marker}`);
+  requireMarker(
+    detailRoute,
+    marker,
+    `Material detail route is missing required behavior: ${marker}`,
+  );
 }
 for (const marker of [
   "getMaterialVisualSource",
@@ -132,7 +144,11 @@ for (const marker of [
 ]) {
   requireMarker(ocrPanel, marker, `OCR review workspace is missing required behavior: ${marker}`);
 }
-forbidMarker(ocrPanel, "solve the exercise", "Client OCR UI must not imply that OCR solves exercises.");
+forbidMarker(
+  ocrPanel,
+  "solve the exercise",
+  "Client OCR UI must not imply that OCR solves exercises.",
+);
 
 for (const marker of [
   "prepareImageDataUrl",
@@ -156,7 +172,11 @@ for (const marker of [
 }
 
 requireMarker(ocrRoute, 'createFileRoute("/api/ai/ocr-image")', "OCR API route is missing.");
-requireMarker(ocrRoute, "runOCRGeneration(body)", "OCR API route no longer uses the trusted OCR pipeline.");
+requireMarker(
+  ocrRoute,
+  "runOCRGeneration(body)",
+  "OCR API route no longer uses the trusted OCR pipeline.",
+);
 
 for (const marker of [
   "generateGeminiVisionJSON",
@@ -183,4 +203,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Durable image intake, OCR/HTR review, non-nested material routing, lifecycle cleanup and backup honesty passed.");
+console.log(
+  "Durable image intake, OCR/HTR review, non-nested material routing, lifecycle cleanup and backup honesty passed.",
+);
