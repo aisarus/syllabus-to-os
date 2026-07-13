@@ -39,7 +39,7 @@ for (const marker of [
   "uncitedItemCount",
   "rejectedSourceChunkIds",
   "exactly four unique options",
-  "does not automatically prove mastery",
+  "Do not claim that completing the pack equals mastery",
 ]) {
   requireMarker(server, marker, `Study Pack trust contract is missing: ${marker}`);
 }
