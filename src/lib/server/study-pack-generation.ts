@@ -296,6 +296,11 @@ function normalizeStudyPack(raw: unknown, input: AIGenerationInput) {
     .filter((area) => area.description)
     .slice(0, 12);
 
+  const orientationSourceChunkIds = tracker.cite(
+    object.orientationSourceChunkIds,
+    locale === "ru" ? "Ориентация" : "Orientation",
+  );
+
   warnings.push(...tracker.warnings);
   if (notFoundInSources) {
     warnings.push(
@@ -316,10 +321,7 @@ function normalizeStudyPack(raw: unknown, input: AIGenerationInput) {
     draft: {
       title: str(object.title, "Study Pack").trim().slice(0, 200),
       orientation: str(object.orientation).trim(),
-      orientationSourceChunkIds: tracker.cite(
-        object.orientationSourceChunkIds,
-        locale === "ru" ? "Ориентация" : "Orientation",
-      ),
+      orientationSourceChunkIds,
       estimatedMinutes: Math.max(
         10,
         Math.min(
