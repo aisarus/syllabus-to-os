@@ -9,6 +9,7 @@ const checks = [
   "verify:notes-editor-contract",
   "verify:flashcard-studio-contract",
   "verify:quiz-studio-contract",
+  "verify:detail-route-contract",
   "verify:core-ui-audit",
   "verify:evaluation-fixtures",
   "verify:image-ocr-contract",
