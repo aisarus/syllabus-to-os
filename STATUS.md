@@ -35,10 +35,24 @@ Last updated: 2026-07-13
 - `P0-023 Add Quizlet-style cards and golden generated quizzes` — complete and verified.
 - `P1-001 Add multi-page image materials` — complete and verified; PR #31 CI passed.
 - `P1-002 Add golden quiz quality evaluation` — complete and verified; PR #32 CI passed.
+- `P1-003 Add critical browser end-to-end coverage` — complete and verified; PR #33 CI passed.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
+
+### Critical browser end-to-end coverage
+
+- Added a dependency-free Chromium runner that starts the production preview and drives the browser through the Chrome DevTools Protocol.
+- Added isolated browser contexts for every scenario so localStorage, IndexedDB, navigation, downloads and confirmation dialogs are exercised as they are in the real app.
+- Verified the Materials library opens the non-nested material detail route and renders the stored source text.
+- Verified a locally stored image can receive a manual OCR draft, save it, apply it to the material, create source chunks and survive a full reload.
+- Verified the default flashcard experience hides the answer, flips through the real accessible control and persists the review action.
+- Verified the golden quiz trainer preserves the correct option through shuffling, shows the grounded rationale and stores a completed attempt.
+- Verified a full visual ZIP can be downloaded, all local text and image data can be cleared, and the archive can restore both the material and its original IndexedDB image.
+- Added bounded execution so a stuck browser process cannot hold CI indefinitely.
+- Added DOM, console, Chrome, preview and screenshot diagnostics for failed browser scenarios.
+- Added a permanent `verify:critical-browser-e2e-contract` gate and a real Chromium CI step.
 
 ### Golden quiz quality evaluation
 
@@ -108,6 +122,7 @@ Last updated: 2026-07-13
 - OCR region-overlay synchronization, normalized coordinates and safe visual-source binding contract verification passed.
 - Full visual backup, integrity validation, page-level source coverage, previewed conflict handling and rollback contract verification passed.
 - Multi-page image intake, page-aware OCR/preprocessing, partial retry, cancellation, explicit apply and backup contract verification passed.
+- Critical material, manual OCR, flashcard, golden quiz and full visual backup flows passed in real headless Chromium.
 - Deterministic syllabus, grounding, multilingual and OCR evaluation suites passed.
 - TypeScript passed.
 - ESLint passed.
@@ -115,15 +130,14 @@ Last updated: 2026-07-13
 
 ## Next execution target
 
-1. P1: add critical browser end-to-end tests for material, photo/OCR, flashcard, quiz and full-backup flows.
-2. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
-3. Run the live golden quiz generator on one complete Hebrew source pack, review it in the new quality screen and promote an approved candidate to permanent fixtures.
-4. Build local-first global search v2 after the critical flow tests are stable.
-5. Add audio transcription using the same source-draft-review-apply contract.
+1. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
+2. Run the live golden quiz generator on one complete Hebrew source pack, review it in the quality screen and promote an approved candidate to permanent fixtures.
+3. Build local-first global search v2 now that the critical browser flows are stable.
+4. Add audio transcription using the same source-draft-review-apply contract.
+5. Add deeper multi-page browser coverage for page reorder, partial OCR failure and page-level ZIP restore.
 
 ## Blockers
 
-- Code, contracts, deterministic evaluations, typecheck, lint and production build pass.
+- Code, contracts, deterministic evaluations, typecheck, lint, production build and critical Chromium E2E pass.
 - Live OCR quality still requires a private real-photo validation pack.
 - Golden quiz generation is structurally enforced and deterministically evaluated, but live model quality still requires a reviewed generation from a real Hebrew source pack.
-- A browser-level Playwright pass requires a Chromium installation available to CI or a workstation; the current execution environment previously failed to download Chromium from the Playwright CDN.
