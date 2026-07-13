@@ -38,12 +38,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/lib/app-context";
 import { validateQuestion } from "@/components/quiz-library";
-import {
-  store,
-  useData,
-  type Quiz,
-  type QuizQuestion,
-} from "@/lib/store";
+import { store, useData, type Quiz, type QuizQuestion } from "@/lib/store";
 
 interface AttemptResult {
   correct: number;
@@ -111,9 +106,15 @@ function ExistingQuizStudio({ quiz }: { quiz: Quiz }) {
     const position = new Map(order.map((id, index) => [id, index]));
     return rawQuestions
       .slice()
-      .sort((a, b) => (position.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (position.get(b.id) ?? Number.MAX_SAFE_INTEGER));
+      .sort(
+        (a, b) =>
+          (position.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+          (position.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+      );
   }, [rawQuestions, order]);
-  const validation = new Map(questions.map((question) => [question.id, validateQuestion(question)]));
+  const validation = new Map(
+    questions.map((question) => [question.id, validateQuestion(question)]),
+  );
   const invalidQuestions = questions.filter((question) => !validation.get(question.id)?.valid);
   const duplicateGroups = useMemo(() => detectQuestionDuplicates(questions), [questions]);
   const attempts = data.quizAttempts.filter((attempt) => attempt.quizId === quiz.id);
@@ -145,7 +146,11 @@ function ExistingQuizStudio({ quiz }: { quiz: Quiz }) {
     const next = [...questions.map((item) => item.id), question.id];
     setOrder(next);
     writeQuestionOrder(quiz.id, next);
-    requestAnimationFrame(() => document.getElementById(`question-${question.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    requestAnimationFrame(() =>
+      document
+        .getElementById(`question-${question.id}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+    );
   };
 
   const deleteQuestion = (questionId: string) => {
@@ -202,7 +207,13 @@ function ExistingQuizStudio({ quiz }: { quiz: Quiz }) {
                 variant="outline"
                 onClick={() => startMode("practice")}
                 disabled={!canRun}
-                title={!canRun ? (isRu ? "Исправь вопросы перед запуском" : "Fix questions before starting") : undefined}
+                title={
+                  !canRun
+                    ? isRu
+                      ? "Исправь вопросы перед запуском"
+                      : "Fix questions before starting"
+                    : undefined
+                }
               >
                 <BookOpenCheck className="h-4 w-4 me-1" />
                 {isRu ? "Практика" : "Practice"}
@@ -210,7 +221,13 @@ function ExistingQuizStudio({ quiz }: { quiz: Quiz }) {
               <Button
                 onClick={() => startMode("exam")}
                 disabled={!canRun}
-                title={!canRun ? (isRu ? "Исправь вопросы перед запуском" : "Fix questions before starting") : undefined}
+                title={
+                  !canRun
+                    ? isRu
+                      ? "Исправь вопросы перед запуском"
+                      : "Fix questions before starting"
+                    : undefined
+                }
               >
                 <GraduationCap className="h-4 w-4 me-1" />
                 {isRu ? "Экзамен" : "Exam"}
@@ -261,38 +278,68 @@ function ExistingQuizStudio({ quiz }: { quiz: Quiz }) {
                   })
                 }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">{isRu ? "Без курса" : "No course"}</SelectItem>
-                  {data.courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>)}
+                  {data.courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select
                 value={quiz.topicId ?? "_none"}
                 disabled={!quiz.courseId}
-                onValueChange={(value) => store.updateQuiz(quiz.id, { topicId: value === "_none" ? undefined : value })}
+                onValueChange={(value) =>
+                  store.updateQuiz(quiz.id, { topicId: value === "_none" ? undefined : value })
+                }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">{isRu ? "Без темы" : "No topic"}</SelectItem>
-                  {topics.map((topic) => <SelectItem key={topic.id} value={topic.id}>{topic.title}</SelectItem>)}
+                  {topics.map((topic) => (
+                    <SelectItem key={topic.id} value={topic.id}>
+                      {topic.title}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select
                 value={quiz.materialId ?? "_none"}
-                onValueChange={(value) => store.updateQuiz(quiz.id, { materialId: value === "_none" ? undefined : value })}
+                onValueChange={(value) =>
+                  store.updateQuiz(quiz.id, { materialId: value === "_none" ? undefined : value })
+                }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">{isRu ? "Без материала" : "No material"}</SelectItem>
-                  {materials.map((material) => <SelectItem key={material.id} value={material.id}>{material.title}</SelectItem>)}
+                  {materials.map((material) => (
+                    <SelectItem key={material.id} value={material.id}>
+                      {material.title}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-4">
               <SummaryCell label={isRu ? "Вопросов" : "Questions"} value={questions.length} />
-              <SummaryCell label={isRu ? "Невалидных" : "Invalid"} value={invalidQuestions.length} danger={invalidQuestions.length > 0} />
-              <SummaryCell label={isRu ? "Дубликатов" : "Duplicate groups"} value={duplicateGroups.length} warning={duplicateGroups.length > 0} />
+              <SummaryCell
+                label={isRu ? "Невалидных" : "Invalid"}
+                value={invalidQuestions.length}
+                danger={invalidQuestions.length > 0}
+              />
+              <SummaryCell
+                label={isRu ? "Дубликатов" : "Duplicate groups"}
+                value={duplicateGroups.length}
+                warning={duplicateGroups.length > 0}
+              />
               <SummaryCell label={isRu ? "Попыток" : "Attempts"} value={attempts.length} />
             </div>
           </header>
@@ -314,7 +361,9 @@ function ExistingQuizStudio({ quiz }: { quiz: Quiz }) {
           <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
             <main className="min-w-0 space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="font-serif text-xl font-semibold">{isRu ? "Банк вопросов" : "Question bank"}</h2>
+                <h2 className="font-serif text-xl font-semibold">
+                  {isRu ? "Банк вопросов" : "Question bank"}
+                </h2>
                 <Button onClick={addQuestion}>
                   <Plus className="h-4 w-4 me-1" />
                   {isRu ? "Добавить вопрос" : "Add question"}
@@ -323,9 +372,13 @@ function ExistingQuizStudio({ quiz }: { quiz: Quiz }) {
               {questions.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-border p-10 text-center">
                   <FileQuestion className="mx-auto h-8 w-8 text-muted-foreground" />
-                  <strong className="mt-3 block">{isRu ? "Вопросов пока нет" : "No questions yet"}</strong>
+                  <strong className="mt-3 block">
+                    {isRu ? "Вопросов пока нет" : "No questions yet"}
+                  </strong>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {isRu ? "Добавь первый вопрос или сгенерируй тест из материала." : "Add the first question or generate a quiz from source material."}
+                    {isRu
+                      ? "Добавь первый вопрос или сгенерируй тест из материала."
+                      : "Add the first question or generate a quiz from source material."}
                   </p>
                 </div>
               ) : (
@@ -336,7 +389,9 @@ function ExistingQuizStudio({ quiz }: { quiz: Quiz }) {
                     index={index}
                     total={questions.length}
                     quiz={quiz}
-                    validation={validation.get(question.id) ?? { valid: false, errors: ["unknown"] }}
+                    validation={
+                      validation.get(question.id) ?? { valid: false, errors: ["unknown"] }
+                    }
                     onMove={moveQuestion}
                     onDelete={deleteQuestion}
                   />
@@ -346,7 +401,9 @@ function ExistingQuizStudio({ quiz }: { quiz: Quiz }) {
 
             <aside className="space-y-4">
               <section className="rounded-xl border border-border bg-surface p-4">
-                <h2 className="font-semibold">{isRu ? "Проверка дубликатов" : "Duplicate review"}</h2>
+                <h2 className="font-semibold">
+                  {isRu ? "Проверка дубликатов" : "Duplicate review"}
+                </h2>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {isRu
                     ? "Похожие вопросы не удаляются автоматически. Выбери итоговый вопрос и подтверди объединение."
@@ -367,13 +424,24 @@ function ExistingQuizStudio({ quiz }: { quiz: Quiz }) {
                         onClick={() => setDuplicateGroup(group)}
                       >
                         <span className="flex items-center justify-between gap-2">
-                          <span className={`rounded px-2 py-1 text-[10px] uppercase ${group.kind === "exact" ? "bg-red-500/10 text-red-200" : "bg-yellow-500/10 text-yellow-200"}`}>
-                            {group.kind === "exact" ? (isRu ? "Точные" : "Exact") : (isRu ? "Вероятные" : "Likely")}
+                          <span
+                            className={`rounded px-2 py-1 text-[10px] uppercase ${group.kind === "exact" ? "bg-red-500/10 text-red-200" : "bg-yellow-500/10 text-yellow-200"}`}
+                          >
+                            {group.kind === "exact"
+                              ? isRu
+                                ? "Точные"
+                                : "Exact"
+                              : isRu
+                                ? "Вероятные"
+                                : "Likely"}
                           </span>
-                          <span className="text-[10px] text-muted-foreground">{Math.round(group.confidence * 100)}%</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {Math.round(group.confidence * 100)}%
+                          </span>
                         </span>
                         <span className="mt-2 block text-xs text-muted-foreground">
-                          {group.questionIds.length} {isRu ? "вопроса в группе" : "questions in group"}
+                          {group.questionIds.length}{" "}
+                          {isRu ? "вопроса в группе" : "questions in group"}
                         </span>
                       </button>
                     ))}
@@ -384,16 +452,25 @@ function ExistingQuizStudio({ quiz }: { quiz: Quiz }) {
               <section className="rounded-xl border border-border bg-surface p-4">
                 <h2 className="font-semibold">{isRu ? "История попыток" : "Attempt history"}</h2>
                 {attempts.length === 0 ? (
-                  <p className="mt-3 text-xs text-muted-foreground">{isRu ? "Попыток пока нет." : "No attempts yet."}</p>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {isRu ? "Попыток пока нет." : "No attempts yet."}
+                  </p>
                 ) : (
                   <div className="mt-3 max-h-80 space-y-2 overflow-auto">
                     {attempts.map((attempt) => (
-                      <div key={attempt.id} className="rounded-md border border-border bg-background p-3 text-xs">
+                      <div
+                        key={attempt.id}
+                        className="rounded-md border border-border bg-background p-3 text-xs"
+                      >
                         <div className="flex items-center justify-between gap-2">
-                          <span>{new Date(attempt.takenAt).toLocaleString(isRu ? "ru-RU" : "en-GB")}</span>
+                          <span>
+                            {new Date(attempt.takenAt).toLocaleString(isRu ? "ru-RU" : "en-GB")}
+                          </span>
                           <strong>{attempt.score}%</strong>
                         </div>
-                        <div className="mt-1 text-muted-foreground">{attempt.correctCount}/{attempt.total}</div>
+                        <div className="mt-1 text-muted-foreground">
+                          {attempt.correctCount}/{attempt.total}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -480,10 +557,15 @@ function QuestionEditor({
   };
 
   return (
-    <article id={`question-${question.id}`} className={`rounded-xl border bg-surface p-4 md:p-5 ${validation.valid ? "border-border" : "border-red-500/40"}`}>
+    <article
+      id={`question-${question.id}`}
+      className={`rounded-xl border bg-surface p-4 md:p-5 ${validation.valid ? "border-border" : "border-red-500/40"}`}
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded border border-border bg-background text-xs text-muted-foreground">{index + 1}</span>
+          <span className="grid h-8 w-8 place-items-center rounded border border-border bg-background text-xs text-muted-foreground">
+            {index + 1}
+          </span>
           {validation.valid ? (
             <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-1 text-[10px] text-emerald-300">
               <CheckCircle2 className="h-3 w-3" />
@@ -497,13 +579,30 @@ function QuestionEditor({
           )}
         </div>
         <div className="flex gap-1">
-          <Button size="icon" variant="ghost" disabled={index === 0} aria-label={isRu ? "Поднять вопрос" : "Move question up"} onClick={() => onMove(question.id, -1)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            disabled={index === 0}
+            aria-label={isRu ? "Поднять вопрос" : "Move question up"}
+            onClick={() => onMove(question.id, -1)}
+          >
             <ArrowUp className="h-4 w-4" />
           </Button>
-          <Button size="icon" variant="ghost" disabled={index === total - 1} aria-label={isRu ? "Опустить вопрос" : "Move question down"} onClick={() => onMove(question.id, 1)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            disabled={index === total - 1}
+            aria-label={isRu ? "Опустить вопрос" : "Move question down"}
+            onClick={() => onMove(question.id, 1)}
+          >
             <ArrowDown className="h-4 w-4" />
           </Button>
-          <Button size="icon" variant="ghost" aria-label={isRu ? "Удалить вопрос" : "Delete question"} onClick={() => onDelete(question.id)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label={isRu ? "Удалить вопрос" : "Delete question"}
+            onClick={() => onDelete(question.id)}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -522,7 +621,11 @@ function QuestionEditor({
       <div className="mt-4 space-y-2">
         <div className="flex items-center justify-between gap-2">
           <Label>{isRu ? "Варианты ответа" : "Answer options"}</Label>
-          <Button size="sm" variant="ghost" onClick={() => updateOptions([...question.options, ""])}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => updateOptions([...question.options, ""])}
+          >
             <Plus className="h-3.5 w-3.5 me-1" />
             {isRu ? "Добавить вариант" : "Add option"}
           </Button>
@@ -541,7 +644,13 @@ function QuestionEditor({
               dir="auto"
               className="min-h-[52px] flex-1 resize-y"
               value={option}
-              onChange={(event) => updateOptions(question.options.map((item, index) => index === optionIndex ? event.target.value : item))}
+              onChange={(event) =>
+                updateOptions(
+                  question.options.map((item, index) =>
+                    index === optionIndex ? event.target.value : item,
+                  ),
+                )
+              }
             />
             <Button
               size="icon"
@@ -550,11 +659,12 @@ function QuestionEditor({
               aria-label={isRu ? "Удалить вариант" : "Delete option"}
               onClick={() => {
                 const next = question.options.filter((_, index) => index !== optionIndex);
-                const nextCorrect = optionIndex < question.correctIndex
-                  ? question.correctIndex - 1
-                  : optionIndex === question.correctIndex
-                    ? 0
-                    : question.correctIndex;
+                const nextCorrect =
+                  optionIndex < question.correctIndex
+                    ? question.correctIndex - 1
+                    : optionIndex === question.correctIndex
+                      ? 0
+                      : question.correctIndex;
                 updateOptions(next, nextCorrect);
               }}
             >
@@ -570,13 +680,16 @@ function QuestionEditor({
           dir="auto"
           className="mt-1 min-h-[90px] resize-y"
           value={question.explanation ?? ""}
-          onChange={(event) => store.updateQuestion(question.id, { explanation: event.target.value })}
+          onChange={(event) =>
+            store.updateQuestion(question.id, { explanation: event.target.value })
+          }
         />
       </div>
 
       <details className="mt-4 rounded-lg border border-border bg-background p-3">
         <summary className="cursor-pointer text-sm font-medium">
-          {isRu ? "Ссылки на источник" : "Source references"} ({question.sourceChunkIds?.length ?? 0})
+          {isRu ? "Ссылки на источник" : "Source references"} (
+          {question.sourceChunkIds?.length ?? 0})
         </summary>
         {!quiz.materialId ? (
           <p className="mt-3 text-xs text-muted-foreground">
@@ -584,7 +697,9 @@ function QuestionEditor({
           </p>
         ) : availableChunks.length === 0 ? (
           <p className="mt-3 text-xs text-muted-foreground">
-            {isRu ? "У материала нет извлечённых фрагментов." : "The material has no extracted chunks."}
+            {isRu
+              ? "У материала нет извлечённых фрагментов."
+              : "The material has no extracted chunks."}
           </p>
         ) : (
           <div className="mt-3 max-h-64 space-y-1 overflow-auto">
@@ -595,14 +710,20 @@ function QuestionEditor({
                   key={chunk.id}
                   type="button"
                   className={`w-full rounded border p-2 text-start text-xs ${checked ? "border-primary/50 bg-primary/10" : "border-border hover:bg-accent"}`}
-                  onClick={() => store.updateQuestion(question.id, {
-                    sourceChunkIds: checked
-                      ? (question.sourceChunkIds ?? []).filter((id) => id !== chunk.id)
-                      : [...(question.sourceChunkIds ?? []), chunk.id],
-                  })}
+                  onClick={() =>
+                    store.updateQuestion(question.id, {
+                      sourceChunkIds: checked
+                        ? (question.sourceChunkIds ?? []).filter((id) => id !== chunk.id)
+                        : [...(question.sourceChunkIds ?? []), chunk.id],
+                    })
+                  }
                 >
-                  <strong className="block truncate">{chunk.title || `${isRu ? "Фрагмент" : "Chunk"} ${chunk.order + 1}`}</strong>
-                  <span className="mt-1 block line-clamp-2 text-muted-foreground">{chunk.text}</span>
+                  <strong className="block truncate">
+                    {chunk.title || `${isRu ? "Фрагмент" : "Chunk"} ${chunk.order + 1}`}
+                  </strong>
+                  <span className="mt-1 block line-clamp-2 text-muted-foreground">
+                    {chunk.text}
+                  </span>
                 </button>
               );
             })}
@@ -614,7 +735,9 @@ function QuestionEditor({
         <div className="mt-4 rounded-md border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-200">
           <strong>{isRu ? "Что исправить" : "Validation errors"}</strong>
           <ul className="mt-1 list-disc space-y-1 ps-5 text-muted-foreground">
-            {validation.errors.map((error) => <li key={error}>{validationMessage(error, isRu)}</li>)}
+            {validation.errors.map((error) => (
+              <li key={error}>{validationMessage(error, isRu)}</li>
+            ))}
           </ul>
         </div>
       )}
@@ -643,10 +766,16 @@ function PracticeRunner({
   return (
     <section className="mx-auto mt-5 max-w-3xl rounded-xl border border-border bg-surface p-4 md:p-6">
       <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-        <span>{isRu ? "Практика с мгновенной обратной связью" : "Practice with immediate feedback"}</span>
-        <span>{index + 1} / {questions.length}</span>
+        <span>
+          {isRu ? "Практика с мгновенной обратной связью" : "Practice with immediate feedback"}
+        </span>
+        <span>
+          {index + 1} / {questions.length}
+        </span>
       </div>
-      <h1 dir="auto" className="mt-5 font-serif text-2xl font-semibold leading-9">{question.prompt}</h1>
+      <h1 dir="auto" className="mt-5 font-serif text-2xl font-semibold leading-9">
+        {question.prompt}
+      </h1>
       <div className="mt-5 space-y-2">
         {question.options.map((option, optionIndex) => {
           const selected = chosen === optionIndex;
@@ -675,17 +804,28 @@ function PracticeRunner({
         })}
       </div>
       {answered && (
-        <div className={`mt-5 rounded-lg border p-4 ${correct ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}`}>
+        <div
+          className={`mt-5 rounded-lg border p-4 ${correct ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}`}
+        >
           <div className="flex items-center gap-2 font-medium">
-            {correct ? <CheckCircle2 className="h-5 w-5 text-emerald-300" /> : <XCircle className="h-5 w-5 text-red-300" />}
-            {correct ? (isRu ? "Правильно" : "Correct") : (isRu ? "Неправильно" : "Incorrect")}
+            {correct ? (
+              <CheckCircle2 className="h-5 w-5 text-emerald-300" />
+            ) : (
+              <XCircle className="h-5 w-5 text-red-300" />
+            )}
+            {correct ? (isRu ? "Правильно" : "Correct") : isRu ? "Неправильно" : "Incorrect"}
           </div>
           {!correct && (
             <p dir="auto" className="mt-2 text-sm">
-              {isRu ? "Правильный ответ" : "Correct answer"}: {question.options[question.correctIndex]}
+              {isRu ? "Правильный ответ" : "Correct answer"}:{" "}
+              {question.options[question.correctIndex]}
             </p>
           )}
-          {question.explanation && <p dir="auto" className="mt-2 text-sm text-muted-foreground">{question.explanation}</p>}
+          {question.explanation && (
+            <p dir="auto" className="mt-2 text-sm text-muted-foreground">
+              {question.explanation}
+            </p>
+          )}
           <SourceReferenceLinks question={question} quiz={quiz} />
         </div>
       )}
@@ -698,8 +838,12 @@ function PracticeRunner({
           }}
         >
           {index === questions.length - 1
-            ? isRu ? "Завершить практику" : "Finish practice"
-            : isRu ? "Следующий вопрос" : "Next question"}
+            ? isRu
+              ? "Завершить практику"
+              : "Finish practice"
+            : isRu
+              ? "Следующий вопрос"
+              : "Next question"}
         </Button>
       </div>
     </section>
@@ -725,7 +869,9 @@ function ExamRunner({
       <div className="rounded-xl border border-border bg-surface p-4 md:p-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="font-serif text-2xl font-semibold">{isRu ? "Экзаменационный режим" : "Exam mode"}</h1>
+            <h1 className="font-serif text-2xl font-semibold">
+              {isRu ? "Экзаменационный режим" : "Exam mode"}
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {isRu
                 ? "Ответы, правильные варианты и объяснения появятся только после завершения."
@@ -739,25 +885,39 @@ function ExamRunner({
       </div>
       <div className="mt-4 space-y-3">
         {questions.map((question, questionIndex) => (
-          <article key={question.id} className="rounded-xl border border-border bg-surface p-4 md:p-5">
-            <h2 dir="auto" className="font-medium leading-7">{questionIndex + 1}. {question.prompt}</h2>
+          <article
+            key={question.id}
+            className="rounded-xl border border-border bg-surface p-4 md:p-5"
+          >
+            <h2 dir="auto" className="font-medium leading-7">
+              {questionIndex + 1}. {question.prompt}
+            </h2>
             <div className="mt-4 space-y-2">
               {question.options.map((option, optionIndex) => (
-                <label key={optionIndex} className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 hover:border-primary/50">
+                <label
+                  key={optionIndex}
+                  className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 hover:border-primary/50"
+                >
                   <input
                     className="mt-1"
                     type="radio"
                     name={question.id}
                     checked={answers[question.id] === optionIndex}
-                    onChange={() => setAnswers((current) => ({ ...current, [question.id]: optionIndex }))}
+                    onChange={() =>
+                      setAnswers((current) => ({ ...current, [question.id]: optionIndex }))
+                    }
                   />
-                  <span dir="auto" className="text-sm">{option}</span>
+                  <span dir="auto" className="text-sm">
+                    {option}
+                  </span>
                 </label>
               ))}
             </div>
             {(question.sourceChunkIds?.length ?? 0) > 0 && (
               <p className="mt-3 text-[10px] text-muted-foreground">
-                {isRu ? "Источник прикреплён; откроется после сдачи." : "A source is attached and becomes visible after submission."}
+                {isRu
+                  ? "Источник прикреплён; откроется после сдачи."
+                  : "A source is attached and becomes visible after submission."}
               </p>
             )}
           </article>
@@ -767,8 +927,12 @@ function ExamRunner({
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-xs text-muted-foreground">
             {unanswered === 0
-              ? isRu ? "Все вопросы заполнены" : "All questions answered"
-              : isRu ? `Осталось ответить: ${unanswered}` : `${unanswered} questions remain`}
+              ? isRu
+                ? "Все вопросы заполнены"
+                : "All questions answered"
+              : isRu
+                ? `Осталось ответить: ${unanswered}`
+                : `${unanswered} questions remain`}
           </span>
           <Button disabled={unanswered > 0} onClick={() => onComplete(answers)}>
             <GraduationCap className="h-4 w-4 me-1" />
@@ -801,16 +965,26 @@ function ResultView({
     <section className="mx-auto mt-5 max-w-4xl">
       <div className="rounded-xl border border-border bg-surface p-6 text-center">
         <div className="text-xs uppercase tracking-wide text-muted-foreground">
-          {result.mode === "practice" ? (isRu ? "Результат практики" : "Practice result") : (isRu ? "Результат экзамена" : "Exam result")}
+          {result.mode === "practice"
+            ? isRu
+              ? "Результат практики"
+              : "Practice result"
+            : isRu
+              ? "Результат экзамена"
+              : "Exam result"}
         </div>
         <div className="mt-3 text-6xl font-bold">{result.score}%</div>
-        <div className="mt-2 text-sm text-muted-foreground">{result.correct} / {result.total}</div>
+        <div className="mt-2 text-sm text-muted-foreground">
+          {result.correct} / {result.total}
+        </div>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           <Button onClick={onRetry}>
             <RotateCcw className="h-4 w-4 me-1" />
             {isRu ? "Пройти ещё раз" : "Retry"}
           </Button>
-          <Button variant="outline" onClick={onEdit}>{isRu ? "В редактор" : "Back to editor"}</Button>
+          <Button variant="outline" onClick={onEdit}>
+            {isRu ? "В редактор" : "Back to editor"}
+          </Button>
         </div>
       </div>
       <div className="mt-4 space-y-3">
@@ -818,20 +992,35 @@ function ResultView({
           const chosen = answers[question.id];
           const correct = chosen === question.correctIndex;
           return (
-            <article key={question.id} className={`rounded-xl border p-4 md:p-5 ${correct ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}`}>
+            <article
+              key={question.id}
+              className={`rounded-xl border p-4 md:p-5 ${correct ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}`}
+            >
               <div className="flex items-start gap-2">
-                {correct ? <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" /> : <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-300" />}
+                {correct ? (
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+                ) : (
+                  <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-300" />
+                )}
                 <div className="min-w-0 flex-1">
-                  <h2 dir="auto" className="font-medium leading-7">{index + 1}. {question.prompt}</h2>
+                  <h2 dir="auto" className="font-medium leading-7">
+                    {index + 1}. {question.prompt}
+                  </h2>
                   <p dir="auto" className="mt-2 text-sm">
-                    {isRu ? "Твой ответ" : "Your answer"}: {chosen != null ? question.options[chosen] : "—"}
+                    {isRu ? "Твой ответ" : "Your answer"}:{" "}
+                    {chosen != null ? question.options[chosen] : "—"}
                   </p>
                   {!correct && (
                     <p dir="auto" className="mt-1 text-sm">
-                      {isRu ? "Правильный ответ" : "Correct answer"}: {question.options[question.correctIndex]}
+                      {isRu ? "Правильный ответ" : "Correct answer"}:{" "}
+                      {question.options[question.correctIndex]}
                     </p>
                   )}
-                  {question.explanation && <p dir="auto" className="mt-3 text-sm text-muted-foreground">{question.explanation}</p>}
+                  {question.explanation && (
+                    <p dir="auto" className="mt-3 text-sm text-muted-foreground">
+                      {question.explanation}
+                    </p>
+                  )}
                   <SourceReferenceLinks question={question} quiz={quiz} />
                 </div>
               </div>
@@ -854,7 +1043,9 @@ function SourceReferenceLinks({ question, quiz }: { question: QuizQuestion; quiz
   return (
     <div className="mt-3 flex flex-wrap gap-1.5">
       {chunks.map((chunk) => {
-        const material = data.materials.find((item) => item.id === chunk.materialId) ?? data.materials.find((item) => item.id === quiz.materialId);
+        const material =
+          data.materials.find((item) => item.id === chunk.materialId) ??
+          data.materials.find((item) => item.id === quiz.materialId);
         return material ? (
           <Link
             key={chunk.id}
@@ -863,7 +1054,9 @@ function SourceReferenceLinks({ question, quiz }: { question: QuizQuestion; quiz
             className="inline-flex max-w-full items-center gap-1 rounded border border-border bg-background px-2 py-1 text-[10px] text-primary hover:underline"
           >
             <ExternalLink className="h-3 w-3 shrink-0" />
-            <span className="truncate">{chunk.title || `${isRu ? "Фрагмент" : "Chunk"} ${chunk.order + 1}`}</span>
+            <span className="truncate">
+              {chunk.title || `${isRu ? "Фрагмент" : "Chunk"} ${chunk.order + 1}`}
+            </span>
           </Link>
         ) : null;
       })}
@@ -924,7 +1117,9 @@ function DuplicateQuestionDialog({
   const merge = () => {
     const keeper = questions.find((question) => question.id === keeperId);
     if (!keeper || !finalValidation.valid) return;
-    const sourceChunkIds = Array.from(new Set(questions.flatMap((question) => question.sourceChunkIds ?? [])));
+    const sourceChunkIds = Array.from(
+      new Set(questions.flatMap((question) => question.sourceChunkIds ?? [])),
+    );
     store.updateQuestion(keeper.id, {
       prompt: prompt.trim(),
       options: options.map((option) => option.trim()),
@@ -935,7 +1130,9 @@ function DuplicateQuestionDialog({
     for (const question of questions) {
       if (question.id !== keeper.id) store.deleteQuestion(question.id);
     }
-    const removed = new Set(questions.filter((question) => question.id !== keeper.id).map((question) => question.id));
+    const removed = new Set(
+      questions.filter((question) => question.id !== keeper.id).map((question) => question.id),
+    );
     const nextOrder = questionOrder.filter((id) => !removed.has(id));
     onOrderChange(nextOrder);
     toast.success(
@@ -949,7 +1146,11 @@ function DuplicateQuestionDialog({
   return (
     <Dialog open={Boolean(group)} onOpenChange={handleOpen}>
       <DialogContent className="max-w-4xl">
-        <DialogHeader><DialogTitle>{isRu ? "Объединение похожих вопросов" : "Merge similar questions"}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>
+            {isRu ? "Объединение похожих вопросов" : "Merge similar questions"}
+          </DialogTitle>
+        </DialogHeader>
         <p className="text-xs text-muted-foreground">
           {isRu
             ? "Выбери итоговый вопрос, проверь формулировку и варианты. Ссылки на источники объединятся. Остальные вопросы удалятся только после подтверждения."
@@ -966,10 +1167,13 @@ function DuplicateQuestionDialog({
               >
                 <span className="flex items-start gap-2">
                   <input type="radio" readOnly checked={keeperId === question.id} />
-                  <strong dir="auto" className="line-clamp-3">{question.prompt}</strong>
+                  <strong dir="auto" className="line-clamp-3">
+                    {question.prompt}
+                  </strong>
                 </span>
                 <span className="mt-2 block text-[10px] text-muted-foreground">
-                  {question.options.length} {isRu ? "вариантов" : "options"} · {question.sourceChunkIds?.length ?? 0} {isRu ? "источн." : "sources"}
+                  {question.options.length} {isRu ? "вариантов" : "options"} ·{" "}
+                  {question.sourceChunkIds?.length ?? 0} {isRu ? "источн." : "sources"}
                 </span>
               </button>
             ))}
@@ -977,7 +1181,12 @@ function DuplicateQuestionDialog({
           <div className="space-y-3">
             <div>
               <Label>{isRu ? "Итоговая формулировка" : "Final prompt"}</Label>
-              <Textarea dir="auto" className="mt-1 min-h-[100px]" value={prompt} onChange={(event) => setPrompt(event.target.value)} />
+              <Textarea
+                dir="auto"
+                className="mt-1 min-h-[100px]"
+                value={prompt}
+                onChange={(event) => setPrompt(event.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label>{isRu ? "Варианты" : "Options"}</Label>
@@ -990,13 +1199,29 @@ function DuplicateQuestionDialog({
                   >
                     {correctIndex === index && <Check className="h-3.5 w-3.5" />}
                   </button>
-                  <Textarea dir="auto" className="min-h-[48px]" value={option} onChange={(event) => setOptions((current) => current.map((item, itemIndex) => itemIndex === index ? event.target.value : item))} />
+                  <Textarea
+                    dir="auto"
+                    className="min-h-[48px]"
+                    value={option}
+                    onChange={(event) =>
+                      setOptions((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? event.target.value : item,
+                        ),
+                      )
+                    }
+                  />
                 </div>
               ))}
             </div>
             <div>
               <Label>{isRu ? "Объяснение" : "Explanation"}</Label>
-              <Textarea dir="auto" className="mt-1 min-h-[90px]" value={explanation} onChange={(event) => setExplanation(event.target.value)} />
+              <Textarea
+                dir="auto"
+                className="mt-1 min-h-[90px]"
+                value={explanation}
+                onChange={(event) => setExplanation(event.target.value)}
+              />
             </div>
           </div>
         </div>
@@ -1011,7 +1236,9 @@ function DuplicateQuestionDialog({
             : `${Math.max(0, questions.length - 1)} questions will be deleted after confirmation. This cannot be undone.`}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>{isRu ? "Отмена" : "Cancel"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {isRu ? "Отмена" : "Cancel"}
+          </Button>
           <Button variant="destructive" disabled={!finalValidation.valid} onClick={merge}>
             <GitMerge className="h-4 w-4 me-1" />
             {isRu ? "Объединить и удалить дубликаты" : "Merge and remove duplicates"}
@@ -1034,7 +1261,9 @@ function SummaryCell({
   warning?: boolean;
 }) {
   return (
-    <div className={`rounded-md border p-3 ${danger ? "border-red-500/30 bg-red-500/5" : warning ? "border-yellow-500/30 bg-yellow-500/5" : "border-border bg-background"}`}>
+    <div
+      className={`rounded-md border p-3 ${danger ? "border-red-500/30 bg-red-500/5" : warning ? "border-yellow-500/30 bg-yellow-500/5" : "border-border bg-background"}`}
+    >
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="mt-1 text-xl font-semibold">{value}</div>
     </div>
@@ -1099,7 +1328,10 @@ function detectQuestionDuplicates(questions: QuizQuestion[]): QuestionDuplicateG
           if (edge) groupEdges.push(edge);
         }
       }
-      const kind = groupEdges.length > 0 && groupEdges.every((edge) => edge.kind === "exact") ? "exact" : "likely";
+      const kind =
+        groupEdges.length > 0 && groupEdges.every((edge) => edge.kind === "exact")
+          ? "exact"
+          : "likely";
       const confidence = groupEdges.length
         ? groupEdges.reduce((sum, edge) => sum + edge.score, 0) / groupEdges.length
         : 0.78;
@@ -1110,7 +1342,13 @@ function detectQuestionDuplicates(questions: QuizQuestion[]): QuestionDuplicateG
         confidence,
       } satisfies QuestionDuplicateGroup;
     })
-    .sort((left, right) => left.kind === right.kind ? right.confidence - left.confidence : left.kind === "exact" ? -1 : 1);
+    .sort((left, right) =>
+      left.kind === right.kind
+        ? right.confidence - left.confidence
+        : left.kind === "exact"
+          ? -1
+          : 1,
+    );
 }
 
 function questionSimilarity(left: QuizQuestion, right: QuizQuestion): number {
@@ -1156,7 +1394,9 @@ function readQuestionOrder(quizId: string): string[] {
   if (typeof window === "undefined") return [];
   try {
     const parsed = JSON.parse(localStorage.getItem(orderStorageKey(quizId)) ?? "[]");
-    return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === "string") : [];
+    return Array.isArray(parsed)
+      ? parsed.filter((value): value is string => typeof value === "string")
+      : [];
   } catch {
     return [];
   }

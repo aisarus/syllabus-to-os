@@ -7,13 +7,7 @@ export const OCR_REGION_REVIEW_THRESHOLD = 0.78;
 
 export type OCRSourceStyle = "printed" | "handwritten" | "whiteboard" | "mixed";
 export type OCRRegionKind =
-  | "heading"
-  | "paragraph"
-  | "list"
-  | "math"
-  | "table"
-  | "diagram"
-  | "unknown";
+  "heading" | "paragraph" | "list" | "math" | "table" | "diagram" | "unknown";
 
 export interface OCRBoundingBox {
   x: number;
@@ -89,12 +83,19 @@ export function normalizeOCRDraft(raw: unknown, context: OCRNormalizationContext
   const regions = rawRegions
     .slice(0, 500)
     .map((value, index) => normalizeRegion(value, index, locale))
-    .filter((region) => region.text || region.uncertainTokens.length > 0 || region.kind === "diagram")
+    .filter(
+      (region) => region.text || region.uncertainTokens.length > 0 || region.kind === "diagram",
+    )
     .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id));
 
   const warnings = uniqueStrings(object.warnings);
   const explicitText = asString(object.text).trim();
-  const text = explicitText || regions.map((region) => region.text).filter(Boolean).join("\n");
+  const text =
+    explicitText ||
+    regions
+      .map((region) => region.text)
+      .filter(Boolean)
+      .join("\n");
   const confidence = optionalConfidence(object.confidence);
   const languages = normalizeLanguages(object.languages, regions);
   const pageCount = positiveInteger(object.pageCount) ?? context.pageCount;
@@ -341,7 +342,12 @@ function asString(value: unknown): string {
 function uniqueStrings(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return Array.from(
-    new Set(value.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean)),
+    new Set(
+      value
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
   );
 }
 

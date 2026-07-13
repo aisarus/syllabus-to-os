@@ -72,7 +72,12 @@
         "questions": [
           {
             "prompt": "מהי מטרתו של אחזור מידע?",
-            "options": ["למצוא מידע רלוונטי לצורך של המשתמש", "למחוק מסמכים", "להמיר טקסט לתמונה", "לסדר ספרים לפי צבע"],
+            "options": [
+              "למצוא מידע רלוונטי לצורך של המשתמש",
+              "למחוק מסמכים",
+              "להמיר טקסט לתמונה",
+              "לסדר ספרים לפי צבע"
+            ],
             "correctIndex": 0,
             "explanation": "אחזור מידע מתאים בין צורך מידע לבין פריטים רלוונטיים.",
             "sourceChunkIds": ["chunk_retrieval_1"]
@@ -105,7 +110,13 @@
         "itemPath": "questions",
         "minItems": 2,
         "maxItems": 10,
-        "itemRequiredFields": ["prompt", "options", "correctIndex", "explanation", "sourceChunkIds"],
+        "itemRequiredFields": [
+          "prompt",
+          "options",
+          "correctIndex",
+          "explanation",
+          "sourceChunkIds"
+        ],
         "citationField": "sourceChunkIds",
         "exactOptionCount": 4,
         "requiredTerms": ["אחזור מידע", "שאילת"],

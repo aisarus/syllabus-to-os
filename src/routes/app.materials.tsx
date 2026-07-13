@@ -148,8 +148,7 @@ function MaterialsPage() {
       if (material.rawText.toLowerCase().includes(query)) return true;
       if (material.tags.some((tag) => tag.toLowerCase().includes(query))) return true;
       return data.materialChunks.some(
-        (chunk) =>
-          chunk.materialId === material.id && chunk.text.toLowerCase().includes(query),
+        (chunk) => chunk.materialId === material.id && chunk.text.toLowerCase().includes(query),
       );
     });
   }, [
@@ -214,13 +213,11 @@ function MaterialsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">— {t.filterStatus} —</SelectItem>
-            {(["ready", "unsupported", "error", "no_text", "partial"] as const).map(
-              (status) => (
-                <SelectItem key={status} value={status}>
-                  {processingStatusLabel(t, status)}
-                </SelectItem>
-              ),
-            )}
+            {(["ready", "unsupported", "error", "no_text", "partial"] as const).map((status) => (
+              <SelectItem key={status} value={status}>
+                {processingStatusLabel(t, status)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={methodFilter} onValueChange={setMethodFilter}>
@@ -382,9 +379,15 @@ function UploadDialog({
       if (result.outcome === "success") {
         toast.success(lang === "ru" ? "Материал добавлен" : "Material added");
       } else if (result.outcome === "partial") {
-        toast.warning(result.message || (lang === "ru" ? "Материал добавлен частично" : "Material added partially"));
+        toast.warning(
+          result.message ||
+            (lang === "ru" ? "Материал добавлен частично" : "Material added partially"),
+        );
       } else {
-        toast.error(result.message || (lang === "ru" ? "Материал сохранён с ошибкой" : "Material saved with an error"));
+        toast.error(
+          result.message ||
+            (lang === "ru" ? "Материал сохранён с ошибкой" : "Material saved with an error"),
+        );
       }
       setTitle("");
       setFile(null);

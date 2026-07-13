@@ -321,15 +321,52 @@ export function formatFileSize(bytes?: number): string {
 // ============ Term suggestions (kept from old materials.ts) ============
 
 const STOP = new Set([
-  "the","and","for","with","that","this","from","into","over","under",
-  "such","will","have","has","was","were","are","but","not","you","your",
-  "our","their","his","her","its",
-  "как","что","это","или","если","так","тот","эта","эти","они","мы","вы","он","она","оно",
+  "the",
+  "and",
+  "for",
+  "with",
+  "that",
+  "this",
+  "from",
+  "into",
+  "over",
+  "under",
+  "such",
+  "will",
+  "have",
+  "has",
+  "was",
+  "were",
+  "are",
+  "but",
+  "not",
+  "you",
+  "your",
+  "our",
+  "their",
+  "his",
+  "her",
+  "its",
+  "как",
+  "что",
+  "это",
+  "или",
+  "если",
+  "так",
+  "тот",
+  "эта",
+  "эти",
+  "они",
+  "мы",
+  "вы",
+  "он",
+  "она",
+  "оно",
 ]);
 
 export function extractTermSuggestions(text: string, limit = 20): string[] {
   if (!text) return [];
-  const tokens = text.match(/[A-ZА-Я][A-Za-zА-Яа-я0-9\-]{2,}|[A-Z]{2,}/g) || [];
+  const tokens = text.match(/[A-ZА-Я][A-Za-zА-Яа-я0-9-]{2,}|[A-Z]{2,}/g) || [];
   const counts = new Map<string, number>();
   for (const raw of tokens) {
     const token = raw.trim();

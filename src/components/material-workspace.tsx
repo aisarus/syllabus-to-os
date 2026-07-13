@@ -48,10 +48,7 @@ import {
   type MaterialType,
 } from "@/lib/store";
 
-type SourceItem = Pick<
-  MaterialChunk,
-  "id" | "title" | "text" | "pageNumber" | "section"
->;
+type SourceItem = Pick<MaterialChunk, "id" | "title" | "text" | "pageNumber" | "section">;
 
 export function MaterialWorkspace({ material }: { material: Material }) {
   const { t, lang } = useApp();
@@ -96,12 +93,8 @@ export function MaterialWorkspace({ material }: { material: Material }) {
       if (nextValues.length === current.size) return current;
       return new Set(nextValues);
     });
-    setActiveId((current) =>
-      validIds.has(current) ? current : (sourceItems[0]?.id ?? ""),
-    );
-    setEditingChunkId((current) =>
-      current && validIds.has(current) ? current : null,
-    );
+    setActiveId((current) => (validIds.has(current) ? current : (sourceItems[0]?.id ?? "")));
+    setEditingChunkId((current) => (current && validIds.has(current) ? current : null));
   }, [sourceItems]);
 
   const filteredItems = useMemo(() => {
@@ -120,9 +113,7 @@ export function MaterialWorkspace({ material }: { material: Material }) {
     : -1;
   const selectedItems = sourceItems.filter((item) => selectedIds.has(item.id));
   const selectedText = selectedItems.map((item) => item.text).join("\n\n");
-  const selectedChunkIds = selectedItems
-    .map((item) => item.id)
-    .filter((id) => id !== "__raw__");
+  const selectedChunkIds = selectedItems.map((item) => item.id).filter((id) => id !== "__raw__");
   const isEditing = Boolean(activeChunk && editingChunkId === activeChunk.id);
 
   const copySelected = async () => {
@@ -172,9 +163,7 @@ export function MaterialWorkspace({ material }: { material: Material }) {
       return;
     }
     if (!draftText.slice(0, offset).trim() || !draftText.slice(offset).trim()) {
-      toast.error(
-        isRu ? "Обе части должны содержать текст" : "Both parts must contain text",
-      );
+      toast.error(isRu ? "Обе части должны содержать текст" : "Both parts must contain text");
       return;
     }
 
@@ -231,8 +220,7 @@ export function MaterialWorkspace({ material }: { material: Material }) {
   const deleteActiveChunk = () => {
     if (!activeChunk) return;
     const references = countChunkReferences(data, activeChunk.id);
-    const nextActiveId =
-      chunks[activeChunkIndex + 1]?.id ?? chunks[activeChunkIndex - 1]?.id ?? "";
+    const nextActiveId = chunks[activeChunkIndex + 1]?.id ?? chunks[activeChunkIndex - 1]?.id ?? "";
     const warning =
       references.total > 0
         ? isRu
@@ -449,12 +437,7 @@ export function MaterialWorkspace({ material }: { material: Material }) {
                 </p>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={copySelected}
-                  disabled={!selectedText}
-                >
+                <Button variant="outline" size="sm" onClick={copySelected} disabled={!selectedText}>
                   <Clipboard className="h-4 w-4 me-1" />
                   {isRu ? "Копировать" : "Copy"}
                 </Button>
@@ -681,9 +664,7 @@ function MetadataPanel({ material }: { material: Material }) {
         </div>
 
         <div>
-          <label className="text-xs text-muted-foreground">
-            {isRu ? "Курс" : "Course"}
-          </label>
+          <label className="text-xs text-muted-foreground">{isRu ? "Курс" : "Course"}</label>
           <Select
             value={material.courseId ?? "_none"}
             onValueChange={(value) =>
@@ -780,9 +761,7 @@ function OutputsPanel({ material }: { material: Material }) {
   return (
     <section className="rounded-lg border border-border bg-surface p-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-semibold">
-          {isRu ? "Создано из материала" : "Created from material"}
-        </h2>
+        <h2 className="font-semibold">{isRu ? "Создано из материала" : "Created from material"}</h2>
         <Layers3 className="h-4 w-4 text-primary" />
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
@@ -792,11 +771,7 @@ function OutputsPanel({ material }: { material: Material }) {
           label={isRu ? "Карточки" : "Cards"}
           count={cards.length}
         />
-        <OutputCount
-          to="/app/quizzes"
-          label={isRu ? "Тесты" : "Quizzes"}
-          count={quizzes.length}
-        />
+        <OutputCount to="/app/quizzes" label={isRu ? "Тесты" : "Quizzes"} count={quizzes.length} />
         <OutputCount
           to="/app/presentations"
           label={isRu ? "Планы" : "Outlines"}

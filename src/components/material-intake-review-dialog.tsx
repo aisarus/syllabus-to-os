@@ -68,10 +68,7 @@ export function MaterialIntakeReviewDialog({
   }, [item?.file, prepared?.isVisualSource]);
 
   const topics = useMemo(
-    () =>
-      data.topics.filter(
-        (topic) => courseId !== "_none" && topic.courseId === courseId,
-      ),
+    () => data.topics.filter((topic) => courseId !== "_none" && topic.courseId === courseId),
     [data.topics, courseId],
   );
 
@@ -82,8 +79,7 @@ export function MaterialIntakeReviewDialog({
     title: title.trim() || prepared.fileName,
     type,
     courseId: withoutCourse || courseId === "_none" ? undefined : courseId,
-    topicId:
-      withoutCourse || courseId === "_none" || topicId === "_none" ? undefined : topicId,
+    topicId: withoutCourse || courseId === "_none" || topicId === "_none" ? undefined : topicId,
     tags: tags
       .split(",")
       .map((tag) => tag.trim())
@@ -116,7 +112,9 @@ export function MaterialIntakeReviewDialog({
             <div>
               <Label>{isRu ? "Тип материала" : "Material type"}</Label>
               <Select value={type} onValueChange={(value) => setType(value as MaterialType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {(
                     [
@@ -146,11 +144,15 @@ export function MaterialIntakeReviewDialog({
                   setTopicId("_none");
                 }}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">— {isRu ? "Без курса" : "No course"} —</SelectItem>
                   {data.courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -159,11 +161,15 @@ export function MaterialIntakeReviewDialog({
             <div>
               <Label>{isRu ? "Тема" : "Topic"}</Label>
               <Select value={topicId} onValueChange={setTopicId} disabled={courseId === "_none"}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">— {isRu ? "Без темы" : "No topic"} —</SelectItem>
                   {topics.map((topic) => (
-                    <SelectItem key={topic.id} value={topic.id}>{topic.title}</SelectItem>
+                    <SelectItem key={topic.id} value={topic.id}>
+                      {topic.title}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -197,10 +203,18 @@ export function MaterialIntakeReviewDialog({
 
           <div className="min-w-0">
             <Label className="mb-2 flex items-center gap-1.5">
-              {prepared.isVisualSource ? <FileImage className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+              {prepared.isVisualSource ? (
+                <FileImage className="h-4 w-4" />
+              ) : (
+                <FileText className="h-4 w-4" />
+              )}
               {prepared.isVisualSource
-                ? isRu ? "Исходная фотография" : "Source image"
-                : isRu ? "Извлечённый текст" : "Extracted text"}
+                ? isRu
+                  ? "Исходная фотография"
+                  : "Source image"
+                : isRu
+                  ? "Извлечённый текст"
+                  : "Extracted text"}
             </Label>
             {prepared.isVisualSource ? (
               previewUrl ? (
@@ -269,8 +283,12 @@ export function MaterialIntakeReviewDialog({
               }}
             >
               {prepared.isVisualSource
-                ? isRu ? "Сохранить и перейти к OCR" : "Save for OCR"
-                : isRu ? "Сохранить" : "Save"}
+                ? isRu
+                  ? "Сохранить и перейти к OCR"
+                  : "Save for OCR"
+                : isRu
+                  ? "Сохранить"
+                  : "Save"}
             </Button>
           </div>
         </DialogFooter>

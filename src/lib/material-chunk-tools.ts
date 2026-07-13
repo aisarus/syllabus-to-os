@@ -1,9 +1,4 @@
-import {
-  uid,
-  updateData,
-  type AppData,
-  type MaterialChunk,
-} from "./store";
+import { uid, updateData, type AppData, type MaterialChunk } from "./store";
 
 export interface ChunkReferenceCount {
   notes: number;
@@ -110,12 +105,12 @@ export function splitMaterialChunk(chunkId: string, offset: number): SplitChunkR
 
     const withChunk = {
       ...data,
-      materialChunks: normalizeMaterialChunkOrders(
-        [...materialChunks, newChunk],
-        chunk.materialId,
-      ),
+      materialChunks: normalizeMaterialChunkOrders([...materialChunks, newChunk], chunk.materialId),
     };
-    const withReferences = rewriteChunkReferences(withChunk, new Map([[chunk.id, [chunk.id, newChunkId]]]));
+    const withReferences = rewriteChunkReferences(
+      withChunk,
+      new Map([[chunk.id, [chunk.id, newChunkId]]]),
+    );
     result = { originalChunkId: chunk.id, newChunkId };
     return syncMaterialProjection(withReferences, chunk.materialId);
   });
@@ -238,10 +233,7 @@ function normalizeMaterialChunkOrders(
   return chunks.map((item) => normalized.get(item.id) ?? item);
 }
 
-function rewriteChunkReferences(
-  data: AppData,
-  replacements: Map<string, string[]>,
-): AppData {
+function rewriteChunkReferences(data: AppData, replacements: Map<string, string[]>): AppData {
   const rewrite = (ids: string[] | undefined): string[] | undefined => {
     if (!ids) return ids;
     const next = ids.flatMap((id) => replacements.get(id) ?? [id]);

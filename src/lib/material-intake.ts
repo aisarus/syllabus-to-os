@@ -138,7 +138,11 @@ export function persistPreparedFile(
     },
   );
 
-  if (prepared.isVisualSource && prepared.sourceFile && isSupportedVisualSource(prepared.sourceFile)) {
+  if (
+    prepared.isVisualSource &&
+    prepared.sourceFile &&
+    isSupportedVisualSource(prepared.sourceFile)
+  ) {
     void putMaterialVisualSource(result.material.id, prepared.sourceFile).catch((error) => {
       store.updateMaterial(result.material.id, {
         processingStatus: "error",
@@ -175,16 +179,13 @@ export function intakeText(
   options: MaterialIntakeOptions = {},
 ): MaterialIntakeResult {
   const extraction = ingestPastedText(text);
-  const fallbackTitle = inferMaterialType(text.slice(0, 160)) === "syllabus" ? "Syllabus" : "Pasted text";
-  return persistMaterial(
-    extraction,
-    "pasted_text",
-    {
-      ...options,
-      title: normalizeMaterialTitle(options.title, fallbackTitle),
-      type: options.type ?? inferMaterialType(`${options.title ?? ""} ${text.slice(0, 400)}`),
-    },
-  );
+  const fallbackTitle =
+    inferMaterialType(text.slice(0, 160)) === "syllabus" ? "Syllabus" : "Pasted text";
+  return persistMaterial(extraction, "pasted_text", {
+    ...options,
+    title: normalizeMaterialTitle(options.title, fallbackTitle),
+    type: options.type ?? inferMaterialType(`${options.title ?? ""} ${text.slice(0, 400)}`),
+  });
 }
 
 function persistMaterial(
@@ -267,7 +268,8 @@ function prepareVisualExtraction(file: File): IngestResult {
     rawText: "",
     chunks: [],
     status: "no_text",
-    message: "Image will be stored locally. Open the material to run OCR and review the transcription.",
+    message:
+      "Image will be stored locally. Open the material to run OCR and review the transcription.",
     extractionMethod: "manual",
     pageCount: 1,
     wordCount: 0,
@@ -302,8 +304,7 @@ function findBrowserDuplicate(
   return data.materials.find((material) => {
     if (material.id === existingMaterialId) return false;
     const sameText =
-      comparableText.length >= 120 &&
-      normalizeComparableText(material.rawText) === comparableText;
+      comparableText.length >= 120 && normalizeComparableText(material.rawText) === comparableText;
     const sameMetadata =
       prepared.fileSize > 0 &&
       material.fileSize === prepared.fileSize &&

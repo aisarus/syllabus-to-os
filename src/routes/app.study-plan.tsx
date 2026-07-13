@@ -141,7 +141,8 @@ function StudyPlanPage() {
   }, [data, available, seed, t]);
 
   const todaySessions = useMemo(() => {
-    const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
     return data.studySessions.filter((s) => s.completedAt >= startOfDay.getTime());
   }, [data.studySessions]);
 
@@ -161,12 +162,18 @@ function StudyPlanPage() {
       <div className="rounded-lg border border-border bg-surface p-4 mb-4 flex flex-wrap items-center gap-2">
         <span className="text-sm me-2">{t.availableTime}:</span>
         {OPTIONS.map((n) => (
-          <Button key={n} size="sm" variant={available === n ? "default" : "outline"} onClick={() => setAvailable(n)}>
+          <Button
+            key={n}
+            size="sm"
+            variant={available === n ? "default" : "outline"}
+            onClick={() => setAvailable(n)}
+          >
             {n} {t.minutes}
           </Button>
         ))}
         <Button size="sm" variant="ghost" onClick={() => setSeed((v) => v + 1)}>
-          <RefreshCw className="h-3.5 w-3.5 me-1" />{t.reset}
+          <RefreshCw className="h-3.5 w-3.5 me-1" />
+          {t.reset}
         </Button>
       </div>
 
@@ -177,7 +184,10 @@ function StudyPlanPage() {
       ) : (
         <div className="space-y-2">
           {suggestions.map((s) => (
-            <div key={s.id} className="rounded-lg border border-border bg-surface p-4 flex items-center gap-3">
+            <div
+              key={s.id}
+              className="rounded-lg border border-border bg-surface p-4 flex items-center gap-3"
+            >
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate">{s.title}</div>
                 <div className="text-xs text-muted-foreground truncate">
@@ -185,7 +195,8 @@ function StudyPlanPage() {
                 </div>
               </div>
               <Button size="sm" variant="outline" onClick={() => markDone(s)}>
-                <Check className="h-4 w-4 me-1" />{t.markDone}
+                <Check className="h-4 w-4 me-1" />
+                {t.markDone}
               </Button>
             </div>
           ))}
@@ -197,9 +208,14 @@ function StudyPlanPage() {
           <h2 className="text-sm font-semibold mt-8 mb-2">{t.planCompletedToday}</h2>
           <div className="space-y-1.5">
             {todaySessions.map((s) => (
-              <div key={s.id} className="rounded border border-border bg-surface p-2 text-xs flex justify-between">
+              <div
+                key={s.id}
+                className="rounded border border-border bg-surface p-2 text-xs flex justify-between"
+              >
                 <span>{s.title}</span>
-                <span className="text-muted-foreground">{s.durationMinutes} {t.minutes}</span>
+                <span className="text-muted-foreground">
+                  {s.durationMinutes} {t.minutes}
+                </span>
               </div>
             ))}
           </div>

@@ -5,14 +5,8 @@ const editor = await readFile(
   resolve(process.cwd(), "src/components/note-editor-workspace.tsx"),
   "utf8",
 );
-const library = await readFile(
-  resolve(process.cwd(), "src/components/notes-library.tsx"),
-  "utf8",
-);
-const listRoute = await readFile(
-  resolve(process.cwd(), "src/routes/app.notes.tsx"),
-  "utf8",
-);
+const library = await readFile(resolve(process.cwd(), "src/components/notes-library.tsx"), "utf8");
+const listRoute = await readFile(resolve(process.cwd(), "src/routes/app.notes.tsx"), "utf8");
 const detailRoute = await readFile(
   resolve(process.cwd(), "src/routes/app.notes.$noteId.tsx"),
   "utf8",
@@ -52,7 +46,11 @@ for (const marker of [
   requireMarker(library, marker, `Notes library is missing required behavior: ${marker}`);
 }
 
-requireMarker(listRoute, "NotesLibrary", "The active notes list route no longer uses NotesLibrary.");
+requireMarker(
+  listRoute,
+  "NotesLibrary",
+  "The active notes list route no longer uses NotesLibrary.",
+);
 requireMarker(
   detailRoute,
   "NoteEditorWorkspace",

@@ -75,9 +75,7 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
       return;
     }
     setAiMaterialId((current) =>
-      current && materials.some((material) => material.id === current)
-        ? current
-        : materials[0].id,
+      current && materials.some((material) => material.id === current) ? current : materials[0].id,
     );
   }, [materials]);
 
@@ -103,13 +101,20 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
   }
 
   const topicMaterials = new Map(
-    topics.map((topic) => [topic.id, materials.filter((material) => material.topicId === topic.id)]),
+    topics.map((topic) => [
+      topic.id,
+      materials.filter((material) => material.topicId === topic.id),
+    ]),
   );
   const unassignedMaterials = materials.filter(
     (material) => !material.topicId || !topics.some((topic) => topic.id === material.topicId),
   );
-  const uncoveredTopics = topics.filter((topic) => (topicMaterials.get(topic.id)?.length ?? 0) === 0);
-  const selectedChunkCount = selectedChunkIds.filter((id) => aiChunks.some((chunk) => chunk.id === id)).length;
+  const uncoveredTopics = topics.filter(
+    (topic) => (topicMaterials.get(topic.id)?.length ?? 0) === 0,
+  );
+  const selectedChunkCount = selectedChunkIds.filter((id) =>
+    aiChunks.some((chunk) => chunk.id === id),
+  ).length;
   const selectedCharacters = aiChunks
     .filter((chunk) => selectedChunkIds.includes(chunk.id))
     .reduce((sum, chunk) => sum + chunk.text.length, 0);
@@ -138,7 +143,10 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
       if (result.ok) {
         toast.success(isRu ? "Материал загружен в курс" : "Material uploaded to course");
       } else {
-        toast.warning(result.message || (isRu ? "Материал сохранён с предупреждением" : "Material saved with a warning"));
+        toast.warning(
+          result.message ||
+            (isRu ? "Материал сохранён с предупреждением" : "Material saved with a warning"),
+        );
       }
     } catch (error) {
       if (error instanceof DuplicateIntakeSkippedError) {
@@ -168,9 +176,17 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
               className="h-auto border-transparent bg-transparent p-0 font-serif text-3xl font-semibold leading-tight hover:border-input focus:border-input md:text-4xl"
             />
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              {course.number && <span className="rounded border border-border bg-surface px-2 py-1 font-mono">{course.number}</span>}
+              {course.number && (
+                <span className="rounded border border-border bg-surface px-2 py-1 font-mono">
+                  {course.number}
+                </span>
+              )}
               {course.semester && <span>{course.semester}</span>}
-              {course.credits != null && <span>{course.credits} {isRu ? "кредитов" : "credits"}</span>}
+              {course.credits != null && (
+                <span>
+                  {course.credits} {isRu ? "кредитов" : "credits"}
+                </span>
+              )}
               {course.instructor && <span>{course.instructor}</span>}
             </div>
           </div>
@@ -191,11 +207,16 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
                     : "Delete the course and its topics? Materials and outputs remain but lose the course link.",
                 );
                 if (!confirmed) return;
-                for (const material of materials) store.updateMaterial(material.id, { courseId: undefined, topicId: undefined });
-                for (const note of notes) store.updateNote(note.id, { courseId: undefined, topicId: undefined });
-                for (const card of cards) store.updateCard(card.id, { courseId: undefined, topicId: undefined });
-                for (const quiz of quizzes) store.updateQuiz(quiz.id, { courseId: undefined, topicId: undefined });
-                for (const outline of outlines) store.updateOutline(outline.id, { courseId: undefined, topicId: undefined });
+                for (const material of materials)
+                  store.updateMaterial(material.id, { courseId: undefined, topicId: undefined });
+                for (const note of notes)
+                  store.updateNote(note.id, { courseId: undefined, topicId: undefined });
+                for (const card of cards)
+                  store.updateCard(card.id, { courseId: undefined, topicId: undefined });
+                for (const quiz of quizzes)
+                  store.updateQuiz(quiz.id, { courseId: undefined, topicId: undefined });
+                for (const outline of outlines)
+                  store.updateOutline(outline.id, { courseId: undefined, topicId: undefined });
                 store.deleteCourse(course.id);
                 navigate({ to: "/app/courses" });
               }}
@@ -248,7 +269,10 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
                 </strong>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {uncoveredTopics.map((topic) => (
-                    <span key={topic.id} className="rounded border border-yellow-500/20 px-2 py-1 text-muted-foreground">
+                    <span
+                      key={topic.id}
+                      className="rounded border border-yellow-500/20 px-2 py-1 text-muted-foreground"
+                    >
                       {topic.title}
                     </span>
                   ))}
@@ -260,7 +284,11 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
               {topics.length === 0 ? (
                 <EmptyState
                   title={isRu ? "Тем пока нет" : "No topics yet"}
-                  text={isRu ? "Импортируй силлабус или добавь первую тему вручную." : "Import a syllabus or add the first topic manually."}
+                  text={
+                    isRu
+                      ? "Импортируй силлабус или добавь первую тему вручную."
+                      : "Import a syllabus or add the first topic manually."
+                  }
                 />
               ) : (
                 topics.map((topic, index) => (
@@ -299,27 +327,45 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
                 : "Notes, flashcards, quizzes, and presentation outlines linked to this course."}
             </p>
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              <OutputSection title={isRu ? "Конспекты" : "Notes"} icon={FileText} empty={notes.length === 0}>
+              <OutputSection
+                title={isRu ? "Конспекты" : "Notes"}
+                icon={FileText}
+                empty={notes.length === 0}
+              >
                 {notes.map((note) => (
                   <NoteRow key={note.id} note={note} topics={topics} />
                 ))}
               </OutputSection>
-              <OutputSection title={isRu ? "Тесты" : "Quizzes"} icon={BookOpen} empty={quizzes.length === 0}>
+              <OutputSection
+                title={isRu ? "Тесты" : "Quizzes"}
+                icon={BookOpen}
+                empty={quizzes.length === 0}
+              >
                 {quizzes.map((quiz) => (
                   <QuizRow key={quiz.id} quiz={quiz} topics={topics} />
                 ))}
               </OutputSection>
-              <OutputSection title={isRu ? "Карточки" : "Flashcards"} icon={Layers3} empty={cards.length === 0}>
+              <OutputSection
+                title={isRu ? "Карточки" : "Flashcards"}
+                icon={Layers3}
+                empty={cards.length === 0}
+              >
                 {cards.slice(0, 24).map((card) => (
                   <CardRow key={card.id} card={card} topics={topics} />
                 ))}
                 {cards.length > 24 && (
                   <Link to="/app/flashcards" className="text-xs text-primary hover:underline">
-                    {isRu ? `Открыть остальные ${cards.length - 24}` : `Open remaining ${cards.length - 24}`}
+                    {isRu
+                      ? `Открыть остальные ${cards.length - 24}`
+                      : `Open remaining ${cards.length - 24}`}
                   </Link>
                 )}
               </OutputSection>
-              <OutputSection title={isRu ? "Планы презентаций" : "Presentation outlines"} icon={FileText} empty={outlines.length === 0}>
+              <OutputSection
+                title={isRu ? "Планы презентаций" : "Presentation outlines"}
+                icon={FileText}
+                empty={outlines.length === 0}
+              >
                 {outlines.map((outline) => (
                   <OutlineRow key={outline.id} outline={outline} topics={topics} />
                 ))}
@@ -344,7 +390,9 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
                 <SelectContent>
                   <SelectItem value="_none">{isRu ? "Без темы" : "No topic"}</SelectItem>
                   {topics.map((topic) => (
-                    <SelectItem key={topic.id} value={topic.id}>{topic.title}</SelectItem>
+                    <SelectItem key={topic.id} value={topic.id}>
+                      {topic.title}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -361,9 +409,19 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
                   })();
                 }}
               />
-              <Button className="w-full" onClick={() => fileRef.current?.click()} disabled={uploadBusy}>
+              <Button
+                className="w-full"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploadBusy}
+              >
                 <Upload className="h-4 w-4 me-1" />
-                {uploadBusy ? (isRu ? "Обрабатываю…" : "Processing…") : isRu ? "Загрузить файлы" : "Upload files"}
+                {uploadBusy
+                  ? isRu
+                    ? "Обрабатываю…"
+                    : "Processing…"
+                  : isRu
+                    ? "Загрузить файлы"
+                    : "Upload files"}
               </Button>
 
               {availableMaterials.length > 0 && (
@@ -375,11 +433,18 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
                     </SelectTrigger>
                     <SelectContent>
                       {availableMaterials.map((material) => (
-                        <SelectItem key={material.id} value={material.id}>{material.title}</SelectItem>
+                        <SelectItem key={material.id} value={material.id}>
+                          {material.title}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button variant="outline" className="mt-2 w-full" onClick={attachExistingMaterial} disabled={!attachMaterialId}>
+                  <Button
+                    variant="outline"
+                    className="mt-2 w-full"
+                    onClick={attachExistingMaterial}
+                    disabled={!attachMaterialId}
+                  >
                     <Link2 className="h-4 w-4 me-1" />
                     {isRu ? "Прикрепить к курсу" : "Attach to course"}
                   </Button>
@@ -389,7 +454,9 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
           </section>
 
           <section className="rounded-xl border border-border bg-surface p-4">
-            <h2 className="font-semibold">{isRu ? "AI по выбранному источнику" : "AI from selected source"}</h2>
+            <h2 className="font-semibold">
+              {isRu ? "AI по выбранному источнику" : "AI from selected source"}
+            </h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {isRu
                 ? "Lamdan ничего не включает молча: сначала выбери материал и конкретные фрагменты."
@@ -397,7 +464,9 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
             </p>
             {materials.length === 0 ? (
               <p className="mt-3 text-xs text-muted-foreground">
-                {isRu ? "Сначала добавь материал в курс." : "Add source material to the course first."}
+                {isRu
+                  ? "Сначала добавь материал в курс."
+                  : "Add source material to the course first."}
               </p>
             ) : (
               <div className="mt-3 space-y-3">
@@ -407,12 +476,18 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
                   </SelectTrigger>
                   <SelectContent>
                     {materials.map((material) => (
-                      <SelectItem key={material.id} value={material.id}>{material.title}</SelectItem>
+                      <SelectItem key={material.id} value={material.id}>
+                        {material.title}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <div className="flex gap-1">
-                  <Button size="sm" variant="ghost" onClick={() => setSelectedChunkIds(aiChunks.map((chunk) => chunk.id))}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setSelectedChunkIds(aiChunks.map((chunk) => chunk.id))}
+                  >
                     <CheckSquare2 className="h-3.5 w-3.5 me-1" />
                     {isRu ? "Все" : "All"}
                   </Button>
@@ -424,7 +499,9 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
                 <div className="max-h-64 space-y-1 overflow-auto rounded-md border border-border bg-background p-1">
                   {aiChunks.length === 0 ? (
                     <p className="p-3 text-xs text-muted-foreground">
-                      {isRu ? "У материала нет извлечённых фрагментов." : "This material has no extracted chunks."}
+                      {isRu
+                        ? "У материала нет извлечённых фрагментов."
+                        : "This material has no extracted chunks."}
                     </p>
                   ) : (
                     aiChunks.map((chunk) => {
@@ -442,15 +519,20 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
                             )
                           }
                         >
-                          <strong className="block truncate">{chunk.title || `${isRu ? "Фрагмент" : "Chunk"} ${chunk.order + 1}`}</strong>
-                          <span className="mt-1 block line-clamp-2 text-muted-foreground">{chunk.text}</span>
+                          <strong className="block truncate">
+                            {chunk.title || `${isRu ? "Фрагмент" : "Chunk"} ${chunk.order + 1}`}
+                          </strong>
+                          <span className="mt-1 block line-clamp-2 text-muted-foreground">
+                            {chunk.text}
+                          </span>
                         </button>
                       );
                     })
                   )}
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  {selectedChunkCount} {isRu ? "фрагментов" : "chunks"} · {selectedCharacters.toLocaleString()} {isRu ? "знаков" : "characters"}
+                  {selectedChunkCount} {isRu ? "фрагментов" : "chunks"} ·{" "}
+                  {selectedCharacters.toLocaleString()} {isRu ? "знаков" : "characters"}
                 </p>
                 {aiMaterial && selectedChunkCount > 0 ? (
                   <div className="grid gap-2">
@@ -491,18 +573,57 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
           <section className="rounded-xl border border-border bg-surface p-4">
             <h2 className="font-semibold">{isRu ? "Метаданные курса" : "Course metadata"}</h2>
             <div className="mt-3 space-y-3">
-              <MetadataInput label={isRu ? "Код" : "Code"} value={course.number ?? ""} onChange={(value) => store.updateCourse(course.id, { number: value || undefined })} />
-              <MetadataInput label={isRu ? "Преподаватель" : "Instructor"} value={course.instructor ?? ""} onChange={(value) => store.updateCourse(course.id, { instructor: value || undefined })} />
-              <MetadataInput label={isRu ? "Семестр" : "Semester"} value={course.semester ?? ""} onChange={(value) => store.updateCourse(course.id, { semester: value || undefined })} />
-              <MetadataInput label={isRu ? "Кредиты" : "Credits"} value={course.credits?.toString() ?? ""} onChange={(value) => {
-                const parsed = value.trim() === "" ? undefined : Number(value.replace(",", "."));
-                store.updateCourse(course.id, { credits: Number.isFinite(parsed as number) ? parsed : undefined });
-              }} />
-              <MetadataInput label={isRu ? "Тип" : "Type"} value={course.type ?? ""} onChange={(value) => store.updateCourse(course.id, { type: value || undefined })} />
-              <MetadataInput label={isRu ? "Пререквизиты" : "Prerequisites"} value={course.prerequisites ?? ""} onChange={(value) => store.updateCourse(course.id, { prerequisites: value || undefined })} />
+              <MetadataInput
+                label={isRu ? "Код" : "Code"}
+                value={course.number ?? ""}
+                onChange={(value) => store.updateCourse(course.id, { number: value || undefined })}
+              />
+              <MetadataInput
+                label={isRu ? "Преподаватель" : "Instructor"}
+                value={course.instructor ?? ""}
+                onChange={(value) =>
+                  store.updateCourse(course.id, { instructor: value || undefined })
+                }
+              />
+              <MetadataInput
+                label={isRu ? "Семестр" : "Semester"}
+                value={course.semester ?? ""}
+                onChange={(value) =>
+                  store.updateCourse(course.id, { semester: value || undefined })
+                }
+              />
+              <MetadataInput
+                label={isRu ? "Кредиты" : "Credits"}
+                value={course.credits?.toString() ?? ""}
+                onChange={(value) => {
+                  const parsed = value.trim() === "" ? undefined : Number(value.replace(",", "."));
+                  store.updateCourse(course.id, {
+                    credits: Number.isFinite(parsed as number) ? parsed : undefined,
+                  });
+                }}
+              />
+              <MetadataInput
+                label={isRu ? "Тип" : "Type"}
+                value={course.type ?? ""}
+                onChange={(value) => store.updateCourse(course.id, { type: value || undefined })}
+              />
+              <MetadataInput
+                label={isRu ? "Пререквизиты" : "Prerequisites"}
+                value={course.prerequisites ?? ""}
+                onChange={(value) =>
+                  store.updateCourse(course.id, { prerequisites: value || undefined })
+                }
+              />
               <div>
                 <Label>{isRu ? "Описание" : "Description"}</Label>
-                <Textarea dir="auto" className="mt-1 min-h-[140px] resize-y" value={course.description ?? ""} onChange={(event) => store.updateCourse(course.id, { description: event.target.value || undefined })} />
+                <Textarea
+                  dir="auto"
+                  className="mt-1 min-h-[140px] resize-y"
+                  value={course.description ?? ""}
+                  onChange={(event) =>
+                    store.updateCourse(course.id, { description: event.target.value || undefined })
+                  }
+                />
               </div>
             </div>
           </section>
@@ -537,8 +658,14 @@ function TopicGroup({
           value={topic.title}
           onChange={(event) => store.updateTopic(topic.id, { title: event.target.value })}
         />
-        <span className={`rounded px-2 py-1 text-[10px] ${materials.length ? "bg-emerald-500/10 text-emerald-300" : "bg-yellow-500/10 text-yellow-200"}`}>
-          {materials.length ? `${materials.length} ${isRu ? "источн." : "sources"}` : isRu ? "Нет материалов" : "Uncovered"}
+        <span
+          className={`rounded px-2 py-1 text-[10px] ${materials.length ? "bg-emerald-500/10 text-emerald-300" : "bg-yellow-500/10 text-yellow-200"}`}
+        >
+          {materials.length
+            ? `${materials.length} ${isRu ? "источн." : "sources"}`
+            : isRu
+              ? "Нет материалов"
+              : "Uncovered"}
         </span>
         <Button
           size="icon"
@@ -551,7 +678,8 @@ function TopicGroup({
                 : "Delete this topic? Materials and outputs remain in the course without a topic.",
             );
             if (!confirmed) return;
-            for (const material of materials) store.updateMaterial(material.id, { topicId: undefined });
+            for (const material of materials)
+              store.updateMaterial(material.id, { topicId: undefined });
             store.deleteTopic(topic.id);
           }}
         >
@@ -580,11 +708,15 @@ function MaterialRow({ material, topics }: { material: Material; topics: Topic[]
         className="min-w-0 flex-1"
       >
         <strong className="block truncate text-sm hover:text-primary">{material.title}</strong>
-        <span className="text-[10px] uppercase text-muted-foreground">{material.type} · {material.processingStatus}</span>
+        <span className="text-[10px] uppercase text-muted-foreground">
+          {material.type} · {material.processingStatus}
+        </span>
       </Link>
       <Select
         value={material.topicId ?? "_none"}
-        onValueChange={(value) => store.updateMaterial(material.id, { topicId: value === "_none" ? undefined : value })}
+        onValueChange={(value) =>
+          store.updateMaterial(material.id, { topicId: value === "_none" ? undefined : value })
+        }
       >
         <SelectTrigger className="h-8 w-full text-xs sm:w-[190px]">
           <SelectValue />
@@ -592,7 +724,9 @@ function MaterialRow({ material, topics }: { material: Material; topics: Topic[]
         <SelectContent>
           <SelectItem value="_none">{isRu ? "Без темы" : "No topic"}</SelectItem>
           {topics.map((topic) => (
-            <SelectItem key={topic.id} value={topic.id}>{topic.title}</SelectItem>
+            <SelectItem key={topic.id} value={topic.id}>
+              {topic.title}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
@@ -600,7 +734,9 @@ function MaterialRow({ material, topics }: { material: Material; topics: Topic[]
         size="icon"
         variant="ghost"
         aria-label={isRu ? "Убрать из курса" : "Remove from course"}
-        onClick={() => store.updateMaterial(material.id, { courseId: undefined, topicId: undefined })}
+        onClick={() =>
+          store.updateMaterial(material.id, { courseId: undefined, topicId: undefined })
+        }
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>
@@ -707,17 +843,26 @@ function OutputRow({
   const isRu = lang === "ru";
   return (
     <div className="flex flex-col gap-2 rounded border border-border p-2 sm:flex-row sm:items-center">
-      <Link to={to as never} params={params as never} className="min-w-0 flex-1 truncate text-sm hover:text-primary">
+      <Link
+        to={to as never}
+        params={params as never}
+        className="min-w-0 flex-1 truncate text-sm hover:text-primary"
+      >
         {title || "—"}
       </Link>
-      <Select value={topicId ?? "_none"} onValueChange={(value) => onTopicChange(value === "_none" ? undefined : value)}>
+      <Select
+        value={topicId ?? "_none"}
+        onValueChange={(value) => onTopicChange(value === "_none" ? undefined : value)}
+      >
         <SelectTrigger className="h-8 w-full text-xs sm:w-[170px]">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="_none">{isRu ? "Без темы" : "No topic"}</SelectItem>
           {topics.map((topic) => (
-            <SelectItem key={topic.id} value={topic.id}>{topic.title}</SelectItem>
+            <SelectItem key={topic.id} value={topic.id}>
+              {topic.title}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
@@ -725,11 +870,24 @@ function OutputRow({
   );
 }
 
-function MetadataInput({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+function MetadataInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
   return (
     <div>
       <Label>{label}</Label>
-      <Input dir="auto" className="mt-1" value={value} onChange={(event) => onChange(event.target.value)} />
+      <Input
+        dir="auto"
+        className="mt-1"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
     </div>
   );
 }

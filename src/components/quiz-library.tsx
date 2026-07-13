@@ -1,11 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import {
-  AlertTriangle,
-  BookOpenCheck,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { AlertTriangle, BookOpenCheck, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AIGenerateButton } from "@/components/ai-generate-dialog";
@@ -101,22 +95,30 @@ export function QuizLibrary() {
             />
           </div>
           <Select value={courseFilter} onValueChange={setCourseFilter}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{isRu ? "Все курсы" : "All courses"}</SelectItem>
               <SelectItem value="_none">{isRu ? "Без курса" : "No course"}</SelectItem>
               {data.courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                <SelectItem key={course.id} value={course.id}>
+                  {course.title}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={materialFilter} onValueChange={setMaterialFilter}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{isRu ? "Все материалы" : "All materials"}</SelectItem>
               <SelectItem value="_none">{isRu ? "Без материала" : "No material"}</SelectItem>
               {data.materials.map((material) => (
-                <SelectItem key={material.id} value={material.id}>{material.title}</SelectItem>
+                <SelectItem key={material.id} value={material.id}>
+                  {material.title}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -131,8 +133,12 @@ export function QuizLibrary() {
           <BookOpenCheck className="mx-auto h-8 w-8 text-muted-foreground" />
           <strong className="mt-3 block">
             {data.quizzes.length === 0
-              ? isRu ? "Тестов пока нет" : "No quizzes yet"
-              : isRu ? "По фильтрам ничего не найдено" : "No quizzes match the filters"}
+              ? isRu
+                ? "Тестов пока нет"
+                : "No quizzes yet"
+              : isRu
+                ? "По фильтрам ничего не найдено"
+                : "No quizzes match the filters"}
           </strong>
           <p className="mt-1 text-sm text-muted-foreground">
             {isRu
@@ -144,7 +150,9 @@ export function QuizLibrary() {
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((quiz) => {
             const questions = data.quizQuestions.filter((question) => question.quizId === quiz.id);
-            const invalid = questions.filter((question) => !validateQuestion(question).valid).length;
+            const invalid = questions.filter(
+              (question) => !validateQuestion(question).valid,
+            ).length;
             const attempts = data.quizAttempts.filter((attempt) => attempt.quizId === quiz.id);
             const best = attempts.reduce((maximum, attempt) => Math.max(maximum, attempt.score), 0);
             const course = data.courses.find((item) => item.id === quiz.courseId);
@@ -199,8 +207,12 @@ export function QuizLibrary() {
                   )}
                 </div>
                 <div className="mt-4 space-y-1 border-t border-border pt-3 text-xs text-muted-foreground">
-                  <div className="truncate">{course?.title ?? (isRu ? "Без курса" : "No course")}</div>
-                  <div className="truncate">{material?.title ?? (isRu ? "Без материала" : "No material")}</div>
+                  <div className="truncate">
+                    {course?.title ?? (isRu ? "Без курса" : "No course")}
+                  </div>
+                  <div className="truncate">
+                    {material?.title ?? (isRu ? "Без материала" : "No material")}
+                  </div>
                 </div>
               </article>
             );
@@ -228,33 +240,65 @@ function CreateQuizForm({ onDone }: { onDone: () => void }) {
     <div className="space-y-4">
       <div>
         <Label>{isRu ? "Название" : "Title"}</Label>
-        <Input dir="auto" className="mt-1" value={title} onChange={(event) => setTitle(event.target.value)} />
+        <Input
+          dir="auto"
+          className="mt-1"
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+        />
       </div>
       <div className="grid gap-2 sm:grid-cols-3">
-        <Select value={courseId} onValueChange={(value) => { setCourseId(value); setTopicId("_none"); setMaterialId("_none"); }}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+        <Select
+          value={courseId}
+          onValueChange={(value) => {
+            setCourseId(value);
+            setTopicId("_none");
+            setMaterialId("_none");
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="_none">{isRu ? "Без курса" : "No course"}</SelectItem>
-            {data.courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>)}
+            {data.courses.map((course) => (
+              <SelectItem key={course.id} value={course.id}>
+                {course.title}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={topicId} onValueChange={setTopicId} disabled={courseId === "_none"}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="_none">{isRu ? "Без темы" : "No topic"}</SelectItem>
-            {topics.map((topic) => <SelectItem key={topic.id} value={topic.id}>{topic.title}</SelectItem>)}
+            {topics.map((topic) => (
+              <SelectItem key={topic.id} value={topic.id}>
+                {topic.title}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={materialId} onValueChange={setMaterialId}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="_none">{isRu ? "Без материала" : "No material"}</SelectItem>
-            {materials.map((material) => <SelectItem key={material.id} value={material.id}>{material.title}</SelectItem>)}
+            {materials.map((material) => (
+              <SelectItem key={material.id} value={material.id}>
+                {material.title}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
       <DialogFooter>
-        <Button variant="outline" onClick={onDone}>{isRu ? "Отмена" : "Cancel"}</Button>
+        <Button variant="outline" onClick={onDone}>
+          {isRu ? "Отмена" : "Cancel"}
+        </Button>
         <Button
           disabled={!title.trim()}
           onClick={() => {
@@ -285,7 +329,11 @@ export function validateQuestion(question: QuizQuestion): {
   if (options.length < 2) errors.push("options_count");
   if (options.some((option) => !option)) errors.push("empty_option");
   if (new Set(options.map(normalizeText)).size !== options.length) errors.push("duplicate_options");
-  if (!Number.isInteger(question.correctIndex) || question.correctIndex < 0 || question.correctIndex >= options.length) {
+  if (
+    !Number.isInteger(question.correctIndex) ||
+    question.correctIndex < 0 ||
+    question.correctIndex >= options.length
+  ) {
     errors.push("correct_index");
   }
   return { valid: errors.length === 0, errors };

@@ -9,10 +9,7 @@ const experience = await readFile(
   resolve(process.cwd(), "src/components/flashcard-experience.tsx"),
   "utf8",
 );
-const route = await readFile(
-  resolve(process.cwd(), "src/routes/app.flashcards.tsx"),
-  "utf8",
-);
+const route = await readFile(resolve(process.cwd(), "src/routes/app.flashcards.tsx"), "utf8");
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
@@ -47,14 +44,18 @@ for (const marker of [
   "Exact source-chunk references remain untouched",
   "Other cards are removed only after confirmation",
 ]) {
-  requireMarker(studio, marker, `Flashcard management lost a destructive-action safeguard: ${marker}`);
+  requireMarker(
+    studio,
+    marker,
+    `Flashcard management lost a destructive-action safeguard: ${marker}`,
+  );
 }
 
 for (const marker of [
   "export function FlashcardExperience",
   "StableFlashcard",
   "const startReview = () =>",
-  'setReviewOnly(true)',
+  "setReviewOnly(true)",
   'setView("study")',
   '<RotateCcw className="h-4 w-4 me-1" />',
   '"Повторить"',
@@ -73,7 +74,7 @@ for (const marker of [
 for (const forbidden of [
   'perspective: "1400px"',
   'transformStyle: "preserve-3d"',
-  'rotateY(180deg)',
+  "rotateY(180deg)",
   'backfaceVisibility: "hidden"',
   "absolute inset-0",
 ]) {
@@ -96,4 +97,6 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("Stable two-sided flashcards, persistent review action and management contract passed.");
+console.log(
+  "Stable two-sided flashcards, persistent review action and management contract passed.",
+);

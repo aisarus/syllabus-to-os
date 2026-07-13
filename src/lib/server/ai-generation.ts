@@ -70,9 +70,7 @@ export function validateInput(input: AIGenerationInput): string | null {
 
 function langLabel(language?: string): string {
   return (
-    { ru: "Russian", en: "English", he: "Hebrew", ar: "Arabic" }[
-      language ?? "ru"
-    ] || "Russian"
+    { ru: "Russian", en: "English", he: "Hebrew", ar: "Arabic" }[language ?? "ru"] || "Russian"
   );
 }
 
@@ -144,26 +142,22 @@ function buildPrompt(kind: AIKind, input: AIGenerationInput): { prompt: string; 
     case "note":
       return {
         prompt: `${BASE_RULES}\n${respondIn}\nWrite a source-grounded study note with a short summary, main explanation, key terms, examples only when present, and exam-relevance hints only when supported. Return all chunk ids that support the note.\n\n${context}${sources}`,
-        schema:
-          `{ "title": string, "content": string, "tags": string[], "sourceChunkIds": string[], "notFoundInSources": boolean, "warnings": string[] }`,
+        schema: `{ "title": string, "content": string, "tags": string[], "sourceChunkIds": string[], "notFoundInSources": boolean, "warnings": string[] }`,
       };
     case "flashcards":
       return {
         prompt: `${BASE_RULES}\n${respondIn}\nCreate 5–15 clear atomic study flashcards. Each card must list supporting sourceChunkIds. Do not create a card when the answer is not present in the sources.\n\n${context}${sources}`,
-        schema:
-          `{ "cards": Array<{ "front": string, "back": string, "sourceChunkIds": string[] }>, "notFoundInSources": boolean, "warnings": string[] }`,
+        schema: `{ "cards": Array<{ "front": string, "back": string, "sourceChunkIds": string[] }>, "notFoundInSources": boolean, "warnings": string[] }`,
       };
     case "quiz":
       return {
         prompt: `${BASE_RULES}\n${respondIn}\nGenerate 5–10 multiple-choice questions. Each question must have exactly four options, one correct answer, plausible distractors, a source-grounded explanation, and supporting sourceChunkIds.\n\n${context}${sources}`,
-        schema:
-          `{ "title": string, "questions": Array<{ "prompt": string, "options": [string,string,string,string], "correctIndex": number, "explanation": string, "sourceChunkIds": string[] }>, "notFoundInSources": boolean, "warnings": string[] }`,
+        schema: `{ "title": string, "questions": Array<{ "prompt": string, "options": [string,string,string,string], "correctIndex": number, "explanation": string, "sourceChunkIds": string[] }>, "notFoundInSources": boolean, "warnings": string[] }`,
       };
     case "presentation":
       return {
         prompt: `${BASE_RULES}\n${respondIn}\nBuild an academic outline of 5–8 slides. Each slide must have a title, 3–5 bullets, speaker notes, and supporting sourceChunkIds.\n\n${context}${sources}`,
-        schema:
-          `{ "title": string, "slides": Array<{ "title": string, "bullets": string[], "speakerNotes": string, "sourceChunkIds": string[] }>, "notFoundInSources": boolean, "warnings": string[] }`,
+        schema: `{ "title": string, "slides": Array<{ "title": string, "bullets": string[], "speakerNotes": string, "sourceChunkIds": string[] }>, "notFoundInSources": boolean, "warnings": string[] }`,
       };
     case "simplify":
       return {
@@ -178,14 +172,12 @@ function buildPrompt(kind: AIKind, input: AIGenerationInput): { prompt: string; 
     case "assignment":
       return {
         prompt: `${BASE_RULES}\n${respondIn}\nBreak the assignment into concrete steps and a checklist. Estimate total time. Base factual requirements only on the provided source.\n\n${context}Assignment: ${input.assignmentTitle ?? ""}\nNotes: ${input.assignmentNotes ?? ""}\n${sources}`,
-        schema:
-          `{ "steps": string[], "checklist": string[], "estimatedTime": string, "notFoundInSources": boolean, "warnings": string[] }`,
+        schema: `{ "steps": string[], "checklist": string[], "estimatedTime": string, "notFoundInSources": boolean, "warnings": string[] }`,
       };
     case "topic":
       return {
         prompt: `${BASE_RULES}\n${respondIn}\nExplain the topic with a short explanation, a detailed explanation, and key terms. When no source supports a claim, mark the result as not found rather than using model memory.\n\n${context}${sources}`,
-        schema:
-          `{ "shortExplanation": string, "detailedExplanation": string, "keyTerms": Array<{ "term": string, "explanation": string }>, "notFoundInSources": boolean, "warnings": string[] }`,
+        schema: `{ "shortExplanation": string, "detailedExplanation": string, "keyTerms": Array<{ "term": string, "explanation": string }>, "notFoundInSources": boolean, "warnings": string[] }`,
       };
   }
 }
@@ -255,7 +247,9 @@ function normalize(kind: AIKind, raw: unknown, input: AIGenerationInput): Normal
       draft = {
         title: str(object.title, "Untitled").slice(0, 200),
         content: str(object.content),
-        tags: arr<unknown>(object.tags).map((tag) => String(tag)).slice(0, 20),
+        tags: arr<unknown>(object.tags)
+          .map((tag) => String(tag))
+          .slice(0, 20),
         sourceChunkIds: citations(object.sourceChunkIds, locale === "ru" ? "Конспект" : "Note"),
         notFoundInSources,
         warnings,
@@ -411,8 +405,8 @@ export async function runAIGeneration(
     rejectedSourceChunkIds: normalized.rejectedSourceChunkIds,
     uncitedItemCount: normalized.uncitedItemCount,
   };
-  const draft = { ...normalized.draft, trust };
-  const warnings = arr<string>(draft.warnings).slice();
+  const warnings = arr<string>(normalized.draft.warnings).slice();
+  const draft = { ...normalized.draft, trust, warnings };
 
   if (kind === "topic" && (input.chunks ?? []).length === 0) {
     warnings.push(
@@ -420,7 +414,6 @@ export async function runAIGeneration(
         ? "Нет исходных чанков — объяснение не привязано к материалу."
         : "No source chunks — explanation is not grounded.",
     );
-    draft.warnings = warnings;
   }
 
   return {

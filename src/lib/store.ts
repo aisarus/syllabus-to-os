@@ -10,13 +10,7 @@ export type CardStatus = "new" | "learning" | "mastered";
 export type Difficulty = "easy" | "medium" | "hard";
 
 export type MaterialType =
-  | "syllabus"
-  | "lecture"
-  | "article"
-  | "assignment"
-  | "presentation"
-  | "exam"
-  | "other";
+  "syllabus" | "lecture" | "article" | "assignment" | "presentation" | "exam" | "other";
 export type MaterialSourceMode = "uploaded_file" | "pasted_text" | "manual";
 export type MaterialProcessingStatus = "ready" | "unsupported" | "error" | "no_text" | "partial";
 export type MaterialExtractionMethod =
@@ -33,20 +27,10 @@ export type MaterialExtractionMethod =
   | "pdf";
 export type MaterialSourceLanguage = "ru" | "en" | "he" | "ar" | "mixed" | "unknown";
 export type MaterialOutputType =
-  | "note"
-  | "quiz"
-  | "flashcards"
-  | "outline"
-  | "presentation_outline"
-  | "task_list";
+  "note" | "quiz" | "flashcards" | "outline" | "presentation_outline" | "task_list";
 
 export type CalendarEventType =
-  | "class"
-  | "assignment"
-  | "exam"
-  | "study_session"
-  | "personal"
-  | "other";
+  "class" | "assignment" | "exam" | "study_session" | "personal" | "other";
 export type Recurrence = "none" | "weekly";
 
 export interface Program {
@@ -326,7 +310,9 @@ function ensureHydrated() {
 function persist() {
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
-  } catch {}
+  } catch {
+    // A full localStorage quota must not prevent in-memory UI updates.
+  }
   listeners.forEach((l) => l());
 }
 
@@ -640,7 +626,11 @@ export const store = {
     return created;
   },
   // presentation outlines
-  createOutline(o: Omit<PresentationOutline, "id" | "createdAt" | "updatedAt" | "slides"> & { slides?: Slide[] }) {
+  createOutline(
+    o: Omit<PresentationOutline, "id" | "createdAt" | "updatedAt" | "slides"> & {
+      slides?: Slide[];
+    },
+  ) {
     const now = Date.now();
     const outline: PresentationOutline = {
       ...o,
@@ -771,7 +761,7 @@ export function importJSON(json: string): { ok: true } | { ok: false; error: str
   try {
     const parsed = JSON.parse(json);
     if (!parsed || typeof parsed !== "object") return { ok: false, error: "Not an object" };
-    const arr = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
+    const arr = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
     const shape: AppData = {
       version: 1,
       programs: arr<Program>(parsed.programs),
@@ -811,7 +801,14 @@ export type SearchHit =
   | { kind: "course"; id: string; title: string; snippet: string; courseId?: string }
   | { kind: "topic"; id: string; title: string; snippet: string; courseId?: string }
   | { kind: "material"; id: string; title: string; snippet: string; courseId?: string }
-  | { kind: "chunk"; id: string; title: string; snippet: string; materialId: string; courseId?: string }
+  | {
+      kind: "chunk";
+      id: string;
+      title: string;
+      snippet: string;
+      materialId: string;
+      courseId?: string;
+    }
   | { kind: "note"; id: string; title: string; snippet: string; courseId?: string }
   | { kind: "flashcard"; id: string; title: string; snippet: string; courseId?: string }
   | { kind: "quiz"; id: string; title: string; snippet: string; courseId?: string }
@@ -836,17 +833,35 @@ export function searchAll(d: AppData, query: string, limit = 200): SearchHit[] {
 
   for (const c of d.courses) {
     if (has(c.title) || has(c.originalTitle) || has(c.description) || has(c.number)) {
-      hits.push({ kind: "course", id: c.id, title: c.title, snippet: snip(c.description, q), courseId: c.id });
+      hits.push({
+        kind: "course",
+        id: c.id,
+        title: c.title,
+        snippet: snip(c.description, q),
+        courseId: c.id,
+      });
     }
   }
   for (const tp of d.topics) {
     if (has(tp.title) || has(tp.description)) {
-      hits.push({ kind: "topic", id: tp.id, title: tp.title, snippet: snip(tp.description, q), courseId: tp.courseId });
+      hits.push({
+        kind: "topic",
+        id: tp.id,
+        title: tp.title,
+        snippet: snip(tp.description, q),
+        courseId: tp.courseId,
+      });
     }
   }
   for (const m of d.materials) {
     if (has(m.title) || has(m.rawText) || m.tags.some((t) => t.toLowerCase().includes(q))) {
-      hits.push({ kind: "material", id: m.id, title: m.title, snippet: snip(m.rawText, q), courseId: m.courseId });
+      hits.push({
+        kind: "material",
+        id: m.id,
+        title: m.title,
+        snippet: snip(m.rawText, q),
+        courseId: m.courseId,
+      });
     }
   }
   for (const ch of d.materialChunks) {
@@ -864,12 +879,24 @@ export function searchAll(d: AppData, query: string, limit = 200): SearchHit[] {
   }
   for (const n of d.notes) {
     if (has(n.title) || has(n.content) || n.tags.some((t) => t.toLowerCase().includes(q))) {
-      hits.push({ kind: "note", id: n.id, title: n.title || "—", snippet: snip(n.content, q), courseId: n.courseId });
+      hits.push({
+        kind: "note",
+        id: n.id,
+        title: n.title || "—",
+        snippet: snip(n.content, q),
+        courseId: n.courseId,
+      });
     }
   }
   for (const c of d.flashcards) {
     if (has(c.front) || has(c.back)) {
-      hits.push({ kind: "flashcard", id: c.id, title: c.front, snippet: snip(c.back, q), courseId: c.courseId });
+      hits.push({
+        kind: "flashcard",
+        id: c.id,
+        title: c.front,
+        snippet: snip(c.back, q),
+        courseId: c.courseId,
+      });
     }
   }
   for (const qz of d.quizzes) {
@@ -879,12 +906,24 @@ export function searchAll(d: AppData, query: string, limit = 200): SearchHit[] {
   }
   for (const qq of d.quizQuestions) {
     if (has(qq.prompt) || has(qq.explanation) || qq.options.some((o) => has(o))) {
-      hits.push({ kind: "question", id: qq.id, title: qq.prompt, snippet: snip(qq.explanation, q), quizId: qq.quizId });
+      hits.push({
+        kind: "question",
+        id: qq.id,
+        title: qq.prompt,
+        snippet: snip(qq.explanation, q),
+        quizId: qq.quizId,
+      });
     }
   }
   for (const a of d.assignments) {
     if (has(a.title) || has(a.notes)) {
-      hits.push({ kind: "assignment", id: a.id, title: a.title, snippet: snip(a.notes, q), courseId: a.courseId });
+      hits.push({
+        kind: "assignment",
+        id: a.id,
+        title: a.title,
+        snippet: snip(a.notes, q),
+        courseId: a.courseId,
+      });
     }
   }
   for (const o of d.presentationOutlines) {
@@ -909,7 +948,14 @@ export function loadSampleBarIlan() {
     semesters: ["Sem A 2025/26", "Sem B 2025/26"],
     createdAt: now,
   };
-  const mk = (n: string, title: string, orig: string, sem: string, credits: number, order: number): Course => ({
+  const mk = (
+    n: string,
+    title: string,
+    orig: string,
+    sem: string,
+    credits: number,
+    order: number,
+  ): Course => ({
     id: uid("crs"),
     programId: program.id,
     title,

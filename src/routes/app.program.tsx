@@ -17,7 +17,13 @@ function ProgramPage() {
   const data = useData();
   const program = data.programs[0];
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ name: "", institution: "", degree: "", years: 3, semesters: "Sem A 2025/26, Sem B 2025/26" });
+  const [form, setForm] = useState({
+    name: "",
+    institution: "",
+    degree: "",
+    years: 3,
+    semesters: "Sem A 2025/26, Sem B 2025/26",
+  });
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -74,7 +80,11 @@ function ProgramPage() {
                 value={program?.years ?? form.years}
                 onChange={(e) => {
                   const n = Number(e.target.value) || 0;
-                  program ? store.updateProgram(program.id, { years: n }) : setForm({ ...form, years: n });
+                  if (program) {
+                    store.updateProgram(program.id, { years: n });
+                  } else {
+                    setForm({ ...form, years: n });
+                  }
                 }}
               />
             </div>
@@ -83,10 +93,15 @@ function ProgramPage() {
               <Input
                 value={program ? program.semesters.join(", ") : form.semesters}
                 onChange={(e) => {
-                  const sems = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
-                  program
-                    ? store.updateProgram(program.id, { semesters: sems })
-                    : setForm({ ...form, semesters: e.target.value });
+                  const sems = e.target.value
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+                  if (program) {
+                    store.updateProgram(program.id, { semesters: sems });
+                  } else {
+                    setForm({ ...form, semesters: e.target.value });
+                  }
                 }}
               />
             </div>
@@ -101,7 +116,10 @@ function ProgramPage() {
                       institution: form.institution,
                       degree: form.degree,
                       years: form.years,
-                      semesters: form.semesters.split(",").map((s) => s.trim()).filter(Boolean),
+                      semesters: form.semesters
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
                     });
                     setCreating(false);
                   }}

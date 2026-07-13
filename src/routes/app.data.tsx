@@ -135,11 +135,21 @@ function DataPage() {
       <div className="mb-4 rounded-lg border border-border bg-surface p-4 text-sm">
         <strong>{isRu ? "Сейчас в библиотеке" : "Current library"}</strong>
         <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground sm:grid-cols-5">
-          <span>{data.courses.length} {isRu ? "курсов" : "courses"}</span>
-          <span>{data.materials.length} {isRu ? "материалов" : "materials"}</span>
-          <span>{data.notes.length} {isRu ? "конспектов" : "notes"}</span>
-          <span>{data.flashcards.length} {isRu ? "карточек" : "cards"}</span>
-          <span>{data.quizzes.length} {isRu ? "тестов" : "quizzes"}</span>
+          <span>
+            {data.courses.length} {isRu ? "курсов" : "courses"}
+          </span>
+          <span>
+            {data.materials.length} {isRu ? "материалов" : "materials"}
+          </span>
+          <span>
+            {data.notes.length} {isRu ? "конспектов" : "notes"}
+          </span>
+          <span>
+            {data.flashcards.length} {isRu ? "карточек" : "cards"}
+          </span>
+          <span>
+            {data.quizzes.length} {isRu ? "тестов" : "quizzes"}
+          </span>
         </div>
       </div>
 
@@ -181,7 +191,9 @@ function DataPage() {
             disabled={itemCount === 0}
             title={
               itemCount === 0
-                ? isRu ? "Экспортировать текстовые данные пока нечего" : "There is no text data to export yet"
+                ? isRu
+                  ? "Экспортировать текстовые данные пока нечего"
+                  : "There is no text data to export yet"
                 : undefined
             }
           >
@@ -230,7 +242,9 @@ function DataPage() {
                 disabled={!hasAnyData}
                 title={
                   !hasAnyData
-                    ? isRu ? "Локальное хранилище уже пустое" : "Local storage is already empty"
+                    ? isRu
+                      ? "Локальное хранилище уже пустое"
+                      : "Local storage is already empty"
                     : undefined
                 }
                 onClick={async () => {
@@ -246,10 +260,13 @@ function DataPage() {
                     setError(null);
                     await refreshVisualStats();
                     toast.success(
-                      isRu ? "Все локальные данные и фото удалены" : "All local data and images were deleted",
+                      isRu
+                        ? "Все локальные данные и фото удалены"
+                        : "All local data and images were deleted",
                     );
                   } catch (clearError) {
-                    const message = clearError instanceof Error ? clearError.message : String(clearError);
+                    const message =
+                      clearError instanceof Error ? clearError.message : String(clearError);
                     setError(message);
                     toast.error(
                       isRu

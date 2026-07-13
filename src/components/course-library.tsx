@@ -1,12 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import {
-  BookOpen,
-  FileInput,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { BookOpen, FileInput, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -147,8 +140,12 @@ export function CourseLibrary() {
               <DialogHeader>
                 <DialogTitle>
                   {editId
-                    ? isRu ? "Редактировать курс" : "Edit course"
-                    : isRu ? "Создать курс" : "Create course"}
+                    ? isRu
+                      ? "Редактировать курс"
+                      : "Edit course"
+                    : isRu
+                      ? "Создать курс"
+                      : "Create course"}
                 </DialogTitle>
               </DialogHeader>
               <CourseForm
@@ -176,27 +173,37 @@ export function CourseLibrary() {
             />
           </div>
           <Select value={semesterFilter} onValueChange={setSemesterFilter}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{isRu ? "Все семестры" : "All semesters"}</SelectItem>
               {semesters.map((semester) => (
-                <SelectItem key={semester} value={semester}>{semester}</SelectItem>
+                <SelectItem key={semester} value={semester}>
+                  {semester}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={programFilter} onValueChange={setProgramFilter}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{isRu ? "Все программы" : "All programs"}</SelectItem>
               <SelectItem value="_none">{isRu ? "Без программы" : "No program"}</SelectItem>
               {data.programs.map((program) => (
-                <SelectItem key={program.id} value={program.id}>{program.name}</SelectItem>
+                <SelectItem key={program.id} value={program.id}>
+                  {program.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>{filtered.length} {isRu ? "курсов" : "courses"}</span>
+          <span>
+            {filtered.length} {isRu ? "курсов" : "courses"}
+          </span>
           {hasFilters && (
             <Button
               size="sm"
@@ -218,8 +225,12 @@ export function CourseLibrary() {
           <BookOpen className="mx-auto h-8 w-8 text-muted-foreground" />
           <strong className="mt-3 block">
             {data.courses.length === 0
-              ? isRu ? "Курсов пока нет" : "No courses yet"
-              : isRu ? "По фильтрам ничего не найдено" : "No courses match the filters"}
+              ? isRu
+                ? "Курсов пока нет"
+                : "No courses yet"
+              : isRu
+                ? "По фильтрам ничего не найдено"
+                : "No courses match the filters"}
           </strong>
           <p className="mx-auto mt-1 max-w-xl text-sm text-muted-foreground">
             {data.courses.length === 0
@@ -263,7 +274,9 @@ export function CourseLibrary() {
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((course) => {
             const program = data.programs.find((item) => item.id === course.programId);
-            const materialCount = data.materials.filter((item) => item.courseId === course.id).length;
+            const materialCount = data.materials.filter(
+              (item) => item.courseId === course.id,
+            ).length;
             const noteCount = data.notes.filter((item) => item.courseId === course.id).length;
             const cardCount = data.flashcards.filter((item) => item.courseId === course.id).length;
             const quizCount = data.quizzes.filter((item) => item.courseId === course.id).length;
@@ -276,28 +289,58 @@ export function CourseLibrary() {
                     params={{ courseId: course.id }}
                     className="min-w-0 flex-1"
                   >
-                    <div className="text-xs font-mono text-muted-foreground">{course.number || "—"}</div>
+                    <div className="text-xs font-mono text-muted-foreground">
+                      {course.number || "—"}
+                    </div>
                     <h2 className="mt-1 line-clamp-2 font-serif text-lg font-semibold hover:text-primary">
                       {course.title}
                     </h2>
                     {course.originalTitle && course.originalTitle !== course.title && (
-                      <p dir="auto" className="mt-1 truncate text-xs text-muted-foreground">{course.originalTitle}</p>
+                      <p dir="auto" className="mt-1 truncate text-xs text-muted-foreground">
+                        {course.originalTitle}
+                      </p>
                     )}
                   </Link>
                   <div className="flex shrink-0 gap-1">
-                    <Button size="icon" variant="ghost" aria-label={isRu ? "Редактировать курс" : "Edit course"} onClick={() => openEdit(course.id)}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label={isRu ? "Редактировать курс" : "Edit course"}
+                      onClick={() => openEdit(course.id)}
+                    >
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
-                    <Button size="icon" variant="ghost" aria-label={isRu ? "Удалить курс" : "Delete course"} onClick={() => deleteCourseSafely(course)}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label={isRu ? "Удалить курс" : "Delete course"}
+                      onClick={() => deleteCourseSafely(course)}
+                    >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1.5 text-[10px] text-muted-foreground">
-                  {course.semester && <span className="rounded border border-border px-2 py-1">{course.semester}</span>}
-                  {course.credits != null && <span className="rounded border border-border px-2 py-1">{course.credits} {isRu ? "кред." : "credits"}</span>}
-                  {course.instructor && <span className="max-w-full truncate rounded border border-border px-2 py-1">{course.instructor}</span>}
-                  {program && <span className="max-w-full truncate rounded border border-border px-2 py-1">{program.name}</span>}
+                  {course.semester && (
+                    <span className="rounded border border-border px-2 py-1">
+                      {course.semester}
+                    </span>
+                  )}
+                  {course.credits != null && (
+                    <span className="rounded border border-border px-2 py-1">
+                      {course.credits} {isRu ? "кред." : "credits"}
+                    </span>
+                  )}
+                  {course.instructor && (
+                    <span className="max-w-full truncate rounded border border-border px-2 py-1">
+                      {course.instructor}
+                    </span>
+                  )}
+                  {program && (
+                    <span className="max-w-full truncate rounded border border-border px-2 py-1">
+                      {program.name}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-4 grid grid-cols-5 gap-1 border-t border-border pt-3 text-center text-[10px] text-muted-foreground">
                   <ContentCount value={topicCount} label={isRu ? "тем" : "topics"} />
@@ -363,41 +406,86 @@ function CourseForm({ courseId, onDone }: { courseId?: string; onDone: () => voi
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <FormField label={isRu ? "Название" : "Title"}>
-          <Input dir="auto" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
+          <Input
+            dir="auto"
+            value={form.title}
+            onChange={(event) => setForm({ ...form, title: event.target.value })}
+          />
         </FormField>
         <FormField label={isRu ? "Оригинальное название" : "Original title"}>
-          <Input dir="auto" value={form.originalTitle} onChange={(event) => setForm({ ...form, originalTitle: event.target.value })} />
+          <Input
+            dir="auto"
+            value={form.originalTitle}
+            onChange={(event) => setForm({ ...form, originalTitle: event.target.value })}
+          />
         </FormField>
         <FormField label={isRu ? "Код курса" : "Course code"}>
-          <Input value={form.number} onChange={(event) => setForm({ ...form, number: event.target.value })} />
+          <Input
+            value={form.number}
+            onChange={(event) => setForm({ ...form, number: event.target.value })}
+          />
         </FormField>
         <FormField label={isRu ? "Кредиты" : "Credits"}>
-          <Input inputMode="decimal" value={form.credits} onChange={(event) => setForm({ ...form, credits: event.target.value })} />
+          <Input
+            inputMode="decimal"
+            value={form.credits}
+            onChange={(event) => setForm({ ...form, credits: event.target.value })}
+          />
         </FormField>
         <FormField label={isRu ? "Семестр" : "Semester"}>
-          <Input dir="auto" value={form.semester} onChange={(event) => setForm({ ...form, semester: event.target.value })} />
+          <Input
+            dir="auto"
+            value={form.semester}
+            onChange={(event) => setForm({ ...form, semester: event.target.value })}
+          />
         </FormField>
         <FormField label={isRu ? "Тип курса" : "Course type"}>
-          <Input dir="auto" value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value })} />
+          <Input
+            dir="auto"
+            value={form.type}
+            onChange={(event) => setForm({ ...form, type: event.target.value })}
+          />
         </FormField>
         <FormField label={isRu ? "Преподаватель" : "Instructor"}>
-          <Input dir="auto" value={form.instructor} onChange={(event) => setForm({ ...form, instructor: event.target.value })} />
+          <Input
+            dir="auto"
+            value={form.instructor}
+            onChange={(event) => setForm({ ...form, instructor: event.target.value })}
+          />
         </FormField>
         <FormField label={isRu ? "Пререквизиты" : "Prerequisites"}>
-          <Input dir="auto" value={form.prerequisites} onChange={(event) => setForm({ ...form, prerequisites: event.target.value })} />
+          <Input
+            dir="auto"
+            value={form.prerequisites}
+            onChange={(event) => setForm({ ...form, prerequisites: event.target.value })}
+          />
         </FormField>
       </div>
       <FormField label={isRu ? "Программа" : "Program"}>
-        <Select value={form.programId} onValueChange={(value) => setForm({ ...form, programId: value })}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+        <Select
+          value={form.programId}
+          onValueChange={(value) => setForm({ ...form, programId: value })}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="_none">{isRu ? "Без программы" : "No program"}</SelectItem>
-            {data.programs.map((program) => <SelectItem key={program.id} value={program.id}>{program.name}</SelectItem>)}
+            {data.programs.map((program) => (
+              <SelectItem key={program.id} value={program.id}>
+                {program.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </FormField>
       <FormField label={isRu ? "Описание" : "Description"}>
-        <Textarea dir="auto" className="min-h-[130px] resize-y" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
+        <Textarea
+          dir="auto"
+          className="min-h-[130px] resize-y"
+          value={form.description}
+          onChange={(event) => setForm({ ...form, description: event.target.value })}
+        />
       </FormField>
       <p className="text-xs text-muted-foreground">
         {isRu
@@ -405,8 +493,12 @@ function CourseForm({ courseId, onDone }: { courseId?: string; onDone: () => voi
           : "Completion statuses and percentages are intentionally absent: a course organizes content rather than judging productivity."}
       </p>
       <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onDone}>{isRu ? "Отмена" : "Cancel"}</Button>
-        <Button onClick={save} disabled={!form.title.trim()}>{isRu ? "Сохранить" : "Save"}</Button>
+        <Button variant="outline" onClick={onDone}>
+          {isRu ? "Отмена" : "Cancel"}
+        </Button>
+        <Button onClick={save} disabled={!form.title.trim()}>
+          {isRu ? "Сохранить" : "Save"}
+        </Button>
       </div>
     </div>
   );

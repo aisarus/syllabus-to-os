@@ -54,7 +54,9 @@ for (const item of routes) {
   requireMarker(detail, item.surface, `${item.name} detail no longer renders its workspace.`);
   try {
     await access(resolve(process.cwd(), item.oldDetail), constants.F_OK);
-    failures.push(`${item.name} legacy nested route still exists and can shadow the working detail route.`);
+    failures.push(
+      `${item.name} legacy nested route still exists and can shadow the working detail route.`,
+    );
   } catch {
     // Expected: the nested route file must not exist.
   }

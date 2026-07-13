@@ -41,7 +41,10 @@ for (const fixture of fixtures) {
   requireCondition(Boolean(fixture.id), "Every fixture requires an id.");
   requireCondition(Boolean(fixture.suite), `${fixture.id ?? "unknown"}: suite is missing.`);
   requireCondition(Boolean(fixture.kind), `${fixture.id ?? "unknown"}: kind is missing.`);
-  requireCondition(fixture.candidate != null, `${fixture.id ?? "unknown"}: recorded candidate is missing.`);
+  requireCondition(
+    fixture.candidate != null,
+    `${fixture.id ?? "unknown"}: recorded candidate is missing.`,
+  );
   requireCondition(
     fixture.negativeCandidate != null,
     `${fixture.id ?? "unknown"}: negative control is missing.`,
@@ -58,19 +61,22 @@ requireCondition(
 );
 requireCondition(
   ocrFixtures.some(
-    (fixture) => fixture.input?.sourceStyle === "handwritten" && fixture.input?.containsMath === false,
+    (fixture) =>
+      fixture.input?.sourceStyle === "handwritten" && fixture.input?.containsMath === false,
   ),
   "OCR suite is missing handwritten Hebrew text.",
 );
 requireCondition(
   ocrFixtures.some(
-    (fixture) => fixture.input?.sourceStyle === "handwritten" && fixture.input?.containsMath === true,
+    (fixture) =>
+      fixture.input?.sourceStyle === "handwritten" && fixture.input?.containsMath === true,
   ),
   "OCR suite is missing handwritten mathematics.",
 );
 requireCondition(
   ocrFixtures.some(
-    (fixture) => fixture.reference?.mustAbstain === true && fixture.thresholds?.requireAbstention === true,
+    (fixture) =>
+      fixture.reference?.mustAbstain === true && fixture.thresholds?.requireAbstention === true,
   ),
   "OCR suite is missing an unreadable-image abstention fixture.",
 );
@@ -84,7 +90,10 @@ for (const fixture of ocrFixtures) {
     typeof fixture.reference?.transcript === "string",
     `${fixture.id}: reference transcript is missing.`,
   );
-  requireCondition(Array.isArray(fixture.reference?.lines), `${fixture.id}: reference lines are missing.`);
+  requireCondition(
+    Array.isArray(fixture.reference?.lines),
+    `${fixture.id}: reference lines are missing.`,
+  );
   requireCondition(
     Array.isArray(fixture.reference?.criticalTokens),
     `${fixture.id}: critical token list is missing.`,

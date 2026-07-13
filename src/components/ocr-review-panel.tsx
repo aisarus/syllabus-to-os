@@ -70,10 +70,7 @@ export function OCRReviewPanel({ material }: { material: Material }) {
     let objectUrl: string | undefined;
     setLoading(true);
     setError(null);
-    void Promise.all([
-      getMaterialVisualSource(material.id),
-      getMaterialOCRDraft(material.id),
-    ])
+    void Promise.all([getMaterialVisualSource(material.id), getMaterialOCRDraft(material.id)])
       .then(([storedSource, storedDraft]) => {
         if (cancelled) return;
         if (storedSource) {
@@ -106,7 +103,11 @@ export function OCRReviewPanel({ material }: { material: Material }) {
   const isVisualMaterial = material.mimeType?.startsWith("image/") === true;
   const canShow = isVisualMaterial || source !== null || loading;
   const derivedText = useMemo(
-    () => draft?.regions.map((region) => region.text.trim()).filter(Boolean).join("\n") ?? "",
+    () =>
+      draft?.regions
+        .map((region) => region.text.trim())
+        .filter(Boolean)
+        .join("\n") ?? "",
     [draft],
   );
 
@@ -129,7 +130,8 @@ export function OCRReviewPanel({ material }: { material: Material }) {
       await putMaterialOCRDraft(material.id, result);
       toast.success(isRu ? "Черновик OCR готов к проверке" : "OCR draft is ready for review");
     } catch (recognitionError) {
-      const message = recognitionError instanceof Error ? recognitionError.message : String(recognitionError);
+      const message =
+        recognitionError instanceof Error ? recognitionError.message : String(recognitionError);
       setError(message);
       toast.error(isRu ? "OCR не завершён" : "OCR did not complete");
     } finally {
@@ -227,17 +229,34 @@ export function OCRReviewPanel({ material }: { material: Material }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Select value={sourceStyle} onValueChange={(value) => setSourceStyle(value as OCRSourceStyle)}>
-            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <Select
+            value={sourceStyle}
+            onValueChange={(value) => setSourceStyle(value as OCRSourceStyle)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {SOURCE_STYLES.map((style) => (
-                <SelectItem key={style} value={style}>{sourceStyleCopy(style, isRu)}</SelectItem>
+                <SelectItem key={style} value={style}>
+                  {sourceStyleCopy(style, isRu)}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Button onClick={() => void runOCR()} disabled={!source || recognizing || loading}>
-            {recognizing ? <Loader2 className="h-4 w-4 me-1 animate-spin" /> : <Sparkles className="h-4 w-4 me-1" />}
-            {draft ? (isRu ? "Распознать заново" : "Run OCR again") : isRu ? "Распознать фото" : "Run OCR"}
+            {recognizing ? (
+              <Loader2 className="h-4 w-4 me-1 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4 me-1" />
+            )}
+            {draft
+              ? isRu
+                ? "Распознать заново"
+                : "Run OCR again"
+              : isRu
+                ? "Распознать фото"
+                : "Run OCR"}
           </Button>
         </div>
       </header>
@@ -299,11 +318,17 @@ export function OCRReviewPanel({ material }: { material: Material }) {
               <>
                 <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-background p-3 text-xs">
                   <div className="flex flex-wrap gap-2">
-                    <span>{draft.regions.length} {isRu ? "регионов" : "regions"}</span>
-                    <span>{derivedText.length.toLocaleString()} {isRu ? "знаков" : "characters"}</span>
+                    <span>
+                      {draft.regions.length} {isRu ? "регионов" : "regions"}
+                    </span>
+                    <span>
+                      {derivedText.length.toLocaleString()} {isRu ? "знаков" : "characters"}
+                    </span>
                     <span>
                       {draft.confidence == null
-                        ? isRu ? "уверенность неизвестна" : "confidence unknown"
+                        ? isRu
+                          ? "уверенность неизвестна"
+                          : "confidence unknown"
                         : `${Math.round(draft.confidence * 100)}%`}
                     </span>
                   </div>
@@ -316,7 +341,9 @@ export function OCRReviewPanel({ material }: { material: Material }) {
 
                 {draft.warnings.length > 0 && (
                   <div className="rounded-md border border-yellow-500/25 bg-yellow-500/5 p-3 text-xs text-yellow-100">
-                    {draft.warnings.map((warning) => <p key={warning}>{warning}</p>)}
+                    {draft.warnings.map((warning) => (
+                      <p key={warning}>{warning}</p>
+                    ))}
                   </div>
                 )}
 
@@ -350,7 +377,10 @@ export function OCRReviewPanel({ material }: { material: Material }) {
                       onDelete={() =>
                         setDraft((current) =>
                           current
-                            ? { ...current, regions: current.regions.filter((item) => item.id !== region.id) }
+                            ? {
+                                ...current,
+                                regions: current.regions.filter((item) => item.id !== region.id),
+                              }
                             : current,
                         )
                       }
@@ -363,7 +393,10 @@ export function OCRReviewPanel({ material }: { material: Material }) {
                   onClick={() =>
                     setDraft((current) =>
                       current
-                        ? { ...current, regions: [...current.regions, emptyRegion(current.regions.length)] }
+                        ? {
+                            ...current,
+                            regions: [...current.regions, emptyRegion(current.regions.length)],
+                          }
                         : current,
                     )
                   }
@@ -415,16 +448,25 @@ function RegionEditor({
     <article className="rounded-md border border-border bg-background p-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold">#{index + 1}</span>
-        <Select value={region.kind} onValueChange={(value) => onChange({ kind: value as OCRRegionKind })}>
-          <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
+        <Select
+          value={region.kind}
+          onValueChange={(value) => onChange({ kind: value as OCRRegionKind })}
+        >
+          <SelectTrigger className="h-8 w-[150px]">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             {REGION_KINDS.map((kind) => (
-              <SelectItem key={kind} value={kind}>{regionKindCopy(kind, isRu)}</SelectItem>
+              <SelectItem key={kind} value={kind}>
+                {regionKindCopy(kind, isRu)}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         {region.confidence != null && (
-          <span className="text-xs text-muted-foreground">{Math.round(region.confidence * 100)}%</span>
+          <span className="text-xs text-muted-foreground">
+            {Math.round(region.confidence * 100)}%
+          </span>
         )}
         {region.uncertainTokens.length > 0 && (
           <span className="rounded bg-yellow-500/10 px-2 py-1 text-[10px] text-yellow-200">
@@ -435,7 +477,12 @@ function RegionEditor({
           <Button size="icon" variant="ghost" disabled={index === 0} onClick={() => onMove("up")}>
             <ArrowUp className="h-3.5 w-3.5" />
           </Button>
-          <Button size="icon" variant="ghost" disabled={index >= count - 1} onClick={() => onMove("down")}>
+          <Button
+            size="icon"
+            variant="ghost"
+            disabled={index >= count - 1}
+            onClick={() => onMove("down")}
+          >
             <ArrowDown className="h-3.5 w-3.5" />
           </Button>
           <Button size="icon" variant="ghost" onClick={onDelete}>
@@ -474,11 +521,7 @@ function emptyRegion(index: number): OCRRegion {
   };
 }
 
-function moveRegion(
-  regions: OCRRegion[],
-  index: number,
-  direction: "up" | "down",
-): OCRRegion[] {
+function moveRegion(regions: OCRRegion[], index: number, direction: "up" | "down"): OCRRegion[] {
   const target = direction === "up" ? index - 1 : index + 1;
   if (target < 0 || target >= regions.length) return regions;
   const next = regions.slice();

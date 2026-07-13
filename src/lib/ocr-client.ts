@@ -1,8 +1,4 @@
-import {
-  normalizeOCRDraft,
-  type OCRDraft,
-  type OCRSourceStyle,
-} from "./ocr-contract";
+import { normalizeOCRDraft, type OCRDraft, type OCRSourceStyle } from "./ocr-contract";
 
 const MAX_OCR_EDGE = 2200;
 const MAX_DATA_URL_CHARS = 12_000_000;
@@ -30,7 +26,8 @@ export async function recognizeImageWithOCR(
   });
   const payload = (await response.json().catch(() => null)) as OCRResponse | null;
   if (!response.ok || !payload?.ok) {
-    const error = payload && !payload.ok ? payload.error : `OCR request failed (${response.status})`;
+    const error =
+      payload && !payload.ok ? payload.error : `OCR request failed (${response.status})`;
     const details = payload && !payload.ok ? payload.details : undefined;
     throw new Error(details ? `${error}: ${details}` : error);
   }
@@ -50,7 +47,10 @@ export async function prepareImageDataUrl(blob: Blob): Promise<string> {
   context.drawImage(image, 0, 0, width, height);
 
   const preferPng = blob.type === "image/png" && blob.size < 4 * 1024 * 1024;
-  const dataUrl = canvas.toDataURL(preferPng ? "image/png" : "image/jpeg", preferPng ? undefined : 0.88);
+  const dataUrl = canvas.toDataURL(
+    preferPng ? "image/png" : "image/jpeg",
+    preferPng ? undefined : 0.88,
+  );
   if (dataUrl.length > MAX_DATA_URL_CHARS) {
     throw new Error("Prepared image is still too large for OCR. Crop it or use a smaller photo.");
   }

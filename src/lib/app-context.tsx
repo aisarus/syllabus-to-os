@@ -24,7 +24,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const th = localStorage.getItem("lamdan.theme") as Theme | null;
       if (l === "ru" || l === "en") setLang(l);
       if (th === "dark" || th === "light") setTheme(th);
-    } catch {}
+    } catch {
+      // Local preferences are optional.
+    }
   }, []);
 
   useEffect(() => {
@@ -33,7 +35,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     root.setAttribute("lang", lang);
     try {
       localStorage.setItem("lamdan.lang", lang);
-    } catch {}
+    } catch {
+      // Local preferences are optional.
+    }
   }, [lang]);
 
   useEffect(() => {
@@ -42,7 +46,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     root.classList.toggle("dark", theme === "dark");
     try {
       localStorage.setItem("lamdan.theme", theme);
-    } catch {}
+    } catch {
+      // Local preferences are optional.
+    }
   }, [theme]);
 
   const value = useMemo<AppState>(

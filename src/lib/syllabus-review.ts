@@ -17,12 +17,7 @@ import type { AppData, Course } from "./store";
 
 export type SyllabusSourceType = "xlsx" | "pdf" | "docx" | "text" | "csv";
 export type SyllabusFieldKey =
-  | "title"
-  | "number"
-  | "instructor"
-  | "credits"
-  | "semester"
-  | "description";
+  "title" | "number" | "instructor" | "credits" | "semester" | "description";
 
 export interface ReviewCourseDraft extends ParsedCourseDraft {
   readings: string[];
@@ -56,9 +51,16 @@ const LABELS = {
   title: ["שם הקורס", "שם קורס", "course title", "course name", "название курса"],
   number: ["מספר קורס", "קוד קורס", "course code", "course number", "код курса", "номер курса"],
   instructor: ["שם המרצה", "מרצה", "instructor", "lecturer", "преподаватель", "лектор"],
-  credits: ["נקודות זכות", "נק״ז", "נק\"ז", "נ״ז", "נ\"ז", "credits", "кредиты"],
+  credits: ["נקודות זכות", "נק״ז", 'נק"ז', "נ״ז", 'נ"ז', "credits", "кредиты"],
   semester: ["סמסטר", "semester", "семестр"],
-  description: ["תיאור הקורס", "תיאור", "course description", "description", "описание курса", "описание"],
+  description: [
+    "תיאור הקורס",
+    "תיאור",
+    "course description",
+    "description",
+    "описание курса",
+    "описание",
+  ],
 };
 
 const SECTION_LABELS = {
@@ -160,15 +162,13 @@ export function mergeAISyllabusDraft(
   ai: ParsedSyllabusDraft,
   fallback: ReviewSyllabusDraft,
 ): ReviewSyllabusDraft {
-  const fallbackByKey = new Map(
-    fallback.courses.map((course) => [courseKey(course), course]),
-  );
+  const fallbackByKey = new Map(fallback.courses.map((course) => [courseKey(course), course]));
   const courses = ai.courses.map((course) => {
     const previous = fallbackByKey.get(courseKey(course));
     return normalizeReviewCourse({
       ...previous,
       ...course,
-      topics: course.topics?.length ? course.topics : previous?.topics ?? [],
+      topics: course.topics?.length ? course.topics : (previous?.topics ?? []),
       readings: previous?.readings ?? [],
       assignments: previous?.assignments ?? [],
       exams: previous?.exams ?? [],
@@ -190,7 +190,8 @@ export function mergeAISyllabusDraft(
     stats: {
       detectedSemesters: ai.semesters.length,
       detectedCourses: courses.length,
-      warnings: ai.warnings.length + courses.reduce((sum, course) => sum + course.warnings.length, 0),
+      warnings:
+        ai.warnings.length + courses.reduce((sum, course) => sum + course.warnings.length, 0),
       lowConfidenceCourses: courses.filter((course) => course.confidence < 0.6).length,
     },
   };
@@ -200,9 +201,10 @@ export function findDuplicateCourse(
   data: AppData,
   incoming: ReviewCourseDraft,
 ): DuplicateCourseMatch | null {
-  const byNumber = incoming.number
+  const incomingNumber = incoming.number;
+  const byNumber = incomingNumber
     ? data.courses.find(
-        (course) => course.number && normalizeCode(course.number) === normalizeCode(incoming.number),
+        (course) => course.number && normalizeCode(course.number) === normalizeCode(incomingNumber),
       )
     : undefined;
   if (byNumber) return { course: byNumber, reason: "number" };
@@ -215,9 +217,8 @@ export function findDuplicateCourse(
 
 export function previousImportMatches(data: AppData, fileName: string): number {
   const normalized = fileName.trim().toLowerCase();
-  return data.syllabusImports.filter(
-    (item) => item.fileName?.trim().toLowerCase() === normalized,
-  ).length;
+  return data.syllabusImports.filter((item) => item.fileName?.trim().toLowerCase() === normalized)
+    .length;
 }
 
 export function syllabusDetailsMarkdown(course: ReviewCourseDraft): string {
@@ -311,7 +312,9 @@ function parseTextSyllabusDraft(text: string, fileName: string): ParsedSyllabusD
   const institution = lines.find((line) =>
     /(?:אוניברסיט|מכלל|university|college|институт|университет)/i.test(line),
   );
-  const foundSignals = [title, number, instructor, credits, semester, description].filter(Boolean).length;
+  const foundSignals = [title, number, instructor, credits, semester, description].filter(
+    Boolean,
+  ).length;
   const confidence = clamp01(0.35 + foundSignals * 0.08 + (sections.topics.length ? 0.15 : 0));
   const warnings: string[] = [];
   if (!number) warnings.push("course_code_not_detected");
@@ -412,7 +415,9 @@ function parseTextSections(text: string): {
   };
 }
 
-function inferFieldConfidence(course: ParsedCourseDraft): Partial<Record<SyllabusFieldKey, number>> {
+function inferFieldConfidence(
+  course: ParsedCourseDraft,
+): Partial<Record<SyllabusFieldKey, number>> {
   const base = clamp01(course.confidence);
   return {
     title: course.title ? Math.max(base, 0.65) : 0,
@@ -475,7 +480,14 @@ function findFallbackTitle(lines: string[], fileName: string): string {
       !looksLikeMetadataLabel(line) &&
       !/(?:אוניברסיט|מכלל|university|college|syllabus|סילבוס)/i.test(line),
   );
-  return candidate || fileName.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim() || "Untitled course";
+  return (
+    candidate ||
+    fileName
+      .replace(/\.[^.]+$/, "")
+      .replace(/[_-]+/g, " ")
+      .trim() ||
+    "Untitled course"
+  );
 }
 
 function extractDescription(lines: string[]): string | undefined {
@@ -506,7 +518,11 @@ function matchesAnyLabel(line: string, labels: string[]): boolean {
   const normalized = normalize(line);
   return labels.some((label) => {
     const target = normalize(label);
-    return normalized === target || normalized.startsWith(`${target} `) || normalized.startsWith(`${target}:`);
+    return (
+      normalized === target ||
+      normalized.startsWith(`${target} `) ||
+      normalized.startsWith(`${target}:`)
+    );
   });
 }
 
@@ -524,7 +540,10 @@ function looksLikeMetadataLabel(line: string): boolean {
 }
 
 function cleanListItem(value: string): string {
-  return value.replace(/^[•●▪◦*-]+\s*/, "").replace(/\s+/g, " ").trim();
+  return value
+    .replace(/^[•●▪◦*-]+\s*/, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function cleanList(values: unknown): string[] {

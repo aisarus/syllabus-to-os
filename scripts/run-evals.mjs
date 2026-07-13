@@ -41,7 +41,8 @@ for (const fixture of selected) {
 
 const suiteResults = summarizeSuites(results, manifest.suiteThresholds ?? {});
 const overallScore = weightedAverage(results.map((result) => [result.score, result.weight]));
-const overallPass = results.every((result) => result.pass) && suiteResults.every((suite) => suite.pass);
+const overallPass =
+  results.every((result) => result.pass) && suiteResults.every((suite) => suite.pass);
 const report = {
   manifestVersion: manifest.version,
   manifest: manifestPath,
@@ -91,7 +92,9 @@ function evaluateStructured(fixture, candidate, suiteThresholds) {
       weight: finiteNumber(check.weight) ?? 1,
     };
   });
-  const score = weightedAverage(outcomes.map((outcome) => [outcome.passed ? 1 : 0, outcome.weight]));
+  const score = weightedAverage(
+    outcomes.map((outcome) => [outcome.passed ? 1 : 0, outcome.weight]),
+  );
   const threshold = suiteThreshold(fixture, suiteThresholds);
   return {
     score,
@@ -247,40 +250,58 @@ function evaluateOCR(fixture, candidate, suiteThresholds) {
   const referenceWords = tokenize(normalizedReference);
   const candidateWords = tokenize(normalizedCandidate);
 
-  const cer = normalizedReference.length === 0
-    ? normalizedCandidate.length === 0 ? 0 : 1
-    : levenshtein([...normalizedReference], [...normalizedCandidate]) / normalizedReference.length;
-  const wer = referenceWords.length === 0
-    ? candidateWords.length === 0 ? 0 : 1
-    : levenshtein(referenceWords, candidateWords) / referenceWords.length;
+  const cer =
+    normalizedReference.length === 0
+      ? normalizedCandidate.length === 0
+        ? 0
+        : 1
+      : levenshtein([...normalizedReference], [...normalizedCandidate]) /
+        normalizedReference.length;
+  const wer =
+    referenceWords.length === 0
+      ? candidateWords.length === 0
+        ? 0
+        : 1
+      : levenshtein(referenceWords, candidateWords) / referenceWords.length;
 
   const criticalTokens = arrayOfStrings(reference.criticalTokens);
   const criticalTokenRecall = recallByContainment(criticalTokens, normalizedCandidate);
   const referenceMath = arrayOfStrings(reference.mathExpressions).map(normalizeMath);
   const candidateMath = arrayOfStrings(candidate?.mathExpressions).map(normalizeMath);
-  const mathExpressionRecall = referenceMath.length === 0
-    ? 1
-    : proportion(referenceMath.map((expression) => candidateMath.includes(expression)));
+  const mathExpressionRecall =
+    referenceMath.length === 0
+      ? 1
+      : proportion(referenceMath.map((expression) => candidateMath.includes(expression)));
 
   const referenceLines = arrayOfStrings(reference.lines).map(normalizeOCRText).filter(Boolean);
   const candidateLines = arrayOfStrings(candidate?.lines).map(normalizeOCRText).filter(Boolean);
-  const lineOrder = referenceLines.length === 0
-    ? candidateLines.length === 0 ? 1 : 0
-    : longestCommonSubsequence(referenceLines, candidateLines) / referenceLines.length;
+  const lineOrder =
+    referenceLines.length === 0
+      ? candidateLines.length === 0
+        ? 1
+        : 0
+      : longestCommonSubsequence(referenceLines, candidateLines) / referenceLines.length;
 
   const referenceTokenSet = new Set(tokenize(normalizedReference));
   const candidateUniqueTokens = Array.from(new Set(candidateWords));
   const hallucinatedTokens = candidateUniqueTokens.filter((token) => !referenceTokenSet.has(token));
-  const hallucinatedTokenRate = candidateUniqueTokens.length === 0
-    ? 0
-    : hallucinatedTokens.length / candidateUniqueTokens.length;
+  const hallucinatedTokenRate =
+    candidateUniqueTokens.length === 0
+      ? 0
+      : hallucinatedTokens.length / candidateUniqueTokens.length;
 
-  const reviewRequired = thresholds.requireHonestReview === true || reference.requiresReview === true;
-  const reviewHonesty = !reviewRequired ||
+  const reviewRequired =
+    thresholds.requireHonestReview === true || reference.requiresReview === true;
+  const reviewHonesty =
+    !reviewRequired ||
     (candidate?.requiresReview === true && arrayOfStrings(candidate?.warnings).length > 0);
-  const abstentionRequired = thresholds.requireAbstention === true || reference.mustAbstain === true;
-  const abstentionHonesty = !abstentionRequired ||
-    (normalizedCandidate.length === 0 && candidateMath.length === 0 && candidate?.requiresReview === true);
+  const abstentionRequired =
+    thresholds.requireAbstention === true || reference.mustAbstain === true;
+  const abstentionHonesty =
+    !abstentionRequired ||
+    (normalizedCandidate.length === 0 &&
+      candidateMath.length === 0 &&
+      candidate?.requiresReview === true);
 
   const failures = [];
   const cerMax = finiteNumber(thresholds.cerMax) ?? 0.2;
@@ -365,18 +386,26 @@ function summarizeSuites(results, suiteThresholds) {
 
 function printHumanReport(report) {
   console.log(`Lamdan evaluation manifest v${report.manifestVersion}`);
-  console.log(`Mode: ${report.candidateMode}${report.suiteFilter ? ` · suite=${report.suiteFilter}` : ""}`);
+  console.log(
+    `Mode: ${report.candidateMode}${report.suiteFilter ? ` · suite=${report.suiteFilter}` : ""}`,
+  );
   console.log("");
   for (const suite of report.suites) {
-    console.log(`${suite.pass ? "PASS" : "FAIL"}  ${suite.suite.padEnd(14)} ${formatPercent(suite.score)}  threshold ${formatPercent(suite.threshold)}`);
+    console.log(
+      `${suite.pass ? "PASS" : "FAIL"}  ${suite.suite.padEnd(14)} ${formatPercent(suite.score)}  threshold ${formatPercent(suite.threshold)}`,
+    );
   }
   console.log("");
   for (const fixture of report.fixtures) {
     const suffix = fixture.failures.length ? ` · ${fixture.failures.join(", ")}` : "";
-    console.log(`${fixture.pass ? "✓" : "✗"} ${fixture.id} · ${formatPercent(fixture.score)}${suffix}`);
+    console.log(
+      `${fixture.pass ? "✓" : "✗"} ${fixture.id} · ${formatPercent(fixture.score)}${suffix}`,
+    );
   }
   console.log("");
-  console.log(`${report.overallPass ? "All evaluation gates passed." : "Evaluation gates failed."} Overall ${formatPercent(report.overallScore)}`);
+  console.log(
+    `${report.overallPass ? "All evaluation gates passed." : "Evaluation gates failed."} Overall ${formatPercent(report.overallScore)}`,
+  );
 }
 
 function parseArgs(argv) {
@@ -439,16 +468,15 @@ function normalizeOCRText(value) {
 }
 
 function normalizeMath(value) {
-  return normalizeOCRText(value)
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/\*+/g, "*");
+  return normalizeOCRText(value).toLowerCase().replace(/\s+/g, "").replace(/\*+/g, "*");
 }
 
 function tokenize(value) {
-  return String(value ?? "")
-    .toLowerCase()
-    .match(/[\p{L}\p{N}\^+\-*/=()]+/gu) ?? [];
+  return (
+    String(value ?? "")
+      .toLowerCase()
+      .match(/[\p{L}\p{N}\^+\-*/=()]+/gu) ?? []
+  );
 }
 
 function flattenStrings(value) {
@@ -512,9 +540,10 @@ function longestCommonSubsequence(left, right) {
   const table = Array.from({ length: left.length + 1 }, () => Array(right.length + 1).fill(0));
   for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
     for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
-      table[leftIndex][rightIndex] = left[leftIndex - 1] === right[rightIndex - 1]
-        ? table[leftIndex - 1][rightIndex - 1] + 1
-        : Math.max(table[leftIndex - 1][rightIndex], table[leftIndex][rightIndex - 1]);
+      table[leftIndex][rightIndex] =
+        left[leftIndex - 1] === right[rightIndex - 1]
+          ? table[leftIndex - 1][rightIndex - 1] + 1
+          : Math.max(table[leftIndex - 1][rightIndex], table[leftIndex][rightIndex - 1]);
     }
   }
   return table[left.length][right.length];
