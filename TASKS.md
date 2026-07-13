@@ -859,6 +859,40 @@ Let a student verify each OCR fragment against the exact visual region that prod
 
 ---
 
+## P0-022C — Full Visual Backup and Restore
+
+- **Status:** [~]
+- **Priority:** P0
+- **Size:** L
+- **Depends on:** P0-021 durable image intake and OCR review; P0-022A image preprocessing workspace; P0-022B OCR region overlay
+- **Branch:** `agent/p0-022-visual-backup`
+
+### Goal
+
+Let a student carry a complete local Lamdan workspace between browser sessions without losing original source photos, reviewed OCR drafts, applied chunks or the selected image-processing state.
+
+### Scope
+
+- Keep the existing JSON export/import as a deliberately lightweight text-data format.
+- Add a versioned ZIP format with a manifest, file sizes, MIME types, SHA-256 checksums and explicit material-to-image/OCR mappings.
+- Include source images, OCR drafts, preprocessing recipes and the current valid derived preview alongside all text data.
+- Validate the complete archive, format version, mappings, sizes and checksums before offering an import action.
+- Preview summary, warnings and safe-merge conflicts before changing current data.
+- Support safe merge, replace-everything and cancellation; never overwrite a conflicting record during safe merge.
+- Replace all IndexedDB visual stores in one transaction and roll both visual and text storage back if application fails.
+- Treat an absent visual payload as a warning where the remaining archive can still be restored; reject corrupt or mismatched payloads before mutation.
+
+### Acceptance criteria
+
+- A full export/import restores source photos, OCR drafts, applied material chunks and valid processed previews.
+- SHA-256 mismatch, unsupported backup version, invalid mapping or malformed ZIP leaves current browser data unchanged.
+- Users see an import summary and conflicts before choosing merge or replace.
+- A failed apply leaves no orphaned IndexedDB blobs and restores the prior text workspace.
+- Legacy lightweight JSON export/import continues to work and its limitation is explicit in the UI.
+- `npm run check` and `verify:visual-backup-contract` pass.
+
+---
+
 # Dependency summary
 
 ```text

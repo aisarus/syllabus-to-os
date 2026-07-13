@@ -453,6 +453,7 @@ Support sources that require long-running transcription or deeper visual interpr
 - Multi-page photo batches.
 - Completed in P0-022A: crop, rotate, deskew and contrast controls; future work adds page-aware multi-image processing.
 - Completed in P0-022B: source-safe image-region overlay, bidirectional OCR text/image selection and manual normalized-region editing; future work adds page-aware multi-image regions.
+- P0-022C in progress: versioned ZIP backup/restore for local source photos, OCR drafts and text data before multi-browser continuity can be claimed.
 - Table reconstruction.
 - Diagram-label extraction.
 - Geometry and chart descriptions limited to visible evidence.

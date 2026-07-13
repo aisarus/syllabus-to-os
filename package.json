@@ -27,6 +27,7 @@
     "verify:image-ocr-contract": "node scripts/verify-image-ocr-contract.mjs",
     "verify:image-preprocessing-contract": "node scripts/verify-image-preprocessing-contract.mjs",
     "verify:ocr-region-overlay-contract": "node scripts/verify-ocr-region-overlay-contract.mjs",
+    "verify:visual-backup-contract": "node scripts/verify-visual-backup-contract.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {
@@ -69,6 +70,7 @@
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.575.0",
+    "jszip": "^3.10.1",
     "mammoth": "^1.12.0",
     "pdfjs-dist": "^6.1.200",
     "react": "^19.2.0",

@@ -31,6 +31,7 @@ Last updated: 2026-07-13
 - `P0-021 Add durable image intake and OCR review` — complete and verified.
 - `P0-022A Image Preprocessing Workspace` — complete and verified; PR #28 CI passed.
 - `P0-022B OCR Region Overlay and Sync` — complete and verified; PR #29 CI passed.
+- `P0-022C Full Visual Backup and Restore` — in progress on `agent/p0-022-visual-backup`.
 - `P0-023 Add Quizlet-style cards and golden generated quizzes` — complete and verified.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
@@ -82,6 +83,11 @@ Last updated: 2026-07-13
 - Added safe manual region drawing, move/resize editing and confirmed deletion while preserving region order and the editable-draft-before-apply model.
 - Refuse to display legacy or stale coordinate data over a mismatched crop, rotation or deskewed preview; a new OCR pass is required instead.
 - Added a permanent `verify:ocr-region-overlay-contract` quality gate to local checks and CI.
+
+### Full visual backup and restore (in progress)
+
+- Building a versioned ZIP workflow for text data, original photos, OCR drafts, preprocessing recipes and valid processed previews.
+- The proposed flow verifies every declared payload and previews conflicts before merge or replacement; final verification and CI are still pending.
 
 ## Verification state
 

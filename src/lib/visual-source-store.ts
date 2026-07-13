@@ -71,6 +71,17 @@ export interface VisualSourceStorageStats {
   totalVisualBytes: number;
 }
 
+/**
+ * Serializable metadata plus blobs needed for a complete local visual backup.
+ * It deliberately mirrors the IndexedDB stores so replace is one transaction.
+ */
+export interface VisualSourceBackupSnapshot {
+  images: StoredVisualSource[];
+  ocrDrafts: StoredOCRDraft[];
+  imageProcessing: StoredImageProcessingState[];
+  processedImages: StoredProcessedVisualSource[];
+}
+
 export function isSupportedVisualSource(file: Pick<File, "type" | "size" | "name">): boolean {
   return (
     SUPPORTED_VISUAL_SOURCE_MIMES.includes(
@@ -276,6 +287,46 @@ export async function clearAllVisualSourceData(): Promise<void> {
     clearStore(db, PROCESSING_STORE),
     clearStore(db, PROCESSED_IMAGE_STORE),
   ]);
+}
+
+export async function getVisualSourceBackupSnapshot(): Promise<VisualSourceBackupSnapshot> {
+  const db = await openDatabase();
+  const [images, ocrDrafts, imageProcessing, processedImages] = await Promise.all([
+    readAllRecords<StoredVisualSource>(db, IMAGE_STORE),
+    readAllRecords<StoredOCRDraft>(db, OCR_STORE),
+    readAllRecords<StoredImageProcessingState>(db, PROCESSING_STORE),
+    readAllRecords<StoredProcessedVisualSource>(db, PROCESSED_IMAGE_STORE),
+  ]);
+  return { images, ocrDrafts, imageProcessing, processedImages };
+}
+
+/**
+ * Replaces every visual store in a single IndexedDB transaction. If validation
+ * or a browser error aborts the transaction, neither old blobs nor drafts are
+ * partially replaced.
+ */
+export async function replaceVisualSourceBackupSnapshot(
+  snapshot: VisualSourceBackupSnapshot,
+): Promise<void> {
+  const db = await openDatabase();
+  const stores = [IMAGE_STORE, OCR_STORE, PROCESSING_STORE, PROCESSED_IMAGE_STORE];
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(stores, "readwrite");
+    for (const storeName of stores) transaction.objectStore(storeName).clear();
+    for (const image of snapshot.images) transaction.objectStore(IMAGE_STORE).put(image);
+    for (const draft of snapshot.ocrDrafts) transaction.objectStore(OCR_STORE).put(draft);
+    for (const processing of snapshot.imageProcessing) {
+      transaction.objectStore(PROCESSING_STORE).put(processing);
+    }
+    for (const processed of snapshot.processedImages) {
+      transaction.objectStore(PROCESSED_IMAGE_STORE).put(processed);
+    }
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Could not restore local visual data."));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("Visual-data restore was aborted."));
+  });
 }
 
 export async function pruneVisualSourceData(validMaterialIds: Iterable<string>): Promise<number> {
