@@ -89,8 +89,14 @@ jobs:
       - name: Verify multi-page image contract
         run: npm run verify:multipage-image-contract
 
+      - name: Verify golden quiz quality contract
+        run: npm run verify:golden-quiz-quality-contract
+
       - name: Run deterministic evaluation suites
         run: npm run eval
+
+      - name: Run golden quiz quality fixtures
+        run: npm run eval:golden-quiz
 
       - name: Typecheck
         id: typecheck
