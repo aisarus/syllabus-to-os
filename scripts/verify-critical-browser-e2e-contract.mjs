@@ -2,8 +2,9 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [runner, packageJson, checkScript, workflow, status] = await Promise.all([
+const [runner, wrapper, packageJson, checkScript, workflow, status] = await Promise.all([
   read("scripts/run-critical-browser-e2e.mjs"),
+  read("scripts/run-critical-browser-e2e-wrapper.mjs"),
   read("package.json"),
   read("scripts/check.mjs"),
   read(".github/workflows/ci.yml"),
@@ -29,11 +30,18 @@ for (const marker of [
 ]) {
   requireMarker(runner, marker, `Critical browser runner is missing: ${marker}`);
 }
+for (const marker of [
+  'import("./run-critical-browser-e2e.mjs")',
+  "LAM_DAN_E2E_TIMEOUT_MS",
+  "process.exit(process.exitCode ?? 0)",
+]) {
+  requireMarker(wrapper, marker, `Bounded browser entrypoint is missing: ${marker}`);
+}
 
 requireMarker(
   packageJson,
-  '"e2e:critical": "node scripts/run-critical-browser-e2e.mjs"',
-  "package.json does not expose the critical browser runner.",
+  '"e2e:critical": "node scripts/run-critical-browser-e2e-wrapper.mjs"',
+  "package.json does not expose the bounded critical browser runner.",
 );
 requireMarker(
   packageJson,
@@ -67,5 +75,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Critical material, OCR, flashcard, quiz and full-backup browser flows are wired to real Chromium with failure artifacts.",
+  "Critical material, OCR, flashcard, quiz and full-backup browser flows are wired to bounded real-Chromium execution with failure artifacts.",
 );
