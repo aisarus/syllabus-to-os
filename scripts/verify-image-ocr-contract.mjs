@@ -82,7 +82,7 @@ for (const marker of [
   "исходные фото в неё не входят",
   "original images are not included",
   "JSON-копия их не содержит",
-  "source images and OCR drafts",
+  "source images, processed previews and OCR drafts",
   "IndexedDB",
 ]) {
   requireMarker(dataRoute, marker, `Data management is not honest about visual sources: ${marker}`);

@@ -29,7 +29,7 @@ Last updated: 2026-07-13
 - `P0-019 Remove remaining fake and disconnected UI` — complete and verified.
 - `P0-020 Create evaluation fixtures` — complete and verified.
 - `P0-021 Add durable image intake and OCR review` — complete and verified.
-- `P0-022 Validate live OCR and harden visual-source reliability` — in progress; lifecycle and backup honesty complete.
+- `P0-022A Image Preprocessing Workspace` — in progress; implementation and local verification underway.
 - `P0-023 Add Quizlet-style cards and golden generated quizzes` — complete and verified.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
@@ -66,6 +66,14 @@ Last updated: 2026-07-13
 - Added an application-level lifecycle janitor that removes image and OCR records after their material is deleted, reset or replaced by imported data.
 - Made JSON backup limitations explicit and made destructive reset cover both localStorage and IndexedDB.
 
+### Image preprocessing before OCR
+
+- Added a non-destructive photo workspace with 90° and fine rotation, crop, automatic/manual deskew, grayscale, brightness, contrast, threshold and optional sharpening.
+- Kept the original source blob immutable and stored the versioned recipe and one derived preview in separate IndexedDB stores.
+- Made original/processed OCR source selection explicit, reload-safe and fail-safe: a missing or stale preview falls back to the original instead of silently changing OCR input.
+- Put image decode, deskew and pixel work into an OffscreenCanvas Web Worker where available; the bounded fallback keeps older browsers usable and reports canvas/decode errors visibly.
+- Added a permanent `verify:image-preprocessing-contract` quality gate to local checks and CI.
+
 ## Verification state
 
 - Documentation verification passed.
@@ -78,6 +86,7 @@ Last updated: 2026-07-13
 - Core UI honesty and actionability contract verification passed.
 - Evaluation fixture coverage verification passed.
 - Durable image intake, OCR review, lifecycle cleanup and backup-honesty contract verification passed.
+- Image preprocessing, selected-source OCR and Worker-backed large-image processing contract verification passed.
 - Deterministic syllabus, grounding, multilingual and OCR evaluation suites passed.
 - TypeScript passed.
 - ESLint passed.
@@ -85,11 +94,11 @@ Last updated: 2026-07-13
 
 ## Next execution target
 
-1. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
-2. Run the live golden quiz generator on one complete Hebrew course source pack and inspect distractor and rationale quality manually.
-3. Save golden-quiz candidates as a permanent quality evaluation set.
-4. Add image crop, rotation, deskew and contrast preparation for difficult phone photographs.
-5. Add region-coordinate overlays so selecting OCR text highlights the exact image area.
+1. Complete P0-022A verification, merge the green PR and update this status to complete.
+2. P0-022B: add OCR region overlays with zoom/pan and bidirectional text/image selection.
+3. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
+4. Run the live golden quiz generator on one complete Hebrew course source pack and inspect distractor and rationale quality manually.
+5. Save golden-quiz candidates as a permanent quality evaluation set.
 6. Build a real visual backup format or cloud migration that includes original image blobs.
 
 ## Blockers
@@ -97,3 +106,4 @@ Last updated: 2026-07-13
 - Code, contracts, deterministic evaluations, typecheck, lint and production build pass.
 - Live OCR quality still requires private real-photo validation.
 - Golden quiz generation is structurally enforced and build-verified, but model output quality still requires a live run against a real Hebrew source pack.
+- A local browser-level interaction pass still needs to be repeated on a workstation browser; this execution environment cannot install Chromium from the Playwright CDN.

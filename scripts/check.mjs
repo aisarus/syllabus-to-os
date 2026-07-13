@@ -13,6 +13,7 @@ const checks = [
   "verify:core-ui-audit",
   "verify:evaluation-fixtures",
   "verify:image-ocr-contract",
+  "verify:image-preprocessing-contract",
   "eval",
   "typecheck",
   "lint",

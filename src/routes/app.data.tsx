@@ -118,7 +118,10 @@ function DataPage() {
     data.notes.length +
     data.flashcards.length +
     data.quizzes.length;
-  const visualItemCount = (visualStats?.imageCount ?? 0) + (visualStats?.ocrDraftCount ?? 0);
+  const visualItemCount =
+    (visualStats?.imageCount ?? 0) +
+    (visualStats?.processedImageCount ?? 0) +
+    (visualStats?.ocrDraftCount ?? 0);
   const hasAnyData = itemCount > 0 || visualItemCount > 0;
 
   return (
@@ -162,14 +165,14 @@ function DataPage() {
             </h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {isRu
-                ? "Обычный JSON-экспорт включает курсы, тексты, применённый OCR и связи, но пока не включает исходные изображения и отдельные OCR-черновики из IndexedDB. Не очищай браузер, если оригиналы не сохранены где-то ещё."
-                : "The JSON export includes courses, text, applied OCR and relationships, but does not yet include original images or separate OCR drafts stored in IndexedDB. Do not clear browser data unless the originals exist elsewhere."}
+                ? "Обычный JSON-экспорт включает курсы, тексты, применённый OCR и связи, но пока не включает исходные изображения, обработанные preview и отдельные OCR-черновики из IndexedDB. Не очищай браузер, если оригиналы не сохранены где-то ещё."
+                : "The JSON export includes courses, text, applied OCR and relationships, but does not yet include original images, processed previews or separate OCR drafts stored in IndexedDB. Do not clear browser data unless the originals exist elsewhere."}
             </p>
             <p className="mt-2 text-xs text-foreground">
               {visualStats
                 ? isRu
-                  ? `${visualStats.imageCount} фото · ${visualStats.ocrDraftCount} OCR-черновиков · ${formatBytes(visualStats.totalImageBytes)}`
-                  : `${visualStats.imageCount} images · ${visualStats.ocrDraftCount} OCR drafts · ${formatBytes(visualStats.totalImageBytes)}`
+                  ? `${visualStats.imageCount} фото · ${visualStats.processedImageCount} preview · ${visualStats.ocrDraftCount} OCR-черновиков · ${formatBytes(visualStats.totalVisualBytes)}`
+                  : `${visualStats.imageCount} images · ${visualStats.processedImageCount} previews · ${visualStats.ocrDraftCount} OCR drafts · ${formatBytes(visualStats.totalVisualBytes)}`
                 : isRu
                   ? "Не удалось прочитать статистику локальных фото"
                   : "Could not read local image statistics"}
@@ -206,8 +209,8 @@ function DataPage() {
           <h2 className="font-semibold mb-2">{t.import}</h2>
           <p className="text-sm text-muted-foreground mb-4">
             {isRu
-              ? "Восстанавливает JSON-копию. Текущие исходные фото и отдельные OCR-черновики будут удалены после подтверждения."
-              : "Restores a JSON backup. Current source images and separate OCR drafts are removed after confirmation."}
+              ? "Восстанавливает JSON-копию. Текущие исходные фото, обработанные preview и отдельные OCR-черновики будут удалены после подтверждения."
+              : "Restores a JSON backup. Current source images, processed previews and separate OCR drafts are removed after confirmation."}
           </p>
           <input
             ref={fileRef}
@@ -234,8 +237,8 @@ function DataPage() {
               <h2 className="font-semibold mb-2">{t.clearAll}</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 {isRu
-                  ? "Удаляет localStorage, исходные изображения и OCR-черновики из IndexedDB в этом браузере. Действие необратимо."
-                  : "Deletes localStorage, source images and OCR drafts from IndexedDB in this browser. This cannot be undone."}
+                  ? "Удаляет localStorage, исходные изображения, обработанные preview и OCR-черновики из IndexedDB в этом браузере. Действие необратимо."
+                  : "Deletes localStorage, source images, processed previews and OCR drafts from IndexedDB in this browser. This cannot be undone."}
               </p>
               <Button
                 variant="destructive"
@@ -250,8 +253,8 @@ function DataPage() {
                 onClick={async () => {
                   const confirmed = confirm(
                     isRu
-                      ? "Безвозвратно удалить все текстовые данные, исходные фото и OCR-черновики Lamdan в этом браузере?"
-                      : "Permanently delete all Lamdan text data, source images and OCR drafts in this browser?",
+                      ? "Безвозвратно удалить все текстовые данные, исходные фото, обработанные preview и OCR-черновики Lamdan в этом браузере?"
+                      : "Permanently delete all Lamdan text data, source images, processed previews and OCR drafts in this browser?",
                   );
                   if (!confirmed) return;
                   try {

@@ -115,7 +115,7 @@ Freeze the product identity, visual system and architectural boundaries so later
 
 **Priority:** P0.
 
-**Status:** document intake complete; durable image intake and OCR review in progress.
+**Status:** document intake, durable image intake, OCR review and non-destructive photo preparation complete; live-photo validation remains.
 
 ### Goal
 
@@ -145,6 +145,8 @@ The user can drag, paste or upload a source into one universal intake. Lamdan de
 - Source-style selection: printed page, handwriting, whiteboard or mixed page.
 - Multimodal OCR/HTR request behind a provider boundary.
 - Editable OCR draft instead of automatic trusted text.
+- Non-destructive preprocessing before OCR: crop, rotation, deskew, grayscale, brightness, contrast, threshold and optional sharpening.
+- Original image, versioned processing recipe and one derived preview are persisted separately; the student explicitly chooses the OCR source.
 - Ordered regions with text, kind, confidence, uncertain tokens and optional image coordinates.
 - Separate visible transcription and normalized mathematics.
 - Manual transcription fallback when AI is unavailable.
@@ -224,6 +226,7 @@ Each material can expose:
 - Future image overlay using normalized region coordinates.
 - Re-run OCR without overwriting the last approved material text.
 - Explicit apply action that replaces source chunks only after review.
+- Non-destructive image preparation before OCR with original/processed source selection.
 
 ### Exit criteria
 
@@ -448,7 +451,7 @@ Support sources that require long-running transcription or deeper visual interpr
 ### Advanced visual understanding
 
 - Multi-page photo batches.
-- Crop, rotate, deskew and contrast controls.
+- Completed in P0-022A: crop, rotate, deskew and contrast controls; future work adds page-aware multi-image processing.
 - Image-region overlay and selection.
 - Table reconstruction.
 - Diagram-label extraction.

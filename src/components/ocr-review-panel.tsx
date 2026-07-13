@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowDown,
@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ImagePreprocessingWorkspace } from "@/components/image-preprocessing-workspace";
 import {
   Select,
   SelectContent,
@@ -37,10 +38,12 @@ import {
 import { store, type Material, type MaterialSourceLanguage } from "@/lib/store";
 import {
   getMaterialOCRDraft,
+  getMaterialOCRImageSource,
   getMaterialVisualSource,
   putMaterialOCRDraft,
   type StoredVisualSource,
 } from "@/lib/visual-source-store";
+import type { ImageSourceSelection } from "@/lib/image-preprocessing";
 
 const REGION_KINDS: OCRRegionKind[] = [
   "heading",
@@ -58,7 +61,7 @@ export function OCRReviewPanel({ material }: { material: Material }) {
   const { lang } = useApp();
   const isRu = lang === "ru";
   const [source, setSource] = useState<StoredVisualSource | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [ocrSourceSelection, setOcrSourceSelection] = useState<ImageSourceSelection>("original");
   const [draft, setDraft] = useState<OCRDraft | null>(null);
   const [sourceStyle, setSourceStyle] = useState<OCRSourceStyle>("mixed");
   const [loading, setLoading] = useState(true);
@@ -67,20 +70,21 @@ export function OCRReviewPanel({ material }: { material: Material }) {
 
   useEffect(() => {
     let cancelled = false;
-    let objectUrl: string | undefined;
     setLoading(true);
     setError(null);
-    void Promise.all([getMaterialVisualSource(material.id), getMaterialOCRDraft(material.id)])
-      .then(([storedSource, storedDraft]) => {
+    void Promise.all([
+      getMaterialVisualSource(material.id),
+      getMaterialOCRDraft(material.id),
+      getMaterialOCRImageSource(material.id),
+    ])
+      .then(([storedSource, storedDraft, selectedOCRSource]) => {
         if (cancelled) return;
         if (storedSource) {
-          objectUrl = URL.createObjectURL(storedSource.blob);
           setSource(storedSource);
-          setImageUrl(objectUrl);
         } else {
           setSource(null);
-          setImageUrl(null);
         }
+        setOcrSourceSelection(selectedOCRSource?.kind ?? "original");
         if (storedDraft) {
           setDraft(storedDraft);
           setSourceStyle(storedDraft.sourceStyle);
@@ -96,9 +100,12 @@ export function OCRReviewPanel({ material }: { material: Material }) {
       });
     return () => {
       cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [material.id]);
+
+  const handleSourceSelectionChange = useCallback((selection: ImageSourceSelection) => {
+    setOcrSourceSelection(selection);
+  }, []);
 
   const isVisualMaterial = material.mimeType?.startsWith("image/") === true;
   const canShow = isVisualMaterial || source !== null || loading;
@@ -114,7 +121,16 @@ export function OCRReviewPanel({ material }: { material: Material }) {
   if (!canShow) return null;
 
   const runOCR = async () => {
-    if (!source) {
+    let ocrSource;
+    try {
+      ocrSource = await getMaterialOCRImageSource(material.id);
+    } catch (sourceError) {
+      const message = sourceError instanceof Error ? sourceError.message : String(sourceError);
+      setError(message);
+      toast.error(isRu ? "Не удалось открыть локальное фото" : "Could not open the local image");
+      return;
+    }
+    if (!ocrSource) {
       toast.error(
         isRu
           ? "Исходное фото не найдено в локальном хранилище"
@@ -125,7 +141,8 @@ export function OCRReviewPanel({ material }: { material: Material }) {
     setRecognizing(true);
     setError(null);
     try {
-      const result = await recognizeImageWithOCR(source.blob, sourceStyle, lang);
+      setOcrSourceSelection(ocrSource.kind);
+      const result = await recognizeImageWithOCR(ocrSource.source.blob, sourceStyle, lang);
       setDraft(result);
       await putMaterialOCRDraft(material.id, result);
       toast.success(isRu ? "Черновик OCR готов к проверке" : "OCR draft is ready for review");
@@ -227,6 +244,11 @@ export function OCRReviewPanel({ material }: { material: Material }) {
               ? "Исходное фото хранится локально. AI создаёт только редактируемый черновик: формулы, знаки и рукописный иврит нужно сверить перед применением."
               : "The source image is stored locally. AI creates only an editable draft: verify formulas, signs and handwritten Hebrew before applying it."}
           </p>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            {isRu
+              ? `Для OCR выбран источник: ${ocrSourceSelection === "processed" ? "обработанная версия" : "оригинал"}.`
+              : `OCR source selected: ${ocrSourceSelection === "processed" ? "processed version" : "original"}.`}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Select
@@ -280,17 +302,13 @@ export function OCRReviewPanel({ material }: { material: Material }) {
       ) : (
         <div className="grid gap-4 p-4 xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.1fr)]">
           <div className="min-w-0">
-            <div className="sticky top-4 overflow-hidden rounded-md border border-border bg-background">
-              {imageUrl && (
-                <img
-                  src={imageUrl}
-                  alt={source.fileName}
-                  className="max-h-[72svh] w-full object-contain"
-                />
-              )}
-              <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
-                {source.fileName} · {(source.size / 1024 / 1024).toFixed(2)} MB
-              </div>
+            <div className="sticky top-4">
+              <ImagePreprocessingWorkspace
+                materialId={material.id}
+                source={source}
+                isRu={isRu}
+                onSourceSelectionChange={handleSourceSelectionChange}
+              />
             </div>
           </div>
 
