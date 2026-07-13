@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { BookOpenCheck } from "lucide-react";
+import { ArrowLeft, BookOpenCheck } from "lucide-react";
 import { MaterialOutputHistory } from "@/components/material-output-history";
 import { MaterialWorkspace } from "@/components/material-workspace";
 import { MultiPageImageWorkspace } from "@/components/multi-page-image-workspace";
@@ -26,7 +26,7 @@ function MaterialDetail() {
     return (
       <div className="mx-auto max-w-6xl">
         <Button variant="ghost" onClick={() => navigate({ to: "/app/materials" })}>
-          <BookOpenCheck className="h-4 w-4 me-1" />
+          <ArrowLeft className="h-4 w-4 me-1" />
           {t.back}
         </Button>
         <p className="mt-4 text-muted-foreground">{t.empty}</p>
