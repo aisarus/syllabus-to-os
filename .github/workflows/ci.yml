@@ -96,7 +96,9 @@ jobs:
         run: npm run eval
 
       - name: Run golden quiz quality fixtures
-        run: npm run eval:golden-quiz
+        id: golden_quiz_eval
+        continue-on-error: true
+        run: npm run eval:golden-quiz 2>&1 | tee golden-quiz-eval-output.txt
 
       - name: Typecheck
         id: typecheck
@@ -120,11 +122,12 @@ jobs:
           git diff -- . ':!bun.lock' > prettier-fix.patch
 
       - name: Upload failure diagnostics
-        if: steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
+        if: steps.golden_quiz_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: ci-diagnostics
           path: |
+            golden-quiz-eval-output.txt
             typecheck-output.txt
             lint-output.txt
             build-output.txt
@@ -133,7 +136,7 @@ jobs:
           retention-days: 7
 
       - name: Fail when quality gates fail
-        if: steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
+        if: steps.golden_quiz_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
         run: |
           echo "One or more quality gates failed. Download the ci-diagnostics artifact for details."
           exit 1
