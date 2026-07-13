@@ -4,7 +4,7 @@ This file records only the active or most recently completed implementation plan
 
 ## P0-022B — OCR Region Overlay and Sync
 
-**Status:** in progress.
+**Status:** complete — local `npm run check` and PR #29 CI passed.
 
 ### Boundaries
 
@@ -17,4 +17,4 @@ This file records only the active or most recently completed implementation plan
 1. Add an explicit exact-raster context to every newly created OCR draft and resolve it safely after reload.
 2. Add normalized-coordinate helpers and a responsive overlay that transforms the image and regions together.
 3. Link text and image selection/hover, and add manual draw, move, resize, confirmed delete and keyboard access.
-4. Add a permanent contract plus CI/check wiring, then run all quality gates and a browser interaction pass where available.
+4. Add a permanent contract plus CI/check wiring, then run all quality gates and a browser interaction pass where available. ✓

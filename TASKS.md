@@ -828,7 +828,7 @@ Let a student prepare a real photo of a notebook, whiteboard or page before OCR 
 
 ## P0-022B — OCR Region Overlay and Sync
 
-- **Status:** [~]
+- **Status:** [x]
 - **Priority:** P0
 - **Size:** L
 - **Depends on:** P0-022A image preprocessing workspace

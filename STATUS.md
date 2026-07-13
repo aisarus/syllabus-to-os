@@ -30,7 +30,7 @@ Last updated: 2026-07-13
 - `P0-020 Create evaluation fixtures` — complete and verified.
 - `P0-021 Add durable image intake and OCR review` — complete and verified.
 - `P0-022A Image Preprocessing Workspace` — complete and verified; PR #28 CI passed.
-- `P0-022B OCR Region Overlay and Sync` — in progress.
+- `P0-022B OCR Region Overlay and Sync` — complete and verified; PR #29 CI passed.
 - `P0-023 Add Quizlet-style cards and golden generated quizzes` — complete and verified.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
@@ -75,6 +75,14 @@ Last updated: 2026-07-13
 - Put image decode, deskew and pixel work into an OffscreenCanvas Web Worker where available; the bounded fallback keeps older browsers usable and reports canvas/decode errors visibly.
 - Added a permanent `verify:image-preprocessing-contract` quality gate to local checks and CI.
 
+### OCR region overlay and review sync
+
+- Bound every newly created OCR draft to the exact original or processed raster used for recognition, including the derived recipe key where applicable.
+- Added a responsive region overlay with synchronized text/image selection and hover, zoom, pan, fit-to-page, keyboard movement and touch-aware interaction modes.
+- Added safe manual region drawing, move/resize editing and confirmed deletion while preserving region order and the editable-draft-before-apply model.
+- Refuse to display legacy or stale coordinate data over a mismatched crop, rotation or deskewed preview; a new OCR pass is required instead.
+- Added a permanent `verify:ocr-region-overlay-contract` quality gate to local checks and CI.
+
 ## Verification state
 
 - Documentation verification passed.
@@ -88,6 +96,7 @@ Last updated: 2026-07-13
 - Evaluation fixture coverage verification passed.
 - Durable image intake, OCR review, lifecycle cleanup and backup-honesty contract verification passed.
 - Image preprocessing, selected-source OCR and Worker-backed large-image processing contract verification passed.
+- OCR region-overlay synchronization, normalized coordinates and safe visual-source binding contract verification passed.
 - Deterministic syllabus, grounding, multilingual and OCR evaluation suites passed.
 - TypeScript passed.
 - ESLint passed.
@@ -95,11 +104,10 @@ Last updated: 2026-07-13
 
 ## Next execution target
 
-1. Finish P0-022B: OCR region overlays with zoom/pan and bidirectional text/image selection.
+1. P0-022C: build a versioned full visual backup and restore flow for sources, OCR drafts and text data.
 2. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
 3. Run the live golden quiz generator on one complete Hebrew course source pack and inspect distractor and rationale quality manually.
 4. Save golden-quiz candidates as a permanent quality evaluation set.
-5. Build a real visual backup format or cloud migration that includes original image blobs.
 
 ## Blockers
 
