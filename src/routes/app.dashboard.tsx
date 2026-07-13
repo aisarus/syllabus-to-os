@@ -1,23 +1,120 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useRef, useState, type DragEvent } from "react";
+import { useRef, useState, type DragEvent, type ReactNode } from "react";
 import {
+  AlertTriangle,
   ArrowUpRight,
+  Brain,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
   CircleHelp,
+  Clock3,
   FileInput,
   FileText,
   FileUp,
   FolderOpen,
   Layers3,
   NotebookPen,
+  ShieldCheck,
+  Sparkles,
+  Target,
 } from "lucide-react";
 import { AIGenerateButton } from "@/components/ai-generate-dialog";
 import { useMaterialIntakeQueue } from "@/components/material-intake-queue";
 import { useApp } from "@/lib/app-context";
+import {
+  buildStudyCommandCenter,
+  buildStudyPlan,
+  type StudyAction,
+  type StudyRisk,
+} from "@/lib/study-command-center";
 import { useData } from "@/lib/store";
+import "@/study-command-center.css";
 
 export const Route = createFileRoute("/app/dashboard")({
   component: Dashboard,
 });
+
+function ActionLink({
+  action,
+  className,
+  children,
+}: {
+  action: StudyAction;
+  className: string;
+  children: ReactNode;
+}) {
+  if ((action.kind === "review_material" || action.kind === "build_study_pack") && action.materialId) {
+    return (
+      <Link
+        to="/app/materials/$materialId"
+        params={{ materialId: action.materialId }}
+        className={className}
+      >
+        {children}
+      </Link>
+    );
+  }
+  if (action.kind === "practice_quiz" && action.quizId) {
+    return (
+      <Link to="/app/quizzes/$quizId" params={{ quizId: action.quizId }} className={className}>
+        {children}
+      </Link>
+    );
+  }
+  if ((action.kind === "continue_course" || action.kind === "prepare_exam") && action.courseId) {
+    return (
+      <Link to="/app/courses/$courseId" params={{ courseId: action.courseId }} className={className}>
+        {children}
+      </Link>
+    );
+  }
+  if (action.kind === "assignment") {
+    return (
+      <Link to="/app/assignments" className={className}>
+        {children}
+      </Link>
+    );
+  }
+  if (action.kind === "review_cards") {
+    return (
+      <Link to="/app/flashcards" className={className}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <Link to="/app/materials" className={className}>
+      {children}
+    </Link>
+  );
+}
+
+function RiskLink({ risk, children }: { risk: StudyRisk; children: ReactNode }) {
+  if (risk.materialId) {
+    return (
+      <Link
+        to="/app/materials/$materialId"
+        params={{ materialId: risk.materialId }}
+        className="cw-command-row__link"
+      >
+        {children}
+      </Link>
+    );
+  }
+  if (risk.courseId) {
+    return (
+      <Link
+        to="/app/courses/$courseId"
+        params={{ courseId: risk.courseId }}
+        className="cw-command-row__link"
+      >
+        {children}
+      </Link>
+    );
+  }
+  return <span>{children}</span>;
+}
 
 function Dashboard() {
   const data = useData();
@@ -28,6 +125,7 @@ function Dashboard() {
   const hour = now.getHours();
   const fileInput = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+  const [studyBudget, setStudyBudget] = useState<20 | 45 | 90>(45);
 
   const greeting = isRu
     ? hour < 6
@@ -49,12 +147,30 @@ function Dashboard() {
     ? {
         eyebrow: "Рабочее пространство контента",
         subtitle:
-          "Загружай документы, фотографии и учебные материалы и превращай их в понятные конспекты, карточки и тесты.",
+          "Lamdan собирает учебный хаос в один маршрут и показывает, что даст максимальный результат прямо сейчас.",
         date: new Intl.DateTimeFormat("ru-RU", {
           day: "numeric",
           month: "long",
           weekday: "long",
         }).format(now),
+        commandLabel: "Академический автопилот",
+        commandTitle: "Что делать сейчас",
+        commandBody:
+          "Приоритеты рассчитаны только из реальных дедлайнов, экзаменов, повторений, попыток тестов и состояния источников.",
+        honestData: "Только реальные данные",
+        mainTask: "Главная задача",
+        openTask: "Начать",
+        plan: "План сессии",
+        quickWins: "Быстрые победы",
+        risks: "Риски и пробелы",
+        noQuickWins: "Сейчас нет отдельной задачи короче 15 минут.",
+        noRisks: "Критических рисков по имеющимся данным не найдено.",
+        minutes: "мин",
+        metricCards: "карточек к повторению",
+        metricAssignments: "открытых заданий",
+        metricReview: "источников требуют внимания",
+        metricCourses: "активных курсов",
+        metricStudied: "минут за 7 дней",
         intakeLabel: "Единый вход",
         intakeTitle: "Добавь учебные материалы",
         intakeBody:
@@ -85,12 +201,30 @@ function Dashboard() {
     : {
         eyebrow: "Content workspace",
         subtitle:
-          "Upload documents, photos and study materials and turn them into clear notes, flashcards and quizzes.",
+          "Lamdan turns academic chaos into one route and shows the highest-value next action.",
         date: new Intl.DateTimeFormat("en-GB", {
           day: "numeric",
           month: "long",
           weekday: "long",
         }).format(now),
+        commandLabel: "Academic autopilot",
+        commandTitle: "What to do now",
+        commandBody:
+          "Priorities use only real deadlines, exams, due reviews, quiz attempts and source-processing state.",
+        honestData: "Real data only",
+        mainTask: "Main task",
+        openTask: "Start",
+        plan: "Study session plan",
+        quickWins: "Quick wins",
+        risks: "Risks and gaps",
+        noQuickWins: "There is no separate task shorter than 15 minutes right now.",
+        noRisks: "No critical risk is visible in the available data.",
+        minutes: "min",
+        metricCards: "cards due",
+        metricAssignments: "open assignments",
+        metricReview: "sources need attention",
+        metricCourses: "active courses",
+        metricStudied: "minutes in 7 days",
         intakeLabel: "Universal intake",
         intakeTitle: "Add study materials",
         intakeBody:
@@ -119,6 +253,14 @@ function Dashboard() {
         courseWithoutCode: "NO CODE",
       };
 
+  const commandCenter = buildStudyCommandCenter(data, {
+    now: now.getTime(),
+    locale: isRu ? "ru" : "en",
+  });
+  const plan = buildStudyPlan(commandCenter.actions, studyBudget);
+  const quickWins = commandCenter.quickWins.filter(
+    (action) => action.id !== commandCenter.focus.id,
+  );
   const recentMaterials = [...data.materials].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 5);
   const courses = [...data.courses].sort((a, b) => a.order - b.order).slice(0, 4);
 
@@ -144,6 +286,145 @@ function Dashboard() {
         </div>
         <time className="cw-date">{copy.date}</time>
       </header>
+
+      <section className="cw-panel cw-command-center" aria-labelledby="study-command-title">
+        <div className="cw-command-center__header">
+          <div>
+            <div className="cw-section-label">{copy.commandLabel}</div>
+            <h2 id="study-command-title">{copy.commandTitle}</h2>
+            <p>{copy.commandBody}</p>
+          </div>
+          <span className="cw-command-center__honesty">
+            <ShieldCheck size={13} />
+            {copy.honestData}
+          </span>
+        </div>
+
+        <div className="cw-command-center__grid">
+          <article className="cw-focus-card">
+            <span className="cw-focus-card__icon">
+              <Target size={25} />
+            </span>
+            <div>
+              <div className="cw-focus-card__meta">
+                <span>{copy.mainTask}</span>
+                <span
+                  className="cw-focus-card__urgency"
+                  data-urgency={commandCenter.focus.urgency}
+                >
+                  <Clock3 size={11} /> {commandCenter.focus.durationMinutes} {copy.minutes}
+                </span>
+              </div>
+              <h3>{commandCenter.focus.title}</h3>
+              <p>{commandCenter.focus.detail}</p>
+            </div>
+            <ActionLink action={commandCenter.focus} className="cw-focus-card__action">
+              {copy.openTask} <ChevronRight size={16} />
+            </ActionLink>
+          </article>
+
+          <aside className="cw-plan-card">
+            <div className="cw-plan-card__top">
+              <strong>{copy.plan}</strong>
+              <div className="cw-budget-switcher" aria-label={copy.plan}>
+                {([20, 45, 90] as const).map((budget) => (
+                  <button
+                    key={budget}
+                    type="button"
+                    data-active={studyBudget === budget}
+                    onClick={() => setStudyBudget(budget)}
+                  >
+                    {budget}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="cw-plan-list">
+              {plan.map(({ action, allocatedMinutes }) => (
+                <div key={action.id} className="cw-plan-item">
+                  <span className="cw-plan-item__minutes">{allocatedMinutes}m</span>
+                  <span>
+                    <strong>{action.title}</strong>
+                    <small>{action.detail}</small>
+                  </span>
+                  <ActionLink action={action} className="cw-plan-item__action">
+                    <ChevronRight size={14} />
+                  </ActionLink>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+
+        <div className="cw-command-metrics">
+          <div className="cw-command-metric">
+            <strong>{commandCenter.metrics.dueCards}</strong>
+            <span>{copy.metricCards}</span>
+          </div>
+          <div className="cw-command-metric">
+            <strong>{commandCenter.metrics.openAssignments}</strong>
+            <span>{copy.metricAssignments}</span>
+          </div>
+          <div className="cw-command-metric">
+            <strong>{commandCenter.metrics.materialsNeedingReview}</strong>
+            <span>{copy.metricReview}</span>
+          </div>
+          <div className="cw-command-metric">
+            <strong>{commandCenter.metrics.activeCourses}</strong>
+            <span>{copy.metricCourses}</span>
+          </div>
+          <div className="cw-command-metric">
+            <strong>{commandCenter.metrics.studiedMinutesThisWeek}</strong>
+            <span>{copy.metricStudied}</span>
+          </div>
+        </div>
+
+        <div className="cw-command-center__lower">
+          <div className="cw-command-list">
+            <div className="cw-command-list__header">
+              <Sparkles size={15} /> {copy.quickWins}
+            </div>
+            {quickWins.length === 0 ? (
+              <div className="cw-command-empty">{copy.noQuickWins}</div>
+            ) : (
+              quickWins.map((action) => (
+                <div key={action.id} className="cw-command-row">
+                  <span>
+                    <ActionLink action={action} className="cw-command-row__link">
+                      <strong>{action.title}</strong>
+                    </ActionLink>
+                    <small>{action.detail}</small>
+                  </span>
+                  <span className="cw-command-row__time">
+                    {action.durationMinutes} {copy.minutes}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="cw-command-list">
+            <div className="cw-command-list__header">
+              <AlertTriangle size={15} /> {copy.risks}
+            </div>
+            {commandCenter.risks.length === 0 ? (
+              <div className="cw-command-empty">
+                <CheckCircle2 size={15} />&nbsp; {copy.noRisks}
+              </div>
+            ) : (
+              commandCenter.risks.map((risk) => (
+                <div key={risk.id} className="cw-command-row">
+                  <RiskLink risk={risk}>
+                    <strong>{risk.title}</strong>
+                    <small>{risk.detail}</small>
+                  </RiskLink>
+                  <span className="cw-command-row__time">{risk.urgency}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
 
       <section className="cw-dashboard__hero-grid">
         <div
@@ -319,6 +600,11 @@ function Dashboard() {
           </span>
         </Link>
       </section>
+
+      <div hidden>
+        <Brain />
+        <CalendarDays />
+      </div>
     </div>
   );
 }

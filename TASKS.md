@@ -1,29 +1,29 @@
-# Lamdan — P0 Implementation Tasks and Current Backlog
+# Lamdan — P0 Implementation Tasks and Academic Autopilot Backlog
 
-This is the canonical executable task ledger for Lamdan. Product intent lives in `ROADMAP.md`; operational evidence and blockers live in `STATUS.md`.
-
-The old task file accumulated stale unchecked tasks after the code had already shipped. This version intentionally keeps completed history compact and gives full acceptance criteria only to active work.
+This is the canonical executable task ledger for Lamdan. Product intent lives in `ROADMAP.md`; active delivery plans live in `PLANS.md`; operational evidence and blockers live in `STATUS.md`.
 
 ## Status legend
 
 - `[ ]` not started
-- `[~]` in progress
+- `[~]` in progress or implemented but not fully verified
 - `[x]` complete and verified
-- `[!]` blocked by an external input or environment
+- `[!]` blocked by external input or environment
 
 ## Global definition of done
 
-Every completed task must satisfy the applicable requirements:
+Every completed task must satisfy applicable requirements:
 
 - real store data, no fallback demo content;
 - browser reload does not silently lose approved work;
-- AI and OCR outputs remain editable drafts until explicit save/apply;
+- AI, OCR and transcript outputs remain editable drafts until explicit save/apply;
 - `materialId` and `sourceChunkIds` relationships remain valid;
 - RU/EN chrome and mixed Hebrew/RTL content remain usable;
 - desktop and mobile layouts remain operable;
+- recommendations expose the evidence used to create them;
+- progress or readiness never derives from file views alone;
 - `npm run check` passes;
-- browser-critical behavior receives E2E coverage when it cannot be proven deterministically;
-- documentation names remaining manual or private-data validation honestly.
+- browser-critical behavior receives E2E coverage when deterministic proof is insufficient;
+- documentation names manual/private-data validation honestly.
 
 ---
 
@@ -31,7 +31,7 @@ Every completed task must satisfy the applicable requirements:
 
 | Task | Status | Result |
 |---|---:|---|
-| P0-001 Add continuous integration | [x] | Canonical contracts, evals, typecheck, lint and build run in CI. |
+| P0-001 Add continuous integration | [x] | Contracts, evals, typecheck, lint and build run in CI. |
 | P0-002 Audit and normalize active routes | [x] | Content-first shell and route inventory are stable. |
 | P0-003 Remove tracking-first flows | [x] | Timers, streaks and fake progress are outside primary navigation. |
 | P0-004 Shared material intake | [x] | Dashboard and Materials use one intake pipeline. |
@@ -59,14 +59,14 @@ Every completed task must satisfy the applicable requirements:
 | P1-001 Multi-page image materials | [x] | Per-page OCR, reorder, partial success and backup. |
 | P1-002 Golden quiz quality evaluation | [x] | Category scoring, negative controls and manual review. |
 | P1-003 Critical browser E2E | [x] | Real Chromium flows for materials, OCR, cards, quizzes and backup. |
-| P1-004 Local-first global search v2 | [x] | Ranked multilingual search with URL state and deterministic evals. |
-| P1-005 Store persistence and source-integrity hardening | [x] | Failed local writes are visible and exportable; OCR chunk replacement preserves or repairs source links. |
+| P1-004 Add local-first global search v2 | [x] | Ranked multilingual search with URL state and deterministic evals. |
+| P1-005 Store persistence and source-integrity hardening | [x] | Failed local writes are visible/exportable; OCR replacement preserves or repairs source links. |
 
-> Historical note: an older draft used `P0-021` for the one-course pilot while later implementation used it for durable OCR. The canonical ledger now reserves `P0-021` for OCR and identifies the pilot as `P1-008`.
+> Historical note: `P0-021` is reserved for durable OCR. The one-course pilot is `P1-008`.
 
 ---
 
-# Active validation sequence
+# Validation gates
 
 ## P1-006 — Live OCR validation on a private real-photo pack
 
@@ -74,11 +74,7 @@ Every completed task must satisfy the applicable requirements:
 - **Priority:** P0 validation blocker
 - **Size:** M
 - **Depends on:** P0-021, P0-022A/B, P1-001, P1-005
-- **Blocked by:** four private or licensed source images and a running Lamdan deployment with the connected multimodal provider
-
-### Goal
-
-Measure actual OCR/HTR behavior instead of treating recorded fixtures as proof of live quality.
+- **Blocked by:** four private/licensed source images and a running Lamdan deployment with the multimodal provider
 
 ### Required pack
 
@@ -95,15 +91,13 @@ npm run eval:ocr:live -- \
   --asset-dir ./private-ocr-assets
 ```
 
-The command calls the real `/api/ai/ocr-image` route, writes private candidates outside git and runs the permanent OCR metrics.
-
 ### Acceptance criteria
 
 - every fixture has an external candidate;
 - CER, WER, critical-token, math-expression and line-order thresholds pass;
 - handwriting requests review;
 - unreadable input abstains without invented text;
-- failure categories and model/prompt version are recorded in `PILOT.md` or a linked private report;
+- failure categories and model/prompt version are recorded;
 - no private photo is committed.
 
 ---
@@ -114,20 +108,16 @@ The command calls the real `/api/ai/ocr-image` route, writes private candidates 
 - **Priority:** P0 validation blocker
 - **Size:** M
 - **Depends on:** P1-002, P1-005
-- **Blocked by:** one complete, legally usable Hebrew course source pack
-
-### Goal
-
-Generate a real quiz, review every question in the quality workspace and promote only an approved candidate into permanent fixtures.
+- **Blocked by:** one complete legally usable Hebrew course source pack
 
 ### Acceptance criteria
 
 - generation uses explicitly selected source chunks;
 - exactly four unique options and one correct answer per question;
-- numbers, dates, terminology, rationales and translations are source-grounded;
+- terminology, dates, numbers, rationales and translations are grounded;
 - manual review records approve/reject/needs-edit decisions;
-- at least one approved candidate is promoted to the regression set;
-- rejected generations remain visible as failure examples rather than being silently discarded.
+- one approved candidate enters the regression set;
+- rejected generations remain failure examples.
 
 ---
 
@@ -137,35 +127,28 @@ Generate a real quiz, review every question in the quality workspace and promote
 - **Priority:** P0 milestone gate
 - **Size:** L
 - **Depends on:** P1-006, P1-007
-- **Blocked by:** completion of live OCR and live quiz validation
-
-### Goal
-
-Use one real Israeli course end to end without developer intervention.
+- **Blocked by:** live OCR and live quiz validation
 
 ### Script
 
 1. Start from an empty local workspace.
 2. Import and review a real syllabus.
-3. Create the course and topics.
-4. Add a representative digital and photographed course pack.
-5. Review extraction and OCR.
-6. Generate, edit and save a note, cards and quiz.
-7. Reload and continue.
-8. Search for a concept and open its source.
-9. Re-run OCR on one page and confirm existing citations survive.
-10. Reorder a multi-page material and confirm links remain valid.
-11. Export a full ZIP, clear data and restore it.
-12. Record friction and failures in `PILOT.md`.
+3. Add a representative digital and photographed course pack.
+4. Review extraction and OCR.
+5. Generate, edit and save a note, cards and quiz.
+6. Reload and continue.
+7. Search a concept and open its source.
+8. Re-run OCR and reorder pages without breaking citations.
+9. Export, clear and restore a full ZIP.
+10. Record friction and failures in `PILOT.md`.
 
 ### Acceptance criteria
 
-- no approved content is lost after reload;
-- no visible saved state contradicts browser persistence;
+- no approved content is lost;
+- no visible saved state contradicts persistence;
 - every sourced output opens a valid source chunk;
-- the workflow completes on desktop and a mobile-width viewport;
-- critical pilot findings are fixed or explicitly block M1;
-- `ROADMAP.md` may mark M1 achieved only after this task passes.
+- workflow completes on desktop and mobile width;
+- critical findings are fixed or explicitly block M1.
 
 ---
 
@@ -193,25 +176,268 @@ Use one real Israeli course end to end without developer intervention.
 - **Size:** L
 - **Depends on:** P1-008
 
-### Goal
-
-Add MP3/M4A/WAV as a source using the same durable draft, uncertainty, review and explicit-apply contract as OCR.
-
 ### Non-negotiable boundaries
 
 - timestamped source sections;
 - no automatic trusted transcript;
 - cancellation, timeout and retry;
 - explicit language and speaker uncertainty;
-- generated outputs retain transcript-section references;
-- audio work must not postpone fixes discovered by the one-course pilot.
+- outputs retain transcript-section references.
+
+---
+
+# Academic Autopilot sequence
+
+## P1-011 — Study Command Center v1
+
+- **Status:** [~]
+- **Priority:** immediate
+- **Size:** M
+- **Depends on:** existing assignments, calendar, flashcards, quizzes, materials and courses
+
+### Goal
+
+Make the dashboard answer “What should I do now?” from real stored evidence.
+
+### Delivered in the current branch
+
+- pure deterministic priority engine;
+- overdue/upcoming assignment actions;
+- exam actions and missing-simulation risk;
+- due-card review action;
+- weak latest-quiz repair action;
+- source-review backlog and ready-source-without-output action;
+- empty-workspace fallback;
+- 20/45/90 minute bounded plans;
+- quick wins, risks and honest counters;
+- direct links to useful workspaces;
+- RU/EN copy and responsive Academic Content Workspace styling;
+- deterministic eval and permanent contract.
+
+### Acceptance criteria
+
+- overdue assignments outrank optional generation;
+- an exam within seven days without a quiz attempt creates a risk;
+- due cards use real `dueAt` values;
+- non-ready sources are visible;
+- empty data produces a real intake action;
+- study plans never exceed the selected budget;
+- no mastery or readiness is invented;
+- mobile dashboard remains usable;
+- CI passes.
+
+---
+
+## P1-012 — Lecture-to-Study-Pack
+
+- **Status:** [ ]
+- **Priority:** P1
+- **Size:** L
+- **Depends on:** P1-008, P1-011, grounded generation
+
+### Goal
+
+One selected lecture/source bundle becomes a coherent guided learning sequence.
+
+### Scope
+
+- orientation summary;
+- structured note;
+- concepts and definitions;
+- difficult points;
+- bilingual glossary;
+- source-linked cards and diagnostic questions;
+- exam-style questions;
+- unsupported/unclear areas;
+- ordered learning steps with time estimates;
+- regenerate one section independently.
+
+### Acceptance criteria
+
+- every item cites approved source chunks;
+- duplicate items are removed;
+- the pack is editable before save;
+- one click opens the first learning step;
+- partial AI failure does not discard successful sections.
+
+---
+
+## P1-013 — Concept graph and evidence model
+
+- **Status:** [ ]
+- **Priority:** P1
+- **Size:** XL
+- **Depends on:** P1-012
+
+### Goal
+
+Represent evidence for recognition, recall, explanation and application without fake mastery.
+
+### Scope
+
+- `Concept` and source/topic relationships;
+- concept extraction review;
+- card/quiz/open-answer evidence events;
+- mistake taxonomy;
+- recency and forgetting risk;
+- knowledge map states;
+- targeted repair action from every weak node;
+- schema migration and export support.
+
+### Acceptance criteria
+
+- file views never increase concept state;
+- one lucky answer cannot mark mastery;
+- evidence is inspectable and removable;
+- migration preserves all v1 data;
+- deleting a source repairs concept relationships safely.
+
+---
+
+## P1-014 — Exam Engine
+
+- **Status:** [ ]
+- **Priority:** P1
+- **Size:** XL
+- **Depends on:** P1-012, P1-013
+
+### Goal
+
+Build an adaptive exam plan from date, format, coverage, evidence and available time.
+
+### Scope
+
+- exam profile and topic weights;
+- calm/week-before/tomorrow/emergency modes;
+- closed/open/oral/Hebrew formats;
+- readiness dimensions;
+- bounded daily plan;
+- realistic simulation;
+- error repair and re-planning;
+- transparent score range only when evidence supports it.
+
+### Acceptance criteria
+
+- readiness dimensions show their evidence and uncertainty;
+- the plan fits declared time capacity;
+- simulation uses the configured format;
+- wrong answers create targeted actions;
+- emergency mode prioritizes expected score gain, not content volume.
+
+---
+
+## P1-015 — Assignment Copilot
+
+- **Status:** [ ]
+- **Priority:** P1
+- **Size:** L
+- **Depends on:** grounded sources and assignment/calendar entities
+
+### Scope
+
+- requirement and rubric extraction;
+- deadline, format and mandatory-source detection;
+- stage breakdown;
+- thesis/outline/evidence workspace;
+- requirement coverage checklist;
+- lecturer-eye draft review;
+- citation and unsupported-claim checks;
+- final submission checklist.
+
+### Acceptance criteria
+
+- extracted requirements remain editable;
+- every critique points to the task, rubric or source;
+- generated text is distinguishable from user writing;
+- Lamdan does not claim a requirement is complete without evidence.
+
+---
+
+## P1-016 — Lecture Mode
+
+- **Status:** [ ]
+- **Priority:** P1 after P1-010
+- **Size:** L
+- **Depends on:** audio transcription, multi-page visual sources, Study Pack
+
+### Scope
+
+- recording where permitted;
+- quick notes and timestamp markers;
+- board-photo capture;
+- important/unclear/exam-likely markers;
+- post-lecture source alignment;
+- repeated-emphasis detection;
+- Study Pack handoff.
+
+---
+
+## P1-017 — Ask My Course
+
+- **Status:** [ ]
+- **Priority:** P1
+- **Size:** L
+- **Depends on:** global search, course memory, grounded AI
+
+### Scope
+
+- selected-course retrieval;
+- source-cited answers;
+- compare definitions and theories;
+- “where did I study this?”;
+- answer checking against selected sources;
+- Socratic guidance without revealing the answer;
+- lecturer-question suggestions.
+
+---
+
+## P1-018 — Intelligent calendar and workload forecast
+
+- **Status:** [ ]
+- **Priority:** P1/P2
+- **Size:** L
+- **Depends on:** assignments, exams, Study Command Center outcomes
+
+### Scope
+
+- confirmed deadline extraction;
+- task stage generation;
+- realistic duration estimates from completed evidence;
+- overloaded-week detection;
+- preparation-debt warning;
+- capacity and recovery constraints;
+- confirmed Google Calendar export later.
+
+---
+
+## P1-019 — Personal explanation and accessibility layer
+
+- **Status:** [ ]
+- **Priority:** P1/P2
+- **Size:** M
+- **Depends on:** Study Pack and Ask My Course
+
+### Scope
+
+- preferred explanation language and structure;
+- Hebrew-level control;
+- preserve original terminology;
+- visual-load and session-length preferences;
+- editable explanation profile;
+- export and deletion;
+- no hidden sensitive inference.
 
 ---
 
 # Current execution order
 
-1. Supply and run the private OCR pack (`P1-006`).
-2. Run and manually review one real Hebrew golden quiz (`P1-007`).
-3. Execute the complete one-course pilot (`P1-008`).
-4. Fix pilot blockers and deepen multi-page E2E (`P1-009`).
-5. Begin audio transcription only after M1 is honestly achieved (`P1-010`).
+1. Verify and merge `P1-011 Study Command Center v1`.
+2. Supply and run the private OCR pack (`P1-006`).
+3. Run and review one real Hebrew golden quiz (`P1-007`).
+4. Execute the complete one-course pilot (`P1-008`).
+5. Fix pilot blockers and deepen multi-page E2E (`P1-009`).
+6. Build Lecture-to-Study-Pack (`P1-012`).
+7. Add concept evidence (`P1-013`).
+8. Build Exam Engine (`P1-014`).
+9. Add Assignment Copilot (`P1-015`).
+10. Add audio, Lecture Mode, Ask My Course, workload forecast and personal explanation (`P1-010`, `P1-016`–`P1-019`).

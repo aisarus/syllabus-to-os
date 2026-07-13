@@ -4,9 +4,9 @@ Last updated: 2026-07-13
 
 ## Current milestone
 
-**Milestone G — Validation and release readiness**
+**Milestone H — Academic Autopilot foundation**
 
-Lamdan is a late MVP / early closed alpha. The core local-first source → review → study-output loop is implemented, but M1 is not yet proven on one complete real course.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation, while the first M2 product layer — a real-data Study Command Center — is now implemented in the current branch.
 
 ## Completed task state
 
@@ -20,57 +20,78 @@ Lamdan is a late MVP / early closed alpha. The core local-first source → revie
 - `P1-002 Golden quiz quality evaluation` — complete and verified; PR #32 CI passed.
 - `P1-003 Critical browser end-to-end coverage` — complete and verified; PR #33 CI passed.
 - `P1-004 Add local-first global search v2` — complete and verified; PR #34 CI passed.
-- `P1-005 Store persistence and source-integrity hardening` — complete in the current branch.
+- `P1-005 Store persistence and source-integrity hardening` — complete and verified; PR #35 CI passed and merged.
 
-`TASKS.md` is now the canonical task ledger and no longer leaves shipped P0 work marked as not started.
+## Current implementation pass
 
-## Completed in the current execution pass
+### P1-011 — Study Command Center v1
 
-### Honest browser-local persistence
+**Status:** implemented on `agent/academic-autopilot-roadmap`; full CI and browser verification pending.
 
-- Added a workspace persistence guard that compares current in-memory state with the exact `lamdan.data.v1` browser snapshot after every store update.
-- A failed or quota-blocked write now produces a persistent bilingual warning instead of allowing the user to trust the tab silently.
-- The warning offers an immediate retry, a non-destructive emergency JSON export and a link to Data management.
-- The existing Notes editor now receives a thrown save failure through a compatibility wrapper, so its current `try/catch` displays `Save failed` instead of `Saved` when localStorage did not accept the update.
-- The v1 localStorage schema and all existing mutator call sites remain compatible.
+Delivered:
 
-### Source-reference integrity during OCR changes
+- deterministic prioritization over real assignments, exam events, due cards, quiz attempts, source state and course coverage;
+- overdue assignments outrank optional content generation;
+- imminent exams without quiz attempts create visible risks;
+- non-ready sources and courses without sources remain visible;
+- ready materials without saved outputs produce Study Pack preparation actions;
+- empty workspaces receive an honest intake action;
+- one main action plus bounded 20/45/90 minute session plans;
+- quick wins, risks and real counters;
+- direct links to courses, materials, assignments, cards and quizzes;
+- RU/EN dashboard copy;
+- responsive pseudo-3D Academic Content Workspace styling;
+- deterministic evaluation scenarios and a permanent repository contract.
 
-- Added deterministic chunk matching by section, page, order, title, text and positional fallback.
-- Normal OCR replacement preserves old chunk ids whenever the source region still represents the same logical content.
-- A lifecycle repair pass catches legacy and multi-page paths that already created replacement ids and remaps notes, flashcards, quiz questions and presentation slides.
-- References to genuinely removed chunks are pruned instead of remaining dangling.
-- Added pure deterministic evaluations for stable-id replacement, legacy remapping, slide references and storage quota failure.
+The implementation intentionally does not add a mastery percentage, readiness score or schema migration.
 
-### Live OCR validation runner
+### Academic Autopilot roadmap
 
-- Added `npm run eval:ocr:live` for a private/licensed real-photo pack.
-- The runner calls the deployed `/api/ai/ocr-image` route, records model and prompt metadata, writes candidates outside git and executes the existing OCR thresholds.
-- Private assets remain outside the repository.
+`ROADMAP.md`, `TASKS.md` and `PLANS.md` now define the connected product sequence:
 
-### Documentation repair
-
-- Replaced the stale checkbox backlog with a canonical completed-history and active-validation sequence.
-- Removed the old `P0-021` identity collision by reserving it for durable OCR and naming the one-course pilot `P1-008`.
-- Added an executable `PILOT.md` and private OCR validation guide.
+- `P1-012` Lecture-to-Study-Pack;
+- `P1-013` concept graph and evidence model;
+- `P1-014` Exam Engine;
+- `P1-015` Assignment Copilot;
+- `P1-016` Lecture Mode;
+- `P1-017` Ask My Course;
+- `P1-018` intelligent calendar and workload forecast;
+- `P1-019` personal explanation and accessibility layer.
 
 ## Verification state
 
-- Store persistence and source-integrity deterministic evaluations pass locally.
-- Private OCR runner help/argument path executes locally.
-- The critical browser end-to-end gate remains wired to real bounded Chromium execution in CI.
-- Existing CI still needs to complete on the branch for all repository contracts, evaluation suites, TypeScript, ESLint, production build and critical Chromium E2E.
+Pending on the current branch:
+
+- Study Command Center deterministic evaluation;
+- Study Command Center contract;
+- existing documentation and OCR contracts after roadmap rewrite;
+- TypeScript;
+- ESLint and formatting;
+- production build;
+- critical browser end-to-end execution;
+- visual check at desktop and mobile widths.
+
+The branch must not merge until the full quality workflow passes.
+
+## Existing validation blockers
+
+### P1-006
+
+Live OCR quality cannot be measured without four private/licensed photos and a reachable deployment with the AI provider configured.
+
+### P1-007
+
+Live golden quiz quality cannot be approved without a complete legally usable Hebrew source pack.
+
+### P1-008
+
+The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved until the complete script passes.
 
 ## Next execution targets
 
-1. `P1-006` — run the connected multimodal provider against the private real-photo pack.
-2. `P1-007` — generate and manually approve one golden quiz from a complete Hebrew source pack.
-3. `P1-008` — run the complete one-course closed personal pilot.
-4. `P1-009` — add page reorder, partial OCR failure and page-level restore browser scenarios.
-5. `P1-010` — add audio transcription only after M1 validation.
-
-## External blockers
-
-- Live OCR quality cannot be measured without the four private/licensed photos and a reachable deployment with the AI provider configured.
-- Live golden quiz quality cannot be approved without a complete legally usable Hebrew source pack.
-- M1 remains unachieved until the one-course pilot passes.
+1. Verify `P1-011` in CI and fix all failures.
+2. Run a desktop/mobile browser inspection of the command center.
+3. Merge only after all repository gates pass.
+4. Run `P1-006` and `P1-007` when private inputs are supplied.
+5. Execute `P1-008` and fix pilot blockers.
+6. Begin `P1-012 Lecture-to-Study-Pack` as the next major vertical slice.
