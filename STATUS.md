@@ -29,7 +29,7 @@ Last updated: 2026-07-13
 - `P0-019 Remove remaining fake and disconnected UI` — complete and verified.
 - `P0-020 Create evaluation fixtures` — complete and verified.
 - `P0-021 Add durable image intake and OCR review` — complete and verified.
-- `P0-022A Image Preprocessing Workspace` — in progress; implementation and local verification underway.
+- `P0-022A Image Preprocessing Workspace` — complete and verified; PR #28 CI passed.
 - `P0-023 Add Quizlet-style cards and golden generated quizzes` — complete and verified.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
@@ -94,12 +94,11 @@ Last updated: 2026-07-13
 
 ## Next execution target
 
-1. Complete P0-022A verification, merge the green PR and update this status to complete.
-2. P0-022B: add OCR region overlays with zoom/pan and bidirectional text/image selection.
-3. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
-4. Run the live golden quiz generator on one complete Hebrew course source pack and inspect distractor and rationale quality manually.
-5. Save golden-quiz candidates as a permanent quality evaluation set.
-6. Build a real visual backup format or cloud migration that includes original image blobs.
+1. P0-022B: add OCR region overlays with zoom/pan and bidirectional text/image selection.
+2. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
+3. Run the live golden quiz generator on one complete Hebrew course source pack and inspect distractor and rationale quality manually.
+4. Save golden-quiz candidates as a permanent quality evaluation set.
+5. Build a real visual backup format or cloud migration that includes original image blobs.
 
 ## Blockers
 

@@ -796,7 +796,7 @@ Use Lamdan for one complete real course instead of testing isolated screens.
 
 ## P0-022A — Image Preprocessing Workspace
 
-- **Status:** [~]
+- **Status:** [x]
 - **Priority:** P0
 - **Size:** L
 - **Depends on:** P0-021 durable image intake and OCR review

@@ -4,7 +4,7 @@ This file records only the active or most recently completed implementation plan
 
 ## P0-022A — Image Preprocessing Workspace
 
-**Status:** implementation complete; verification and PR preparation in progress.
+**Status:** complete — local `npm run check` and PR #28 CI passed.
 
 ### Boundaries
 
@@ -18,4 +18,4 @@ This file records only the active or most recently completed implementation plan
 2. Implement a versioned recipe plus Worker-backed crop/rotation/deskew/pixel renderer and a bounded fallback.
 3. Add a responsive preprocessing surface to the material OCR view, including visible source selection and reset.
 4. Route OCR through the selected durable blob and fail back to the original if the derived cache is stale or absent.
-5. Add a permanent contract and CI step, run `npm run check`, then open and merge a green PR.
+5. Add a permanent contract and CI step, run `npm run check`, then open and merge a green PR. ✓
