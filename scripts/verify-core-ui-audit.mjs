@@ -126,7 +126,7 @@ forbidMarker(
 
 for (const [name, content, marker] of [
   ["notes", notesRoute, "NotesLibrary"],
-  ["flashcards", flashcardsRoute, "FlashcardStudio"],
+  ["flashcards", flashcardsRoute, "FlashcardExperience"],
   ["quizzes", quizzesRoute, "QuizLibrary"],
 ]) {
   requireMarker(content, marker, `Active ${name} route no longer uses its real editor/library.`);

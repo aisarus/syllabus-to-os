@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { QuizStudio } from "@/components/quiz-studio";
+import { GoldenQuizExperience } from "@/components/golden-quiz-experience";
 
 export const Route = createFileRoute("/app/quizzes/$quizId")({
   component: QuizDetailPage,
@@ -7,5 +7,5 @@ export const Route = createFileRoute("/app/quizzes/$quizId")({
 
 function QuizDetailPage() {
   const { quizId } = Route.useParams();
-  return <QuizStudio quizId={quizId} />;
+  return <GoldenQuizExperience quizId={quizId} />;
 }
