@@ -58,7 +58,8 @@ Lamdan is a late MVP / early closed alpha. The core local-first source → revie
 
 - Store persistence and source-integrity deterministic evaluations pass locally.
 - Private OCR runner help/argument path executes locally.
-- Existing CI still needs to run on the branch for all repository contracts, evaluation suites, TypeScript, ESLint, production build and critical Chromium E2E.
+- The critical browser end-to-end gate remains wired to real bounded Chromium execution in CI.
+- Existing CI still needs to complete on the branch for all repository contracts, evaluation suites, TypeScript, ESLint, production build and critical Chromium E2E.
 
 ## Next execution targets
 
