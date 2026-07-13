@@ -16,10 +16,25 @@ export interface OCRBoundingBox {
   height: number;
 }
 
+/**
+ * Binds an OCR draft to the exact visual raster it was created from. Bounding
+ * boxes are normalized against that raster, so a later crop/rotation cannot
+ * silently show coordinates over an incompatible preview.
+ */
+export interface OCRVisualSourceContext {
+  kind: "original" | "processed";
+  /** Timestamp of the immutable original source record. */
+  sourceUpdatedAt: number;
+  /** Present only for a processed image and identifies its recipe/cache. */
+  processedRecipeKey?: string;
+}
+
 export interface OCRRegion {
   id: string;
   order: number;
   kind: OCRRegionKind;
+  /** Empty regions are retained only when the student deliberately created them. */
+  manual?: boolean;
   text: string;
   normalizedMath?: string;
   pageNumber?: number;
@@ -41,6 +56,7 @@ export interface OCRDraft {
   warnings: string[];
   model?: string;
   promptVersion: string;
+  visualSource?: OCRVisualSourceContext;
 }
 
 export interface OCRNormalizationContext {
@@ -84,7 +100,12 @@ export function normalizeOCRDraft(raw: unknown, context: OCRNormalizationContext
     .slice(0, 500)
     .map((value, index) => normalizeRegion(value, index, locale))
     .filter(
-      (region) => region.text || region.uncertainTokens.length > 0 || region.kind === "diagram",
+      (region) =>
+        region.text ||
+        region.manual === true ||
+        Boolean(region.boundingBox) ||
+        region.uncertainTokens.length > 0 ||
+        region.kind === "diagram",
     )
     .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id));
 
@@ -99,6 +120,7 @@ export function normalizeOCRDraft(raw: unknown, context: OCRNormalizationContext
   const confidence = optionalConfidence(object.confidence);
   const languages = normalizeLanguages(object.languages, regions);
   const pageCount = positiveInteger(object.pageCount) ?? context.pageCount;
+  const visualSource = normalizeVisualSourceContext(object.visualSource);
 
   const lowConfidenceRegionCount = regions.filter(
     (region) => region.confidence != null && region.confidence < OCR_REGION_REVIEW_THRESHOLD,
@@ -150,6 +172,7 @@ export function normalizeOCRDraft(raw: unknown, context: OCRNormalizationContext
     warnings: Array.from(new Set(warnings)),
     model: asString(object.model).trim() || context.model,
     promptVersion: asString(object.promptVersion).trim() || OCR_PROMPT_VERSION,
+    visualSource,
   };
 }
 
@@ -175,7 +198,7 @@ export function validateOCRDraft(draft: OCRDraft): OCRValidationResult {
     if (region.confidence != null && (region.confidence < 0 || region.confidence > 1)) {
       errors.push(`invalid_region_confidence:${region.id}`);
     }
-    if (region.boundingBox && !isValidBoundingBox(region.boundingBox)) {
+    if (region.boundingBox && !isValidOCRBoundingBox(region.boundingBox)) {
       errors.push(`invalid_bounding_box:${region.id}`);
     }
     if (region.kind === "math" && !region.normalizedMath) {
@@ -236,12 +259,13 @@ function normalizeRegion(value: unknown, index: number, locale: "ru" | "en"): OC
     id: asString(object.id).trim() || `ocr_region_${index + 1}`,
     order: nonNegativeInteger(object.order) ?? index,
     kind,
+    manual: object.manual === true || undefined,
     text: asString(object.text).trim(),
     normalizedMath: asString(object.normalizedMath).trim() || undefined,
     pageNumber: positiveInteger(object.pageNumber),
     confidence,
     language: asLanguage(object.language),
-    boundingBox: normalizeBoundingBox(object.boundingBox),
+    boundingBox: normalizeOCRBoundingBox(object.boundingBox),
     uncertainTokens,
     warnings: Array.from(new Set(warnings)),
   };
@@ -258,19 +282,22 @@ function normalizeLanguages(value: unknown, regions: OCRRegion[]): MaterialSourc
   return languages.length > 0 ? languages : ["unknown"];
 }
 
-function normalizeBoundingBox(value: unknown): OCRBoundingBox | undefined {
+export function normalizeOCRBoundingBox(value: unknown): OCRBoundingBox | undefined {
   if (!isRecord(value)) return undefined;
-  const box = {
-    x: finiteNumber(value.x),
-    y: finiteNumber(value.y),
-    width: finiteNumber(value.width),
-    height: finiteNumber(value.height),
-  };
-  if (Object.values(box).some((item) => item == null)) return undefined;
-  return box as OCRBoundingBox;
+  const rawX = finiteNumber(value.x);
+  const rawY = finiteNumber(value.y);
+  const rawWidth = finiteNumber(value.width);
+  const rawHeight = finiteNumber(value.height);
+  if (rawX == null || rawY == null || rawWidth == null || rawHeight == null) return undefined;
+  const x = clamp(rawX, 0, 1);
+  const y = clamp(rawY, 0, 1);
+  const width = clamp(rawWidth, 0, 1 - x);
+  const height = clamp(rawHeight, 0, 1 - y);
+  if (width <= 0 || height <= 0) return undefined;
+  return { x, y, width, height };
 }
 
-function isValidBoundingBox(box: OCRBoundingBox): boolean {
+export function isValidOCRBoundingBox(box: OCRBoundingBox): boolean {
   return (
     Number.isFinite(box.x) &&
     Number.isFinite(box.y) &&
@@ -279,8 +306,40 @@ function isValidBoundingBox(box: OCRBoundingBox): boolean {
     box.x >= 0 &&
     box.y >= 0 &&
     box.width > 0 &&
-    box.height > 0
+    box.height > 0 &&
+    box.x + box.width <= 1 &&
+    box.y + box.height <= 1
   );
+}
+
+export function moveOCRBoundingBox(
+  box: OCRBoundingBox,
+  deltaX: number,
+  deltaY: number,
+): OCRBoundingBox {
+  const width = clamp(box.width, 0.02, 1);
+  const height = clamp(box.height, 0.02, 1);
+  return {
+    x: clamp(box.x + deltaX, 0, 1 - width),
+    y: clamp(box.y + deltaY, 0, 1 - height),
+    width,
+    height,
+  };
+}
+
+export function resizeOCRBoundingBox(
+  box: OCRBoundingBox,
+  width: number,
+  height: number,
+): OCRBoundingBox {
+  const x = clamp(box.x, 0, 1);
+  const y = clamp(box.y, 0, 1);
+  return {
+    x,
+    y,
+    width: clamp(width, 0.02, 1 - x),
+    height: clamp(height, 0.02, 1 - y),
+  };
 }
 
 function regionTitle(region: OCRRegion, index: number): string {
@@ -323,8 +382,25 @@ function optionalConfidence(value: unknown): number | undefined {
   return Math.max(0, Math.min(1, parsed));
 }
 
+function normalizeVisualSourceContext(value: unknown): OCRVisualSourceContext | undefined {
+  if (!isRecord(value)) return undefined;
+  const kind = value.kind === "original" || value.kind === "processed" ? value.kind : undefined;
+  const sourceUpdatedAt = finiteNumber(value.sourceUpdatedAt);
+  if (!kind || sourceUpdatedAt == null || sourceUpdatedAt <= 0) return undefined;
+  const processedRecipeKey = asString(value.processedRecipeKey).trim() || undefined;
+  return {
+    kind,
+    sourceUpdatedAt,
+    processedRecipeKey: kind === "processed" ? processedRecipeKey : undefined,
+  };
+}
+
 function finiteNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 function positiveInteger(value: unknown): number | undefined {

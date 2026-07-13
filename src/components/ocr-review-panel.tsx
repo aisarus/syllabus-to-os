@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowDown,
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImagePreprocessingWorkspace } from "@/components/image-preprocessing-workspace";
+import { OCRRegionOverlay } from "@/components/ocr-region-overlay";
 import {
   Select,
   SelectContent,
@@ -30,17 +31,21 @@ import {
   normalizeOCRDraft,
   ocrDraftToChunks,
   validateOCRDraft,
+  type OCRBoundingBox,
   type OCRDraft,
   type OCRRegion,
   type OCRRegionKind,
   type OCRSourceStyle,
+  type OCRVisualSourceContext,
 } from "@/lib/ocr-contract";
 import { store, type Material, type MaterialSourceLanguage } from "@/lib/store";
 import {
   getMaterialOCRDraft,
+  getMaterialOCRDraftVisualSource,
   getMaterialOCRImageSource,
   getMaterialVisualSource,
   putMaterialOCRDraft,
+  type OCRImageSource,
   type StoredVisualSource,
 } from "@/lib/visual-source-store";
 import type { ImageSourceSelection } from "@/lib/image-preprocessing";
@@ -63,10 +68,18 @@ export function OCRReviewPanel({ material }: { material: Material }) {
   const [source, setSource] = useState<StoredVisualSource | null>(null);
   const [ocrSourceSelection, setOcrSourceSelection] = useState<ImageSourceSelection>("original");
   const [draft, setDraft] = useState<OCRDraft | null>(null);
+  const [overlaySource, setOverlaySource] = useState<OCRImageSource | null>(null);
+  const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
+  const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
   const [sourceStyle, setSourceStyle] = useState<OCRSourceStyle>("mixed");
   const [loading, setLoading] = useState(true);
   const [recognizing, setRecognizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const draftRef = useRef<OCRDraft | null>(null);
+
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,7 +90,7 @@ export function OCRReviewPanel({ material }: { material: Material }) {
       getMaterialOCRDraft(material.id),
       getMaterialOCRImageSource(material.id),
     ])
-      .then(([storedSource, storedDraft, selectedOCRSource]) => {
+      .then(async ([storedSource, storedDraft, selectedOCRSource]) => {
         if (cancelled) return;
         if (storedSource) {
           setSource(storedSource);
@@ -87,7 +100,22 @@ export function OCRReviewPanel({ material }: { material: Material }) {
         setOcrSourceSelection(selectedOCRSource?.kind ?? "original");
         if (storedDraft) {
           setDraft(storedDraft);
+          draftRef.current = storedDraft;
           setSourceStyle(storedDraft.sourceStyle);
+          // Older drafts lack an immutable raster identity. Do not guess from
+          // today's OCR selection: a crop or rotation could make every box lie.
+          const draftSource = storedDraft.visualSource
+            ? await getMaterialOCRDraftVisualSource(material.id, storedDraft.visualSource)
+            : undefined;
+          if (!cancelled) {
+            setOverlaySource(draftSource ?? null);
+            setSelectedRegionId(storedDraft.regions[0]?.id ?? null);
+          }
+        } else {
+          setDraft(null);
+          draftRef.current = null;
+          setOverlaySource(selectedOCRSource ?? null);
+          setSelectedRegionId(null);
         }
       })
       .catch((loadError) => {
@@ -103,9 +131,25 @@ export function OCRReviewPanel({ material }: { material: Material }) {
     };
   }, [material.id]);
 
-  const handleSourceSelectionChange = useCallback((selection: ImageSourceSelection) => {
-    setOcrSourceSelection(selection);
-  }, []);
+  const refreshOverlaySource = useCallback(async () => {
+    const currentDraft = draftRef.current;
+    const nextSource = currentDraft
+      ? currentDraft.visualSource
+        ? await getMaterialOCRDraftVisualSource(material.id, currentDraft.visualSource)
+        : undefined
+      : await getMaterialOCRImageSource(material.id);
+    setOverlaySource(nextSource ?? null);
+  }, [material.id]);
+
+  const handleSourceSelectionChange = useCallback(
+    (selection: ImageSourceSelection) => {
+      setOcrSourceSelection(selection);
+      void refreshOverlaySource().catch((sourceError) => {
+        setError(sourceError instanceof Error ? sourceError.message : String(sourceError));
+      });
+    },
+    [refreshOverlaySource],
+  );
 
   const isVisualMaterial = material.mimeType?.startsWith("image/") === true;
   const canShow = isVisualMaterial || source !== null || loading;
@@ -116,6 +160,62 @@ export function OCRReviewPanel({ material }: { material: Material }) {
         .filter(Boolean)
         .join("\n") ?? "",
     [draft],
+  );
+
+  useEffect(() => {
+    if (!draft) {
+      setSelectedRegionId(null);
+      setHoveredRegionId(null);
+      return;
+    }
+    setSelectedRegionId((current) =>
+      current && draft.regions.some((region) => region.id === current)
+        ? current
+        : (draft.regions[0]?.id ?? null),
+    );
+  }, [draft]);
+
+  useEffect(() => {
+    if (!selectedRegionId) return;
+    const timer = window.setTimeout(() => {
+      document
+        .getElementById(`ocr-region-editor-${selectedRegionId}`)
+        ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [selectedRegionId]);
+
+  const updateDraft = useCallback((updater: (current: OCRDraft) => OCRDraft) => {
+    setDraft((current) => {
+      if (!current) return current;
+      const next = updater(current);
+      draftRef.current = next;
+      return next;
+    });
+  }, []);
+
+  const updateRegion = useCallback(
+    (regionId: string, patch: Partial<OCRRegion>) => {
+      updateDraft((current) => ({
+        ...current,
+        regions: current.regions.map((region) =>
+          region.id === regionId ? { ...region, ...patch } : region,
+        ),
+      }));
+    },
+    [updateDraft],
+  );
+
+  const createRegionFromOverlay = useCallback(
+    (boundingBox: OCRBoundingBox) => {
+      const nextId = `manual_region_${Date.now()}_overlay`;
+      updateDraft((current) => {
+        const region = { ...emptyRegion(current.regions.length), id: nextId, boundingBox };
+        return { ...current, regions: [...current.regions, region] };
+      });
+      setSelectedRegionId(nextId);
+    },
+    [updateDraft],
   );
 
   if (!canShow) return null;
@@ -143,8 +243,15 @@ export function OCRReviewPanel({ material }: { material: Material }) {
     try {
       setOcrSourceSelection(ocrSource.kind);
       const result = await recognizeImageWithOCR(ocrSource.source.blob, sourceStyle, lang);
-      setDraft(result);
-      await putMaterialOCRDraft(material.id, result);
+      const resultWithVisualSource: OCRDraft = {
+        ...result,
+        visualSource: visualSourceContextFor(ocrSource),
+      };
+      setDraft(resultWithVisualSource);
+      draftRef.current = resultWithVisualSource;
+      setOverlaySource(ocrSource);
+      setSelectedRegionId(resultWithVisualSource.regions[0]?.id ?? null);
+      await putMaterialOCRDraft(material.id, resultWithVisualSource);
       toast.success(isRu ? "Черновик OCR готов к проверке" : "OCR draft is ready for review");
     } catch (recognitionError) {
       const message =
@@ -163,6 +270,7 @@ export function OCRReviewPanel({ material }: { material: Material }) {
       { sourceStyle, locale: lang },
     );
     setDraft(normalized);
+    draftRef.current = normalized;
     await putMaterialOCRDraft(material.id, normalized);
     toast.success(isRu ? "Черновик OCR сохранён" : "OCR draft saved");
   };
@@ -202,6 +310,7 @@ export function OCRReviewPanel({ material }: { material: Material }) {
     store.replaceMaterialChunksForMaterial(material.id, chunks);
     await putMaterialOCRDraft(material.id, normalized);
     setDraft(normalized);
+    draftRef.current = normalized;
     toast.success(
       isRu
         ? `Распознавание применено: ${chunks.length} фрагм.`
@@ -223,10 +332,13 @@ export function OCRReviewPanel({ material }: { material: Material }) {
             : "Manual transcription: verify every region against the image.",
         ],
         regions: [emptyRegion(0)],
+        visualSource: overlaySource ? visualSourceContextFor(overlaySource) : undefined,
       },
       { sourceStyle, locale: lang },
     );
     setDraft(next);
+    draftRef.current = next;
+    setSelectedRegionId(next.regions[0]?.id ?? null);
   };
 
   return (
@@ -301,15 +413,32 @@ export function OCRReviewPanel({ material }: { material: Material }) {
         </div>
       ) : (
         <div className="grid gap-4 p-4 xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.1fr)]">
-          <div className="min-w-0">
-            <div className="sticky top-4">
-              <ImagePreprocessingWorkspace
-                materialId={material.id}
-                source={source}
+          <div className="min-w-0 space-y-3">
+            <ImagePreprocessingWorkspace
+              materialId={material.id}
+              source={source}
+              isRu={isRu}
+              onSourceSelectionChange={handleSourceSelectionChange}
+            />
+            {draft && overlaySource ? (
+              <OCRRegionOverlay
+                source={overlaySource}
+                regions={draft.regions}
+                selectedRegionId={selectedRegionId}
+                hoveredRegionId={hoveredRegionId}
                 isRu={isRu}
-                onSourceSelectionChange={handleSourceSelectionChange}
+                onSelectRegion={setSelectedRegionId}
+                onHoverRegion={setHoveredRegionId}
+                onUpdateRegion={updateRegion}
+                onCreateRegion={createRegionFromOverlay}
               />
-            </div>
+            ) : draft ? (
+              <div className="rounded-md border border-yellow-500/25 bg-yellow-500/5 p-3 text-xs text-yellow-100">
+                {isRu
+                  ? "Источник, по которому создавался этот OCR-черновик, больше не совпадает с доступным preview. Запусти OCR заново, чтобы не показывать координаты на неверном изображении."
+                  : "The source used for this OCR draft no longer matches an available preview. Run OCR again rather than showing coordinates on the wrong image."}
+              </div>
+            ) : null}
           </div>
 
           <div className="min-w-0 space-y-3">
@@ -373,35 +502,24 @@ export function OCRReviewPanel({ material }: { material: Material }) {
                       index={index}
                       count={draft.regions.length}
                       isRu={isRu}
-                      onChange={(patch) =>
-                        setDraft((current) =>
-                          current
-                            ? {
-                                ...current,
-                                regions: current.regions.map((item) =>
-                                  item.id === region.id ? { ...item, ...patch } : item,
-                                ),
-                              }
-                            : current,
-                        )
-                      }
+                      selected={selectedRegionId === region.id}
+                      hovered={hoveredRegionId === region.id}
+                      onSelect={() => setSelectedRegionId(region.id)}
+                      onHover={(hovered) => setHoveredRegionId(hovered ? region.id : null)}
+                      onChange={(patch) => updateRegion(region.id, patch)}
                       onMove={(direction) =>
-                        setDraft((current) =>
-                          current
-                            ? { ...current, regions: moveRegion(current.regions, index, direction) }
-                            : current,
-                        )
+                        updateDraft((current) => ({
+                          ...current,
+                          regions: moveRegion(current.regions, index, direction),
+                        }))
                       }
-                      onDelete={() =>
-                        setDraft((current) =>
-                          current
-                            ? {
-                                ...current,
-                                regions: current.regions.filter((item) => item.id !== region.id),
-                              }
-                            : current,
-                        )
-                      }
+                      onDelete={() => {
+                        updateDraft((current) => ({
+                          ...current,
+                          regions: current.regions.filter((item) => item.id !== region.id),
+                        }));
+                        setSelectedRegionId((current) => (current === region.id ? null : current));
+                      }}
                     />
                   ))}
                 </div>
@@ -409,14 +527,11 @@ export function OCRReviewPanel({ material }: { material: Material }) {
                 <Button
                   variant="outline"
                   onClick={() =>
-                    setDraft((current) =>
-                      current
-                        ? {
-                            ...current,
-                            regions: [...current.regions, emptyRegion(current.regions.length)],
-                          }
-                        : current,
-                    )
+                    updateDraft((current) => {
+                      const region = emptyRegion(current.regions.length);
+                      setSelectedRegionId(region.id);
+                      return { ...current, regions: [...current.regions, region] };
+                    })
                   }
                 >
                   <Plus className="h-4 w-4 me-1" />
@@ -450,6 +565,10 @@ function RegionEditor({
   index,
   count,
   isRu,
+  selected,
+  hovered,
+  onSelect,
+  onHover,
   onChange,
   onMove,
   onDelete,
@@ -458,12 +577,29 @@ function RegionEditor({
   index: number;
   count: number;
   isRu: boolean;
+  selected: boolean;
+  hovered: boolean;
+  onSelect: () => void;
+  onHover: (hovered: boolean) => void;
   onChange: (patch: Partial<OCRRegion>) => void;
   onMove: (direction: "up" | "down") => void;
   onDelete: () => void;
 }) {
   return (
-    <article className="rounded-md border border-border bg-background p-3">
+    <article
+      id={`ocr-region-editor-${region.id}`}
+      className={`rounded-md border bg-background p-3 transition-colors ${
+        selected
+          ? "border-primary ring-1 ring-primary/30"
+          : hovered
+            ? "border-primary/60 bg-primary/5"
+            : "border-border"
+      }`}
+      onClick={onSelect}
+      onFocusCapture={onSelect}
+      onPointerEnter={() => onHover(true)}
+      onPointerLeave={() => onHover(false)}
+    >
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold">#{index + 1}</span>
         <Select
@@ -491,6 +627,11 @@ function RegionEditor({
             {isRu ? "сомнительно" : "uncertain"}: {region.uncertainTokens.join(", ")}
           </span>
         )}
+        {region.boundingBox && (
+          <span className="rounded border border-border px-2 py-1 text-[10px] text-muted-foreground">
+            {isRu ? "область на фото" : "image region"}
+          </span>
+        )}
         <div className="ms-auto flex gap-1">
           <Button size="icon" variant="ghost" disabled={index === 0} onClick={() => onMove("up")}>
             <ArrowUp className="h-3.5 w-3.5" />
@@ -503,7 +644,16 @@ function RegionEditor({
           >
             <ArrowDown className="h-3.5 w-3.5" />
           </Button>
-          <Button size="icon" variant="ghost" onClick={onDelete}>
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label={isRu ? "Удалить регион" : "Delete region"}
+            onClick={() => {
+              if (confirm(isRu ? "Удалить этот OCR-регион?" : "Delete this OCR region?")) {
+                onDelete();
+              }
+            }}
+          >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
@@ -533,6 +683,7 @@ function emptyRegion(index: number): OCRRegion {
     id: `manual_region_${Date.now()}_${index}`,
     order: index,
     kind: "paragraph",
+    manual: true,
     text: "",
     uncertainTokens: [],
     warnings: [],
@@ -545,6 +696,17 @@ function moveRegion(regions: OCRRegion[], index: number, direction: "up" | "down
   const next = regions.slice();
   [next[index], next[target]] = [next[target], next[index]];
   return next.map((region, order) => ({ ...region, order }));
+}
+
+function visualSourceContextFor(source: OCRImageSource): OCRVisualSourceContext {
+  if (source.kind === "processed") {
+    return {
+      kind: "processed",
+      sourceUpdatedAt: source.source.sourceUpdatedAt,
+      processedRecipeKey: source.source.recipeKey,
+    };
+  }
+  return { kind: "original", sourceUpdatedAt: source.source.updatedAt };
 }
 
 function pickMaterialLanguage(languages: MaterialSourceLanguage[]): MaterialSourceLanguage {
