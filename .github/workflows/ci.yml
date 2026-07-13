@@ -95,6 +95,9 @@ jobs:
       - name: Verify critical browser E2E contract
         run: npm run verify:critical-browser-e2e-contract
 
+      - name: Verify global search v2 contract
+        run: npm run verify:global-search-v2-contract
+
       - name: Run deterministic evaluation suites
         run: npm run eval
 
@@ -102,6 +105,11 @@ jobs:
         id: golden_quiz_eval
         continue-on-error: true
         run: npm run eval:golden-quiz 2>&1 | tee golden-quiz-eval-output.txt
+
+      - name: Run global search v2 evaluations
+        id: global_search_eval
+        continue-on-error: true
+        run: npm run eval:global-search 2>&1 | tee global-search-eval-output.txt
 
       - name: Typecheck
         id: typecheck
@@ -131,12 +139,13 @@ jobs:
           git diff -- . ':!bun.lock' > prettier-fix.patch
 
       - name: Upload failure diagnostics
-        if: steps.golden_quiz_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure'
+        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: ci-diagnostics
           path: |
             golden-quiz-eval-output.txt
+            global-search-eval-output.txt
             typecheck-output.txt
             lint-output.txt
             build-output.txt
@@ -147,7 +156,7 @@ jobs:
           retention-days: 7
 
       - name: Fail when quality gates fail
-        if: steps.golden_quiz_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure'
+        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure'
         run: |
           echo "One or more quality gates failed. Download the ci-diagnostics artifact for details."
           exit 1
