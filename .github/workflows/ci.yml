@@ -86,6 +86,9 @@ jobs:
       - name: Verify visual backup contract
         run: npm run verify:visual-backup-contract
 
+      - name: Verify multi-page image contract
+        run: npm run verify:multipage-image-contract
+
       - name: Run deterministic evaluation suites
         run: npm run eval
 
