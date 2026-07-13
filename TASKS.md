@@ -861,7 +861,7 @@ Let a student verify each OCR fragment against the exact visual region that prod
 
 ## P0-022C — Full Visual Backup and Restore
 
-- **Status:** [~]
+- **Status:** [x]
 - **Priority:** P0
 - **Size:** L
 - **Depends on:** P0-021 durable image intake and OCR review; P0-022A image preprocessing workspace; P0-022B OCR region overlay

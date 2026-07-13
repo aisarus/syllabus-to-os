@@ -31,7 +31,7 @@ Last updated: 2026-07-13
 - `P0-021 Add durable image intake and OCR review` — complete and verified.
 - `P0-022A Image Preprocessing Workspace` — complete and verified; PR #28 CI passed.
 - `P0-022B OCR Region Overlay and Sync` — complete and verified; PR #29 CI passed.
-- `P0-022C Full Visual Backup and Restore` — in progress on `agent/p0-022-visual-backup`.
+- `P0-022C Full Visual Backup and Restore` — complete and verified; PR #30 CI passed.
 - `P0-023 Add Quizlet-style cards and golden generated quizzes` — complete and verified.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
@@ -84,10 +84,13 @@ Last updated: 2026-07-13
 - Refuse to display legacy or stale coordinate data over a mismatched crop, rotation or deskewed preview; a new OCR pass is required instead.
 - Added a permanent `verify:ocr-region-overlay-contract` quality gate to local checks and CI.
 
-### Full visual backup and restore (in progress)
+### Full visual backup and restore
 
-- Building a versioned ZIP workflow for text data, original photos, OCR drafts, preprocessing recipes and valid processed previews.
-- The proposed flow verifies every declared payload and previews conflicts before merge or replacement; final verification and CI are still pending.
+- Added a versioned ZIP workflow for text data, original photos, OCR drafts, preprocessing recipes and valid processed previews.
+- Every declared payload is validated by size, SHA-256 checksum, ZIP CRC, format version and material mapping before current browser data can change.
+- The Data page now distinguishes lightweight JSON from full ZIP and provides verified preview, warning/conflict list, safe merge, replace-everything and cancellation.
+- Visual IndexedDB stores are restored in one transaction; text storage and visual records roll back together if application fails.
+- Added permanent `verify:visual-backup-contract` coverage to local checks and CI.
 
 ## Verification state
 
@@ -103,6 +106,7 @@ Last updated: 2026-07-13
 - Durable image intake, OCR review, lifecycle cleanup and backup-honesty contract verification passed.
 - Image preprocessing, selected-source OCR and Worker-backed large-image processing contract verification passed.
 - OCR region-overlay synchronization, normalized coordinates and safe visual-source binding contract verification passed.
+- Full visual backup, integrity validation, previewed conflict handling and rollback contract verification passed.
 - Deterministic syllabus, grounding, multilingual and OCR evaluation suites passed.
 - TypeScript passed.
 - ESLint passed.
@@ -110,7 +114,7 @@ Last updated: 2026-07-13
 
 ## Next execution target
 
-1. P0-022C: build a versioned full visual backup and restore flow for sources, OCR drafts and text data.
+1. P1: add multi-page image materials with page-aware OCR, preprocessing, source citations and partial retry.
 2. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
 3. Run the live golden quiz generator on one complete Hebrew course source pack and inspect distractor and rationale quality manually.
 4. Save golden-quiz candidates as a permanent quality evaluation set.

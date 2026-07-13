@@ -4,7 +4,7 @@ This file records only the active or most recently completed implementation plan
 
 ## P0-022C — Full Visual Backup and Restore
 
-**Status:** in progress.
+**Status:** complete — local `npm run check` and PR #30 CI passed.
 
 ### Boundaries
 
@@ -17,4 +17,4 @@ This file records only the active or most recently completed implementation plan
 1. Add pure text parsing/snapshot helpers and one-transaction visual snapshot replace support for safe rollback. ✓
 2. Create a versioned, checksummed ZIP service with manifest validation before any storage mutation. ✓
 3. Add a clear Data page flow for lightweight JSON versus full ZIP, verification preview, merge, replace and cancellation. ✓
-4. Add a permanent contract plus CI/check wiring, update the operational documents, then run all quality gates and a browser interaction pass where available.
+4. Add a permanent contract plus CI/check wiring, update the operational documents, then run all quality gates and a browser interaction pass where available. ✓
