@@ -1,5 +1,11 @@
 import JSZip from "jszip";
 import { normalizeImageProcessingRecipe, imageProcessingRecipeKey } from "./image-preprocessing";
+import {
+  getAllVisualSourceIds,
+  getMultiPageVisualPages,
+  getVisualSourceIdsForMaterials,
+  isMultiPageImageMaterial,
+} from "./multi-page-image-materials";
 import { normalizeOCRDraft } from "./ocr-contract";
 import { getDataSnapshot, parseAppDataJSON, replaceAllAtomically, type AppData } from "./store";
 import {
@@ -100,13 +106,13 @@ interface BackupPlan {
 }
 
 /**
- * Produces a portable ZIP without replacing any in-browser data. The manifest
- * hashes every payload file, while the manifest maps the text workspace to its
- * source image, OCR draft and optional processed preview.
+ * Produces a portable ZIP without replacing any in-browser data. Every
+ * top-level material and every page-level visual source from a multi-page
+ * material is a valid manifest mapping.
  */
 export async function createFullVisualBackup(): Promise<FullVisualBackupExportResult> {
   const [data, visual] = await Promise.all([getDataSnapshot(), getVisualSourceBackupSnapshot()]);
-  const materialIds = new Set(data.materials.map((material) => material.id));
+  const visualSourceIds = new Set(getAllVisualSourceIds(data));
   const zip = new JSZip();
   const files: FullVisualBackupFile[] = [];
   const mappings = new Map<string, FullVisualBackupMaterialMapping>();
@@ -134,7 +140,7 @@ export async function createFullVisualBackup(): Promise<FullVisualBackupExportRe
   await addFile({ path: "data.json", kind: "data" }, dataText);
 
   const images = visual.images.filter((image) => {
-    if (materialIds.has(image.materialId)) return true;
+    if (visualSourceIds.has(image.materialId)) return true;
     orphanIds.add(image.materialId);
     return false;
   });
@@ -158,7 +164,7 @@ export async function createFullVisualBackup(): Promise<FullVisualBackupExportRe
   }
 
   for (const record of visual.ocrDrafts) {
-    if (!materialIds.has(record.materialId)) {
+    if (!visualSourceIds.has(record.materialId)) {
       orphanIds.add(record.materialId);
       continue;
     }
@@ -238,11 +244,7 @@ export async function createFullVisualBackup(): Promise<FullVisualBackupExportRe
   return { blob, manifest, skippedOrphanMaterialIds: [...orphanIds].sort() };
 }
 
-/**
- * Reads and verifies the entire archive before allowing an import choice. A
- * malformed JSON file, absent payload, checksum mismatch or unsupported format
- * throws here, while the current browser workspace is still untouched.
- */
+/** Reads and verifies the entire archive before any browser data can change. */
 export async function prepareFullVisualBackup(file: Blob): Promise<PreparedFullVisualBackup> {
   if (file.size <= 0) throw new Error("The full backup archive is empty.");
   if (file.size > MAX_FULL_VISUAL_BACKUP_BYTES) {
@@ -299,11 +301,7 @@ export async function previewFullVisualBackupImport(
   };
 }
 
-/**
- * Applies a fully validated archive. Visual records change in one IndexedDB
- * transaction; a subsequent text-storage failure restores the previous visual
- * snapshot and text snapshot before surfacing the error.
- */
+/** Applies a validated archive and rolls text and visual stores back together. */
 export async function applyFullVisualBackup(
   prepared: PreparedFullVisualBackup,
   mode: FullVisualBackupImportMode,
@@ -351,10 +349,14 @@ function buildImportPlan(
   }
 
   const appMerge = mergeAppDataSafely(currentData, prepared.data);
+  const blockedVisualSourceIds = getVisualSourceIdsForMaterials(
+    prepared.data,
+    appMerge.blockedMaterialIds,
+  );
   const visualMerge = mergeVisualSnapshotSafely(
     currentVisual,
     prepared.visual,
-    appMerge.blockedMaterialIds,
+    blockedVisualSourceIds,
   );
   return {
     data: appMerge.data,
@@ -421,16 +423,14 @@ function mergeAppDataSafely(
     }
   }
 
-  for (const materialId of blockedMaterialIds) {
-    conflicts.push(`material source: ${materialId}`);
-  }
+  for (const materialId of blockedMaterialIds) conflicts.push(`material source: ${materialId}`);
   return { data, conflicts: unique(conflicts), blockedMaterialIds };
 }
 
 function mergeVisualSnapshotSafely(
   current: VisualSourceBackupSnapshot,
   incoming: VisualSourceBackupSnapshot,
-  blockedMaterialIds: Set<string>,
+  blockedVisualSourceIds: Set<string>,
 ): { visual: VisualSourceBackupSnapshot; conflicts: string[]; warnings: string[] } {
   const visual = cloneVisualSnapshot(current);
   const existingMaterialIds = new Set(
@@ -449,7 +449,7 @@ function mergeVisualSnapshotSafely(
       ...incoming.processedImages,
     ].map((record) => record.materialId),
   );
-  const blocked = new Set([...existingMaterialIds, ...blockedMaterialIds]);
+  const blocked = new Set([...existingMaterialIds, ...blockedVisualSourceIds]);
   const conflicts = [...incomingMaterialIds]
     .filter((materialId) => blocked.has(materialId))
     .map((materialId) => `visual source: ${materialId}`);
@@ -472,7 +472,7 @@ async function decodeVisualPayloads(
   data: AppData,
 ): Promise<{ visual: VisualSourceBackupSnapshot; warnings: string[] }> {
   const warnings: string[] = [];
-  const materialIds = new Set(data.materials.map((material) => material.id));
+  const visualSourceIds = new Set(getAllVisualSourceIds(data));
   const images: StoredVisualSource[] = [];
   const drafts: StoredOCRDraft[] = [];
   const rawProcessing: StoredImageProcessingState[] = [];
@@ -489,8 +489,8 @@ async function decodeVisualPayloads(
       throw new Error(`Backup has more than one ${descriptor.kind} payload for ${materialId}.`);
     }
     seen.get(descriptor.kind)?.add(materialId);
-    if (!materialIds.has(materialId)) {
-      warnings.push(`Skipped visual payload without a material: ${materialId}.`);
+    if (!visualSourceIds.has(materialId)) {
+      warnings.push(`Skipped visual payload without a material or image page: ${materialId}.`);
       continue;
     }
     const blob = entries.get(descriptor.path);
@@ -611,6 +611,15 @@ async function decodeVisualPayloads(
     if (material.mimeType?.startsWith("image/") && !originalsByMaterial.has(material.id)) {
       warnings.push(`Source image is missing for material: ${material.title || material.id}.`);
     }
+    if (isMultiPageImageMaterial(material)) {
+      for (const page of getMultiPageVisualPages(material)) {
+        if (!originalsByMaterial.has(page.id)) {
+          warnings.push(
+            `Source image is missing for page ${page.order + 1} of ${material.title || material.id}.`,
+          );
+        }
+      }
+    }
   }
   for (const draft of drafts) {
     if (!originalsByMaterial.has(draft.materialId)) {
@@ -668,8 +677,7 @@ function parseManifest(text: string): FullVisualBackupManifest {
     paths.add(descriptor.path);
     descriptorsByPath.set(descriptor.path, descriptor);
   }
-  if (dataCount !== 1)
-    throw new Error("Backup manifest must contain exactly one data.json payload.");
+  if (dataCount !== 1) throw new Error("Backup manifest must contain exactly one data.json payload.");
 
   const materials = raw.materials as FullVisualBackupMaterialMapping[];
   const mappingIds = new Set<string>();

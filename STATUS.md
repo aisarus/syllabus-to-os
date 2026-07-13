@@ -33,10 +33,27 @@ Last updated: 2026-07-13
 - `P0-022B OCR Region Overlay and Sync` — complete and verified; PR #29 CI passed.
 - `P0-022C Full Visual Backup and Restore` — complete and verified; PR #30 CI passed.
 - `P0-023 Add Quizlet-style cards and golden generated quizzes` — complete and verified.
+- `P1-001 Add multi-page image materials` — complete and verified; PR #31 CI passed.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
+
+### Multi-page image materials
+
+- Added a separate intake choice for keeping photographs as individual materials or combining them into one ordered image material.
+- Added durable page metadata with stable page ids, file fingerprints, status, language, ordering and reload-safe IndexedDB sources.
+- Added page add, replace, confirmed delete, drag-and-drop reorder and keyboard-friendly up/down reorder controls.
+- Added independent image preprocessing, source selection, OCR/HTR draft, region overlay and manual correction for every page.
+- Added OCR for one page and sequential OCR for all unfinished pages with cancellation and independent failure states.
+- Preserved partial success: one failed image does not remove successful pages or their reviewed drafts.
+- Added explicit application of one page or all reviewed pages; unreviewed OCR is never promoted to searchable source text.
+- Added stable page-aware material chunks with page number and visual page identity encoded in the source section.
+- Reindex page numbers after page reorder or deletion without losing stable source identity.
+- Added page-level duplicate detection for the current batch and previously stored multi-page materials.
+- Updated lifecycle pruning so parent materials and page-level visual ids remain valid while orphaned IndexedDB records are still removed.
+- Extended full ZIP export, validation, merge blocking and restore to original page images, page OCR drafts, preprocessing recipes and processed previews.
+- Added cancellable OCR requests and a permanent `verify:multipage-image-contract` gate to local checks and CI.
 
 ### Two-sided flashcards
 
@@ -61,36 +78,21 @@ Last updated: 2026-07-13
 - Preserved the existing advanced question editor under a secondary Question editor screen.
 - Added permanent flashcard and golden-quiz product contracts to documentation and CI verification.
 
-### Visual-source lifecycle and backup honesty
-
-- Added IndexedDB storage statistics for original images and OCR drafts.
-- Added explicit full-clear and orphan-pruning operations for browser-local visual data.
-- Added an application-level lifecycle janitor that removes image and OCR records after their material is deleted, reset or replaced by imported data.
-- Made JSON backup limitations explicit and made destructive reset cover both localStorage and IndexedDB.
-
-### Image preprocessing before OCR
+### Image preprocessing and OCR review
 
 - Added a non-destructive photo workspace with 90° and fine rotation, crop, automatic/manual deskew, grayscale, brightness, contrast, threshold and optional sharpening.
 - Kept the original source blob immutable and stored the versioned recipe and one derived preview in separate IndexedDB stores.
-- Made original/processed OCR source selection explicit, reload-safe and fail-safe: a missing or stale preview falls back to the original instead of silently changing OCR input.
-- Put image decode, deskew and pixel work into an OffscreenCanvas Web Worker where available; the bounded fallback keeps older browsers usable and reports canvas/decode errors visibly.
-- Added a permanent `verify:image-preprocessing-contract` quality gate to local checks and CI.
-
-### OCR region overlay and review sync
-
-- Bound every newly created OCR draft to the exact original or processed raster used for recognition, including the derived recipe key where applicable.
-- Added a responsive region overlay with synchronized text/image selection and hover, zoom, pan, fit-to-page, keyboard movement and touch-aware interaction modes.
-- Added safe manual region drawing, move/resize editing and confirmed deletion while preserving region order and the editable-draft-before-apply model.
-- Refuse to display legacy or stale coordinate data over a mismatched crop, rotation or deskewed preview; a new OCR pass is required instead.
-- Added a permanent `verify:ocr-region-overlay-contract` quality gate to local checks and CI.
+- Made original/processed OCR source selection explicit, reload-safe and fail-safe.
+- Added synchronized region selection, hover, zoom, pan, drawing, movement and resizing over the exact source raster used by OCR.
+- Refuse to display stale coordinates over a mismatched crop, rotation or processed preview.
 
 ### Full visual backup and restore
 
 - Added a versioned ZIP workflow for text data, original photos, OCR drafts, preprocessing recipes and valid processed previews.
-- Every declared payload is validated by size, SHA-256 checksum, ZIP CRC, format version and material mapping before current browser data can change.
-- The Data page now distinguishes lightweight JSON from full ZIP and provides verified preview, warning/conflict list, safe merge, replace-everything and cancellation.
-- Visual IndexedDB stores are restored in one transaction; text storage and visual records roll back together if application fails.
-- Added permanent `verify:visual-backup-contract` coverage to local checks and CI.
+- Every declared payload is validated by size, SHA-256 checksum, ZIP CRC, format version and visual-source mapping before current browser data can change.
+- The Data page distinguishes lightweight JSON from full ZIP and provides verified preview, warning/conflict list, safe merge and replace-everything.
+- Visual IndexedDB stores and text storage roll back together if application fails.
+- Multi-page child images and drafts now participate in the same backup and conflict rules as top-level image materials.
 
 ## Verification state
 
@@ -101,12 +103,14 @@ Last updated: 2026-07-13
 - Reliable Notes editor contract verification passed.
 - Quizlet-style two-sided flashcard and management contract verification passed.
 - Golden bilingual quiz generation, trainer and advanced editor contract verification passed.
+- Detail-route reachability contract verification passed.
 - Core UI honesty and actionability contract verification passed.
 - Evaluation fixture coverage verification passed.
 - Durable image intake, OCR review, lifecycle cleanup and backup-honesty contract verification passed.
 - Image preprocessing, selected-source OCR and Worker-backed large-image processing contract verification passed.
 - OCR region-overlay synchronization, normalized coordinates and safe visual-source binding contract verification passed.
-- Full visual backup, integrity validation, previewed conflict handling and rollback contract verification passed.
+- Full visual backup, integrity validation, page-level source coverage, previewed conflict handling and rollback contract verification passed.
+- Multi-page image intake, page-aware OCR/preprocessing, partial retry, cancellation, explicit apply and backup contract verification passed.
 - Deterministic syllabus, grounding, multilingual and OCR evaluation suites passed.
 - TypeScript passed.
 - ESLint passed.
@@ -114,10 +118,11 @@ Last updated: 2026-07-13
 
 ## Next execution target
 
-1. P1: add multi-page image materials with page-aware OCR, preprocessing, source citations and partial retry.
-2. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
-3. Run the live golden quiz generator on one complete Hebrew course source pack and inspect distractor and rationale quality manually.
-4. Save golden-quiz candidates as a permanent quality evaluation set.
+1. P1: add golden-quiz quality evaluation with category scores, negative controls and saved review candidates.
+2. P1: add critical browser end-to-end tests for material, photo/OCR, flashcard, quiz and full-backup flows.
+3. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
+4. Run the live golden quiz generator on one complete Hebrew course source pack and inspect distractor and rationale quality manually.
+5. Build local-first global search v2 after the critical flow tests are stable.
 
 ## Blockers
 
