@@ -19,6 +19,7 @@
     "eval:golden-quiz:json": "node scripts/run-golden-quiz-evals.mjs --json",
     "eval:global-search": "node --experimental-strip-types scripts/run-global-search-evals.mjs",
     "eval:store-safety": "node --experimental-strip-types scripts/run-store-safety-evals.mjs",
+    "eval:study-command": "node --experimental-strip-types scripts/run-study-command-center-evals.mjs",
     "e2e:critical": "node scripts/run-critical-browser-e2e-wrapper.mjs",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
@@ -39,6 +40,7 @@
     "verify:critical-browser-e2e-contract": "node scripts/verify-critical-browser-e2e-contract.mjs",
     "verify:global-search-v2-contract": "node scripts/verify-global-search-v2-contract.mjs",
     "verify:store-safety-contract": "node scripts/verify-store-safety-contract.mjs",
+    "verify:study-command-center-contract": "node scripts/verify-study-command-center-contract.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {
@@ -80,8 +82,8 @@
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
-    "lucide-react": "^0.575.0",
     "jszip": "^3.10.1",
+    "lucide-react": "^0.575.0",
     "mammoth": "^1.12.0",
     "pdfjs-dist": "^6.1.200",
     "react": "^19.2.0",
