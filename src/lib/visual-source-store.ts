@@ -1,4 +1,4 @@
-import type { OCRDraft } from "./ocr-contract";
+import type { OCRDraft, OCRVisualSourceContext } from "./ocr-contract";
 import {
   imageProcessingRecipeKey,
   normalizeImageProcessingRecipe,
@@ -56,10 +56,10 @@ export interface StoredProcessedVisualSource {
   updatedAt: number;
 }
 
-export interface OCRImageSource {
-  kind: ImageSourceSelection;
-  source: StoredVisualSource | StoredProcessedVisualSource;
-}
+/** A discriminated source pair keeps the original and derived raster distinct. */
+export type OCRImageSource =
+  | { kind: "original"; source: StoredVisualSource }
+  | { kind: "processed"; source: StoredProcessedVisualSource };
 
 export interface VisualSourceStorageStats {
   imageCount: number;
@@ -203,6 +203,32 @@ export async function getMaterialOCRImageSource(
     return { kind: "processed", source: processed };
   }
   return { kind: "original", source: original };
+}
+
+/**
+ * Resolves the source that an existing OCR draft was made from. Unlike the
+ * current OCR selection, this intentionally returns nothing when a processed
+ * preview has been replaced, preventing region boxes from drifting onto a
+ * different crop/rotation.
+ */
+export async function getMaterialOCRDraftVisualSource(
+  materialId: string,
+  context: OCRVisualSourceContext,
+): Promise<OCRImageSource | undefined> {
+  const original = await getMaterialVisualSource(materialId);
+  if (!original || original.updatedAt !== context.sourceUpdatedAt) return undefined;
+  if (context.kind === "original") return { kind: "original", source: original };
+
+  const processed = await getMaterialProcessedVisualSource(materialId);
+  if (
+    processed &&
+    processed.sourceUpdatedAt === context.sourceUpdatedAt &&
+    context.processedRecipeKey &&
+    processed.recipeKey === context.processedRecipeKey
+  ) {
+    return { kind: "processed", source: processed };
+  }
+  return undefined;
 }
 
 export async function deleteMaterialImageProcessing(materialId: string): Promise<void> {

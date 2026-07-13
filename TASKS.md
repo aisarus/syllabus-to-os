@@ -826,6 +826,39 @@ Let a student prepare a real photo of a notebook, whiteboard or page before OCR 
 
 ---
 
+## P0-022B — OCR Region Overlay and Sync
+
+- **Status:** [x]
+- **Priority:** P0
+- **Size:** L
+- **Depends on:** P0-022A image preprocessing workspace
+- **Branch:** `agent/p0-022-ocr-region-overlay`
+
+### Goal
+
+Let a student verify each OCR fragment against the exact visual region that produced it, without showing coordinates over a different crop, rotation or derived preview.
+
+### Scope
+
+- Render normalized `0..1` OCR bounding boxes over the exact original or processed raster used for OCR.
+- Synchronize selected and hovered regions between the text review and image overlay.
+- Support fit-to-page, zoom, pan, keyboard movement, drawing, moving and resizing regions.
+- Make selected, warning, uncertain, low-confidence and mathematical regions visibly distinct.
+- Retain the order of regions while their coordinates change; require confirmation before deletion.
+- Preserve RTL/LTR reading order and keep normalized mathematical notation LTR.
+- Never guess an image for a legacy or stale draft: request a new OCR pass instead.
+
+### Acceptance criteria
+
+- Text-to-image and image-to-text selection stays synchronized, including hover state.
+- Overlay and boxes scale and pan as one stage, and coordinates remain normalized after crop, rotation or deskew.
+- Manual regions and coordinate edits can be saved in the existing editable OCR draft; OCR is never auto-applied.
+- Keyboard interaction works; select mode keeps vertical mobile scrolling available while draw/pan owns the gesture.
+- Source identity prevents boxes from appearing on a mismatched preview.
+- `npm run check` and `verify:ocr-region-overlay-contract` pass.
+
+---
+
 # Dependency summary
 
 ```text

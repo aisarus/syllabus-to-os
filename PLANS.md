@@ -2,20 +2,19 @@
 
 This file records only the active or most recently completed implementation plan. Product intent remains in `ROADMAP.md`; task acceptance criteria remain in `TASKS.md`.
 
-## P0-022A — Image Preprocessing Workspace
+## P0-022B — OCR Region Overlay and Sync
 
-**Status:** complete — local `npm run check` and PR #28 CI passed.
+**Status:** complete — local `npm run check` and PR #29 CI passed.
 
 ### Boundaries
 
-- Preserve the immutable original image and the existing OCR review/apply workflow.
-- Do not add multi-page materials, OCR region editing or visual backups in this change; those are separate tasks.
-- Keep the stored recipe serializable and versioned, with no unbounded history of derived blobs.
+- Keep P0-022A's immutable original, serializable recipe and one-current-derived-preview model intact.
+- Change only the editable OCR draft and its source identity; do not auto-apply OCR text to a material.
+- Do not attempt multi-page images or full visual backup in this task.
 
 ### Delivery plan
 
-1. Upgrade the visual IndexedDB schema additively with separate processing-state and derived-image stores.
-2. Implement a versioned recipe plus Worker-backed crop/rotation/deskew/pixel renderer and a bounded fallback.
-3. Add a responsive preprocessing surface to the material OCR view, including visible source selection and reset.
-4. Route OCR through the selected durable blob and fail back to the original if the derived cache is stale or absent.
-5. Add a permanent contract and CI step, run `npm run check`, then open and merge a green PR. ✓
+1. Add an explicit exact-raster context to every newly created OCR draft and resolve it safely after reload.
+2. Add normalized-coordinate helpers and a responsive overlay that transforms the image and regions together.
+3. Link text and image selection/hover, and add manual draw, move, resize, confirmed delete and keyboard access.
+4. Add a permanent contract plus CI/check wiring, then run all quality gates and a browser interaction pass where available. ✓
