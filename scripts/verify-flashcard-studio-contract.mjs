@@ -5,6 +5,10 @@ const studio = await readFile(
   resolve(process.cwd(), "src/components/flashcard-studio.tsx"),
   "utf8",
 );
+const experience = await readFile(
+  resolve(process.cwd(), "src/components/flashcard-experience.tsx"),
+  "utf8",
+);
 const route = await readFile(
   resolve(process.cwd(), "src/routes/app.flashcards.tsx"),
   "utf8",
@@ -32,7 +36,7 @@ for (const marker of [
   "CSV import preview",
   "downloadFile(\"lamdan-flashcards.csv\"",
 ]) {
-  requireMarker(studio, marker, `Flashcard Studio is missing required behavior: ${marker}`);
+  requireMarker(studio, marker, `Flashcard management is missing required behavior: ${marker}`);
 }
 
 for (const marker of [
@@ -40,19 +44,36 @@ for (const marker of [
   "Exact source-chunk references remain untouched",
   "Other cards are removed only after confirmation",
 ]) {
-  requireMarker(studio, marker, `Flashcard Studio lost a destructive-action safeguard: ${marker}`);
+  requireMarker(studio, marker, `Flashcard management lost a destructive-action safeguard: ${marker}`);
+}
+
+for (const marker of [
+  "export function FlashcardExperience",
+  "QuizletFlipCard",
+  'perspective: "1400px"',
+  'transformStyle: "preserve-3d"',
+  'transform: flipped ? "rotateY(180deg)"',
+  'backfaceVisibility: "hidden"',
+  "store.reviewCard(card.id, quality)",
+  'setView("manage")',
+  "<FlashcardStudio />",
+  "Перемешать",
+  "Повторить",
+  "Знаю",
+]) {
+  requireMarker(experience, marker, `Two-sided flashcard experience is missing: ${marker}`);
 }
 
 requireMarker(
   route,
-  "FlashcardStudio",
-  "The active flashcard route no longer uses Flashcard Studio v1.",
+  "FlashcardExperience",
+  "The active flashcard route no longer opens the two-sided study deck.",
 );
 
 if (failures.length) {
-  console.error("Flashcard Studio contract verification failed:\n");
+  console.error("Flashcard experience contract verification failed:\n");
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
 
-console.log("Flashcard Studio v1 contract passed.");
+console.log("Quizlet-style two-sided flashcards and management contract passed.");
