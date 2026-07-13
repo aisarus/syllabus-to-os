@@ -19,7 +19,7 @@ Lamdan is a late MVP / early closed alpha. The core local-first source → revie
 - `P1-001 Multi-page image materials` — complete and verified; PR #31 CI passed.
 - `P1-002 Golden quiz quality evaluation` — complete and verified; PR #32 CI passed.
 - `P1-003 Critical browser end-to-end coverage` — complete and verified; PR #33 CI passed.
-- `P1-004 Local-first global search v2` — complete and verified; PR #34 CI passed.
+- `P1-004 Add local-first global search v2` — complete and verified; PR #34 CI passed.
 - `P1-005 Store persistence and source-integrity hardening` — complete in the current branch.
 
 `TASKS.md` is now the canonical task ledger and no longer leaves shipped P0 work marked as not started.
