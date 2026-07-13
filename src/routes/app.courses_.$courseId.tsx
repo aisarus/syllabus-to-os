@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CourseWorkspace } from "@/components/course-workspace";
 
-export const Route = createFileRoute("/app/courses/$courseId")({
+export const Route = createFileRoute("/app/courses_/$courseId")({
   component: CoursePage,
 });
 

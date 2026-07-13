@@ -6,7 +6,7 @@ const workspace = await readFile(
   "utf8",
 );
 const route = await readFile(
-  resolve(process.cwd(), "src/routes/app.courses.$courseId.tsx"),
+  resolve(process.cwd(), "src/routes/app.courses_.$courseId.tsx"),
   "utf8",
 );
 
@@ -40,11 +40,16 @@ for (const kind of ["note", "flashcards", "quiz"]) {
   );
 }
 
-requireMarker(
-  route,
+for (const marker of [
+  'createFileRoute("/app/courses_/$courseId")',
   "CourseWorkspace",
-  "The active course route no longer uses Course Workspace v1.",
-);
+]) {
+  requireMarker(
+    route,
+    marker,
+    `The non-nested course detail route is missing required behavior: ${marker}`,
+  );
+}
 
 if (failures.length) {
   console.error("Course Workspace contract verification failed:\n");
@@ -52,4 +57,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("Course Workspace v1 contract passed.");
+console.log("Course Workspace v1 and non-nested detail routing contract passed.");

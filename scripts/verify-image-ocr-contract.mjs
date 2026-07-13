@@ -29,7 +29,7 @@ const [
   read("src/components/material-intake-queue.tsx"),
   read("src/routes/app.dashboard.tsx"),
   read("src/components/material-intake-route-launcher.tsx"),
-  read("src/routes/app.materials.$materialId.tsx"),
+  read("src/routes/app.materials_.$materialId.tsx"),
   read("src/components/ocr-review-panel.tsx"),
   read("src/lib/ocr-client.ts"),
   read("src/lib/server/ocr-generation.ts"),
@@ -111,7 +111,13 @@ for (const content of [dashboard, launcher]) {
   requireMarker(content, ".webp", "A primary intake surface no longer accepts WebP images.");
 }
 
-requireMarker(detailRoute, "OCRReviewPanel", "Material detail no longer exposes OCR review.");
+for (const marker of [
+  'createFileRoute("/app/materials_/$materialId")',
+  "OCRReviewPanel",
+  "MaterialWorkspace",
+]) {
+  requireMarker(detailRoute, marker, `Material detail route is missing required behavior: ${marker}`);
+}
 for (const marker of [
   "getMaterialVisualSource",
   "getMaterialOCRDraft",
@@ -177,4 +183,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Durable image intake, OCR/HTR review, lifecycle cleanup and backup honesty passed.");
+console.log("Durable image intake, OCR/HTR review, non-nested material routing, lifecycle cleanup and backup honesty passed.");

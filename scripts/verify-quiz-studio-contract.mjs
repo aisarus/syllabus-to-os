@@ -30,7 +30,7 @@ const listRoute = await readFile(
   "utf8",
 );
 const detailRoute = await readFile(
-  resolve(process.cwd(), "src/routes/app.quizzes.$quizId.tsx"),
+  resolve(process.cwd(), "src/routes/app.quizzes_.$quizId.tsx"),
   "utf8",
 );
 
@@ -120,11 +120,16 @@ requireMarker(
   "Quiz generation API no longer uses the golden quiz generator.",
 );
 requireMarker(listRoute, "QuizLibrary", "The active quiz list route no longer uses QuizLibrary.");
-requireMarker(
-  detailRoute,
+for (const marker of [
+  'createFileRoute("/app/quizzes_/$quizId")',
   "GoldenQuizExperience",
-  "The active quiz detail route no longer opens the golden quiz trainer.",
-);
+]) {
+  requireMarker(
+    detailRoute,
+    marker,
+    `The non-nested quiz detail route is missing required behavior: ${marker}`,
+  );
+}
 
 if (failures.length) {
   console.error("Golden quiz and Quiz Studio contract verification failed:\n");
@@ -132,4 +137,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("Golden bilingual quiz generation, trainer and advanced editor contract passed.");
+console.log("Golden bilingual quiz generation, trainer, routing and advanced editor contract passed.");

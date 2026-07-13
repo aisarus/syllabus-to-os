@@ -8,7 +8,7 @@ import { useData, store, type Slide } from "@/lib/store";
 import { ArrowLeft, Plus, Trash2, Copy } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/presentations/$outlineId")({
+export const Route = createFileRoute("/app/presentations_/$outlineId")({
   component: OutlineEditor,
 });
 

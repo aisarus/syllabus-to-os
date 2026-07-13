@@ -21,6 +21,7 @@
     "verify:notes-editor-contract": "node scripts/verify-notes-editor-contract.mjs",
     "verify:flashcard-studio-contract": "node scripts/verify-flashcard-studio-contract.mjs",
     "verify:quiz-studio-contract": "node scripts/verify-quiz-studio-contract.mjs",
+    "verify:detail-route-contract": "node scripts/verify-detail-route-contract.mjs",
     "verify:core-ui-audit": "node scripts/verify-core-ui-audit.mjs",
     "verify:evaluation-fixtures": "node scripts/verify-evaluation-fixtures.mjs",
     "verify:image-ocr-contract": "node scripts/verify-image-ocr-contract.mjs",
@@ -84,7 +85,6 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "2.7.1",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",

@@ -18,6 +18,9 @@ const failures = [];
 const requireMarker = (content, marker, message) => {
   if (!content.includes(marker)) failures.push(message);
 };
+const forbidMarker = (content, marker, message) => {
+  if (content.includes(marker)) failures.push(message);
+};
 
 for (const marker of [
   "courseFilter",
@@ -34,7 +37,7 @@ for (const marker of [
   "sourceChunkIds = Array.from(new Set",
   "store.reviewCard(card.id, quality)",
   "CSV import preview",
-  "downloadFile(\"lamdan-flashcards.csv\"",
+  'downloadFile("lamdan-flashcards.csv"',
 ]) {
   requireMarker(studio, marker, `Flashcard management is missing required behavior: ${marker}`);
 }
@@ -49,19 +52,36 @@ for (const marker of [
 
 for (const marker of [
   "export function FlashcardExperience",
-  "QuizletFlipCard",
-  'perspective: "1400px"',
-  'transformStyle: "preserve-3d"',
-  'transform: flipped ? "rotateY(180deg)"',
-  'backfaceVisibility: "hidden"',
+  "StableFlashcard",
+  "const startReview = () =>",
+  'setReviewOnly(true)',
+  'setView("study")',
+  '<RotateCcw className="h-4 w-4 me-1" />',
+  '"Повторить"',
+  "dueCards.length",
   "store.reviewCard(card.id, quality)",
   'setView("manage")',
   "<FlashcardStudio />",
   "Перемешать",
-  "Повторить",
   "Знаю",
+  "min-h-[360px]",
+  "overflow-y-auto",
 ]) {
   requireMarker(experience, marker, `Two-sided flashcard experience is missing: ${marker}`);
+}
+
+for (const forbidden of [
+  'perspective: "1400px"',
+  'transformStyle: "preserve-3d"',
+  'rotateY(180deg)',
+  'backfaceVisibility: "hidden"',
+  "absolute inset-0",
+]) {
+  forbidMarker(
+    experience,
+    forbidden,
+    `Flashcard rendering returned to the broken layered 3D implementation: ${forbidden}`,
+  );
 }
 
 requireMarker(
@@ -76,4 +96,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("Quizlet-style two-sided flashcards and management contract passed.");
+console.log("Stable two-sided flashcards, persistent review action and management contract passed.");

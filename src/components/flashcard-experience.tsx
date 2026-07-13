@@ -31,6 +31,7 @@ export function FlashcardExperience() {
   const [view, setView] = useState<"study" | "manage">("study");
   const [courseId, setCourseId] = useState("all");
   const [topicId, setTopicId] = useState("all");
+  const [reviewOnly, setReviewOnly] = useState(false);
   const [orderIds, setOrderIds] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -48,22 +49,51 @@ export function FlashcardExperience() {
         .sort((a, b) => a.createdAt - b.createdAt),
     [data.flashcards, courseId, topicId],
   );
+  const dueCards = useMemo(
+    () => data.flashcards.filter((card) => card.dueAt <= Date.now()),
+    [data.flashcards],
+  );
+  const activeCards = useMemo(
+    () =>
+      reviewOnly
+        ? filteredCards.filter((card) => card.dueAt <= Date.now())
+        : filteredCards,
+    [filteredCards, reviewOnly],
+  );
   const cards = useMemo(() => {
-    const byId = new Map(filteredCards.map((card) => [card.id, card]));
+    const byId = new Map(activeCards.map((card) => [card.id, card]));
     const ordered = orderIds
       .map((id) => byId.get(id))
       .filter((card): card is Flashcard => Boolean(card));
     const included = new Set(ordered.map((card) => card.id));
-    return [...ordered, ...filteredCards.filter((card) => !included.has(card.id))];
-  }, [filteredCards, orderIds]);
+    return [...ordered, ...activeCards.filter((card) => !included.has(card.id))];
+  }, [activeCards, orderIds]);
   const card = cards[index];
 
-  useEffect(() => {
+  const resetSession = () => {
     setIndex(0);
     setFlipped(false);
     setFinished(false);
     setOrderIds([]);
-  }, [courseId, topicId]);
+  };
+
+  const startReview = () => {
+    if (dueCards.length === 0) {
+      toast.info(
+        isRu ? "Сейчас нет карточек к повторению" : "No cards are due right now",
+      );
+      return;
+    }
+    setView("study");
+    setCourseId("all");
+    setTopicId("all");
+    setReviewOnly(true);
+    resetSession();
+  };
+
+  useEffect(() => {
+    resetSession();
+  }, [courseId, topicId, reviewOnly]);
 
   useEffect(() => {
     if (index >= cards.length) setIndex(Math.max(0, cards.length - 1));
@@ -72,6 +102,8 @@ export function FlashcardExperience() {
   useEffect(() => {
     if (view !== "study" || !card || finished) return;
     const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.matches("input, textarea, select, [contenteditable='true']")) return;
       if (event.key === " ") {
         event.preventDefault();
         setFlipped((value) => !value);
@@ -113,7 +145,11 @@ export function FlashcardExperience() {
   if (view === "manage") {
     return (
       <div>
-        <div className="mx-auto mb-4 flex max-w-[1440px] justify-end">
+        <div className="mx-auto mb-4 flex max-w-[1440px] flex-wrap justify-end gap-2">
+          <Button variant="outline" onClick={startReview}>
+            <RotateCcw className="h-4 w-4 me-1" />
+            {isRu ? "Повторить" : "Review"} ({dueCards.length})
+          </Button>
           <Button variant="outline" onClick={() => setView("study")}>
             <Layers3 className="h-4 w-4 me-1" />
             {isRu ? "Вернуться к карточкам" : "Back to study deck"}
@@ -143,6 +179,10 @@ export function FlashcardExperience() {
         </div>
         <div className="flex flex-wrap gap-2">
           <AIGenerateButton kind="flashcards" />
+          <Button variant="outline" onClick={startReview}>
+            <RotateCcw className="h-4 w-4 me-1" />
+            {isRu ? "Повторить" : "Review"} ({dueCards.length})
+          </Button>
           <Button variant="outline" onClick={() => setView("manage")}>
             <Settings2 className="h-4 w-4 me-1" />
             {isRu ? "Управление колодой" : "Manage deck"}
@@ -177,17 +217,35 @@ export function FlashcardExperience() {
         </Select>
       </section>
 
+      {reviewOnly && (
+        <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2 text-xs">
+          <span>{isRu ? "Показываются только карточки к повторению" : "Showing due cards only"}</span>
+          <Button size="sm" variant="ghost" onClick={() => setReviewOnly(false)}>
+            {isRu ? "Вся колода" : "Full deck"}
+          </Button>
+        </div>
+      )}
+
       {cards.length === 0 ? (
         <section className="mt-5 rounded-2xl border border-dashed border-border p-12 text-center">
           <Layers3 className="mx-auto h-10 w-10 text-muted-foreground" />
           <h2 className="mt-4 font-serif text-xl font-semibold">
-            {isRu ? "В этой колоде пока нет карточек" : "This deck has no cards yet"}
+            {reviewOnly
+              ? isRu ? "Карточек к повторению нет" : "No cards are due"
+              : isRu ? "В этой колоде пока нет карточек" : "This deck has no cards yet"}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            {isRu
-              ? "Сгенерируй двусторонние карточки из материала или создай их в управлении колодой."
-              : "Generate two-sided cards from a material or create them in deck management."}
+            {reviewOnly
+              ? isRu ? "Можно вернуться ко всей колоде." : "Return to the full deck."
+              : isRu
+                ? "Сгенерируй двусторонние карточки из материала или создай их в управлении колодой."
+                : "Generate two-sided cards from a material or create them in deck management."}
           </p>
+          {reviewOnly && (
+            <Button className="mt-4" variant="outline" onClick={() => setReviewOnly(false)}>
+              {isRu ? "Открыть всю колоду" : "Open full deck"}
+            </Button>
+          )}
         </section>
       ) : finished ? (
         <section className="mt-5 rounded-2xl border border-border bg-surface p-10 text-center">
@@ -200,14 +258,7 @@ export function FlashcardExperience() {
               ? `${cards.length} карточек просмотрено. Оценки сохранены в интервальном повторении.`
               : `${cards.length} cards reviewed. Ratings were saved to spaced repetition.`}
           </p>
-          <Button
-            className="mt-5"
-            onClick={() => {
-              setIndex(0);
-              setFinished(false);
-              setFlipped(false);
-            }}
-          >
+          <Button className="mt-5" onClick={resetSession}>
             <RotateCcw className="h-4 w-4 me-1" />
             {isRu ? "Пройти ещё раз" : "Study again"}
           </Button>
@@ -225,7 +276,7 @@ export function FlashcardExperience() {
             />
           </div>
 
-          <QuizletFlipCard
+          <StableFlashcard
             card={card}
             flipped={flipped}
             onFlip={() => setFlipped((value) => !value)}
@@ -290,7 +341,7 @@ export function FlashcardExperience() {
   );
 }
 
-function QuizletFlipCard({
+function StableFlashcard({
   card,
   flipped,
   onFlip,
@@ -301,59 +352,36 @@ function QuizletFlipCard({
   onFlip: () => void;
   isRu: boolean;
 }) {
+  const label = flipped ? (isRu ? "Ответ" : "Back") : isRu ? "Вопрос" : "Front";
+  const text = flipped ? card.back : card.front;
   return (
-    <div className="mt-4" style={{ perspective: "1400px" }}>
-      <button
-        type="button"
-        className="block w-full text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        onClick={onFlip}
-        aria-label={
-          flipped
-            ? isRu ? "Показать вопрос" : "Show prompt"
-            : isRu ? "Показать ответ" : "Show answer"
-        }
-      >
-        <div
-          className="relative min-h-[340px] w-full transition-transform duration-500"
-          style={{
-            transformStyle: "preserve-3d",
-            transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
-          }}
-        >
-          <CardFace label={isRu ? "Вопрос" : "Front"} text={card.front} />
-          <CardFace
-            label={isRu ? "Ответ" : "Back"}
-            text={card.back}
-            back
-          />
-        </div>
-      </button>
-      <p className="mt-3 text-center text-xs text-muted-foreground">
-        {flipped
-          ? isRu ? "Нажми, чтобы вернуть вопрос" : "Tap to return to the prompt"
-          : isRu ? "Нажми, чтобы перевернуть" : "Tap to flip"}
-      </p>
-    </div>
-  );
-}
-
-function CardFace({ label, text, back = false }: { label: string; text: string; back?: boolean }) {
-  return (
-    <div
-      className="absolute inset-0 flex min-h-[340px] flex-col rounded-2xl border border-border bg-surface p-6 shadow-sm md:p-10"
-      style={{
-        backfaceVisibility: "hidden",
-        WebkitBackfaceVisibility: "hidden",
-        transform: back ? "rotateY(180deg)" : "rotateY(0deg)",
-      }}
+    <button
+      type="button"
+      className="group mt-4 flex min-h-[360px] w-full flex-col rounded-2xl border border-border bg-surface p-6 text-start shadow-sm transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:p-10"
+      onClick={onFlip}
+      aria-label={
+        flipped
+          ? isRu ? "Показать вопрос" : "Show prompt"
+          : isRu ? "Показать ответ" : "Show answer"
+      }
     >
-      <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{label}</div>
-      <div className="flex flex-1 items-center justify-center">
-        <p dir="auto" className="max-w-3xl whitespace-pre-wrap text-center font-serif text-2xl leading-10 md:text-3xl">
+      <div className="flex w-full items-center justify-between gap-3 border-b border-border pb-4 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+        <span>{label}</span>
+        <span className="normal-case tracking-normal">
+          {flipped
+            ? isRu ? "Нажми, чтобы вернуть вопрос" : "Tap to return to the prompt"
+            : isRu ? "Нажми, чтобы показать ответ" : "Tap to reveal the answer"}
+        </span>
+      </div>
+      <div className="flex min-h-0 flex-1 items-center justify-center py-8">
+        <p
+          dir="auto"
+          className="max-h-[420px] w-full max-w-3xl overflow-y-auto whitespace-pre-wrap text-center font-serif text-2xl leading-10 md:text-3xl"
+        >
           {text}
         </p>
       </div>
-    </div>
+    </button>
   );
 }
 

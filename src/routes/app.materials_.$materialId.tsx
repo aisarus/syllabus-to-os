@@ -7,7 +7,7 @@ import { useApp } from "@/lib/app-context";
 import { useData } from "@/lib/store";
 import { ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/app/materials/$materialId")({
+export const Route = createFileRoute("/app/materials_/$materialId")({
   component: MaterialDetail,
 });
 
