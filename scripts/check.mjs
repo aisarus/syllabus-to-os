@@ -15,6 +15,7 @@ const checks = [
   "verify:image-ocr-contract",
   "verify:image-preprocessing-contract",
   "verify:ocr-region-overlay-contract",
+  "verify:visual-backup-contract",
   "eval",
   "typecheck",
   "lint",

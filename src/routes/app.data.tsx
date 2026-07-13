@@ -1,5 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, FileImage, ShieldAlert, Trash2, Upload } from "lucide-react";
+import {
+  ArchiveRestore,
+  Download,
+  FileArchive,
+  FileImage,
+  Loader2,
+  ShieldAlert,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/app-shell";
@@ -11,6 +21,14 @@ import {
   getVisualSourceStorageStats,
   type VisualSourceStorageStats,
 } from "@/lib/visual-source-store";
+import {
+  applyFullVisualBackup,
+  createFullVisualBackup,
+  prepareFullVisualBackup,
+  previewFullVisualBackupImport,
+  type FullVisualBackupImportPreview,
+  type PreparedFullVisualBackup,
+} from "@/lib/visual-backup";
 
 export const Route = createFileRoute("/app/data")({
   component: DataPage,
@@ -20,9 +38,17 @@ function DataPage() {
   const { t, lang } = useApp();
   const isRu = lang === "ru";
   const data = useData();
-  const fileRef = useRef<HTMLInputElement>(null);
+  const jsonFileRef = useRef<HTMLInputElement>(null);
+  const fullBackupFileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [visualStats, setVisualStats] = useState<VisualSourceStorageStats | null>(null);
+  const [preparedFullBackup, setPreparedFullBackup] = useState<PreparedFullVisualBackup | null>(
+    null,
+  );
+  const [fullBackupPreview, setFullBackupPreview] = useState<FullVisualBackupImportPreview | null>(
+    null,
+  );
+  const [fullBackupBusy, setFullBackupBusy] = useState(false);
 
   const refreshVisualStats = useCallback(async () => {
     try {
@@ -112,6 +138,103 @@ function DataPage() {
     reader.readAsText(file);
   };
 
+  const doFullExport = async () => {
+    setError(null);
+    setFullBackupBusy(true);
+    try {
+      const result = await createFullVisualBackup();
+      downloadBlob(result.blob, `lamdan-full-${new Date().toISOString().slice(0, 10)}.zip`);
+      toast.success(
+        isRu
+          ? "Полная ZIP-копия с фото и OCR-черновиками экспортирована"
+          : "Full ZIP backup with images and OCR drafts exported",
+      );
+      if (result.skippedOrphanMaterialIds.length > 0) {
+        toast.warning(
+          isRu
+            ? `Пропущено orphan visual-записей: ${result.skippedOrphanMaterialIds.length}`
+            : `Skipped orphan visual records: ${result.skippedOrphanMaterialIds.length}`,
+        );
+      }
+    } catch (backupError) {
+      const message = backupError instanceof Error ? backupError.message : String(backupError);
+      setError(message);
+      toast.error(isRu ? "Не удалось создать полную копию" : "Could not create the full backup");
+    } finally {
+      setFullBackupBusy(false);
+    }
+  };
+
+  const prepareFullImport = async (file: File) => {
+    setError(null);
+    setPreparedFullBackup(null);
+    setFullBackupPreview(null);
+    setFullBackupBusy(true);
+    try {
+      const prepared = await prepareFullVisualBackup(file);
+      const preview = await previewFullVisualBackupImport(prepared);
+      setPreparedFullBackup(prepared);
+      setFullBackupPreview(preview);
+      toast.success(
+        isRu
+          ? "Архив проверен; выбери режим восстановления"
+          : "Archive verified; choose a restore mode",
+      );
+    } catch (backupError) {
+      const message = backupError instanceof Error ? backupError.message : String(backupError);
+      setError(message);
+      toast.error(isRu ? "Архив не изменил данные" : "Archive did not change any data");
+    } finally {
+      setFullBackupBusy(false);
+    }
+  };
+
+  const applyPreparedFullImport = async (mode: "replace" | "merge") => {
+    if (!preparedFullBackup) return;
+    if (
+      mode === "replace" &&
+      !confirm(
+        isRu
+          ? "Полностью заменить текущие текстовые данные, фотографии, обработанные preview и OCR-черновики данными из проверенного ZIP?"
+          : "Replace current text data, source images, processed previews and OCR drafts with this verified ZIP?",
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    setFullBackupBusy(true);
+    try {
+      const result = await applyFullVisualBackup(preparedFullBackup, mode);
+      setPreparedFullBackup(null);
+      setFullBackupPreview(null);
+      await refreshVisualStats();
+      toast.success(
+        isRu
+          ? mode === "replace"
+            ? "Полная копия восстановлена"
+            : "Полная копия безопасно объединена"
+          : mode === "replace"
+            ? "Full backup restored"
+            : "Full backup merged safely",
+      );
+      if (result.warnings.length > 0 || result.conflicts.length > 0) {
+        toast.warning(
+          isRu
+            ? `Восстановление завершено с замечаниями: ${result.warnings.length + result.conflicts.length}`
+            : `Restore completed with notes: ${result.warnings.length + result.conflicts.length}`,
+        );
+      }
+    } catch (backupError) {
+      const message = backupError instanceof Error ? backupError.message : String(backupError);
+      setError(message);
+      toast.error(
+        isRu ? "Восстановление отменено и откатано" : "Restore was cancelled and rolled back",
+      );
+    } finally {
+      setFullBackupBusy(false);
+    }
+  };
+
   const itemCount =
     data.courses.length +
     data.materials.length +
@@ -130,8 +253,8 @@ function DataPage() {
         title={t.dataTitle}
         subtitle={
           isRu
-            ? "Резервная копия текстовых данных и честное управление локальными фото."
-            : "Text-data backup and honest management of browser-local images."
+            ? "Лёгкий JSON и полная ZIP-копия для текстов, фото, preview и OCR-черновиков."
+            : "Lightweight JSON and full ZIP backups for text, images, previews and OCR drafts."
         }
       />
 
@@ -165,8 +288,8 @@ function DataPage() {
             </h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {isRu
-                ? "Обычный JSON-экспорт включает курсы, тексты, применённый OCR и связи, но пока не включает исходные изображения, обработанные preview и отдельные OCR-черновики из IndexedDB. Не очищай браузер, если оригиналы не сохранены где-то ещё."
-                : "The JSON export includes courses, text, applied OCR and relationships, but does not yet include original images, processed previews or separate OCR drafts stored in IndexedDB. Do not clear browser data unless the originals exist elsewhere."}
+                ? "Есть два формата: лёгкий JSON для текстовых данных и полный ZIP с исходными фото, обработанными preview и OCR-черновиками из IndexedDB. Для надёжного переноса всего учебного пространства выбирай ZIP."
+                : "There are two formats: lightweight JSON for text data and a full ZIP with source images, processed previews and OCR drafts from IndexedDB. Use ZIP when you need to move the complete study workspace."}
             </p>
             <p className="mt-2 text-xs text-foreground">
               {visualStats
@@ -183,7 +306,7 @@ function DataPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <section className="rounded-lg border border-border bg-surface p-6">
-          <h2 className="font-semibold mb-2">{t.export}</h2>
+          <h2 className="font-semibold mb-2">{isRu ? "Лёгкий JSON" : "Lightweight JSON"}</h2>
           <p className="text-sm text-muted-foreground mb-4">
             {isRu
               ? "Скачивает JSON с курсами, материалами, применённым распознанным текстом, конспектами, карточками, тестами и связями. Исходные фото не входят."
@@ -206,14 +329,16 @@ function DataPage() {
         </section>
 
         <section className="rounded-lg border border-border bg-surface p-6">
-          <h2 className="font-semibold mb-2">{t.import}</h2>
+          <h2 className="font-semibold mb-2">
+            {isRu ? "Импорт лёгкого JSON" : "Import lightweight JSON"}
+          </h2>
           <p className="text-sm text-muted-foreground mb-4">
             {isRu
               ? "Восстанавливает JSON-копию. Текущие исходные фото, обработанные preview и отдельные OCR-черновики будут удалены после подтверждения."
               : "Restores a JSON backup. Current source images, processed previews and separate OCR drafts are removed after confirmation."}
           </p>
           <input
-            ref={fileRef}
+            ref={jsonFileRef}
             type="file"
             accept="application/json,.json"
             className="hidden"
@@ -223,12 +348,157 @@ function DataPage() {
               event.target.value = "";
             }}
           />
-          <Button variant="outline" onClick={() => fileRef.current?.click()}>
+          <Button variant="outline" onClick={() => jsonFileRef.current?.click()}>
             <Upload className="h-4 w-4 me-1" />
             {t.importFile}
           </Button>
-          {error && <p className="text-xs text-destructive mt-2 break-words">{error}</p>}
         </section>
+
+        <section className="rounded-lg border border-primary/35 bg-primary/5 p-6 md:col-span-2">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <FileArchive className="h-5 w-5 text-primary" />
+                <h2 className="font-semibold">{isRu ? "Полная ZIP-копия" : "Full ZIP backup"}</h2>
+              </div>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                {isRu
+                  ? "Сохраняет и восстанавливает текстовые данные, оригиналы, обработанные preview, рецепты обработки и отдельные OCR-черновики. Каждый файл проверяется по SHA-256 до изменения текущей библиотеки."
+                  : "Exports and restores text data, originals, processed previews, preprocessing recipes and standalone OCR drafts. Every file is verified by SHA-256 before the current library can change."}
+              </p>
+            </div>
+            <Button onClick={() => void doFullExport()} disabled={!hasAnyData || fullBackupBusy}>
+              {fullBackupBusy ? (
+                <Loader2 className="h-4 w-4 animate-spin me-1" />
+              ) : (
+                <Download className="h-4 w-4 me-1" />
+              )}
+              {isRu ? "Скачать ZIP" : "Download ZIP"}
+            </Button>
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-primary/20 pt-5">
+            <input
+              ref={fullBackupFileRef}
+              type="file"
+              accept="application/zip,.zip"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void prepareFullImport(file);
+                event.target.value = "";
+              }}
+            />
+            <Button
+              variant="outline"
+              onClick={() => fullBackupFileRef.current?.click()}
+              disabled={fullBackupBusy}
+            >
+              {fullBackupBusy ? (
+                <Loader2 className="h-4 w-4 animate-spin me-1" />
+              ) : (
+                <ArchiveRestore className="h-4 w-4 me-1" />
+              )}
+              {isRu ? "Проверить ZIP и восстановить" : "Verify ZIP and restore"}
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {isRu ? "Локальный лимит архива: 150 MB" : "Local archive limit: 150 MB"}
+            </span>
+          </div>
+        </section>
+
+        {preparedFullBackup && fullBackupPreview && (
+          <section className="rounded-lg border border-primary/45 bg-surface p-6 md:col-span-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-semibold">
+                  {isRu
+                    ? "Проверенная копия готова к восстановлению"
+                    : "Verified backup is ready to restore"}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {isRu
+                    ? "Ни один текущий файл ещё не изменён. Выбери безопасное объединение или полную замену."
+                    : "No current file has changed yet. Choose a safe merge or a complete replacement."}
+                </p>
+              </div>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                {formatBytes(fullBackupPreview.summary.bytes)}
+              </span>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+              <BackupStat
+                label={isRu ? "Материалы" : "Materials"}
+                value={fullBackupPreview.summary.materials}
+              />
+              <BackupStat
+                label={isRu ? "Фото" : "Images"}
+                value={fullBackupPreview.summary.images}
+              />
+              <BackupStat
+                label={isRu ? "Preview" : "Previews"}
+                value={fullBackupPreview.summary.processedImages}
+              />
+              <BackupStat
+                label={isRu ? "OCR-черновики" : "OCR drafts"}
+                value={fullBackupPreview.summary.ocrDrafts}
+              />
+            </div>
+
+            <BackupNotes
+              title={isRu ? "Замечания архива" : "Archive notes"}
+              notes={fullBackupPreview.warnings}
+              emptyLabel={
+                isRu ? "Проверка не нашла замечаний." : "The verification found no notes."
+              }
+            />
+            <BackupNotes
+              title={isRu ? "Конфликты при безопасном объединении" : "Safe merge conflicts"}
+              notes={fullBackupPreview.mergeConflicts}
+              emptyLabel={
+                isRu
+                  ? "Конфликтов не найдено: объединение не перезапишет существующие записи."
+                  : "No conflicts found: the merge will not overwrite existing records."
+              }
+            />
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Button
+                variant="outline"
+                onClick={() => void applyPreparedFullImport("merge")}
+                disabled={fullBackupBusy}
+              >
+                {fullBackupBusy ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : null}
+                {isRu ? "Безопасно объединить" : "Merge safely"}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => void applyPreparedFullImport("replace")}
+                disabled={fullBackupBusy}
+              >
+                {isRu ? "Заменить всё" : "Replace everything"}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setPreparedFullBackup(null);
+                  setFullBackupPreview(null);
+                  setError(null);
+                }}
+                disabled={fullBackupBusy}
+              >
+                <X className="h-4 w-4 me-1" />
+                {isRu ? "Отмена" : "Cancel"}
+              </Button>
+            </div>
+          </section>
+        )}
+
+        {error && (
+          <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive break-words md:col-span-2">
+            {error}
+          </p>
+        )}
 
         <section className="rounded-lg border border-destructive/40 bg-surface p-6 md:col-span-2">
           <div className="flex items-start gap-3">
@@ -290,8 +560,56 @@ function DataPage() {
   );
 }
 
+function BackupStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+      <div className="text-muted-foreground">{label}</div>
+      <div className="mt-1 text-base font-semibold text-foreground">{value}</div>
+    </div>
+  );
+}
+
+function BackupNotes({
+  title,
+  notes,
+  emptyLabel,
+}: {
+  title: string;
+  notes: string[];
+  emptyLabel: string;
+}) {
+  const visibleNotes = notes.slice(0, 4);
+
+  return (
+    <div className="mt-4 rounded-md border border-border bg-muted/20 p-3 text-xs">
+      <h3 className="font-medium text-foreground">
+        {title} <span className="text-muted-foreground">({notes.length})</span>
+      </h3>
+      {notes.length === 0 ? (
+        <p className="mt-1 leading-5 text-muted-foreground">{emptyLabel}</p>
+      ) : (
+        <ul className="mt-2 space-y-1 leading-5 text-muted-foreground">
+          {visibleNotes.map((note, index) => (
+            <li key={`${note}-${index}`}>• {note}</li>
+          ))}
+          {notes.length > visibleNotes.length && <li>• +{notes.length - visibleNotes.length}</li>}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+}
+
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }

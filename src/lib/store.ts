@@ -757,35 +757,74 @@ export function exportJSON(): string {
   return JSON.stringify(state, null, 2);
 }
 
-export function importJSON(json: string): { ok: true } | { ok: false; error: string } {
+/**
+ * Parses a Lamdan JSON payload without touching the in-browser workspace.
+ * Full visual backup validation uses this before it is allowed to mutate either
+ * localStorage or IndexedDB.
+ */
+export function parseAppDataJSON(
+  json: string,
+): { ok: true; data: AppData } | { ok: false; error: string } {
   try {
     const parsed = JSON.parse(json);
-    if (!parsed || typeof parsed !== "object") return { ok: false, error: "Not an object" };
-    const arr = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
-    const shape: AppData = {
-      version: 1,
-      programs: arr<Program>(parsed.programs),
-      courses: arr<Course>(parsed.courses),
-      topics: arr<Topic>(parsed.topics),
-      notes: arr<Note>(parsed.notes),
-      flashcards: arr<Flashcard>(parsed.flashcards),
-      quizzes: arr<Quiz>(parsed.quizzes),
-      quizQuestions: arr<QuizQuestion>(parsed.quizQuestions),
-      quizAttempts: arr<QuizAttempt>(parsed.quizAttempts),
-      assignments: arr<Assignment>(parsed.assignments),
-      materials: arr<Material>(parsed.materials),
-      materialChunks: arr<MaterialChunk>(parsed.materialChunks),
-      materialOutputs: arr<MaterialOutput>(parsed.materialOutputs),
-      presentationOutlines: arr<PresentationOutline>(parsed.presentationOutlines),
-      calendarEvents: arr<CalendarEvent>(parsed.calendarEvents),
-      studySessions: arr<StudySession>(parsed.studySessions),
-      syllabusImports: arr<SyllabusImport>(parsed.syllabusImports),
-    };
-    setData(shape);
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: (e as Error).message };
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return { ok: false, error: "Not an object" };
+    }
+    return { ok: true, data: normalizeAppData(parsed as Record<string, unknown>) };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
+}
+
+/** A copy is required for import rollback so later UI updates cannot mutate it. */
+export function getDataSnapshot(): AppData {
+  ensureHydrated();
+  return JSON.parse(JSON.stringify(state)) as AppData;
+}
+
+/**
+ * Writes the text workspace before notifying React. Unlike the ordinary store
+ * mutators, this lets a full backup import detect a storage-quota failure and
+ * roll its IndexedDB transaction back.
+ */
+export function replaceAllAtomically(next: AppData): void {
+  const normalized = normalizeAppData(next as unknown as Record<string, unknown>);
+  const serialized = JSON.stringify(normalized);
+  if (typeof window !== "undefined") {
+    localStorage.setItem(KEY, serialized);
+  }
+  state = normalized;
+  listeners.forEach((listener) => listener());
+}
+
+export function importJSON(json: string): { ok: true } | { ok: false; error: string } {
+  const parsed = parseAppDataJSON(json);
+  if (!parsed.ok) return parsed;
+  setData(parsed.data);
+  return { ok: true };
+}
+
+function normalizeAppData(parsed: Record<string, unknown>): AppData {
+  const arr = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
+  return {
+    version: 1,
+    programs: arr<Program>(parsed.programs),
+    courses: arr<Course>(parsed.courses),
+    topics: arr<Topic>(parsed.topics),
+    notes: arr<Note>(parsed.notes),
+    flashcards: arr<Flashcard>(parsed.flashcards),
+    quizzes: arr<Quiz>(parsed.quizzes),
+    quizQuestions: arr<QuizQuestion>(parsed.quizQuestions),
+    quizAttempts: arr<QuizAttempt>(parsed.quizAttempts),
+    assignments: arr<Assignment>(parsed.assignments),
+    materials: arr<Material>(parsed.materials),
+    materialChunks: arr<MaterialChunk>(parsed.materialChunks),
+    materialOutputs: arr<MaterialOutput>(parsed.materialOutputs),
+    presentationOutlines: arr<PresentationOutline>(parsed.presentationOutlines),
+    calendarEvents: arr<CalendarEvent>(parsed.calendarEvents),
+    studySessions: arr<StudySession>(parsed.studySessions),
+    syllabusImports: arr<SyllabusImport>(parsed.syllabusImports),
+  };
 }
 
 // ============ Chunk / search helpers ============

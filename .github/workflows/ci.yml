@@ -83,6 +83,9 @@ jobs:
       - name: Verify OCR region overlay contract
         run: npm run verify:ocr-region-overlay-contract
 
+      - name: Verify visual backup contract
+        run: npm run verify:visual-backup-contract
+
       - name: Run deterministic evaluation suites
         run: npm run eval
 
