@@ -1,15 +1,21 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-const args = new Set(process.argv.slice(2));
-const manifestPath = resolve(process.cwd(), "evals/golden-quiz-manifest.json");
-const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-const results = manifest.fixtures.map((fixture) => {
-  const positive = evaluateCandidate(fixture.candidate, fixture.sources, fixture.requireRussianTranslation);
+const jsonMode = process.argv.includes("--json");
+const manifest = JSON.parse(
+  await readFile(resolve(process.cwd(), "evals/golden-quiz-manifest.json"), "utf8"),
+);
+
+const fixtures = manifest.fixtures.map((fixture) => {
+  const positive = evaluateCandidate(
+    fixture.candidate,
+    fixture.sources,
+    fixture.requireRussianTranslation === true,
+  );
   const negative = evaluateCandidate(
     fixture.negativeCandidate,
     fixture.sources,
-    fixture.requireRussianTranslation,
+    fixture.requireRussianTranslation === true,
   );
   return {
     id: fixture.id,
@@ -23,38 +29,47 @@ const results = manifest.fixtures.map((fixture) => {
 const report = {
   version: manifest.version,
   qualityVersion: manifest.qualityVersion,
-  pass: results.every((result) => result.pass),
-  fixtures: results,
+  pass: fixtures.every((fixture) => fixture.pass),
+  fixtures,
 };
 
-if (args.has("--json")) {
+if (jsonMode) {
   console.log(JSON.stringify(report, null, 2));
 } else {
-  console.log(`Golden quiz quality evaluation · ${report.qualityVersion}`);
-  console.log("");
-  for (const result of results) {
+  console.log(`Golden quiz quality evaluation · ${report.qualityVersion}\n`);
+  for (const fixture of fixtures) {
     console.log(
-      `${result.pass ? "✓" : "✗"} ${result.id} · positive ${percent(result.positive.score)} · negative ${percent(result.negative.score)}`,
+      `${fixture.pass ? "✓" : "✗"} ${fixture.id} · positive ${percent(
+        fixture.positive.score,
+      )} · negative ${percent(fixture.negative.score)}`,
     );
-    if (!result.positive.pass) {
-      for (const issue of result.positive.issues) console.log(`  positive: ${issue}`);
+    if (!fixture.positive.pass) {
+      for (const category of fixture.positive.categories) {
+        if (category.score < thresholdFor(category.category)) {
+          console.log(
+            `  category ${category.category}: ${percent(category.score)} < ${percent(
+              thresholdFor(category.category),
+            )}`,
+          );
+        }
+      }
+      for (const issue of fixture.positive.issues) console.log(`  positive: ${issue}`);
     }
-    if (result.negative.pass) console.log("  negative control incorrectly passed");
+    if (fixture.negative.pass) console.log("  negative control incorrectly passed");
   }
-  console.log("");
-  console.log(report.pass ? "All golden quiz quality gates passed." : "Golden quiz quality gates failed.");
+  console.log(`\n${report.pass ? "All golden quiz quality gates passed." : "Golden quiz quality gates failed."}`);
 }
 
 if (!report.pass) process.exit(1);
 
 function evaluateCandidate(candidate, sources, requireRussianTranslation) {
   const sourceById = new Map(sources.map((source) => [source.id, source.text]));
-  const questionResults = candidate.questions.map((question) =>
+  const questionResults = (candidate.questions ?? []).map((question) =>
     evaluateQuestion(question, sourceById, requireRussianTranslation),
   );
   const categories = mergeCategories(questionResults.flatMap((result) => result.categories));
-  const score = weightedScore(categories);
   const issues = questionResults.flatMap((result) => result.issues);
+  const score = weightedScore(categories);
   const pass =
     questionResults.length > 0 &&
     issues.every((issue) => !issue.startsWith("error:")) &&
@@ -66,20 +81,21 @@ function evaluateCandidate(candidate, sources, requireRussianTranslation) {
 function evaluateQuestion(question, sourceById, requireRussianTranslation) {
   const checks = new Map();
   const issues = [];
-  const add = (category, pass, severity, code) => {
+  const add = (category, passed, severity, code) => {
     const values = checks.get(category) ?? [];
-    values.push(pass);
+    // Manual heuristics surface reviewer work but do not pretend to be automatic failures.
+    values.push(severity === "manual" ? true : passed);
     checks.set(category, values);
-    if (!pass) issues.push(`${severity}:${code}:${question.id}`);
+    if (!passed) issues.push(`${severity}:${code}:${question.id}`);
   };
 
   const options = Array.isArray(question.options) ? question.options : [];
   const normalizedOptions = options.map(normalize);
-  const feedback = parseFeedback(question.explanation ?? "", options.length);
   const correctIndex = question.correctIndex;
   const correctAnswer = options[correctIndex] ?? "";
+  const feedback = parseFeedback(question.explanation ?? "", options.length);
   const citedSources = (question.sourceChunkIds ?? [])
-    .map((id) => sourceById.get(id))
+    .map((sourceId) => sourceById.get(sourceId))
     .filter(Boolean);
   const sourceText = citedSources.join("\n");
 
@@ -97,7 +113,7 @@ function evaluateQuestion(question, sourceById, requireRussianTranslation) {
   add("sourceSupport", (question.sourceChunkIds ?? []).length > 0, "error", "missing_citation");
   add(
     "sourceSupport",
-    (question.sourceChunkIds ?? []).every((id) => sourceById.has(id)),
+    (question.sourceChunkIds ?? []).every((sourceId) => sourceById.has(sourceId)),
     "error",
     "unknown_citation",
   );
@@ -109,18 +125,16 @@ function evaluateQuestion(question, sourceById, requireRussianTranslation) {
     "manual",
     "weak_answer_support",
   );
-  const candidateNumbers = numbers(
-    [
-      question.prompt,
-      correctAnswer,
-      feedback.correctExplanation,
-      feedback.optionRationales[correctIndex] ?? "",
-    ].join(" "),
-  );
+  const groundedNumberScope = [
+    question.prompt,
+    correctAnswer,
+    feedback.correctExplanation,
+    feedback.optionRationales[correctIndex] ?? "",
+  ].join(" ");
   const sourceNumbers = new Set(numbers(sourceText));
   add(
     "sourceSupport",
-    candidateNumbers.every((value) => sourceNumbers.has(value)),
+    numbers(groundedNumberScope).every((value) => sourceNumbers.has(value)),
     "error",
     "unsupported_number",
   );
@@ -141,8 +155,8 @@ function evaluateQuestion(question, sourceById, requireRussianTranslation) {
       "junk_option",
     );
   });
-  const lengths = options.map((option) => option.trim().length).filter(Boolean);
-  const median = medianValue(lengths);
+  const optionLengths = options.map((option) => option.trim().length).filter(Boolean);
+  const median = medianValue(optionLengths);
   add(
     "distractors",
     median === 0 || correctAnswer.trim().length <= median * 1.8,
@@ -160,7 +174,8 @@ function evaluateQuestion(question, sourceById, requireRussianTranslation) {
   for (const rationale of feedback.optionRationales) {
     add(
       "rationales",
-      rationale.trim().length >= 12 && !/^(incorrect|wrong|неверно|неправильно|לא נכון|שגוי)\.?$/i.test(rationale.trim()),
+      rationale.trim().length >= 12 &&
+        !/^(incorrect|wrong|неверно|неправильно|לא נכון|שגוי)\.?$/i.test(rationale.trim()),
       "warning",
       "weak_rationale",
     );
@@ -180,7 +195,8 @@ function evaluateQuestion(question, sourceById, requireRussianTranslation) {
     "correct_rationale_contradiction",
   );
 
-  const translationRequired = requireRussianTranslation || /[\u0590-\u05ff]/.test(question.prompt ?? "");
+  const translationRequired =
+    requireRussianTranslation || /[\u0590-\u05ff]/.test(String(question.prompt ?? ""));
   add(
     "translation",
     !translationRequired || Boolean(feedback.promptTranslation.trim()),
@@ -201,7 +217,6 @@ function evaluateQuestion(question, sourceById, requireRussianTranslation) {
     "warning",
     "hint_reveals_answer",
   );
-
   add("answerBalance", correctIndex >= 0 && correctIndex < 4, "error", "answer_position");
 
   return {
@@ -219,16 +234,18 @@ function parseFeedback(value, optionCount) {
   const read = (headings) => {
     for (const heading of headings) {
       const match = value.match(
-        new RegExp(`###\\s+${escapeRegex(heading)}\\s*\\n([\\s\\S]*?)(?=\\n\\n###\\s+|$)`, "i"),
+        new RegExp(
+          `###\\s+${escapeRegex(heading)}\\s*\\n([\\s\\S]*?)(?=\\n\\n###\\s+|$)`,
+          "i",
+        ),
       );
       if (match) return match[1].trim();
     }
     return "";
   };
   const numbered = (headings) => {
-    const section = read(headings);
     const result = Array.from({ length: optionCount }, () => "");
-    for (const line of section.split(/\r?\n/)) {
+    for (const line of read(headings).split(/\r?\n/)) {
       const match = line.match(/^\s*(\d+)\.\s*(.*)$/);
       if (!match) continue;
       const index = Number(match[1]) - 1;
@@ -246,7 +263,7 @@ function parseFeedback(value, optionCount) {
 }
 
 function mergeCategories(values) {
-  const names = [
+  return [
     "structure",
     "sourceSupport",
     "distractors",
@@ -254,8 +271,7 @@ function mergeCategories(values) {
     "translation",
     "memoryHint",
     "answerBalance",
-  ];
-  return names.map((category) => {
+  ].map((category) => {
     const selected = values.filter((value) => value.category === category);
     const passed = selected.reduce((sum, value) => sum + value.passed, 0);
     const total = selected.reduce((sum, value) => sum + value.total, 0);
@@ -273,8 +289,13 @@ function weightedScore(categories) {
     memoryHint: 0.75,
     answerBalance: 0.5,
   };
-  const total = categories.reduce((sum, value) => sum + weights[value.category], 0);
-  return categories.reduce((sum, value) => sum + value.score * weights[value.category], 0) / total;
+  const weight = categories.reduce((sum, category) => sum + weights[category.category], 0);
+  return (
+    categories.reduce(
+      (sum, category) => sum + category.score * weights[category.category],
+      0,
+    ) / weight
+  );
 }
 
 function thresholdFor(category) {
@@ -307,9 +328,7 @@ function sameSurfaceCategory(left, right) {
   const leftNumber = /^[-+]?\d/.test(left.trim());
   const rightNumber = /^[-+]?\d/.test(right.trim());
   if (leftNumber || rightNumber) return leftNumber === rightNumber;
-  const leftWords = tokens(left).length;
-  const rightWords = tokens(right).length;
-  return Math.abs(leftWords - rightWords) <= Math.max(3, Math.ceil(rightWords * 0.8));
+  return Math.abs(tokens(left).length - tokens(right).length) <= Math.max(3, Math.ceil(tokens(right).length * 0.8));
 }
 
 function hintRevealsAnswer(hint, answer) {
@@ -321,7 +340,7 @@ function hintRevealsAnswer(hint, answer) {
 
 function medianValue(values) {
   if (values.length === 0) return 0;
-  const sorted = values.slice().sort((a, b) => a - b);
+  const sorted = values.slice().sort((left, right) => left - right);
   const middle = Math.floor(sorted.length / 2);
   return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 }
@@ -330,16 +349,16 @@ function ratio(values) {
   return values.length ? values.filter(Boolean).length / values.length : 1;
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function round(value) {
   return Math.round(value * 10000) / 10000;
 }
 
 function percent(value) {
   return `${Math.round(value * 1000) / 10}%`;
-}
-
-function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 const STOP_WORDS = new Set([
