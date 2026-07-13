@@ -68,7 +68,7 @@ Pending on the current branch:
 - TypeScript;
 - ESLint and formatting;
 - production build;
-- critical browser E2E;
+- critical browser end-to-end execution;
 - visual check at desktop and mobile widths.
 
 The branch must not merge until the full quality workflow passes.
