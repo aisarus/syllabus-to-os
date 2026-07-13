@@ -65,6 +65,9 @@ jobs:
       - name: Verify Quiz Studio contract
         run: npm run verify:quiz-studio-contract
 
+      - name: Verify detail route reachability
+        run: npm run verify:detail-route-contract
+
       - name: Verify core UI audit contract
         run: npm run verify:core-ui-audit
 
