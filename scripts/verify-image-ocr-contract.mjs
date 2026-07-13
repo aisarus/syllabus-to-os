@@ -65,7 +65,8 @@ for (const marker of [
 
 for (const marker of [
   "export function VisualSourceLifecycle",
-  "pruneVisualSourceData(materialIds)",
+  "getAllVisualSourceIds",
+  "pruneVisualSourceData(visualSourceIds)",
   "Could not prune orphaned Lamdan visual data",
 ]) {
   requireMarker(lifecycle, marker, `Visual-source lifecycle cleanup is missing: ${marker}`);
@@ -204,5 +205,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Durable image intake, OCR/HTR review, non-nested material routing, lifecycle cleanup and backup honesty passed.",
+  "Durable image intake, OCR/HTR review, page-aware lifecycle cleanup, non-nested routing and backup honesty passed.",
 );
