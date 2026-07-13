@@ -36,7 +36,7 @@ Last updated: 2026-07-13
 - `P1-001 Add multi-page image materials` — complete and verified; PR #31 CI passed.
 - `P1-002 Add golden quiz quality evaluation` — complete and verified; PR #32 CI passed.
 - `P1-003 Add critical browser end-to-end coverage` — complete and verified; PR #33 CI passed.
-- `P1-004 Add local-first global search v2` — implementation complete; CI verification pending.
+- `P1-004 Add local-first global search v2` — complete and verified; PR #34 CI passed.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
@@ -111,6 +111,7 @@ Last updated: 2026-07-13
 - Golden bilingual quiz generation, trainer and advanced editor contract verification passed.
 - Golden quiz category scoring, negative controls, manual review and candidate export contract verification passed.
 - Golden archaeology, social science, information studies, mixed-language and dates/numbers quality fixtures passed; every negative control failed as intended.
+- Ranked multilingual global search, URL state, content/course filters, contextual highlighting and deterministic search evaluations passed.
 - Detail-route reachability contract verification passed.
 - Core UI honesty and actionability contract verification passed.
 - Evaluation fixture coverage verification passed.
@@ -127,15 +128,14 @@ Last updated: 2026-07-13
 
 ## Next execution target
 
-1. Finish CI verification and browser inspection for local-first global search v2.
-2. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
-3. Run the live golden quiz generator on one complete Hebrew source pack, review it in the quality screen and promote an approved candidate to permanent fixtures.
-4. Add audio transcription using the same source-draft-review-apply contract.
-5. Add deeper multi-page browser coverage for page reorder, partial OCR failure and page-level ZIP restore.
+1. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
+2. Run the live golden quiz generator on one complete Hebrew source pack, review it in the quality screen and promote an approved candidate to permanent fixtures.
+3. Add audio transcription using the same source-draft-review-apply contract.
+4. Add deeper multi-page browser coverage for page reorder, partial OCR failure and page-level ZIP restore.
+5. Add direct deep links from global search results into a selected source chunk or flashcard.
 
 ## Blockers
 
-- Existing code, contracts, deterministic evaluations, typecheck, lint, production build and critical Chromium E2E pass.
-- Global search v2 is implemented but not yet claimed as verified until its branch CI passes.
+- Code, contracts, deterministic evaluations, ranked global search, typecheck, lint, production build and critical Chromium E2E pass.
 - Live OCR quality still requires a private real-photo validation pack.
 - Golden quiz generation is structurally enforced and deterministically evaluated, but live model quality still requires a reviewed generation from a real Hebrew source pack.
