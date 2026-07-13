@@ -36,10 +36,24 @@ Last updated: 2026-07-13
 - `P1-001 Add multi-page image materials` — complete and verified; PR #31 CI passed.
 - `P1-002 Add golden quiz quality evaluation` — complete and verified; PR #32 CI passed.
 - `P1-003 Add critical browser end-to-end coverage` — complete and verified; PR #33 CI passed.
+- `P1-004 Add local-first global search v2` — implementation complete; CI verification pending.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
+
+### Local-first global search v2
+
+- Replaced insertion-order substring search with deterministic weighted ranking across course structure, materials, page-aware chunks, notes, both flashcard sides, quizzes, answer options, explanations, assignments and presentation slides.
+- Exact titles, title prefixes, course numbers and tags rank above full-text body matches while source chunks and notes remain first-class results.
+- All unquoted terms are required; quoted text is kept as an ordered phrase.
+- Added Unicode NFKD normalization, punctuation folding and Hebrew niqqud removal without sending content to a server.
+- Added match-aware snippets centered around the strongest field instead of always showing the beginning of a document.
+- Added safe title and snippet highlighting, matched-field labels, source material names and page numbers.
+- Added URL-backed query, content-type scope and course filter state so refresh, back and forward preserve the search.
+- Added `/` keyboard focus, clear and reset actions, result counts by content type and explicit local-search behavior.
+- Added deterministic evaluations for Hebrew normalization, exact-title ranking, phrase order, required terms, course isolation, flashcard backs, page metadata, highlighting and stable ordering.
+- Added a permanent `verify:global-search-v2-contract` gate and CI evaluation step.
 
 ### Critical browser end-to-end coverage
 
@@ -86,23 +100,6 @@ Last updated: 2026-07-13
 - Extended full ZIP export, validation, merge blocking and restore to original page images, page OCR drafts, preprocessing recipes and processed previews.
 - Added cancellable OCR requests and a permanent `verify:multipage-image-contract` gate to local checks and CI.
 
-### Two-sided flashcards and golden generated quiz
-
-- The default flashcard route uses a real front/back study deck rather than permanently visible text fields.
-- Previous, Next, Shuffle, Again, Know and due-review controls preserve the existing spaced-repetition state.
-- Bulk editing, CSV, source relinking and duplicate cleanup remain under Manage deck.
-- Golden quiz generation requires exactly four options, one correct answer, plausible distractors, a rationale for every option, a correct-answer explanation, a memory hint and source ids.
-- Hebrew-first output can include Russian prompt and option translations.
-- The trainer preserves correctness while shuffling questions and options and saves final attempts.
-
-### Image preprocessing, OCR review and backup
-
-- Added non-destructive rotation, crop, deskew, grayscale, brightness, contrast, threshold and sharpening with separate original, recipe and derived preview storage.
-- Added synchronized region selection, hover, zoom, pan, drawing, movement and resizing over the exact image used by OCR.
-- Added a versioned full ZIP workflow for text data, original photos, OCR drafts, preprocessing recipes and valid processed previews.
-- Full ZIP integrity is checked by size, SHA-256, ZIP CRC, format version and visual-source mapping before browser data can change.
-- Visual IndexedDB stores and text storage roll back together if application fails.
-
 ## Verification state
 
 - Documentation verification passed.
@@ -130,14 +127,15 @@ Last updated: 2026-07-13
 
 ## Next execution target
 
-1. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
-2. Run the live golden quiz generator on one complete Hebrew source pack, review it in the quality screen and promote an approved candidate to permanent fixtures.
-3. Build local-first global search v2 now that the critical browser flows are stable.
+1. Finish CI verification and browser inspection for local-first global search v2.
+2. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
+3. Run the live golden quiz generator on one complete Hebrew source pack, review it in the quality screen and promote an approved candidate to permanent fixtures.
 4. Add audio transcription using the same source-draft-review-apply contract.
 5. Add deeper multi-page browser coverage for page reorder, partial OCR failure and page-level ZIP restore.
 
 ## Blockers
 
-- Code, contracts, deterministic evaluations, typecheck, lint, production build and critical Chromium E2E pass.
+- Existing code, contracts, deterministic evaluations, typecheck, lint, production build and critical Chromium E2E pass.
+- Global search v2 is implemented but not yet claimed as verified until its branch CI passes.
 - Live OCR quality still requires a private real-photo validation pack.
 - Golden quiz generation is structurally enforced and deterministically evaluated, but live model quality still requires a reviewed generation from a real Hebrew source pack.
