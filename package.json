@@ -16,6 +16,7 @@
     "eval:json": "node scripts/run-evals.mjs --manifest evals/manifest.json --json",
     "eval:golden-quiz": "node scripts/run-golden-quiz-evals.mjs",
     "eval:golden-quiz:json": "node scripts/run-golden-quiz-evals.mjs --json",
+    "e2e:critical": "node scripts/run-critical-browser-e2e-wrapper.mjs",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
     "verify:syllabus-review-contract": "node scripts/verify-syllabus-review-contract.mjs",
@@ -32,6 +33,7 @@
     "verify:visual-backup-contract": "node scripts/verify-visual-backup-contract.mjs",
     "verify:multipage-image-contract": "node scripts/verify-multipage-image-contract.mjs",
     "verify:golden-quiz-quality-contract": "node scripts/verify-golden-quiz-quality-contract.mjs",
+    "verify:critical-browser-e2e-contract": "node scripts/verify-critical-browser-e2e-contract.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {

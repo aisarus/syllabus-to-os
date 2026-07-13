@@ -18,6 +18,7 @@ const checks = [
   "verify:visual-backup-contract",
   "verify:multipage-image-contract",
   "verify:golden-quiz-quality-contract",
+  "verify:critical-browser-e2e-contract",
   "eval",
   "eval:golden-quiz",
   "typecheck",
