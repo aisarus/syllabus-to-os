@@ -9,6 +9,22 @@ const studio = await readFile(
   resolve(process.cwd(), "src/components/quiz-studio.tsx"),
   "utf8",
 );
+const experience = await readFile(
+  resolve(process.cwd(), "src/components/golden-quiz-experience.tsx"),
+  "utf8",
+);
+const feedback = await readFile(
+  resolve(process.cwd(), "src/lib/golden-quiz.ts"),
+  "utf8",
+);
+const generation = await readFile(
+  resolve(process.cwd(), "src/lib/server/golden-quiz-generation.ts"),
+  "utf8",
+);
+const apiRoute = await readFile(
+  resolve(process.cwd(), "src/routes/api/ai/generate-quiz.ts"),
+  "utf8",
+);
 const listRoute = await readFile(
   resolve(process.cwd(), "src/routes/app.quizzes.tsx"),
   "utf8",
@@ -48,16 +64,72 @@ for (const marker of [
   "Answers, correct options, and explanations remain hidden until submission",
   "Practice with immediate feedback",
 ]) {
-  requireMarker(studio, marker, `Quiz Studio is missing required behavior: ${marker}`);
+  requireMarker(studio, marker, `Advanced Quiz Studio is missing required behavior: ${marker}`);
 }
 
+for (const marker of [
+  "GOLDEN_QUIZ_MARKER",
+  "correctExplanation",
+  "memoryHint",
+  "optionRationales",
+  "promptTranslation",
+  "optionTranslations",
+  "formatGoldenQuizFeedback",
+  "parseGoldenQuizFeedback",
+]) {
+  requireMarker(feedback, marker, `Golden quiz feedback format is missing: ${marker}`);
+}
+
+for (const marker of [
+  "GOLDEN_QUIZ_PROMPT_VERSION",
+  "exactly FOUR answer options",
+  "plausible, same-category alternatives",
+  "why EACH distractor is wrong",
+  "memoryHint",
+  "optionRationales",
+  "promptTranslation",
+  "optionTranslations",
+  "dominant language of the source material",
+  "Use ONLY facts present in SOURCE CHUNKS",
+  "formatGoldenQuizFeedback",
+]) {
+  requireMarker(generation, marker, `Golden quiz AI generation contract is missing: ${marker}`);
+}
+
+for (const marker of [
+  "export function GoldenQuizExperience",
+  "deterministicShuffle",
+  "parseGoldenQuizFeedback",
+  "hasQuizTranslation",
+  "setSelectedOriginalIndex",
+  "option.rationale",
+  "presented.feedback.memoryHint",
+  "border-emerald-500/60",
+  "border-red-500/60",
+  "store.recordAttempt",
+  "<QuizStudio quizId={quizId} />",
+  "Показать перевод",
+  "Следующий вопрос",
+]) {
+  requireMarker(experience, marker, `Golden quiz trainer is missing required behavior: ${marker}`);
+}
+
+requireMarker(
+  apiRoute,
+  "runGoldenQuizGeneration",
+  "Quiz generation API no longer uses the golden quiz generator.",
+);
 requireMarker(listRoute, "QuizLibrary", "The active quiz list route no longer uses QuizLibrary.");
-requireMarker(detailRoute, "QuizStudio", "The active quiz detail route no longer uses QuizStudio.");
+requireMarker(
+  detailRoute,
+  "GoldenQuizExperience",
+  "The active quiz detail route no longer opens the golden quiz trainer.",
+);
 
 if (failures.length) {
-  console.error("Quiz Studio contract verification failed:\n");
+  console.error("Golden quiz and Quiz Studio contract verification failed:\n");
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
 
-console.log("Quiz Studio v1 contract passed.");
+console.log("Golden bilingual quiz generation, trainer and advanced editor contract passed.");
