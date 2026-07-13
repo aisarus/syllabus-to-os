@@ -1,6 +1,6 @@
 # Lamdan — Current execution status
 
-Last updated: 2026-07-12
+Last updated: 2026-07-13
 
 ## Current milestone
 
@@ -30,30 +30,41 @@ Last updated: 2026-07-12
 - `P0-020 Create evaluation fixtures` — complete and verified.
 - `P0-021 Add durable image intake and OCR review` — complete and verified.
 - `P0-022 Validate live OCR and harden visual-source reliability` — in progress; lifecycle and backup honesty complete.
+- `P0-023 Add Quizlet-style cards and golden generated quizzes` — complete and verified.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
+
+### Two-sided flashcards
+
+- Replaced the default flashcard route with a real front/back study deck instead of permanently visible text fields.
+- Added a large two-sided card with a 3D flip, tap/click and Space-key interaction.
+- Added Previous, Next, Shuffle, Again and Know controls plus deck progress and completion states.
+- Kept course and topic filtering in the study experience.
+- Kept the existing spaced-repetition state through `store.reviewCard`.
+- Preserved bulk editing, CSV, source relinking and duplicate cleanup under a secondary Manage deck screen.
+
+### Golden generated quiz
+
+- Used the supplied archaeology trainer as the behavioral reference for the generation and practice contract.
+- Added a dedicated `golden-quiz-v1` source-grounded generation pipeline.
+- Required exactly four options, one correct answer, plausible same-category distractors, a rationale for every option, a correct-answer explanation and a memory hint.
+- Added Hebrew-first output with optional Russian prompt and option translations when the source and interface languages differ.
+- Kept source ID validation, rejected-ID reporting, uncited-item counts and no-guessing behavior.
+- Stored rich feedback as readable versioned Markdown inside the existing explanation field, avoiding a destructive local-data migration.
+- Added a trainer that shuffles questions and options without losing correctness, translations or rationales.
+- Added locked answer feedback, green correct state, red selected-wrong state, per-option rationales, memory hints and translation toggle.
+- Final scores are saved as quiz attempts.
+- Preserved the existing advanced question editor under a secondary Question editor screen.
+- Added permanent flashcard and golden-quiz product contracts to documentation and CI verification.
 
 ### Visual-source lifecycle and backup honesty
 
 - Added IndexedDB storage statistics for original images and OCR drafts.
 - Added explicit full-clear and orphan-pruning operations for browser-local visual data.
 - Added an application-level lifecycle janitor that removes image and OCR records after their material is deleted, reset or replaced by imported data.
-- Preserved the original visual-source creation timestamp when a source image is replaced.
-- Made the Data page show the number and total size of browser-local photographs and OCR drafts.
-- Made JSON backup limitations explicit: applied OCR text and relationships are exported, but original image blobs and separate OCR drafts are not yet included.
-- Made destructive JSON import explicitly clear current browser-local images and OCR drafts after confirmation.
-- Made full reset delete localStorage text data and IndexedDB visual data together.
-- Updated the core UI and OCR contracts so lifecycle deletion and backup disclosure cannot silently regress.
-
-### Durable image intake and reviewed OCR/HTR
-
-- OCR, handwriting and photographed mathematics are part of core universal intake and Material Workspace phases.
-- JPEG, PNG and WebP intake works through the shared queue.
-- Original images and OCR drafts are stored separately from approved searchable text.
-- Multimodal OCR/HTR has a strict server boundary and editable review workflow.
-- Reviewed regions can become normal material chunks only through an explicit apply action.
+- Made JSON backup limitations explicit and made destructive reset cover both localStorage and IndexedDB.
 
 ## Verification state
 
@@ -62,8 +73,8 @@ Last updated: 2026-07-12
 - Syllabus review and confirmation contract verification passed.
 - Course Workspace v1 contract verification passed.
 - Reliable Notes editor contract verification passed.
-- Flashcard Studio v1 contract verification passed.
-- Quiz Studio v1 contract verification passed.
+- Quizlet-style two-sided flashcard and management contract verification passed.
+- Golden bilingual quiz generation, trainer and advanced editor contract verification passed.
 - Core UI honesty and actionability contract verification passed.
 - Evaluation fixture coverage verification passed.
 - Durable image intake, OCR review, lifecycle cleanup and backup-honesty contract verification passed.
@@ -75,11 +86,14 @@ Last updated: 2026-07-12
 ## Next execution target
 
 1. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
-2. Save provider candidates and enforce the P0-020 CER, WER, critical-token, math-expression, line-order and abstention thresholds.
-3. Add image crop, rotation, deskew and contrast preparation for difficult phone photographs.
-4. Add region-coordinate overlays so selecting OCR text highlights the exact image area.
-5. Build a real visual backup format or cloud migration that includes original image blobs.
+2. Run the live golden quiz generator on one complete Hebrew course source pack and inspect distractor and rationale quality manually.
+3. Save golden-quiz candidates as a permanent quality evaluation set.
+4. Add image crop, rotation, deskew and contrast preparation for difficult phone photographs.
+5. Add region-coordinate overlays so selecting OCR text highlights the exact image area.
+6. Build a real visual backup format or cloud migration that includes original image blobs.
 
 ## Blockers
 
-- Code, contracts, typecheck, lint and production build pass, but real OCR quality is not yet verified because the repository intentionally contains no private student notebook photographs.
+- Code, contracts, deterministic evaluations, typecheck, lint and production build pass.
+- Live OCR quality still requires private real-photo validation.
+- Golden quiz generation is structurally enforced and build-verified, but model output quality still requires a live run against a real Hebrew source pack.
