@@ -6,136 +6,71 @@ Last updated: 2026-07-13
 
 **Milestone G — Validation and release readiness**
 
-## Task status
+Lamdan is a late MVP / early closed alpha. The core local-first source → review → study-output loop is implemented, but M1 is not yet proven on one complete real course.
 
-- `P0-001 Add continuous integration` — complete and verified.
-- `P0-002 Audit and normalize all active routes` — complete for the current shell.
-- `P0-003 Remove tracking-first product flows` — complete in primary navigation and the course workspace.
-- `P0-004 Create one shared intake service` — complete and verified.
-- `P0-005 Build multi-file upload queue` — complete and verified on Dashboard and Materials.
-- `P0-006 Add duplicate detection` — complete and verified across exact, likely, queue and legacy upload paths.
-- `P0-007 Add intake review and correction` — complete and verified.
-- `P0-008 Replace material detail with a true workspace` — complete and verified.
-- `P0-009 Add chunk editing tools` — complete and verified.
-- `P0-010 Add material output history` — complete and verified.
-- `P0-011 Connect AI actions to material selection` — complete and verified.
-- `P0-012 Upgrade AI draft review` — complete and verified.
-- `P0-013 Add AI trust and citation layer` — complete and verified.
-- `P0-014 Complete syllabus review and confirmation` — complete and verified.
-- `P0-015 Build Course Workspace v1` — complete and verified.
-- `P0-016 Upgrade Notes to a reliable editor` — complete and verified.
-- `P0-017 Add Flashcard Studio v1` — complete and verified.
-- `P0-018 Add Quiz Studio v1` — complete and verified.
-- `P0-019 Remove remaining fake and disconnected UI` — complete and verified.
-- `P0-020 Create evaluation fixtures` — complete and verified.
-- `P0-021 Add durable image intake and OCR review` — complete and verified.
+## Completed task state
+
+- `P0-001` through `P0-020` — complete and verified.
+- `P0-021 Durable image intake and OCR review` — complete and verified.
 - `P0-022A Image Preprocessing Workspace` — complete and verified; PR #28 CI passed.
 - `P0-022B OCR Region Overlay and Sync` — complete and verified; PR #29 CI passed.
 - `P0-022C Full Visual Backup and Restore` — complete and verified; PR #30 CI passed.
-- `P0-023 Add Quizlet-style cards and golden generated quizzes` — complete and verified.
-- `P1-001 Add multi-page image materials` — complete and verified; PR #31 CI passed.
-- `P1-002 Add golden quiz quality evaluation` — complete and verified; PR #32 CI passed.
-- `P1-003 Add critical browser end-to-end coverage` — complete and verified; PR #33 CI passed.
+- `P0-023 Quizlet-style cards and golden generated quizzes` — complete and verified.
+- `P1-001 Multi-page image materials` — complete and verified; PR #31 CI passed.
+- `P1-002 Golden quiz quality evaluation` — complete and verified; PR #32 CI passed.
+- `P1-003 Critical browser end-to-end coverage` — complete and verified; PR #33 CI passed.
 - `P1-004 Add local-first global search v2` — complete and verified; PR #34 CI passed.
+- `P1-005 Store persistence and source-integrity hardening` — complete in the current branch.
 
-`STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
+`TASKS.md` is now the canonical task ledger and no longer leaves shipped P0 work marked as not started.
 
-## Completed in the latest execution pass
+## Completed in the current execution pass
 
-### Local-first global search v2
+### Honest browser-local persistence
 
-- Replaced insertion-order substring search with deterministic weighted ranking across course structure, materials, page-aware chunks, notes, both flashcard sides, quizzes, answer options, explanations, assignments and presentation slides.
-- Exact titles, title prefixes, course numbers and tags rank above full-text body matches while source chunks and notes remain first-class results.
-- All unquoted terms are required; quoted text is kept as an ordered phrase.
-- Added Unicode NFKD normalization, punctuation folding and Hebrew niqqud removal without sending content to a server.
-- Added match-aware snippets centered around the strongest field instead of always showing the beginning of a document.
-- Added safe title and snippet highlighting, matched-field labels, source material names and page numbers.
-- Added URL-backed query, content-type scope and course filter state so refresh, back and forward preserve the search.
-- Added `/` keyboard focus, clear and reset actions, result counts by content type and explicit local-search behavior.
-- Added deterministic evaluations for Hebrew normalization, exact-title ranking, phrase order, required terms, course isolation, flashcard backs, page metadata, highlighting and stable ordering.
-- Added a permanent `verify:global-search-v2-contract` gate and CI evaluation step.
+- Added a workspace persistence guard that compares current in-memory state with the exact `lamdan.data.v1` browser snapshot after every store update.
+- A failed or quota-blocked write now produces a persistent bilingual warning instead of allowing the user to trust the tab silently.
+- The warning offers an immediate retry, a non-destructive emergency JSON export and a link to Data management.
+- The existing Notes editor now receives a thrown save failure through a compatibility wrapper, so its current `try/catch` displays `Save failed` instead of `Saved` when localStorage did not accept the update.
+- The v1 localStorage schema and all existing mutator call sites remain compatible.
 
-### Critical browser end-to-end coverage
+### Source-reference integrity during OCR changes
 
-- Added a dependency-free Chromium runner that starts the production preview and drives the browser through the Chrome DevTools Protocol.
-- Added isolated browser contexts for every scenario so localStorage, IndexedDB, navigation, downloads and confirmation dialogs are exercised as they are in the real app.
-- Verified the Materials library opens the non-nested material detail route and renders the stored source text.
-- Verified a locally stored image can receive a manual OCR draft, save it, apply it to the material, create source chunks and survive a full reload.
-- Verified the default flashcard experience hides the answer, flips through the real accessible control and persists the review action.
-- Verified the golden quiz trainer preserves the correct option through shuffling, shows the grounded rationale and stores a completed attempt.
-- Verified a full visual ZIP can be downloaded, all local text and image data can be cleared, and the archive can restore both the material and its original IndexedDB image.
-- Added bounded execution so a stuck browser process cannot hold CI indefinitely.
-- Added DOM, console, Chrome, preview and screenshot diagnostics for failed browser scenarios.
-- Added a permanent `verify:critical-browser-e2e-contract` gate and a real Chromium CI step.
+- Added deterministic chunk matching by section, page, order, title, text and positional fallback.
+- Normal OCR replacement preserves old chunk ids whenever the source region still represents the same logical content.
+- A lifecycle repair pass catches legacy and multi-page paths that already created replacement ids and remaps notes, flashcards, quiz questions and presentation slides.
+- References to genuinely removed chunks are pruned instead of remaining dangling.
+- Added pure deterministic evaluations for stable-id replacement, legacy remapping, slide references and storage quota failure.
 
-### Golden quiz quality evaluation
+### Live OCR validation runner
 
-- Added category-level automatic scoring instead of one opaque quality percentage.
-- Added separate structure, source-support, distractor, rationale, translation, memory-hint and answer-balance scores.
-- Added hard checks for exactly four unique options, a valid correct index, existing source chunk ids and source-supported numbers and dates.
-- Added detection of meta-options, placeholder options, answer-length clues, weak rationales, contradiction in the correct rationale, missing translations and answer-revealing hints.
-- Kept semantic-category, answer-observability and translation-polarity heuristics as visible manual-review flags rather than pretending they are deterministic failures.
-- Added a quality-review route linked from every quiz.
-- Added per-question manual rubrics for clarity, distractor plausibility, factual correctness, rationale quality, translation quality, difficulty and source support.
-- Added approve, reject and needs-edit decisions with reviewer comments stored locally.
-- Added versioned candidate export so a reviewed live result can later become a permanent regression fixture.
-- Added five deterministic fixture domains: Hebrew archaeology, social science, information studies, mixed Hebrew/Russian and Israeli dates/numbers.
-- Added a deliberately bad negative control for every domain and made CI fail if one of them passes.
-- Added `eval:golden-quiz`, JSON reporting, permanent contract verification and reusable failure diagnostics to CI.
-- Recorded fixtures validate the evaluation system; they are not presented as proof that a fresh live-model generation was manually approved.
+- Added `npm run eval:ocr:live` for a private/licensed real-photo pack.
+- The runner calls the deployed `/api/ai/ocr-image` route, records model and prompt metadata, writes candidates outside git and executes the existing OCR thresholds.
+- Private assets remain outside the repository.
 
-### Multi-page image materials
+### Documentation repair
 
-- Added a separate intake choice for keeping photographs as individual materials or combining them into one ordered image material.
-- Added durable page metadata with stable page ids, file fingerprints, status, language, ordering and reload-safe IndexedDB sources.
-- Added page add, replace, confirmed delete, drag-and-drop reorder and keyboard-friendly up/down reorder controls.
-- Added independent image preprocessing, source selection, OCR/HTR draft, region overlay and manual correction for every page.
-- Added OCR for one page and sequential OCR for all unfinished pages with cancellation and independent failure states.
-- Preserved partial success: one failed image does not remove successful pages or their reviewed drafts.
-- Added explicit application of one page or all reviewed pages; unreviewed OCR is never promoted to searchable source text.
-- Added stable page-aware material chunks with page number and visual page identity encoded in the source section.
-- Reindex page numbers after page reorder or deletion without losing stable source identity.
-- Added page-level duplicate detection for the current batch and previously stored multi-page materials.
-- Updated lifecycle pruning so parent materials and page-level visual ids remain valid while orphaned IndexedDB records are still removed.
-- Extended full ZIP export, validation, merge blocking and restore to original page images, page OCR drafts, preprocessing recipes and processed previews.
-- Added cancellable OCR requests and a permanent `verify:multipage-image-contract` gate to local checks and CI.
+- Replaced the stale checkbox backlog with a canonical completed-history and active-validation sequence.
+- Removed the old `P0-021` identity collision by reserving it for durable OCR and naming the one-course pilot `P1-008`.
+- Added an executable `PILOT.md` and private OCR validation guide.
 
 ## Verification state
 
-- Documentation verification passed.
-- Selected-source AI contract verification passed.
-- Syllabus review and confirmation contract verification passed.
-- Course Workspace v1 contract verification passed.
-- Reliable Notes editor contract verification passed.
-- Quizlet-style two-sided flashcard and management contract verification passed.
-- Golden bilingual quiz generation, trainer and advanced editor contract verification passed.
-- Golden quiz category scoring, negative controls, manual review and candidate export contract verification passed.
-- Golden archaeology, social science, information studies, mixed-language and dates/numbers quality fixtures passed; every negative control failed as intended.
-- Ranked multilingual global search, URL state, content/course filters, contextual highlighting and deterministic search evaluations passed.
-- Detail-route reachability contract verification passed.
-- Core UI honesty and actionability contract verification passed.
-- Evaluation fixture coverage verification passed.
-- Durable image intake, OCR review, lifecycle cleanup and backup-honesty contract verification passed.
-- Image preprocessing, selected-source OCR and Worker-backed large-image processing contract verification passed.
-- OCR region-overlay synchronization, normalized coordinates and safe visual-source binding contract verification passed.
-- Full visual backup, integrity validation, page-level source coverage, previewed conflict handling and rollback contract verification passed.
-- Multi-page image intake, page-aware OCR/preprocessing, partial retry, cancellation, explicit apply and backup contract verification passed.
-- Critical material, manual OCR, flashcard, golden quiz and full visual backup flows passed in real headless Chromium.
-- Deterministic syllabus, grounding, multilingual and OCR evaluation suites passed.
-- TypeScript passed.
-- ESLint passed.
-- Production build passed.
+- Store persistence and source-integrity deterministic evaluations pass locally.
+- Private OCR runner help/argument path executes locally.
+- The critical browser end-to-end gate remains wired to real bounded Chromium execution in CI.
+- Existing CI still needs to complete on the branch for all repository contracts, evaluation suites, TypeScript, ESLint, production build and critical Chromium E2E.
 
-## Next execution target
+## Next execution targets
 
-1. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
-2. Run the live golden quiz generator on one complete Hebrew source pack, review it in the quality screen and promote an approved candidate to permanent fixtures.
-3. Add audio transcription using the same source-draft-review-apply contract.
-4. Add deeper multi-page browser coverage for page reorder, partial OCR failure and page-level ZIP restore.
-5. Add direct deep links from global search results into a selected source chunk or flashcard.
+1. `P1-006` — run the connected multimodal provider against the private real-photo pack.
+2. `P1-007` — generate and manually approve one golden quiz from a complete Hebrew source pack.
+3. `P1-008` — run the complete one-course closed personal pilot.
+4. `P1-009` — add page reorder, partial OCR failure and page-level restore browser scenarios.
+5. `P1-010` — add audio transcription only after M1 validation.
 
-## Blockers
+## External blockers
 
-- Code, contracts, deterministic evaluations, ranked global search, typecheck, lint, production build and critical Chromium E2E pass.
-- Live OCR quality still requires a private real-photo validation pack.
-- Golden quiz generation is structurally enforced and deterministically evaluated, but live model quality still requires a reviewed generation from a real Hebrew source pack.
+- Live OCR quality cannot be measured without the four private/licensed photos and a reachable deployment with the AI provider configured.
+- Live golden quiz quality cannot be approved without a complete legally usable Hebrew source pack.
+- M1 remains unachieved until the one-course pilot passes.

@@ -16,6 +16,11 @@ dist-ssr
 .nitro
 *.local
 
+# Private evaluation assets and generated candidates
+private-ocr-assets/
+private-eval-candidates/
+critical-e2e-artifacts/
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

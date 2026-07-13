@@ -10,9 +10,10 @@ Read the project contracts before implementation:
 
 - `AGENTS.md` — repository and agent rules;
 - `ROADMAP.md` — long-term product roadmap;
-- `TASKS.md` — ordered P0 implementation tasks;
+- `TASKS.md` — canonical completed history and active task sequence;
 - `DESIGN_SYSTEM.md` — permanent visual and UX rules;
-- `STATUS.md` — current execution status and blockers.
+- `STATUS.md` — current evidence and blockers;
+- `PILOT.md` — one-course release-validation script.
 
 ## Local setup
 
@@ -31,13 +32,27 @@ Before committing a task, run:
 npm run check
 ```
 
-That command verifies the documentation contract, TypeScript, ESLint and the production build. GitHub Actions runs the same quality gates for pull requests and pushes to `main`.
+That command verifies documentation alignment, permanent product contracts, deterministic evaluation suites, TypeScript, ESLint and the production build. GitHub Actions additionally runs the critical real-Chromium flows for pull requests and pushes to `main`.
 
-Individual checks are also available:
+Useful focused checks:
 
 ```bash
 npm run verify:docs
+npm run eval:store-safety
+npm run eval:ocr
 npm run typecheck
 npm run lint
 npm run build
 ```
+
+## Private live OCR validation
+
+Real OCR quality is measured against private or licensed photos rather than committed course material:
+
+```bash
+npm run eval:ocr:live -- \
+  --base-url https://YOUR-LAMDAN-PREVIEW \
+  --asset-dir ./private-ocr-assets
+```
+
+See `docs/LIVE_OCR_VALIDATION.md` for the required filenames, privacy rules and failure categories.
