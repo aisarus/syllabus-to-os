@@ -34,10 +34,27 @@ Last updated: 2026-07-13
 - `P0-022C Full Visual Backup and Restore` — complete and verified; PR #30 CI passed.
 - `P0-023 Add Quizlet-style cards and golden generated quizzes` — complete and verified.
 - `P1-001 Add multi-page image materials` — complete and verified; PR #31 CI passed.
+- `P1-002 Add golden quiz quality evaluation` — complete and verified; PR #32 CI passed.
 
 `STATUS.md` is the operational progress source when the detailed checkbox in `TASKS.md` has not yet been safely rewritten.
 
 ## Completed in the latest execution pass
+
+### Golden quiz quality evaluation
+
+- Added category-level automatic scoring instead of one opaque quality percentage.
+- Added separate structure, source-support, distractor, rationale, translation, memory-hint and answer-balance scores.
+- Added hard checks for exactly four unique options, a valid correct index, existing source chunk ids and source-supported numbers and dates.
+- Added detection of meta-options, placeholder options, answer-length clues, weak rationales, contradiction in the correct rationale, missing translations and answer-revealing hints.
+- Kept semantic-category, answer-observability and translation-polarity heuristics as visible manual-review flags rather than pretending they are deterministic failures.
+- Added a quality-review route linked from every quiz.
+- Added per-question manual rubrics for clarity, distractor plausibility, factual correctness, rationale quality, translation quality, difficulty and source support.
+- Added approve, reject and needs-edit decisions with reviewer comments stored locally.
+- Added versioned candidate export so a reviewed live result can later become a permanent regression fixture.
+- Added five deterministic fixture domains: Hebrew archaeology, social science, information studies, mixed Hebrew/Russian and Israeli dates/numbers.
+- Added a deliberately bad negative control for every domain and made CI fail if one of them passes.
+- Added `eval:golden-quiz`, JSON reporting, permanent contract verification and reusable failure diagnostics to CI.
+- Recorded fixtures validate the evaluation system; they are not presented as proof that a fresh live-model generation was manually approved.
 
 ### Multi-page image materials
 
@@ -55,44 +72,22 @@ Last updated: 2026-07-13
 - Extended full ZIP export, validation, merge blocking and restore to original page images, page OCR drafts, preprocessing recipes and processed previews.
 - Added cancellable OCR requests and a permanent `verify:multipage-image-contract` gate to local checks and CI.
 
-### Two-sided flashcards
+### Two-sided flashcards and golden generated quiz
 
-- Replaced the default flashcard route with a real front/back study deck instead of permanently visible text fields.
-- Added a large two-sided card with a 3D flip, tap/click and Space-key interaction.
-- Added Previous, Next, Shuffle, Again and Know controls plus deck progress and completion states.
-- Kept course and topic filtering in the study experience.
-- Kept the existing spaced-repetition state through `store.reviewCard`.
-- Preserved bulk editing, CSV, source relinking and duplicate cleanup under a secondary Manage deck screen.
+- The default flashcard route uses a real front/back study deck rather than permanently visible text fields.
+- Previous, Next, Shuffle, Again, Know and due-review controls preserve the existing spaced-repetition state.
+- Bulk editing, CSV, source relinking and duplicate cleanup remain under Manage deck.
+- Golden quiz generation requires exactly four options, one correct answer, plausible distractors, a rationale for every option, a correct-answer explanation, a memory hint and source ids.
+- Hebrew-first output can include Russian prompt and option translations.
+- The trainer preserves correctness while shuffling questions and options and saves final attempts.
 
-### Golden generated quiz
+### Image preprocessing, OCR review and backup
 
-- Used the supplied archaeology trainer as the behavioral reference for the generation and practice contract.
-- Added a dedicated `golden-quiz-v1` source-grounded generation pipeline.
-- Required exactly four options, one correct answer, plausible same-category distractors, a rationale for every option, a correct-answer explanation and a memory hint.
-- Added Hebrew-first output with optional Russian prompt and option translations when the source and interface languages differ.
-- Kept source ID validation, rejected-ID reporting, uncited-item counts and no-guessing behavior.
-- Stored rich feedback as readable versioned Markdown inside the existing explanation field, avoiding a destructive local-data migration.
-- Added a trainer that shuffles questions and options without losing correctness, translations or rationales.
-- Added locked answer feedback, green correct state, red selected-wrong state, per-option rationales, memory hints and translation toggle.
-- Final scores are saved as quiz attempts.
-- Preserved the existing advanced question editor under a secondary Question editor screen.
-- Added permanent flashcard and golden-quiz product contracts to documentation and CI verification.
-
-### Image preprocessing and OCR review
-
-- Added a non-destructive photo workspace with 90° and fine rotation, crop, automatic/manual deskew, grayscale, brightness, contrast, threshold and optional sharpening.
-- Kept the original source blob immutable and stored the versioned recipe and one derived preview in separate IndexedDB stores.
-- Made original/processed OCR source selection explicit, reload-safe and fail-safe.
-- Added synchronized region selection, hover, zoom, pan, drawing, movement and resizing over the exact source raster used by OCR.
-- Refuse to display stale coordinates over a mismatched crop, rotation or processed preview.
-
-### Full visual backup and restore
-
-- Added a versioned ZIP workflow for text data, original photos, OCR drafts, preprocessing recipes and valid processed previews.
-- Every declared payload is validated by size, SHA-256 checksum, ZIP CRC, format version and visual-source mapping before current browser data can change.
-- The Data page distinguishes lightweight JSON from full ZIP and provides verified preview, warning/conflict list, safe merge and replace-everything.
+- Added non-destructive rotation, crop, deskew, grayscale, brightness, contrast, threshold and sharpening with separate original, recipe and derived preview storage.
+- Added synchronized region selection, hover, zoom, pan, drawing, movement and resizing over the exact image used by OCR.
+- Added a versioned full ZIP workflow for text data, original photos, OCR drafts, preprocessing recipes and valid processed previews.
+- Full ZIP integrity is checked by size, SHA-256, ZIP CRC, format version and visual-source mapping before browser data can change.
 - Visual IndexedDB stores and text storage roll back together if application fails.
-- Multi-page child images and drafts now participate in the same backup and conflict rules as top-level image materials.
 
 ## Verification state
 
@@ -103,6 +98,8 @@ Last updated: 2026-07-13
 - Reliable Notes editor contract verification passed.
 - Quizlet-style two-sided flashcard and management contract verification passed.
 - Golden bilingual quiz generation, trainer and advanced editor contract verification passed.
+- Golden quiz category scoring, negative controls, manual review and candidate export contract verification passed.
+- Golden archaeology, social science, information studies, mixed-language and dates/numbers quality fixtures passed; every negative control failed as intended.
 - Detail-route reachability contract verification passed.
 - Core UI honesty and actionability contract verification passed.
 - Evaluation fixture coverage verification passed.
@@ -118,15 +115,15 @@ Last updated: 2026-07-13
 
 ## Next execution target
 
-1. P1: add golden-quiz quality evaluation with category scores, negative controls and saved review candidates.
-2. P1: add critical browser end-to-end tests for material, photo/OCR, flashcard, quiz and full-backup flows.
-3. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
-4. Run the live golden quiz generator on one complete Hebrew course source pack and inspect distractor and rationale quality manually.
-5. Build local-first global search v2 after the critical flow tests are stable.
+1. P1: add critical browser end-to-end tests for material, photo/OCR, flashcard, quiz and full-backup flows.
+2. Run the connected multimodal provider against a private real-photo pack: printed Hebrew, Hebrew handwriting, mixed RTL/LTR and photographed mathematics.
+3. Run the live golden quiz generator on one complete Hebrew source pack, review it in the new quality screen and promote an approved candidate to permanent fixtures.
+4. Build local-first global search v2 after the critical flow tests are stable.
+5. Add audio transcription using the same source-draft-review-apply contract.
 
 ## Blockers
 
 - Code, contracts, deterministic evaluations, typecheck, lint and production build pass.
-- Live OCR quality still requires private real-photo validation.
-- Golden quiz generation is structurally enforced and build-verified, but model output quality still requires a live run against a real Hebrew source pack.
-- A local browser-level interaction pass still needs to be repeated on a workstation browser; this execution environment cannot install Chromium from the Playwright CDN.
+- Live OCR quality still requires a private real-photo validation pack.
+- Golden quiz generation is structurally enforced and deterministically evaluated, but live model quality still requires a reviewed generation from a real Hebrew source pack.
+- A browser-level Playwright pass requires a Chromium installation available to CI or a workstation; the current execution environment previously failed to download Chromium from the Playwright CDN.
