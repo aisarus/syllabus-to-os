@@ -14,6 +14,14 @@ export type GoldenQuizReviewCategory =
   | "translationQuality"
   | "difficulty"
   | "sourceSupport";
+export type GoldenQuizAutomaticCategory =
+  | "structure"
+  | "sourceSupport"
+  | "distractors"
+  | "rationales"
+  | "translation"
+  | "memoryHint"
+  | "answerBalance";
 
 export interface GoldenQuizQualitySource {
   id: string;
@@ -29,14 +37,7 @@ export interface GoldenQuizQualityIssue {
 }
 
 export interface GoldenQuizCategoryScore {
-  category:
-    | "structure"
-    | "sourceSupport"
-    | "distractors"
-    | "rationales"
-    | "translation"
-    | "memoryHint"
-    | "answerBalance";
+  category: GoldenQuizAutomaticCategory;
   score: number;
   passed: number;
   total: number;
@@ -80,6 +81,11 @@ export interface GoldenQuizEvaluationCandidate {
   exportedAt: string;
 }
 
+interface CheckAccumulator {
+  category: GoldenQuizAutomaticCategory;
+  automaticPass: boolean;
+}
+
 const REVIEW_CATEGORIES: GoldenQuizReviewCategory[] = [
   "clarity",
   "distractorPlausibility",
@@ -114,24 +120,23 @@ export function evaluateGoldenQuizQuality(input: {
   requireRussianTranslation?: boolean;
 }): GoldenQuizQualityReport {
   const sourceById = new Map(input.sources.map((source) => [source.id, source.text]));
-  const questionReports = input.questions.map((question) =>
+  const questions = input.questions.map((question) =>
     evaluateQuestion(question, sourceById, input.requireRussianTranslation === true),
   );
-  const categories = mergeCategoryScores(questionReports.flatMap((report) => report.categories));
-  const issues = questionReports.flatMap((report) => report.issues);
+  const categories = mergeCategoryScores(questions.flatMap((question) => question.categories));
+  const issues = questions.flatMap((question) => question.issues);
   const score = weightedCategoryScore(categories);
-  const pass =
-    input.questions.length > 0 &&
-    issues.every((issue) => issue.severity !== "error") &&
-    categories.every((category) => category.score >= categoryThreshold(category.category)) &&
-    score >= 0.86;
   return {
     version: GOLDEN_QUIZ_QUALITY_VERSION,
     quizId: input.quizId,
     score,
-    pass,
+    pass:
+      questions.length > 0 &&
+      issues.every((issue) => issue.severity !== "error") &&
+      categories.every((category) => category.score >= categoryThreshold(category.category)) &&
+      score >= 0.86,
     categories,
-    questions: questionReports,
+    questions,
     issues,
     generatedAt: Date.now(),
   };
@@ -153,7 +158,7 @@ export function createGoldenQuizEvaluationCandidate(input: {
       topicId: input.quiz.topicId,
       materialId: input.quiz.materialId,
     },
-    questions: JSON.parse(JSON.stringify(input.questions)) as QuizQuestion[],
+    questions: deepClone(input.questions),
     sources: input.sources.map((source) => ({ ...source })),
     automaticReport: evaluateGoldenQuizQuality({
       quizId: input.quiz.id,
@@ -186,9 +191,9 @@ export function defaultGoldenQuizManualReview(
 export function loadGoldenQuizManualReviews(quizId?: string): GoldenQuizManualReview[] {
   if (typeof localStorage === "undefined") return [];
   try {
-    const parsed = JSON.parse(localStorage.getItem(GOLDEN_QUIZ_REVIEW_STORAGE_KEY) || "[]");
-    if (!Array.isArray(parsed)) return [];
-    const reviews = parsed.filter(isManualReview).map(normalizeManualReview);
+    const value = JSON.parse(localStorage.getItem(GOLDEN_QUIZ_REVIEW_STORAGE_KEY) || "[]");
+    if (!Array.isArray(value)) return [];
+    const reviews = value.filter(isManualReview).map(normalizeManualReview);
     return quizId ? reviews.filter((review) => review.quizId === quizId) : reviews;
   } catch {
     return [];
@@ -198,8 +203,7 @@ export function loadGoldenQuizManualReviews(quizId?: string): GoldenQuizManualRe
 export function saveGoldenQuizManualReview(review: GoldenQuizManualReview): void {
   if (typeof localStorage === "undefined") return;
   const normalized = normalizeManualReview(review);
-  const existing = loadGoldenQuizManualReviews();
-  const next = existing.filter(
+  const next = loadGoldenQuizManualReviews().filter(
     (item) => !(item.quizId === normalized.quizId && item.questionId === normalized.questionId),
   );
   next.push({ ...normalized, reviewedAt: Date.now() });
@@ -221,132 +225,105 @@ function evaluateQuestion(
   sourceById: Map<string, string>,
   requireRussianTranslation: boolean,
 ): GoldenQuizQuestionQuality {
+  const checks: CheckAccumulator[] = [];
   const issues: GoldenQuizQualityIssue[] = [];
-  const checks = new Map<GoldenQuizCategoryScore["category"], boolean[]>();
-  const addCheck = (
-    category: GoldenQuizCategoryScore["category"],
-    pass: boolean,
+  const add = (
+    category: GoldenQuizAutomaticCategory,
+    passed: boolean,
     code: string,
     severity: GoldenQuizIssueSeverity,
     message: string,
     optionIndex?: number,
   ) => {
-    const values = checks.get(category) ?? [];
-    values.push(pass);
-    checks.set(category, values);
-    if (!pass) issues.push({ code, severity, message, questionId: question.id, optionIndex });
+    // Manual-only heuristics create reviewer work without pretending to be deterministic failures.
+    checks.push({ category, automaticPass: severity === "manual" ? true : passed });
+    if (!passed) {
+      issues.push({ code, severity, message, questionId: question.id, optionIndex });
+    }
   };
 
   const options = Array.isArray(question.options) ? question.options : [];
   const normalizedOptions = options.map(normalizeComparable);
   const feedback = parseGoldenQuizFeedback(question.explanation, options.length);
   const correctAnswer = options[question.correctIndex] ?? "";
-  const supportedSources = question.sourceChunkIds
+  const sourceText = question.sourceChunkIds
     .map((sourceId) => sourceById.get(sourceId))
-    .filter((text): text is string => Boolean(text));
-  const joinedSources = supportedSources.join("\n");
+    .filter((value): value is string => Boolean(value))
+    .join("\n");
 
-  addCheck("structure", options.length === 4, "option_count", "error", "Question must have exactly four options.");
-  addCheck(
-    "structure",
-    normalizedOptions.filter(Boolean).length === 4,
-    "empty_option",
-    "error",
-    "Every option must contain text.",
-  );
-  addCheck(
-    "structure",
-    new Set(normalizedOptions).size === 4,
-    "duplicate_option",
-    "error",
-    "Options must be unique after normalization.",
-  );
-  addCheck(
+  add("structure", options.length === 4, "option_count", "error", "Question must have exactly four options.");
+  add("structure", normalizedOptions.filter(Boolean).length === 4, "empty_option", "error", "Every option must contain text.");
+  add("structure", new Set(normalizedOptions).size === 4, "duplicate_option", "error", "Options must be unique after normalization.");
+  add(
     "structure",
     Number.isInteger(question.correctIndex) && question.correctIndex >= 0 && question.correctIndex < 4,
     "correct_index",
     "error",
     "Correct answer index is invalid.",
   );
-  addCheck(
-    "structure",
-    question.prompt.trim().length >= 8,
-    "prompt_too_short",
-    "warning",
-    "Question prompt is too short to be unambiguous.",
-  );
+  add("structure", question.prompt.trim().length >= 8, "prompt_too_short", "warning", "Question prompt is too short to be unambiguous.");
 
-  addCheck(
-    "sourceSupport",
-    question.sourceChunkIds.length > 0,
-    "missing_citation",
-    "error",
-    "Question has no source chunk reference.",
-  );
-  addCheck(
+  add("sourceSupport", question.sourceChunkIds.length > 0, "missing_citation", "error", "Question has no source chunk reference.");
+  add(
     "sourceSupport",
     question.sourceChunkIds.every((sourceId) => sourceById.has(sourceId)),
     "unknown_citation",
     "error",
     "Question references a source chunk that does not exist.",
   );
-  addCheck(
-    "sourceSupport",
-    joinedSources.trim().length > 0,
-    "empty_source_scope",
-    "error",
-    "Referenced source text is unavailable.",
-  );
+  add("sourceSupport", sourceText.trim().length > 0, "empty_source_scope", "error", "Referenced source text is unavailable.");
   const answerTokens = meaningfulTokens(correctAnswer);
-  addCheck(
+  add(
     "sourceSupport",
-    answerTokens.length === 0 || answerTokens.some((token) => normalizeComparable(joinedSources).includes(token)),
+    answerTokens.length === 0 || answerTokens.some((token) => normalizeComparable(sourceText).includes(token)),
     "answer_not_observable",
     "manual",
     "The correct answer has weak lexical support in the selected sources; verify it manually.",
   );
-  const candidateNumbers = extractNumbers(
-    [question.prompt, ...options, feedback.correctExplanation, ...feedback.optionRationales].join(" "),
-  );
-  const sourceNumbers = new Set(extractNumbers(joinedSources));
-  addCheck(
+  const groundedNumberScope = [
+    question.prompt,
+    correctAnswer,
+    feedback.correctExplanation,
+    feedback.optionRationales[question.correctIndex] ?? "",
+  ].join(" ");
+  const sourceNumbers = new Set(extractNumbers(sourceText));
+  add(
     "sourceSupport",
-    candidateNumbers.every((number) => sourceNumbers.has(number)),
+    extractNumbers(groundedNumberScope).every((value) => sourceNumbers.has(value)),
     "unsupported_number",
     "error",
-    "A date or number in the question is absent from its selected sources.",
+    "A date or number in the grounded answer scope is absent from selected sources.",
   );
 
-  options.forEach((option, index) => {
-    const normalized = normalizeComparable(option);
-    addCheck(
+  options.forEach((option, optionIndex) => {
+    add(
       "distractors",
       !FORBIDDEN_OPTION_PATTERNS.some((pattern) => pattern.test(option)),
       "forbidden_meta_option",
       "error",
       "Avoid all/none-of-the-above options unless explicitly allowed.",
-      index,
+      optionIndex,
     );
-    addCheck(
+    const normalized = normalizeComparable(option);
+    add(
       "distractors",
       normalized.length >= 3 && !/^[a-dא-ד]$/i.test(normalized),
       "junk_option",
       "error",
       "Option looks like placeholder or junk text.",
-      index,
+      optionIndex,
     );
   });
   const lengths = options.map((option) => option.trim().length).filter((length) => length > 0);
   const median = medianValue(lengths);
-  const correctLength = correctAnswer.trim().length;
-  addCheck(
+  add(
     "distractors",
-    median === 0 || correctLength <= median * 1.8,
+    median === 0 || correctAnswer.trim().length <= median * 1.8,
     "correct_answer_length_clue",
     "warning",
     "Correct answer is much longer than the distractors.",
   );
-  addCheck(
+  add(
     "distractors",
     options.filter((option) => sameSurfaceCategory(option, correctAnswer)).length >= 3,
     "category_mismatch",
@@ -354,31 +331,19 @@ function evaluateQuestion(
     "Some distractors may not belong to the same semantic category as the answer.",
   );
 
-  addCheck(
-    "rationales",
-    feedback.optionRationales.length === 4,
-    "rationale_count",
-    "error",
-    "Every option needs an aligned rationale.",
-  );
-  feedback.optionRationales.forEach((rationale, index) => {
-    addCheck(
+  add("rationales", feedback.optionRationales.length === 4, "rationale_count", "error", "Every option needs an aligned rationale.");
+  feedback.optionRationales.forEach((rationale, optionIndex) => {
+    add(
       "rationales",
       rationale.trim().length >= 12 && !GENERIC_RATIONALES.some((pattern) => pattern.test(rationale.trim())),
       "weak_rationale",
       "warning",
       "Rationale must explain this exact option rather than only label it incorrect.",
-      index,
+      optionIndex,
     );
   });
-  addCheck(
-    "rationales",
-    feedback.correctExplanation.trim().length >= 16,
-    "weak_correct_explanation",
-    "warning",
-    "Correct-answer explanation is too short.",
-  );
-  addCheck(
+  add("rationales", feedback.correctExplanation.trim().length >= 16, "weak_correct_explanation", "warning", "Correct-answer explanation is too short.");
+  add(
     "rationales",
     !contradictionHeuristic(feedback.optionRationales[question.correctIndex] ?? ""),
     "correct_rationale_contradiction",
@@ -387,14 +352,8 @@ function evaluateQuestion(
   );
 
   const translationRequired = requireRussianTranslation || containsHebrew(question.prompt);
-  addCheck(
-    "translation",
-    !translationRequired || Boolean(feedback.promptTranslation?.trim()),
-    "missing_prompt_translation",
-    "warning",
-    "Hebrew-first question needs a Russian prompt translation.",
-  );
-  addCheck(
+  add("translation", !translationRequired || Boolean(feedback.promptTranslation?.trim()), "missing_prompt_translation", "warning", "Hebrew-first question needs a Russian prompt translation.");
+  add(
     "translation",
     !translationRequired || feedback.optionTranslations?.filter((value) => value.trim()).length === 4,
     "missing_option_translation",
@@ -402,46 +361,23 @@ function evaluateQuestion(
     "Hebrew-first question needs four Russian option translations.",
   );
   if (feedback.optionTranslations?.length === 4) {
-    const translatedCorrect = feedback.optionTranslations[question.correctIndex] ?? "";
-    addCheck(
+    add(
       "translation",
-      Boolean(translatedCorrect.trim()) && !looksLikeNegationMismatch(correctAnswer, translatedCorrect),
+      !looksLikeNegationMismatch(
+        correctAnswer,
+        feedback.optionTranslations[question.correctIndex] ?? "",
+      ),
       "translation_meaning_risk",
       "manual",
       "Correct-option translation may change polarity or meaning; verify manually.",
     );
   }
 
-  addCheck(
-    "memoryHint",
-    feedback.memoryHint.trim().length >= 8,
-    "missing_memory_hint",
-    "warning",
-    "Memory hint is missing or too short.",
-  );
-  addCheck(
-    "memoryHint",
-    !hintRevealsAnswer(feedback.memoryHint, correctAnswer),
-    "hint_reveals_answer",
-    "warning",
-    "Memory hint reveals the correct answer too literally.",
-  );
+  add("memoryHint", feedback.memoryHint.trim().length >= 8, "missing_memory_hint", "warning", "Memory hint is missing or too short.");
+  add("memoryHint", !hintRevealsAnswer(feedback.memoryHint, correctAnswer), "hint_reveals_answer", "warning", "Memory hint reveals the correct answer too literally.");
+  add("answerBalance", question.correctIndex >= 0 && question.correctIndex < 4, "answer_position_invalid", "error", "Correct answer position cannot be analyzed.");
 
-  const correctIndexDistributionSafe = question.correctIndex >= 0 && question.correctIndex < 4;
-  addCheck(
-    "answerBalance",
-    correctIndexDistributionSafe,
-    "answer_position_invalid",
-    "error",
-    "Correct answer position cannot be included in balance analysis.",
-  );
-
-  const categories = Array.from(checks.entries()).map(([category, values]) => ({
-    category,
-    score: proportion(values),
-    passed: values.filter(Boolean).length,
-    total: values.length,
-  }));
+  const categories = categoryScores(checks);
   return {
     questionId: question.id,
     score: weightedCategoryScore(categories),
@@ -450,8 +386,25 @@ function evaluateQuestion(
   };
 }
 
+function categoryScores(checks: CheckAccumulator[]): GoldenQuizCategoryScore[] {
+  return automaticCategories().map((category) => {
+    const values = checks.filter((check) => check.category === category);
+    const passed = values.filter((check) => check.automaticPass).length;
+    return { category, passed, total: values.length, score: values.length ? passed / values.length : 1 };
+  });
+}
+
 function mergeCategoryScores(scores: GoldenQuizCategoryScore[]): GoldenQuizCategoryScore[] {
-  const categories: GoldenQuizCategoryScore["category"][] = [
+  return automaticCategories().map((category) => {
+    const selected = scores.filter((score) => score.category === category);
+    const passed = selected.reduce((sum, score) => sum + score.passed, 0);
+    const total = selected.reduce((sum, score) => sum + score.total, 0);
+    return { category, passed, total, score: total ? passed / total : 1 };
+  });
+}
+
+function automaticCategories(): GoldenQuizAutomaticCategory[] {
+  return [
     "structure",
     "sourceSupport",
     "distractors",
@@ -460,16 +413,10 @@ function mergeCategoryScores(scores: GoldenQuizCategoryScore[]): GoldenQuizCateg
     "memoryHint",
     "answerBalance",
   ];
-  return categories.map((category) => {
-    const selected = scores.filter((score) => score.category === category);
-    const passed = selected.reduce((sum, score) => sum + score.passed, 0);
-    const total = selected.reduce((sum, score) => sum + score.total, 0);
-    return { category, passed, total, score: total > 0 ? passed / total : 1 };
-  });
 }
 
 function weightedCategoryScore(categories: GoldenQuizCategoryScore[]): number {
-  const weights: Record<GoldenQuizCategoryScore["category"], number> = {
+  const weights: Record<GoldenQuizAutomaticCategory, number> = {
     structure: 2,
     sourceSupport: 2.5,
     distractors: 2,
@@ -479,14 +426,10 @@ function weightedCategoryScore(categories: GoldenQuizCategoryScore[]): number {
     answerBalance: 0.5,
   };
   const total = categories.reduce((sum, category) => sum + weights[category.category], 0);
-  if (total === 0) return 0;
-  return (
-    categories.reduce((sum, category) => sum + category.score * weights[category.category], 0) /
-    total
-  );
+  return categories.reduce((sum, category) => sum + category.score * weights[category.category], 0) / total;
 }
 
-function categoryThreshold(category: GoldenQuizCategoryScore["category"]): number {
+function categoryThreshold(category: GoldenQuizAutomaticCategory): number {
   if (category === "structure" || category === "sourceSupport") return 1;
   if (category === "distractors" || category === "rationales") return 0.85;
   return 0.75;
@@ -516,12 +459,10 @@ function sameSurfaceCategory(left: string, right: string): boolean {
   const leftNumber = /^[-+]?\d/.test(left.trim());
   const rightNumber = /^[-+]?\d/.test(right.trim());
   if (leftNumber || rightNumber) return leftNumber === rightNumber;
-  const leftDate = /\b(?:19|20)\d{2}\b/.test(left);
-  const rightDate = /\b(?:19|20)\d{2}\b/.test(right);
-  if (leftDate || rightDate) return leftDate === rightDate;
-  const leftWords = meaningfulTokens(left).length;
-  const rightWords = meaningfulTokens(right).length;
-  return Math.abs(leftWords - rightWords) <= Math.max(3, Math.ceil(rightWords * 0.8));
+  return (
+    Math.abs(meaningfulTokens(left).length - meaningfulTokens(right).length) <=
+    Math.max(3, Math.ceil(meaningfulTokens(right).length * 0.8))
+  );
 }
 
 function contradictionHeuristic(value: string): boolean {
@@ -549,11 +490,7 @@ function medianValue(values: number[]): number {
   if (values.length === 0) return 0;
   const sorted = values.slice().sort((left, right) => left - right);
   const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
-}
-
-function proportion(values: boolean[]): number {
-  return values.length === 0 ? 1 : values.filter(Boolean).length / values.length;
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
 function isManualReview(value: unknown): value is GoldenQuizManualReview {
@@ -576,10 +513,7 @@ function normalizeManualReview(review: GoldenQuizManualReview): GoldenQuizManual
       REVIEW_CATEGORIES.map((category) => [category, clampReviewScore(review.scores[category])]),
     ) as Record<GoldenQuizReviewCategory, number>,
     comment: typeof review.comment === "string" ? review.comment.slice(0, 4000) : "",
-    reviewedAt:
-      typeof review.reviewedAt === "number" && Number.isFinite(review.reviewedAt)
-        ? review.reviewedAt
-        : Date.now(),
+    reviewedAt: Number.isFinite(review.reviewedAt) ? review.reviewedAt : Date.now(),
   };
 }
 
@@ -589,12 +523,18 @@ function clampReviewScore(value: unknown): number {
 }
 
 function safeFileName(value: string): string {
-  return value
-    .normalize("NFKC")
-    .replace(/[\\/:*?"<>|]+/g, "-")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 80) || "golden-quiz";
+  return (
+    value
+      .normalize("NFKC")
+      .replace(/[\\/:*?"<>|]+/g, "-")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 80) || "golden-quiz"
+  );
+}
+
+function deepClone<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 const STOP_WORDS = new Set([
@@ -602,8 +542,6 @@ const STOP_WORDS = new Set([
   "and",
   "for",
   "with",
-  "that",
-  "this",
   "what",
   "which",
   "как",
