@@ -2,18 +2,31 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [client, server, route, dialog, materialRoute, helpers, roadmap, tasks, status] =
-  await Promise.all([
-    read("src/lib/ai.ts"),
-    read("src/lib/server/study-pack-generation.ts"),
-    read("src/routes/api/ai/generate-study-pack.ts"),
-    read("src/components/study-pack-dialog.tsx"),
-    read("src/routes/app.materials_.$materialId.tsx"),
-    read("src/lib/study-pack.ts"),
-    read("ROADMAP.md"),
-    read("TASKS.md"),
-    read("STATUS.md"),
-  ]);
+const [
+  client,
+  server,
+  route,
+  dialog,
+  editor,
+  persistence,
+  materialRoute,
+  helpers,
+  roadmap,
+  tasks,
+  status,
+] = await Promise.all([
+  read("src/lib/ai.ts"),
+  read("src/lib/server/study-pack-generation.ts"),
+  read("src/routes/api/ai/generate-study-pack.ts"),
+  read("src/components/study-pack-dialog.tsx"),
+  read("src/components/study-pack-editor.tsx"),
+  read("src/lib/study-pack-persistence.ts"),
+  read("src/routes/app.materials_.$materialId.tsx"),
+  read("src/lib/study-pack.ts"),
+  read("ROADMAP.md"),
+  read("TASKS.md"),
+  read("STATUS.md"),
+]);
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
@@ -40,6 +53,7 @@ for (const marker of [
   "rejectedSourceChunkIds",
   "exactly four unique options",
   "Do not claim that completing the pack equals mastery",
+  "orientationSourceChunkIds = tracker.cite",
 ]) {
   requireMarker(server, marker, `Study Pack trust contract is missing: ${marker}`);
 }
@@ -56,12 +70,30 @@ for (const marker of [
   "Подготовить меня по этой лекции",
   "One source → a complete study session",
   "validateStudyPackDraft",
-  "buildStudyPackNoteContent",
-  'type: "flashcards"',
-  'type: "quiz"',
+  "persistStudyPack",
   "Ничего не сохранится без твоего подтверждения",
 ]) {
   requireMarker(dialog, marker, `Study Pack review/save flow is missing: ${marker}`);
+}
+
+for (const marker of [
+  "StudyPackEditor",
+  "Диагностические вопросы",
+  "question.options.map",
+  "correctIndex",
+]) {
+  requireMarker(editor, marker, `Study Pack editor is missing: ${marker}`);
+}
+
+for (const marker of [
+  "persistStudyPack",
+  "updateData((data)",
+  "notes: [note, ...data.notes]",
+  "flashcards: [...data.flashcards, ...flashcards]",
+  "quizQuestions: [...data.quizQuestions, ...questions]",
+  "materialOutputs: [...outputs, ...data.materialOutputs]",
+]) {
+  requireMarker(persistence, marker, `Atomic Study Pack persistence is missing: ${marker}`);
 }
 
 requireMarker(
