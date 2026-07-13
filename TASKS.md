@@ -1,975 +1,217 @@
-# Lamdan — P0 Implementation Tasks
+# Lamdan — P0 Implementation Tasks and Current Backlog
 
-This file turns the P0 section of `ROADMAP.md` into an executable sequence of atomic, testable work.
+This is the canonical executable task ledger for Lamdan. Product intent lives in `ROADMAP.md`; operational evidence and blockers live in `STATUS.md`.
 
-The goal is not to build every planned feature. The goal is to make one real Israeli university course work end to end:
+The old task file accumulated stale unchecked tasks after the code had already shipped. This version intentionally keeps completed history compact and gives full acceptance criteria only to active work.
 
-```text
-Import syllabus
-→ create course structure
-→ upload materials
-→ inspect extracted content
-→ generate note, flashcards and quiz
-→ review and save outputs
-→ return later with all source relationships intact
-```
-
-## Task status legend
+## Status legend
 
 - `[ ]` not started
 - `[~]` in progress
-- `[x]` complete
-- `[!]` blocked
-
-## Priority legend
-
-- `P0` blocks the first useful product milestone
-- `P1` useful immediately after the core loop works
-- `P2` deferred
-
-## Size legend
-
-- `S` small and isolated
-- `M` several files or one complete interaction
-- `L` major vertical slice
-- `XL` must be split before implementation
+- `[x]` complete and verified
+- `[!]` blocked by an external input or environment
 
 ## Global definition of done
 
-Every task must satisfy all applicable requirements:
+Every completed task must satisfy the applicable requirements:
 
-- Works with real store data; no fallback sample content.
-- Data survives page reload.
-- Empty, loading, partial, error and success states are honest.
-- User-generated and imported content is not silently translated or overwritten.
-- AI output remains an editable draft until explicit save.
-- Material, course, topic and chunk relationships are preserved.
-- RU and EN application chrome remain functional.
-- Hebrew and mixed RTL/LTR content remain readable.
-- Desktop and mobile layouts remain usable.
-- No new tracker, timer, streak or vanity-progress UI is introduced.
-- No illustrated-room or fixed-canvas visual system is reintroduced.
-- `npm run check` passes, or any pre-existing failure is explicitly documented.
-- Modified files and manual verification steps are reported.
-
-## Execution rules
-
-1. Work in the listed order unless a dependency is explicitly satisfied another way.
-2. One task should create one independently testable behavior.
-3. Do not combine architecture rewrites with feature delivery.
-4. Preserve the current localStorage schema unless a task explicitly adds a versioned migration.
-5. Before changing a route, inspect its current implementation and reuse working store and AI code.
-6. Keep `DESIGN_SYSTEM.md`, `ROADMAP.md` and `AGENTS.md` authoritative.
-7. Update this file after completing a task.
+- real store data, no fallback demo content;
+- browser reload does not silently lose approved work;
+- AI and OCR outputs remain editable drafts until explicit save/apply;
+- `materialId` and `sourceChunkIds` relationships remain valid;
+- RU/EN chrome and mixed Hebrew/RTL content remain usable;
+- desktop and mobile layouts remain operable;
+- `npm run check` passes;
+- browser-critical behavior receives E2E coverage when it cannot be proven deterministically;
+- documentation names remaining manual or private-data validation honestly.
 
 ---
 
-# Milestone A — Stable product foundation
+# Completed core sequence
 
-## P0-001 — Add continuous integration
+| Task | Status | Result |
+|---|---:|---|
+| P0-001 Add continuous integration | [x] | Canonical contracts, evals, typecheck, lint and build run in CI. |
+| P0-002 Audit and normalize active routes | [x] | Content-first shell and route inventory are stable. |
+| P0-003 Remove tracking-first flows | [x] | Timers, streaks and fake progress are outside primary navigation. |
+| P0-004 Shared material intake | [x] | Dashboard and Materials use one intake pipeline. |
+| P0-005 Multi-file upload queue | [x] | Independent progress, retry and failure states. |
+| P0-006 Duplicate detection | [x] | Exact and likely duplicate handling. |
+| P0-007 Intake review and correction | [x] | Metadata and extraction are reviewed before persistence. |
+| P0-008 Material Workspace | [x] | Source inspection, selection and actions. |
+| P0-009 Chunk editing | [x] | Split, merge, reorder and delete. |
+| P0-010 Material output history | [x] | Saved outputs remain linked to sources. |
+| P0-011 Selected-source AI | [x] | Material selection passes directly into generation. |
+| P0-012 Editable AI draft review | [x] | Notes, cards and quizzes are editable before save. |
+| P0-013 Trust and citation layer | [x] | Unknown source ids are rejected and unsupported claims warned. |
+| P0-014 Syllabus review | [x] | Explicit correction and duplicate-safe confirmation. |
+| P0-015 Course Workspace v1 | [x] | Persistent course structure and linked content. |
+| P0-016 Reliable Notes editor | [x] | Markdown editing, autosave state and source comparison. |
+| P0-017 Flashcard Studio v1 | [x] | Bulk curation and two-sided review. |
+| P0-018 Quiz Studio v1 | [x] | Validation, editing, practice and exam modes. |
+| P0-019 Core UI honesty audit | [x] | Fake/dead controls removed or explained. |
+| P0-020 Deterministic evaluation fixtures | [x] | Syllabus, grounding, multilingual and OCR baselines. |
+| P0-021 Durable image intake and OCR review | [x] | Original images, editable OCR drafts and explicit apply. |
+| P0-022A Image preprocessing | [x] | Non-destructive crop, rotation, deskew and contrast workflow. |
+| P0-022B OCR region overlay | [x] | Source-bound boxes and synchronized text/image selection. |
+| P0-022C Full visual backup | [x] | Checksummed ZIP restore with rollback. |
+| P0-023 Quizlet cards and golden quizzes | [x] | Two-sided study and grounded bilingual quiz format. |
+| P1-001 Multi-page image materials | [x] | Per-page OCR, reorder, partial success and backup. |
+| P1-002 Golden quiz quality evaluation | [x] | Category scoring, negative controls and manual review. |
+| P1-003 Critical browser E2E | [x] | Real Chromium flows for materials, OCR, cards, quizzes and backup. |
+| P1-004 Local-first global search v2 | [x] | Ranked multilingual search with URL state and deterministic evals. |
+| P1-005 Store persistence and source-integrity hardening | [x] | Failed local writes are visible and exportable; OCR chunk replacement preserves or repairs source links. |
 
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** S
-- **Depends on:** none
-- **Likely files:** `.github/workflows/ci.yml`, `package.json`, optional test configuration
-
-### Goal
-
-Every pushed branch and pull request receives an objective build-quality signal.
-
-### Scope
-
-- Run dependency installation with the repository lockfile.
-- Run `npm run typecheck`.
-- Run `npm run lint`.
-- Run `npm run build`.
-- Run `npm run verify:docs` or the existing `npm run check` if it covers all required steps.
-- Cache dependencies where safe.
-- Fail on new errors.
-- Keep known warnings visible rather than hiding them globally.
-
-### Acceptance criteria
-
-- A GitHub Actions workflow runs on pull requests and pushes to `main`.
-- A deliberately broken TypeScript branch fails CI.
-- A clean branch passes CI.
-- The workflow does not require secrets for ordinary checks.
-- The README or contributing documentation names the canonical local verification command.
+> Historical note: an older draft used `P0-021` for the one-course pilot while later implementation used it for durable OCR. The canonical ledger now reserves `P0-021` for OCR and identifies the pilot as `P1-008`.
 
 ---
 
-## P0-002 — Audit and normalize all active routes
+# Active validation sequence
 
-- **Status:** [ ]
-- **Priority:** P0
+## P1-006 — Live OCR validation on a private real-photo pack
+
+- **Status:** [!]
+- **Priority:** P0 validation blocker
 - **Size:** M
-- **Depends on:** P0-001
-- **Likely files:** `src/routes/app.*.tsx`, `src/components/app-shell.tsx`, `src/content-workspace.css`, `src/lib/i18n.ts`
+- **Depends on:** P0-021, P0-022A/B, P1-001, P1-005
+- **Blocked by:** four private or licensed source images and a running Lamdan deployment with the connected multimodal provider
 
 ### Goal
 
-Ensure every currently reachable page works inside the permanent Academic Content Workspace shell.
+Measure actual OCR/HTR behavior instead of treating recorded fixtures as proof of live quality.
 
-### Scope
+### Required pack
 
-- Inspect all routes under `/app`.
-- Classify each route as `core`, `system`, `legacy-hidden` or `deferred`.
-- Fix broken spacing, unreadable controls and obvious shell conflicts.
-- Remove remaining immersive-study-room assumptions from active routes.
-- Keep deferred routes reachable by direct URL only when they remain functional.
-- Remove fake data from active core routes.
-- Confirm RU/EN navigation and labels.
+- printed Hebrew academic page;
+- handwritten Hebrew notes;
+- mixed RTL/LTR photographed mathematics;
+- deliberately unreadable/blurred image.
 
-### Acceptance criteria
+### Execution
 
-- Dashboard, Courses, Materials, Notes, Flashcards, Quizzes, Import Syllabus, Search, Data and Settings render without layout breakage.
-- Core routes contain no fake courses, fake progress or fake schedule entries.
-- Deferred routes are absent from primary navigation.
-- All active routes work at 390 px, 768 px, 1366 px and 1440 px widths.
-- No route imports deprecated immersive visual assets for primary layout.
-
----
-
-## P0-003 — Remove tracking-first product flows
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** S
-- **Depends on:** P0-002
-- **Likely files:** `src/components/app-shell.tsx`, route entry points, `DESIGN_SYSTEM.md`, optional redirect helpers
-
-### Goal
-
-Prevent the obsolete productivity-dashboard concept from competing with the content workflow.
-
-### Scope
-
-- Keep Assignments, Calendar, Study Plan, Progress and Study Session out of primary navigation.
-- Remove homepage links to timers, streaks, generic progress and weak-topic widgets.
-- Do not delete useful domain data or route code yet.
-- Add clear comments or route metadata marking deferred features.
-- Preserve direct URLs unless a route is actually broken or misleading.
-
-### Acceptance criteria
-
-- A new user sees only the content workflow in primary navigation.
-- No core page asks the user to start a timer or maintain a streak.
-- Existing stored calendar, assignment or session data is not deleted.
-- Deferred routes do not block build or navigation.
-
----
-
-# Milestone B — Reliable universal intake
-
-## P0-004 — Create one shared intake service
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** M
-- **Depends on:** P0-001
-- **Likely files:** `src/lib/document-ingestion.ts`, new `src/lib/material-intake.ts`, Dashboard and Materials upload components
-
-### Goal
-
-Dashboard and Materials must use the same ingestion pipeline and produce identical material records.
-
-### Scope
-
-- Extract shared upload-to-store logic into one typed service.
-- Accept file upload and pasted text.
-- Return structured success, partial, unsupported and error results.
-- Preserve extraction metadata and generated chunks.
-- Centralize filename-based material-type hints without treating them as certainty.
-- Prevent duplicate code paths on Dashboard and Materials.
-
-### Acceptance criteria
-
-- Uploading the same file from Dashboard or Materials creates equivalent records.
-- No route manually reconstructs a material object differently.
-- Extraction errors do not create a fake `ready` material.
-- Chunks are persisted only for the correct material.
-- The service has unit-testable pure helpers for classification and normalization.
-
----
-
-## P0-005 — Build multi-file upload queue
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** L
-- **Depends on:** P0-004
-- **Likely files:** new intake queue components, store additions or local component state, Dashboard, Materials
-
-### Goal
-
-A user can add an actual course pack without processing files one by one or losing failed items.
-
-### Scope
-
-- Select or drop multiple files.
-- Show one queue row per file.
-- States: queued, extracting, ready, partial, unsupported, error, cancelled.
-- Process with controlled concurrency.
-- Allow retry and remove.
-- Do not create duplicate saved materials on retry.
-- Allow the user to continue using the app while the queue is visible.
-- Persist completed material records; queue persistence across reload is optional until cloud jobs exist.
-
-### Acceptance criteria
-
-- At least 10 mixed files can be queued.
-- One failed file does not stop remaining files.
-- Each file shows its final status and diagnostic message.
-- Retry creates at most one saved material.
-- Closing and reopening the intake view does not hide unfinished work during the same session.
-- Mobile queue remains readable and operable.
-
----
-
-## P0-006 — Add duplicate detection
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** M
-- **Depends on:** P0-004
-- **Likely files:** material intake service, store helpers, upload review UI
-
-### Goal
-
-Avoid silently creating multiple copies of the same source.
-
-### Scope
-
-- Detect exact duplicates using available file metadata and a content fingerprint where possible.
-- Detect likely duplicates using filename, size and normalized extracted text.
-- Present choices: skip, keep both, replace metadata/content where safe.
-- Never merge records automatically.
-- Keep previous outputs connected to the original material.
-
-### Acceptance criteria
-
-- Uploading the same file twice produces a duplicate warning.
-- Choosing skip creates no second material.
-- Choosing keep both creates a clearly distinguishable second material.
-- Existing notes, cards and quizzes are not orphaned.
-- Duplicate detection works from both Dashboard and Materials.
-
----
-
-## P0-007 — Add intake review and correction
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** M
-- **Depends on:** P0-004
-- **Likely files:** new review dialog/page, Materials route, store mutators
-
-### Goal
-
-Let the user correct Lamdan's guesses before a material becomes part of a course.
-
-### Scope
-
-- Preview title, detected language, material type, source mode and extraction result.
-- Choose or change course and topic.
-- Edit title and tags.
-- Show extracted text preview.
-- Show warnings for partial or unsupported extraction.
-- Save, save without course, retry or discard.
-
-### Acceptance criteria
-
-- No inferred course association is applied invisibly.
-- Blank or invalid metadata is handled safely.
-- Hebrew, Russian and English previews render correctly.
-- User corrections persist after reload.
-- Discard removes temporary state and does not create a material.
-
----
-
-# Milestone C — Material Workspace
-
-## P0-008 — Replace material detail with a true workspace
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** L
-- **Depends on:** P0-004, P0-007
-- **Likely files:** `src/routes/app.materials.$materialId.tsx`, new material workspace components, `src/content-workspace.css`
-
-### Goal
-
-Make the material page the main place where study content is inspected and transformed.
-
-### Required layout
-
-- Material header and metadata.
-- Source/chunk navigator.
-- Extracted-text workspace.
-- Actions and outputs panel.
-
-### Scope
-
-- Show title, course, topic, type, language, status and extraction diagnostics.
-- Search inside material text.
-- Navigate chunks and pages where available.
-- Select one or multiple chunks.
-- Copy selected text.
-- Show source page or section labels.
-- Rename, tag and relink material.
-- Show outputs already created from the material.
-- Preserve responsive layout without fixed canvas or absolute positioning.
-
-### Acceptance criteria
-
-- A user can see exactly what text exists and which sections are selected.
-- Selection survives ordinary component rerenders.
-- Material metadata edits persist.
-- Empty chunk state and raw-text fallback are handled honestly.
-- Existing output links open the correct note, quiz or related page.
-- The screen remains usable with long Hebrew text and mixed direction content.
-
----
-
-## P0-009 — Add chunk editing tools
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** M
-- **Depends on:** P0-008
-- **Likely files:** material workspace components, `src/lib/store.ts`
-
-### Goal
-
-Allow the user to fix extraction before AI generation.
-
-### Scope
-
-- Edit chunk title and text.
-- Split a chunk at cursor or selection.
-- Merge adjacent chunks.
-- Reorder chunks.
-- Delete a chunk with confirmation.
-- Preserve source page/section metadata where logically possible.
-- Update dependent `sourceChunkIds` safely when merging or deleting.
-
-### Acceptance criteria
-
-- Edited content persists after reload.
-- Split creates two ordered chunks.
-- Merge creates one chunk without losing text.
-- Reorder changes the order used by AI.
-- Deleting a referenced chunk removes only that ID from dependent outputs and warns the user.
-- No orphan chunk references remain.
-
----
-
-## P0-010 — Add material output history
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** M
-- **Depends on:** P0-008
-- **Likely files:** material workspace, `src/lib/store.ts`, output-link helpers
-
-### Goal
-
-Show everything already created from a source so the user does not regenerate blindly.
-
-### Scope
-
-- List notes, flashcard generations, quizzes and presentation outlines related to the material.
-- Include output type, creation date and linked entity where available.
-- Open linked outputs.
-- Record generation events consistently.
-- Distinguish deleted/missing linked entities.
-- Allow removal of history entries without deleting the actual output.
-
-### Acceptance criteria
-
-- Saving a generated note creates a visible output entry.
-- Saving cards records the generation even when there is no single deck entity yet.
-- Saving a quiz links to the quiz.
-- Reopening the material shows prior output history after reload.
-- A missing linked entity is displayed honestly rather than causing an error.
-
----
-
-# Milestone D — AI transformation loop
-
-## P0-011 — Connect AI actions to material selection
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** M
-- **Depends on:** P0-008
-- **Likely files:** `src/components/ai-generate-dialog.tsx`, material workspace, AI request helpers
-
-### Goal
-
-The user selects source sections once and generates directly from that context.
-
-### Scope
-
-- Material Workspace actions: create note, create flashcards, create quiz.
-- Pass selected material, course, topic and chunk IDs into the existing AI dialog.
-- Preselect current chunks.
-- Prevent submission with no usable source text.
-- Show selected character count and limits.
-- Preserve user selection when switching between generation types where practical.
-
-### Acceptance criteria
-
-- Clicking Create note opens a draft flow with the current material and chunks already selected.
-- The user does not need to find the material again in a dropdown.
-- Saved outputs contain `materialId`, `courseId`, `topicId` and relevant `sourceChunkIds`.
-- Invalid or empty selections cannot be sent.
-- The existing global AI buttons still work.
-
----
-
-## P0-012 — Upgrade AI draft review
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** L
-- **Depends on:** P0-011
-- **Likely files:** `src/components/ai-draft-modal.tsx`, `src/components/ai-generate-dialog.tsx`, draft editors
-
-### Goal
-
-Make generated content quick to inspect, correct and save without trusting it blindly.
-
-### Scope
-
-- Clear draft state: generating, ready, warning, error, saved.
-- Side-by-side or easily accessible source references.
-- Edit note title/content/tags.
-- Edit, remove, reorder and add flashcards.
-- Edit quiz title, prompts, options, correct answers and explanations.
-- Regenerate one card or one quiz question where API support exists; otherwise create a scoped follow-up path.
-- Confirm before closing with unsaved changes.
-- Prevent duplicate save on repeated clicks.
-
-### Acceptance criteria
-
-- Every generated item is editable before save.
-- Source chunk references are visible.
-- Save is idempotent within one draft session.
-- Closing an edited unsaved draft prompts the user.
-- AI errors leave the selected source context intact for retry.
-- Saving produces exactly one intended output set.
-
----
-
-## P0-013 — Add AI trust and citation layer
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** L
-- **Depends on:** P0-011, P0-012
-- **Likely files:** AI route schemas, prompt templates, result types, draft UI
-
-### Goal
-
-Make it obvious which generated claims are supported by the selected sources.
-
-### Scope
-
-- Require structured source references in AI results where applicable.
-- Validate returned chunk IDs against the request.
-- Show warnings for uncited or weakly supported items.
-- Add explicit `not found in selected sources` behavior.
-- Never fabricate a source ID or page number.
-- Preserve original Hebrew/English terms when generating Russian explanations.
-- Add prompt/model version metadata for debugging.
-
-### Acceptance criteria
-
-- A note, card or question can display its supporting chunks.
-- Unknown chunk IDs are rejected or removed with a warning.
-- Unsupported answers are labeled rather than presented as sourced facts.
-- Russian output can preserve supplied Hebrew terminology.
-- Structured-output validation failures are visible and retryable.
-
----
-
-# Milestone E — Syllabus and course brain
-
-## P0-014 — Complete syllabus review and confirmation
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** L
-- **Depends on:** P0-004, P0-007
-- **Likely files:** import syllabus routes, syllabus parser, store helpers
-
-### Goal
-
-A real syllabus should become a usable course only after an explicit review step.
-
-### Scope
-
-- Accept PDF, DOCX, XLSX and pasted text using the shared intake pipeline.
-- Extract course title, code, instructor, credits, semester and description.
-- Extract weekly topics.
-- Extract readings, assignments, exams and grading information where present.
-- Display confidence or uncertainty per field.
-- Let the user edit, remove and add extracted items.
-- Detect likely duplicate courses and previous imports.
-- Apply changes only after confirmation.
-- Reimport safely without duplicating topics and deadlines.
-
-### Acceptance criteria
-
-- Importing a real Israeli syllabus reaches a review screen before store mutation.
-- User can correct every extracted field.
-- Cancelling applies nothing.
-- Confirming creates or updates one course and its reviewed topics.
-- Reimport does not create duplicate topics when the same syllabus is uploaded again.
-- Unsupported fields remain empty rather than invented.
-- Hebrew field labels and RTL content remain readable.
-
----
-
-## P0-015 — Build Course Workspace v1
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** L
-- **Depends on:** P0-014, P0-008, P0-010
-- **Likely files:** `src/routes/app.courses.$courseId.tsx`, course workspace components
-
-### Goal
-
-Make the course the persistent container for all source material and generated study content.
-
-### Scope
-
-- Course overview with real metadata.
-- Topics/weeks list.
-- Materials grouped by topic and unassigned materials.
-- Related notes, flashcards and quizzes.
-- Add material to course.
-- Relink material or output to topic.
-- Course-level AI actions using explicitly selected sources.
-- Show uncovered syllabus topics: topics with no linked material.
-- No fake progress or mastery percentage.
-
-### Acceptance criteria
-
-- A course imported from a syllabus has an immediately usable workspace.
-- Adding a material updates the course without reimporting.
-- Notes, cards and quizzes appear under the correct course.
-- The user can identify syllabus topics with no supporting material.
-- Course-level AI never silently includes every source; scope is visible and controllable.
-- Course data survives reload.
-
----
-
-# Milestone F — Product-quality content editors
-
-## P0-016 — Upgrade Notes to a reliable editor
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** L
-- **Depends on:** P0-012, P0-015
-- **Likely files:** `src/routes/app.notes.tsx`, note editor components, export helpers
-
-### Goal
-
-Generated and manual notes must be useful after the first AI draft.
-
-### Scope
-
-- Stable autosave with visible save state.
-- Markdown or rich-text editing with headings, lists, quotes, tables and checklists.
-- Mixed RTL/LTR behavior.
-- Link to course, topic, material and source chunks.
-- Search and filters.
-- Duplicate, merge and delete.
-- Compare note with source and show missing sections.
-- Convert selected note text to flashcards or quiz questions.
-- Export Markdown first; DOCX/PDF later if the implementation remains atomic.
-
-### Acceptance criteria
-
-- Editing cannot lose text during ordinary navigation.
-- Autosave status is visible.
-- Hebrew and Russian can coexist in one note.
-- Source references remain accessible after manual edits.
-- Merge has a preview and never silently deletes originals.
-- Markdown export contains the complete note.
-
----
-
-## P0-017 — Add Flashcard Studio v1
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** M
-- **Depends on:** P0-012, P0-015
-- **Likely files:** `src/routes/app.flashcards.tsx`, new flashcard studio components
-
-### Goal
-
-Make generated cards easy to curate in bulk.
-
-### Scope
-
-- Filter by course, topic and material.
-- Bulk select and delete.
-- Bulk relink.
-- Inline front/back editing.
-- Detect exact and likely duplicates.
-- Merge or remove duplicates with review.
-- Preserve existing review mode but keep spaced repetition visually secondary.
-- CSV export and import if it fits without blocking core curation.
-
-### Acceptance criteria
-
-- A generated set of 50 cards can be reviewed without opening 50 dialogs.
-- Bulk edits persist.
-- Duplicate removal requires confirmation.
-- Source links remain attached.
-- Review mode still functions after editing.
-
----
-
-## P0-018 — Add Quiz Studio v1
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** M
-- **Depends on:** P0-012, P0-015
-- **Likely files:** quiz list/detail routes, quiz editor components
-
-### Goal
-
-Turn generated questions into a credible reusable exam set.
-
-### Scope
-
-- Edit title and course/material links.
-- Add, remove and reorder questions.
-- Edit options, correct answer and explanation.
-- Validate every multiple-choice question before save.
-- Practice mode and exam mode.
-- Source reference display.
-- Duplicate-question detection.
-- Printable export can remain P1 unless trivial.
-
-### Acceptance criteria
-
-- Invalid questions cannot be silently included in an exam.
-- Question order persists.
-- Practice mode can show feedback immediately.
-- Exam mode can postpone feedback until completion.
-- Attempts are recorded without becoming the dashboard identity.
-- Each sourced question can open its source reference.
-
----
-
-# Milestone G — Validation and release readiness
-
-## P0-019 — Remove remaining fake and disconnected UI
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** M
-- **Depends on:** P0-002 through P0-018
-- **Likely files:** all core routes and shared components
-
-### Goal
-
-Make every visible control either work, explain why it is unavailable or disappear.
-
-### Scope
-
-- Audit all core pages for hardcoded demo content.
-- Audit all buttons and links.
-- Remove decorative counters not derived from real data.
-- Replace dead buttons with implemented flows or honest disabled states.
-- Normalize empty states.
-- Normalize loading and error states.
-- Verify localization coverage.
-
-### Acceptance criteria
-
-- No visible fake course, material, statistic or schedule remains in core routes.
-- No clickable control does nothing.
-- Disabled actions explain what is missing.
-- Empty states point to a real next action.
-- RU and EN do not mix accidentally in application chrome.
-
----
-
-## P0-020 — Create evaluation fixtures
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** M
-- **Depends on:** P0-013, P0-014
-- **Likely files:** `fixtures/`, `scripts/`, evaluation documentation
-
-### Goal
-
-Measure whether Lamdan is improving rather than judging AI output by vibes.
-
-### Required fixtures
-
-- Hebrew syllabus.
-- Mixed Hebrew/Russian lecture note.
-- English academic PDF.
-- Short and long documents.
-- Deliberately malformed or unsupported file.
-- Source with terms that must remain in Hebrew.
-
-### Evaluation categories
-
-- Extraction completeness.
-- Language detection.
-- Syllabus field accuracy.
-- Note completeness and faithfulness.
-- Flashcard atomicity and duplication.
-- Quiz distractor plausibility.
-- Source citation correctness.
-- Hallucination rate.
-
-### Acceptance criteria
-
-- Fixtures contain no sensitive personal data.
-- Each fixture has expected structured outcomes where practical.
-- A repeatable script or checklist runs the same evaluation after AI changes.
-- Prompt/model changes can be compared against a previous result.
-
----
-
-## P0-021 — Run one-course closed pilot
-
-- **Status:** [ ]
-- **Priority:** P0
-- **Size:** L
-- **Depends on:** all previous P0 tasks
-- **Likely files:** `PILOT.md`, issue tracker, bug fixes across product
-
-### Goal
-
-Use Lamdan for one complete real course instead of testing isolated screens.
-
-### Pilot script
-
-1. Start from an empty local workspace.
-2. Import one real Israeli syllabus.
-3. Review and create the course.
-4. Upload a representative course pack.
-5. Fix extraction problems.
-6. Generate one note, one flashcard set and one quiz.
-7. Edit and save all outputs.
-8. Return after reload and continue.
-9. Search for a concept.
-10. Prepare a small exam pack.
-11. Export all local data.
-
-### Data to record
-
-- Failed uploads.
-- Incorrect classification.
-- Manual corrections required.
-- AI generation failures.
-- Unsupported claims or bad citations.
-- Time-consuming repeated steps.
-- Missing links between source and output.
-- Mobile failures.
-
-### Acceptance criteria
-
-- The complete script can be performed without developer intervention.
-- No data is lost after reload.
-- Every saved output can be traced to a source.
-- Critical bugs from the pilot are fixed or explicitly block milestone completion.
-- `M1 — Useful personal tool` in `ROADMAP.md` can honestly be marked achieved.
-
----
-
-## P0-022A — Image Preprocessing Workspace
-
-- **Status:** [x]
-- **Priority:** P0
-- **Size:** L
-- **Depends on:** P0-021 durable image intake and OCR review
-- **Branch:** `agent/p0-022-image-preprocessing`
-
-### Goal
-
-Let a student prepare a real photo of a notebook, whiteboard or page before OCR without ever replacing the original image.
-
-### Scope
-
-- Store the original source blob, a versioned serializable recipe and one derived preview as separate IndexedDB records.
-- Support quarter-turn rotation, fine rotation, crop, automatic and manual deskew, grayscale, brightness, contrast, threshold and optional sharpening.
-- Use a Worker for decode, deskew and heavy pixel processing; expose decode/canvas failures clearly and retain a bounded fallback for older browsers.
-- Let the student explicitly choose original or processed source for OCR, restore that choice after reload and reset safely to original.
-- Keep the OCR draft/review/apply workflow intact.
-
-### Acceptance criteria
-
-- Source photo, processing recipe and selected OCR source survive reload.
-- Reset removes the derived preview and returns OCR to the original.
-- OCR receives the exact selected blob rather than a guessed or overwritten source.
-- The UI makes original vs processed state visible on desktop and mobile layouts.
-- Original blobs are never overwritten, and at most one current derived blob is retained per material.
-- EXIF orientation is respected while rendering the preview.
-- `npm run check` and `verify:image-preprocessing-contract` pass.
-
----
-
-## P0-022B — OCR Region Overlay and Sync
-
-- **Status:** [x]
-- **Priority:** P0
-- **Size:** L
-- **Depends on:** P0-022A image preprocessing workspace
-- **Branch:** `agent/p0-022-ocr-region-overlay`
-
-### Goal
-
-Let a student verify each OCR fragment against the exact visual region that produced it, without showing coordinates over a different crop, rotation or derived preview.
-
-### Scope
-
-- Render normalized `0..1` OCR bounding boxes over the exact original or processed raster used for OCR.
-- Synchronize selected and hovered regions between the text review and image overlay.
-- Support fit-to-page, zoom, pan, keyboard movement, drawing, moving and resizing regions.
-- Make selected, warning, uncertain, low-confidence and mathematical regions visibly distinct.
-- Retain the order of regions while their coordinates change; require confirmation before deletion.
-- Preserve RTL/LTR reading order and keep normalized mathematical notation LTR.
-- Never guess an image for a legacy or stale draft: request a new OCR pass instead.
-
-### Acceptance criteria
-
-- Text-to-image and image-to-text selection stays synchronized, including hover state.
-- Overlay and boxes scale and pan as one stage, and coordinates remain normalized after crop, rotation or deskew.
-- Manual regions and coordinate edits can be saved in the existing editable OCR draft; OCR is never auto-applied.
-- Keyboard interaction works; select mode keeps vertical mobile scrolling available while draw/pan owns the gesture.
-- Source identity prevents boxes from appearing on a mismatched preview.
-- `npm run check` and `verify:ocr-region-overlay-contract` pass.
-
----
-
-## P0-022C — Full Visual Backup and Restore
-
-- **Status:** [x]
-- **Priority:** P0
-- **Size:** L
-- **Depends on:** P0-021 durable image intake and OCR review; P0-022A image preprocessing workspace; P0-022B OCR region overlay
-- **Branch:** `agent/p0-022-visual-backup`
-
-### Goal
-
-Let a student carry a complete local Lamdan workspace between browser sessions without losing original source photos, reviewed OCR drafts, applied chunks or the selected image-processing state.
-
-### Scope
-
-- Keep the existing JSON export/import as a deliberately lightweight text-data format.
-- Add a versioned ZIP format with a manifest, file sizes, MIME types, SHA-256 checksums and explicit material-to-image/OCR mappings.
-- Include source images, OCR drafts, preprocessing recipes and the current valid derived preview alongside all text data.
-- Validate the complete archive, format version, mappings, sizes and checksums before offering an import action.
-- Preview summary, warnings and safe-merge conflicts before changing current data.
-- Support safe merge, replace-everything and cancellation; never overwrite a conflicting record during safe merge.
-- Replace all IndexedDB visual stores in one transaction and roll both visual and text storage back if application fails.
-- Treat an absent visual payload as a warning where the remaining archive can still be restored; reject corrupt or mismatched payloads before mutation.
-
-### Acceptance criteria
-
-- A full export/import restores source photos, OCR drafts, applied material chunks and valid processed previews.
-- SHA-256 mismatch, unsupported backup version, invalid mapping or malformed ZIP leaves current browser data unchanged.
-- Users see an import summary and conflicts before choosing merge or replace.
-- A failed apply leaves no orphaned IndexedDB blobs and restores the prior text workspace.
-- Legacy lightweight JSON export/import continues to work and its limitation is explicit in the UI.
-- `npm run check` and `verify:visual-backup-contract` pass.
-
----
-
-# Dependency summary
-
-```text
-P0-001 CI
-  └─ P0-002 route audit
-      └─ P0-003 tracking cleanup
-
-P0-004 shared intake
-  ├─ P0-005 upload queue
-  ├─ P0-006 duplicate detection
-  └─ P0-007 intake review
-       └─ P0-008 Material Workspace
-            ├─ P0-009 chunk tools
-            ├─ P0-010 output history
-            └─ P0-011 selected-source AI
-                 └─ P0-012 draft review
-                      └─ P0-013 AI trust layer
-
-P0-004 + P0-007
-  └─ P0-014 syllabus confirmation
-       └─ P0-015 Course Workspace
-            ├─ P0-016 Notes editor
-            ├─ P0-017 Flashcard Studio
-            └─ P0-018 Quiz Studio
-
-All core tasks
-  ├─ P0-019 fake/dead UI cleanup
-  ├─ P0-020 evaluation fixtures
-  └─ P0-021 one-course pilot
+```bash
+npm run eval:ocr:live -- \
+  --base-url https://YOUR-LAMDAN-PREVIEW \
+  --asset-dir ./private-ocr-assets
 ```
 
-# Recommended implementation batches
+The command calls the real `/api/ai/ocr-image` route, writes private candidates outside git and runs the permanent OCR metrics.
 
-## Batch 1 — Make the repository safe to iterate
+### Acceptance criteria
 
-- P0-001
-- P0-002
-- P0-003
+- every fixture has an external candidate;
+- CER, WER, critical-token, math-expression and line-order thresholds pass;
+- handwriting requests review;
+- unreadable input abstains without invented text;
+- failure categories and model/prompt version are recorded in `PILOT.md` or a linked private report;
+- no private photo is committed.
 
-## Batch 2 — Make intake trustworthy
+---
 
-- P0-004
-- P0-005
-- P0-006
-- P0-007
+## P1-007 — Live golden quiz validation from a complete Hebrew source pack
 
-## Batch 3 — Build the central workspace
+- **Status:** [!]
+- **Priority:** P0 validation blocker
+- **Size:** M
+- **Depends on:** P1-002, P1-005
+- **Blocked by:** one complete, legally usable Hebrew course source pack
 
-- P0-008
-- P0-009
-- P0-010
+### Goal
 
-## Batch 4 — Make AI generation genuinely useful
+Generate a real quiz, review every question in the quality workspace and promote only an approved candidate into permanent fixtures.
 
-- P0-011
-- P0-012
-- P0-013
+### Acceptance criteria
 
-## Batch 5 — Make syllabus and course context persistent
+- generation uses explicitly selected source chunks;
+- exactly four unique options and one correct answer per question;
+- numbers, dates, terminology, rationales and translations are source-grounded;
+- manual review records approve/reject/needs-edit decisions;
+- at least one approved candidate is promoted to the regression set;
+- rejected generations remain visible as failure examples rather than being silently discarded.
 
-- P0-014
-- P0-015
+---
 
-## Batch 6 — Make outputs maintainable
+## P1-008 — One-course closed personal pilot
 
-- P0-016
-- P0-017
-- P0-018
+- **Status:** [!]
+- **Priority:** P0 milestone gate
+- **Size:** L
+- **Depends on:** P1-006, P1-007
+- **Blocked by:** completion of live OCR and live quiz validation
 
-## Batch 7 — Validate the actual product
+### Goal
 
-- P0-019
-- P0-020
-- P0-021
+Use one real Israeli course end to end without developer intervention.
 
-# First task to execute
+### Script
 
-Start with `P0-001 — Add continuous integration`.
+1. Start from an empty local workspace.
+2. Import and review a real syllabus.
+3. Create the course and topics.
+4. Add a representative digital and photographed course pack.
+5. Review extraction and OCR.
+6. Generate, edit and save a note, cards and quiz.
+7. Reload and continue.
+8. Search for a concept and open its source.
+9. Re-run OCR on one page and confirm existing citations survive.
+10. Reorder a multi-page material and confirm links remain valid.
+11. Export a full ZIP, clear data and restore it.
+12. Record friction and failures in `PILOT.md`.
 
-Do not begin Material Workspace or AI redesign until the repository can automatically prove that build, typecheck and lint remain healthy after every change.
+### Acceptance criteria
+
+- no approved content is lost after reload;
+- no visible saved state contradicts browser persistence;
+- every sourced output opens a valid source chunk;
+- the workflow completes on desktop and a mobile-width viewport;
+- critical pilot findings are fixed or explicitly block M1;
+- `ROADMAP.md` may mark M1 achieved only after this task passes.
+
+---
+
+## P1-009 — Deep multi-page browser coverage
+
+- **Status:** [ ]
+- **Priority:** P1
+- **Size:** M
+- **Depends on:** P1-001, P1-003, P1-005
+
+### Scope
+
+- page reorder with stable citations;
+- one failed OCR page while other pages succeed;
+- page replacement and re-review;
+- page-level ZIP restore;
+- dangling-reference assertion after every flow.
+
+---
+
+## P1-010 — Audio transcription review-and-apply
+
+- **Status:** [ ]
+- **Priority:** P1 after M1 validation
+- **Size:** L
+- **Depends on:** P1-008
+
+### Goal
+
+Add MP3/M4A/WAV as a source using the same durable draft, uncertainty, review and explicit-apply contract as OCR.
+
+### Non-negotiable boundaries
+
+- timestamped source sections;
+- no automatic trusted transcript;
+- cancellation, timeout and retry;
+- explicit language and speaker uncertainty;
+- generated outputs retain transcript-section references;
+- audio work must not postpone fixes discovered by the one-course pilot.
+
+---
+
+# Current execution order
+
+1. Supply and run the private OCR pack (`P1-006`).
+2. Run and manually review one real Hebrew golden quiz (`P1-007`).
+3. Execute the complete one-course pilot (`P1-008`).
+4. Fix pilot blockers and deepen multi-page E2E (`P1-009`).
+5. Begin audio transcription only after M1 is honestly achieved (`P1-010`).
