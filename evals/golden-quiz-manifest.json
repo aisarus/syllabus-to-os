@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "qualityVersion": "golden-quiz-quality-v1",
+  "thresholds": {
+    "overall": 0.86,
+    "structure": 1,
+    "sourceSupport": 1,
+    "distractors": 0.85,
+    "rationales": 0.85,
+    "translation": 0.75,
+    "memoryHint": 0.75
+  },
+  "fixtures": [
+    {
+      "id": "hebrew-archaeology-periods",
+      "domain": "archaeology",
+      "requireRussianTranslation": true,
+      "sources": [
+        {
+          "id": "arch_chunk_1",
+          "text": "התקופה הכלקוליתית בארץ ישראל מתוארכת בקירוב לשנים 4500–3500 לפנה״ס. היא מאופיינת בשימוש משולב בכלי אבן ובכלי נחושת, בהתפתחות יישובי קבע ובמסורות קבורה מורכבות."
+        }
+      ],
+      "candidate": {
+        "quizId": "fixture_archaeology",
+        "questions": [
+          {
+            "id": "arch_q1",
+            "quizId": "fixture_archaeology",
+            "prompt": "מה מאפיין במיוחד את התקופה הכלקוליתית בארץ ישראל?",
+            "options": [
+              "שימוש משולב בכלי אבן ובכלי נחושת",
+              "שימוש בלעדי בכלי ברזל",
+              "היעלמות מוחלטת של יישובי קבע",
+              "מעבר לכתיבה אלפביתית מלאה"
+            ],
+            "correctIndex": 0,
+            "explanation": "[[LAM_DAN_GOLDEN_QUIZ_V1]]\n\n### Правильный ответ\nהתקופה הכלקוליתית מזוהה במיוחד עם שילוב בין כלי אבן לכלי נחושת.\n\n### Как запомнить\nНазвание периода связано с медью, но каменные орудия не исчезли.\n\n### Разбор вариантов\n1. השילוב בין אבן לנחושת מופיע במקור כמאפיין מרכזי.\n2. כלי ברזל שייכים לתקופה מאוחרת יותר ואינם מתוארים במקור.\n3. המקור מתאר דווקא התפתחות של יישובי קבע.\n4. הכתיבה האלפביתית אינה מוצגת כמאפיין של התקופה.\n\n### Перевод вопроса\nЧто особенно характеризует халколитический период в Земле Израиля?\n\n### Переводы вариантов\n1. Совместное использование каменных и медных орудий.\n2. Исключительное использование железных орудий.\n3. Полное исчезновение постоянных поселений.\n4. Переход к полноценной алфавитной письменности.",
+            "sourceChunkIds": ["arch_chunk_1"],
+            "order": 0
+          }
+        ]
+      },
+      "negativeCandidate": {
+        "quizId": "fixture_archaeology_bad",
+        "questions": [
+          {
+            "id": "arch_bad_1",
+            "quizId": "fixture_archaeology_bad",
+            "prompt": "מה נכון?",
+            "options": ["א", "ב", "ג", "כל התשובות נכונות"],
+            "correctIndex": 4,
+            "explanation": "[[LAM_DAN_GOLDEN_QUIZ_V1]]\n\n### Правильный ответ\nНеверно.\n\n### Как запомнить\nА.\n\n### Разбор вариантов\n1. Неверно.\n2. Неверно.\n3. Неверно.\n4. Неверно.",
+            "sourceChunkIds": [],
+            "order": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "social-science-instagram-break",
+      "domain": "social_science",
+      "requireRussianTranslation": false,
+      "sources": [
+        {
+          "id": "social_chunk_1",
+          "text": "Participants were instructed to remove Instagram from their phones for seven days. Subjective well-being was measured with the Satisfaction With Life Scale and the Scale of Positive and Negative Experience."
+        }
+      ],
+      "candidate": {
+        "quizId": "fixture_social",
+        "questions": [
+          {
+            "id": "social_q1",
+            "quizId": "fixture_social",
+            "prompt": "What instruction did participants receive in the Instagram-break condition?",
+            "options": [
+              "Remove Instagram from their phones for seven days",
+              "Limit every social network to seven minutes per day",
+              "Replace Instagram with a new messaging application",
+              "Report their passwords to the research team"
+            ],
+            "correctIndex": 0,
+            "explanation": "[[LAM_DAN_GOLDEN_QUIZ_V1]]\n\n### Correct explanation\nThe source states that participants removed Instagram from their phones for seven days.\n\n### Memory hint\nRemember the intervention as a complete one-week app break, not a daily time limit.\n\n### Option rationales\n1. This reproduces the intervention described in the source.\n2. The source describes removal, not a seven-minute usage limit.\n3. No replacement application was part of the intervention.\n4. Password collection is not described and would be unrelated to the intervention.",
+            "sourceChunkIds": ["social_chunk_1"],
+            "order": 0
+          }
+        ]
+      },
+      "negativeCandidate": {
+        "quizId": "fixture_social_bad",
+        "questions": [
+          {
+            "id": "social_bad_1",
+            "quizId": "fixture_social_bad",
+            "prompt": "What happened in 2024?",
+            "options": ["Seven days", "Seven days", "All of the above", "Wrong"],
+            "correctIndex": 0,
+            "explanation": "No grounded explanation.",
+            "sourceChunkIds": ["invented_chunk"],
+            "order": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "information-studies-retrieval",
+      "domain": "information_studies",
+      "requireRussianTranslation": true,
+      "sources": [
+        {
+          "id": "info_chunk_1",
+          "text": "אחזור מידע הוא תהליך של מציאת פריטי מידע רלוונטיים לצורך מידע שמנוסח באמצעות שאילתה. דיוק מודד את שיעור הפריטים הרלוונטיים מתוך כל הפריטים שאוחזרו."
+        }
+      ],
+      "candidate": {
+        "quizId": "fixture_information",
+        "questions": [
+          {
+            "id": "info_q1",
+            "quizId": "fixture_information",
+            "prompt": "מה מודד דיוק במערכת אחזור מידע?",
+            "options": [
+              "את שיעור הפריטים הרלוונטיים מתוך כל הפריטים שאוחזרו",
+              "את מספר המשתמשים ששלחו שאילתה",
+              "את משך הזמן הכולל של הקורס",
+              "את גודל הקובץ שבו נשמרו התוצאות"
+            ],
+            "correctIndex": 0,
+            "explanation": "[[LAM_DAN_GOLDEN_QUIZ_V1]]\n\n### Правильный ответ\nדיוק בודק איזה חלק מן התוצאות שאוחזרו אכן רלוונטי לצורך המידע.\n\n### Как запомнить\nСмотри внутрь уже найденного набора: какая доля результатов полезна.\n\n### Разбор вариантов\n1. האפשרות מתאימה להגדרת דיוק שבמקור.\n2. מספר המשתמשים אינו חלק מהגדרת המדד.\n3. משך הקורס אינו מדד של אחזור מידע.\n4. גודל הקובץ אינו קובע את רלוונטיות התוצאות.\n\n### Перевод вопроса\nЧто измеряет precision в системе информационного поиска?\n\n### Переводы вариантов\n1. Долю релевантных документов среди всех найденных.\n2. Число пользователей, отправивших запрос.\n3. Общую продолжительность курса.\n4. Размер файла с результатами.",
+            "sourceChunkIds": ["info_chunk_1"],
+            "order": 0
+          }
+        ]
+      },
+      "negativeCandidate": {
+        "quizId": "fixture_information_bad",
+        "questions": [
+          {
+            "id": "info_bad_1",
+            "quizId": "fixture_information_bad",
+            "prompt": "מה מודד דיוק?",
+            "options": ["רלוונטיות", "מספר", "קובץ", "אחר"],
+            "correctIndex": 0,
+            "explanation": "[[LAM_DAN_GOLDEN_QUIZ_V1]]\n\n### Правильный ответ\nרלוונטיות.\n\n### Как запомнить\nרלוונטיות.\n\n### Разбор вариантов\n1. נכון.\n2. לא נכון.\n3. לא נכון.\n4. לא נכון.",
+            "sourceChunkIds": ["info_chunk_1"],
+            "order": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "mixed-hebrew-russian-sociology",
+      "domain": "mixed_language",
+      "requireRussianTranslation": true,
+      "sources": [
+        {
+          "id": "mixed_chunk_1",
+          "text": "נורמה חברתית — социальная норма — היא ציפייה משותפת לגבי התנהגות מקובלת בקבוצה. סנקציה יכולה לחזק ציות לנורמה באמצעות תגובה חיובית או שלילית."
+        }
+      ],
+      "candidate": {
+        "quizId": "fixture_mixed",
+        "questions": [
+          {
+            "id": "mixed_q1",
+            "quizId": "fixture_mixed",
+            "prompt": "מהי נורמה חברתית לפי הקטע?",
+            "options": [
+              "ציפייה משותפת לגבי התנהגות מקובלת בקבוצה",
+              "החלטה פרטית שאין לה קשר לקבוצה",
+              "חוק טבע שאינו תלוי באנשים",
+              "מדד סטטיסטי של גודל האוכלוסייה"
+            ],
+            "correctIndex": 0,
+            "explanation": "[[LAM_DAN_GOLDEN_QUIZ_V1]]\n\n### Правильный ответ\nנורמה חברתית היא ציפייה קבוצתית משותפת בנוגע להתנהגות שנחשבת מקובלת.\n\n### Как запомнить\nНорма отвечает на вопрос: чего группа обычно ожидает от поведения участников.\n\n### Разбор вариантов\n1. זו ההגדרה שמופיעה במקור.\n2. נורמה קשורה לציפייה קבוצתית ולא רק להחלטה פרטית.\n3. נורמה חברתית נוצרת בחברה ואינה חוק טבע.\n4. גודל האוכלוסייה אינו מגדיר התנהגות מקובלת.\n\n### Перевод вопроса\nЧто такое социальная норма согласно фрагменту?\n\n### Переводы вариантов\n1. Общее ожидание относительно принятого поведения в группе.\n2. Личное решение, не связанное с группой.\n3. Закон природы, не зависящий от людей.\n4. Статистический показатель размера населения.",
+            "sourceChunkIds": ["mixed_chunk_1"],
+            "order": 0
+          }
+        ]
+      },
+      "negativeCandidate": {
+        "quizId": "fixture_mixed_bad",
+        "questions": [
+          {
+            "id": "mixed_bad_1",
+            "quizId": "fixture_mixed_bad",
+            "prompt": "Что такое норма?",
+            "options": ["Правило", "Очень длинное и очевидно правильное описание общего ожидания относительно поведения каждого участника большой социальной группы", "Нет", "Другое"],
+            "correctIndex": 1,
+            "explanation": "[[LAM_DAN_GOLDEN_QUIZ_V1]]\n\n### Правильный ответ\nОписание.\n\n### Как запомнить\nОбщее ожидание относительно поведения каждого участника большой социальной группы.\n\n### Разбор вариантов\n1. Неверно.\n2. Верно.\n3. Неверно.\n4. Неверно.",
+            "sourceChunkIds": [],
+            "order": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "dates-and-numbers-israeli-history",
+      "domain": "dates_numbers",
+      "requireRussianTranslation": true,
+      "sources": [
+        {
+          "id": "history_chunk_1",
+          "text": "הבחירות הראשונות לאספה המכוננת נערכו ב־25 בינואר 1949. ב־16 בפברואר 1949 קיבלה האספה המכוננת את השם הכנסת הראשונה."
+        }
+      ],
+      "candidate": {
+        "quizId": "fixture_history",
+        "questions": [
+          {
+            "id": "history_q1",
+            "quizId": "fixture_history",
+            "prompt": "באיזו שנה נערכו הבחירות הראשונות לאספה המכוננת?",
+            "options": ["1949", "1948", "1950", "1951"],
+            "correctIndex": 0,
+            "explanation": "[[LAM_DAN_GOLDEN_QUIZ_V1]]\n\n### Правильный ответ\nהמקור מציין שהבחירות נערכו ב־25 בינואר 1949.\n\n### Как запомнить\nВыборы прошли уже после провозглашения государства, в начале следующего года.\n\n### Разбор вариантов\n1. שנת 1949 מופיעה במקור כתאריך הבחירות.\n2. בשנת 1948 הוכרזה המדינה, אך הבחירות המתוארות נערכו לאחר מכן.\n3. שנת 1950 אינה מופיעה כתאריך הבחירות במקור.\n4. שנת 1951 אינה מופיעה כתאריך הבחירות במקור.\n\n### Перевод вопроса\nВ каком году прошли первые выборы в Учредительное собрание?\n\n### Переводы вариантов\n1. 1949.\n2. 1948.\n3. 1950.\n4. 1951.",
+            "sourceChunkIds": ["history_chunk_1"],
+            "order": 0
+          }
+        ]
+      },
+      "negativeCandidate": {
+        "quizId": "fixture_history_bad",
+        "questions": [
+          {
+            "id": "history_bad_1",
+            "quizId": "fixture_history_bad",
+            "prompt": "באיזו שנה נערכו הבחירות?",
+            "options": ["1967", "1973", "1982", "1992"],
+            "correctIndex": 0,
+            "explanation": "[[LAM_DAN_GOLDEN_QUIZ_V1]]\n\n### Правильный ответ\n1967.\n\n### Как запомнить\n1967.\n\n### Разбор вариантов\n1. נכון.\n2. לא נכון.\n3. לא נכון.\n4. לא נכון.",
+            "sourceChunkIds": ["history_chunk_1"],
+            "order": 0
+          }
+        ]
+      }
+    }
+  ]
+}
