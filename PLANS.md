@@ -1,20 +1,29 @@
 # Lamdan implementation plans
 
-This file records only the active or most recently completed implementation plan. Product intent remains in `ROADMAP.md`; task acceptance criteria remain in `TASKS.md`.
+This file records the active implementation plan. Product intent remains in `ROADMAP.md`; canonical task status and acceptance criteria live in `TASKS.md`; evidence and blockers live in `STATUS.md`.
 
-## P0-022C — Full Visual Backup and Restore
+## P1-005 — Store persistence and source-integrity hardening
 
-**Status:** complete — local `npm run check` and PR #30 CI passed.
+**Status:** complete in the current branch; awaiting full CI.
 
-### Boundaries
+### Delivered
 
-- Keep the existing localStorage schema and legacy JSON format compatible.
-- Preserve P0-022A's separate original, recipe and derived-preview records, and P0-022B's source-bound editable OCR drafts.
-- Do not add multi-page image support, cloud sync or new OCR behavior in this task.
+1. Detect divergence between in-memory state and the exact browser-local snapshot.
+2. Warn persistently, retry safely and allow emergency JSON export.
+3. Make the Notes editor's existing save state fail honestly when localStorage rejects a write.
+4. Preserve stable chunk ids during ordinary OCR replacement.
+5. Repair legacy and multi-page source references after chunk churn.
+6. Cover notes, flashcards, quiz questions and presentation slides.
+7. Add deterministic evals and permanent CI contract wiring.
+8. Replace stale task documentation with the active validation sequence.
+9. Add a private live-OCR runner without committing private images.
 
-### Delivery plan
+## Active plan — P1-006 to P1-008
 
-1. Add pure text parsing/snapshot helpers and one-transaction visual snapshot replace support for safe rollback. ✓
-2. Create a versioned, checksummed ZIP service with manifest validation before any storage mutation. ✓
-3. Add a clear Data page flow for lightweight JSON versus full ZIP, verification preview, merge, replace and cancellation. ✓
-4. Add a permanent contract plus CI/check wiring, update the operational documents, then run all quality gates and a browser interaction pass where available. ✓
+1. Place four private/licensed images in `private-ocr-assets/`.
+2. Run `npm run eval:ocr:live` against a connected Lamdan preview.
+3. Classify and fix live OCR failure categories.
+4. Generate one golden quiz from a complete Hebrew source pack and review every question.
+5. Promote an approved quiz candidate into permanent fixtures.
+6. Run the complete one-course pilot in `PILOT.md`.
+7. Fix every critical data-loss, provenance or mobile blocker before declaring M1.
