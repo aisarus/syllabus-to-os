@@ -22,6 +22,7 @@
     "eval:study-command": "node --experimental-strip-types scripts/run-study-command-center-evals.mjs",
     "eval:study-pack": "node --experimental-strip-types scripts/run-study-pack-evals.mjs",
     "eval:concept-evidence": "node --experimental-strip-types scripts/run-concept-evidence-evals.mjs",
+    "eval:per-question-evidence": "node --experimental-strip-types scripts/run-per-question-evidence-evals.mjs",
     "e2e:critical": "node scripts/run-critical-browser-e2e-wrapper.mjs",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
@@ -45,6 +46,7 @@
     "verify:study-command-center-contract": "node scripts/verify-study-command-center-contract.mjs",
     "verify:study-pack-contract": "node scripts/verify-study-pack-contract.mjs",
     "verify:concept-evidence-contract": "node scripts/verify-concept-evidence-contract.mjs",
+    "verify:per-question-evidence-contract": "node scripts/verify-per-question-evidence-contract.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {
