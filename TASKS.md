@@ -190,7 +190,7 @@ npm run eval:ocr:live -- \
 
 ## P1-011 — Study Command Center v1
 
-- **Status:** [~]
+- **Status:** [x]
 - **Priority:** immediate
 - **Size:** M
 - **Depends on:** existing assignments, calendar, flashcards, quizzes, materials and courses
@@ -199,7 +199,7 @@ npm run eval:ocr:live -- \
 
 Make the dashboard answer “What should I do now?” from real stored evidence.
 
-### Delivered in the current branch
+### Delivered
 
 - pure deterministic priority engine;
 - overdue/upcoming assignment actions;
@@ -212,7 +212,8 @@ Make the dashboard answer “What should I do now?” from real stored evidence.
 - quick wins, risks and honest counters;
 - direct links to useful workspaces;
 - RU/EN copy and responsive Academic Content Workspace styling;
-- deterministic eval and permanent contract.
+- deterministic eval and permanent contract;
+- full CI and critical Chromium E2E in PR #36.
 
 ### Acceptance criteria
 
@@ -230,7 +231,7 @@ Make the dashboard answer “What should I do now?” from real stored evidence.
 
 ## P1-012 — Lecture-to-Study-Pack
 
-- **Status:** [ ]
+- **Status:** [x]
 - **Priority:** P1
 - **Size:** L
 - **Depends on:** P1-008, P1-011, grounded generation
@@ -239,18 +240,17 @@ Make the dashboard answer “What should I do now?” from real stored evidence.
 
 One selected lecture/source bundle becomes a coherent guided learning sequence.
 
-### Scope
+### Delivered
 
 - orientation summary;
 - structured note;
 - concepts and definitions;
-- difficult points;
-- bilingual glossary;
+- difficult points and explicit unclear areas;
 - source-linked cards and diagnostic questions;
-- exam-style questions;
-- unsupported/unclear areas;
 - ordered learning steps with time estimates;
-- regenerate one section independently.
+- editable combined draft before save;
+- atomic save into note, cards and quiz entities;
+- full CI and critical Chromium E2E in PR #37.
 
 ### Acceptance criteria
 
@@ -264,7 +264,7 @@ One selected lecture/source bundle becomes a coherent guided learning sequence.
 
 ## P1-013 — Concept graph and evidence model
 
-- **Status:** [ ]
+- **Status:** [~]
 - **Priority:** P1
 - **Size:** XL
 - **Depends on:** P1-012
@@ -273,24 +273,37 @@ One selected lecture/source bundle becomes a coherent guided learning sequence.
 
 Represent evidence for recognition, recall, explanation and application without fake mastery.
 
-### Scope
+### Verified v1 delivered in PR #38
 
-- `Concept` and source/topic relationships;
-- concept extraction review;
-- card/quiz/open-answer evidence events;
+- separate local-first concept/evidence store without rewriting `lamdan.data.v1`;
+- explicit concept relationships to course, topic, approved chunks, cards and quiz questions;
+- linked flashcard recall evidence;
+- aggregate quiz attempts retained only as neutral context;
+- manual explanation/application events treated as secondary evidence;
 - mistake taxonomy;
 - recency and forgetting risk;
-- knowledge map states;
-- targeted repair action from every weak node;
-- schema migration and export support.
+- `unseen`, `covered`, `fragile`, `weak` and `strong` knowledge-map states;
+- strong state requires four successes, two non-manual successes, two days and two evidence kinds;
+- targeted source/card/quiz repair actions;
+- migration, reconciliation and course-level JSON export/import;
+- inspectable and removable evidence history;
+- full CI and critical Chromium E2E.
+
+### Remaining scope
+
+- reviewed concept extraction from sources and Study Packs;
+- per-question quiz evidence instead of aggregate-only context;
+- open-answer and oral evidence;
+- integration into the full visual ZIP backup.
 
 ### Acceptance criteria
 
 - file views never increase concept state;
 - one lucky answer cannot mark mastery;
+- repeated manual self-rating alone cannot mark strong evidence;
 - evidence is inspectable and removable;
 - migration preserves all v1 data;
-- deleting a source repairs concept relationships safely.
+- deleting or unlinking a source/practice relationship repairs concept evidence safely.
 
 ---
 
@@ -431,13 +444,13 @@ Build an adaptive exam plan from date, format, coverage, evidence and available 
 
 # Current execution order
 
-1. Verify and merge `P1-011 Study Command Center v1`.
-2. Supply and run the private OCR pack (`P1-006`).
-3. Run and review one real Hebrew golden quiz (`P1-007`).
-4. Execute the complete one-course pilot (`P1-008`).
-5. Fix pilot blockers and deepen multi-page E2E (`P1-009`).
-6. Build Lecture-to-Study-Pack (`P1-012`).
-7. Add concept evidence (`P1-013`).
+1. Persist per-question quiz evidence and reviewed mistake data under `P1-013`.
+2. Add reviewed concept extraction from sources and Study Packs under `P1-013`.
+3. Integrate concept/evidence data into the full visual ZIP backup.
+4. Supply and run the private OCR pack (`P1-006`).
+5. Run and review one real Hebrew golden quiz (`P1-007`).
+6. Execute the complete one-course pilot (`P1-008`).
+7. Deepen multi-page E2E (`P1-009`).
 8. Build Exam Engine (`P1-014`).
 9. Add Assignment Copilot (`P1-015`).
 10. Add audio, Lecture Mode, Ask My Course, workload forecast and personal explanation (`P1-010`, `P1-016`–`P1-019`).
