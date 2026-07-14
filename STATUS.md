@@ -6,7 +6,7 @@ Last updated: 2026-07-14
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack, Concept Graph v1, per-question quiz evidence, Workspace backup v2 and Reviewed concept extraction are implemented and verified. Open-answer evidence and mistake repair is the active delivery.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack, Concept Graph v1, per-question quiz evidence, Workspace backup v2, Reviewed concept extraction and Open-answer evidence with mistake repair are implemented and verified.
 
 ## Completed task state
 
@@ -27,12 +27,9 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-013A Per-question quiz evidence` — complete and verified; PR #39 merged.
 - `P1-013B Workspace backup v2` — complete and verified; PR #41 merged after all contracts, evals, build and three Chromium gates.
 - `P1-013C Reviewed concept extraction` — complete and verified; PR #42 merged after all contracts, evals, typecheck, lint, build and four Chromium gates.
+- `P1-013D Open-answer evidence and mistake repair` — complete and verified; PR #43 passed all contracts, evals, typecheck, lint, build and five Chromium gates.
 
-## Current implementation pass — Open-answer evidence and mistake repair
-
-**Status:** implemented on `agent/open-answer-evidence`; full CI and browser verification pending.
-
-Delivered:
+## Open-answer evidence and mistake repair delivered state
 
 - source-grounded open-answer review API at `/api/ai/review-open-answer`;
 - stored exact prompt, full response, evidence kind, outcome, score, review summary and reviewed source chunks;
@@ -61,10 +58,9 @@ Current boundaries:
 
 ## Verification state
 
-Pending on the current branch:
+PR #43 passed:
 
-- open-answer evidence and repair contract and deterministic evaluations;
-- all existing repository contracts and eval suites;
+- every repository contract and deterministic evaluation suite;
 - TypeScript;
 - ESLint and formatting;
 - production build;
@@ -72,9 +68,7 @@ Pending on the current branch:
 - question-evidence Chromium;
 - workspace-backup Chromium;
 - reviewed concept extraction Chromium;
-- open-answer failure/repair/reload Chromium.
-
-The branch must not merge until every gate passes.
+- open-answer failure → linked repair → reload Chromium with both events preserved.
 
 ## Existing validation blockers
 
@@ -92,7 +86,6 @@ The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved 
 
 ## Next execution targets
 
-1. Verify and merge open-answer evidence and mistake repair.
-2. Add final edited-batch alias collision hardening.
-3. Begin `P1-014 Exam Engine` after the evidence foundation remains stable in real use.
-4. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
+1. Add final edited-batch alias collision hardening.
+2. Begin `P1-014 Exam Engine` after the evidence foundation remains stable in real use.
+3. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
