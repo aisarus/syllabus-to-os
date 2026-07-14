@@ -14,57 +14,49 @@ This file records the active implementation plan. Product intent remains in `ROA
 6. Run the complete one-course pilot in `PILOT.md`.
 7. Fix every critical data-loss, provenance or mobile blocker before declaring M1.
 
-## Active delivery — P1-011 Study Command Center v1
+## Completed Academic Autopilot slices
 
-**Status:** implemented in `agent/academic-autopilot-roadmap`; awaiting full CI and browser review.
+- `P1-011 Study Command Center v1` — merged in PR #36 after full CI and critical Chromium E2E.
+- `P1-012 Lecture-to-Study-Pack` — merged in PR #37 after full CI and critical Chromium E2E.
+
+## Active delivery — P1-013 Concept graph and evidence model v1
+
+**Status:** implemented on `agent/concept-evidence-v1`; verification pending.
 
 ### Product outcome
 
-The dashboard stops being a content inventory and becomes a daily decision surface that answers “What should I do now?” from real data.
+A course gains an inspectable map of concepts and learning evidence without replacing uncertainty with a decorative mastery percentage.
 
 ### Implementation sequence
 
-1. Add a pure priority engine over assignments, exam events, due cards, quiz attempts, source state and course coverage. ✓
-2. Add bounded 20/45/90 minute study-plan composition. ✓
-3. Render one main action, quick wins, risks and honest counters on Dashboard. ✓
-4. Preserve universal intake and existing AI actions below the command center. ✓
-5. Add RU/EN copy and responsive Academic Content Workspace styling. ✓
-6. Add deterministic scenarios and a permanent contract. ✓
-7. Wire package, local check and GitHub Actions quality gates. In progress.
-8. Run CI, inspect browser layout and fix failures before merge. Pending.
+1. Add a separate local-first concept/evidence schema without rewriting `lamdan.data.v1`. ✓
+2. Normalize missing or malformed concept data safely. ✓
+3. Allow manual concept creation and explicit links to topics, approved chunks, cards and quiz questions. ✓
+4. Capture linked flashcard outcomes as recall evidence. ✓
+5. Preserve aggregate quiz attempts as neutral context rather than invented concept correctness. ✓
+6. Add explicit explanation/application checks and editable mistake taxonomy. ✓
+7. Derive `unseen`, `covered`, `fragile`, `weak` and `strong` states from deterministic evidence rules. ✓
+8. Make every evidence event inspectable and removable. ✓
+9. Reconcile dangling references after course/source/practice deletion. ✓
+10. Add course-level concept JSON export/import. ✓
+11. Add Course Workspace UI, deterministic evals, permanent contract and CI wiring. ✓
+12. Run typecheck, lint, build, all existing contracts/evals and critical browser E2E. Pending.
+13. Review desktop/mobile behavior and merge only after all gates pass. Pending.
 
 ### Explicit boundaries
 
-- No schema migration in v1.
-- No invented mastery or readiness percentage.
-- No recommendation from file views or scrolling.
-- Every action opens an existing useful workspace.
-- Missing data produces an honest intake or continuation action.
+- File views, note creation and time spent never create learning evidence.
+- One correct answer or one flashcard result cannot create `strong` state.
+- Strong evidence requires at least four successes across at least two days and two evidence kinds.
+- Existing aggregate quiz attempts remain `mixed` context until per-question answers are persisted.
+- Manual explanation/application events are explicitly labeled self-recorded evidence.
+- No mastery percentage, score prediction or exam-readiness score.
+- Concept JSON export is visible; full visual ZIP integration is a follow-up.
 
-## Next delivery — P1-012 Lecture-to-Study-Pack
+## Next delivery after P1-013
 
-**Status:** planned after P1-011 verification and M1 blocker fixes.
-
-### Vertical slice
-
-1. Select one approved material or a small same-course source bundle.
-2. Generate a typed pack draft with orientation, note, concepts, glossary, cards, questions and unclear areas.
-3. Preserve source references for every generated section.
-4. Show the pack as one guided sequence rather than disconnected outputs.
-5. Allow section-level edit, regenerate, save and retry.
-6. Launch the first study step directly from Today.
-7. Record completion evidence without calling it mastery.
-
-### First acceptance target
-
-A real Hebrew lecture plus Russian explanations becomes a useful 25–35 minute learning sequence with no unsupported claims and no manual prompt construction.
-
-## Follow-on architecture
-
-After Study Pack:
-
-1. `P1-013` — add concepts, evidence events and mistake taxonomy with a migration.
-2. `P1-014` — build Exam Engine on source coverage and learning evidence.
-3. `P1-015` — build Assignment Copilot using grounded requirement and rubric extraction.
-4. `P1-010` and `P1-016` — add audio transcription and Lecture Mode through the same review/apply contract.
-5. `P1-017`–`P1-019` — Ask My Course, workload forecasting and personal explanation preferences.
+1. Persist per-question quiz answer evidence and mistake review.
+2. Add reviewed concept extraction from source chunks and Study Packs.
+3. Integrate concept/evidence data into full visual ZIP backup.
+4. Build `P1-014 Exam Engine` on stable evidence, source coverage and deadlines.
+5. Continue `P1-015`–`P1-019` only through the same source-visible and reviewable contracts.
