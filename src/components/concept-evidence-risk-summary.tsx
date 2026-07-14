@@ -16,8 +16,13 @@ export function ConceptEvidenceRiskSummary({ courseId }: { courseId: string }) {
     ),
   }));
   const risky = rows
-    .filter((row) => row.summary.forgettingRisk === "high" || row.summary.forgettingRisk === "medium")
-    .sort((left, right) => riskRank(right.summary.forgettingRisk) - riskRank(left.summary.forgettingRisk));
+    .filter(
+      (row) => row.summary.forgettingRisk === "high" || row.summary.forgettingRisk === "medium",
+    )
+    .sort(
+      (left, right) =>
+        riskRank(right.summary.forgettingRisk) - riskRank(left.summary.forgettingRisk),
+    );
 
   if (concepts.length === 0) return null;
 
@@ -45,9 +50,21 @@ export function ConceptEvidenceRiskSummary({ courseId }: { courseId: string }) {
           </p>
         </div>
         <div className="grid shrink-0 grid-cols-3 gap-2 text-center text-xs">
-          <RiskCount label={isRu ? "Высокий" : "High"} value={countRisk(rows, "high")} icon={AlertTriangle} />
-          <RiskCount label={isRu ? "Средний" : "Medium"} value={countRisk(rows, "medium")} icon={Clock3} />
-          <RiskCount label={isRu ? "Низкий" : "Low"} value={countRisk(rows, "low")} icon={CheckCircle2} />
+          <RiskCount
+            label={isRu ? "Высокий" : "High"}
+            value={countRisk(rows, "high")}
+            icon={AlertTriangle}
+          />
+          <RiskCount
+            label={isRu ? "Средний" : "Medium"}
+            value={countRisk(rows, "medium")}
+            icon={Clock3}
+          />
+          <RiskCount
+            label={isRu ? "Низкий" : "Low"}
+            value={countRisk(rows, "low")}
+            icon={CheckCircle2}
+          />
         </div>
       </div>
 
@@ -64,7 +81,8 @@ export function ConceptEvidenceRiskSummary({ courseId }: { courseId: string }) {
                 <div className="min-w-0">
                   <strong className="block truncate text-sm">{concept.title}</strong>
                   <span className="mt-1 block text-[11px] text-muted-foreground">
-                    {riskCopy(summary.forgettingRisk, isRu)} · {latestSuccessCopy(summary.latestSuccessAt, isRu)}
+                    {riskCopy(summary.forgettingRisk, isRu)} ·{" "}
+                    {latestSuccessCopy(summary.latestSuccessAt, isRu)}
                   </span>
                 </div>
               </div>

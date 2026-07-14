@@ -77,7 +77,10 @@ export function emptyExamEngineData(): ExamEngineData {
 }
 
 export function validateExamBlueprint(
-  blueprint: Pick<ExamBlueprint, "courseId" | "quizId" | "title" | "durationMinutes" | "questionIds">,
+  blueprint: Pick<
+    ExamBlueprint,
+    "courseId" | "quizId" | "title" | "durationMinutes" | "questionIds"
+  >,
   core: AppData,
 ): ExamBlueprintValidation {
   const errors: string[] = [];
@@ -144,10 +147,7 @@ export function validateExamBlueprint(
   };
 }
 
-export function freezeExamQuestions(
-  questions: QuizQuestion[],
-  seed: string,
-): FrozenExamQuestion[] {
+export function freezeExamQuestions(questions: QuizQuestion[], seed: string): FrozenExamQuestion[] {
   return deterministicShuffle(
     questions.map((question) => ({
       questionId: question.id,
@@ -194,7 +194,11 @@ export function answerExamQuestion(
   if (now >= session.deadlineAt) throw new Error("The exam deadline has passed.");
   const question = session.questions.find((item) => item.questionId === questionId);
   if (!question) throw new Error("The frozen question is not part of this exam.");
-  if (!Number.isInteger(selectedIndex) || selectedIndex < 0 || selectedIndex >= question.options.length) {
+  if (
+    !Number.isInteger(selectedIndex) ||
+    selectedIndex < 0 ||
+    selectedIndex >= question.options.length
+  ) {
     throw new Error("The selected option is invalid.");
   }
   return {
@@ -204,10 +208,7 @@ export function answerExamQuestion(
   };
 }
 
-export function submitExamSession(
-  session: ExamSession,
-  submittedAt = Date.now(),
-): ExamSession {
+export function submitExamSession(session: ExamSession, submittedAt = Date.now()): ExamSession {
   if (session.status !== "active") return session;
   const questionResults = session.questions.map<ExamQuestionResult>((question) => {
     const selectedIndex = session.answers[question.questionId];
@@ -311,10 +312,11 @@ function normalizeSession(raw: unknown): ExamSession | null {
     status: status === "submitted" && !result ? "active" : status,
     questions,
     answers,
-    currentQuestionId:
-      questions.some((question) => question.questionId === text(value.currentQuestionId))
-        ? text(value.currentQuestionId)
-        : questions[0]?.questionId,
+    currentQuestionId: questions.some(
+      (question) => question.questionId === text(value.currentQuestionId),
+    )
+      ? text(value.currentQuestionId)
+      : questions[0]?.questionId,
     result,
   };
 }
@@ -339,10 +341,7 @@ function normalizeFrozenQuestion(raw: unknown): FrozenExamQuestion | null {
   };
 }
 
-function normalizeAnswers(
-  raw: unknown,
-  questions: FrozenExamQuestion[],
-): Record<string, number> {
+function normalizeAnswers(raw: unknown, questions: FrozenExamQuestion[]): Record<string, number> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
   const object = raw as Record<string, unknown>;
   const result: Record<string, number> = {};
@@ -360,10 +359,7 @@ function normalizeAnswers(
   return result;
 }
 
-function normalizeResult(
-  raw: unknown,
-  questions: FrozenExamQuestion[],
-): ExamResult | undefined {
+function normalizeResult(raw: unknown, questions: FrozenExamQuestion[]): ExamResult | undefined {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
   const value = raw as Record<string, unknown>;
   const questionResults = Array.isArray(value.questions)
@@ -396,9 +392,10 @@ function normalizeQuestionResult(
   const questionId = text(value.questionId);
   const question = questions.find((item) => item.questionId === questionId);
   if (!question) return null;
-  const selectedIndex = value.unanswered === true
-    ? undefined
-    : clampInteger(value.selectedIndex, 0, question.options.length - 1, -1);
+  const selectedIndex =
+    value.unanswered === true
+      ? undefined
+      : clampInteger(value.selectedIndex, 0, question.options.length - 1, -1);
   const unanswered = selectedIndex === undefined || selectedIndex < 0;
   return {
     questionId,
@@ -455,12 +452,7 @@ function finiteNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
-function clampInteger(
-  value: unknown,
-  minimum: number,
-  maximum: number,
-  fallback: number,
-): number {
+function clampInteger(value: unknown, minimum: number, maximum: number, fallback: number): number {
   if (typeof value !== "number" || !Number.isInteger(value)) return fallback;
   return Math.min(maximum, Math.max(minimum, value));
 }

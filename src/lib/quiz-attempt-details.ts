@@ -84,7 +84,11 @@ function subscribe(listener: () => void): () => void {
 }
 
 export function useQuizAttemptDetailData(): QuizAttemptDetailData {
-  return useSyncExternalStore(subscribe, () => state, () => SERVER_SNAPSHOT);
+  return useSyncExternalStore(
+    subscribe,
+    () => state,
+    () => SERVER_SNAPSHOT,
+  );
 }
 
 export function getQuizAttemptDetailSnapshot(): QuizAttemptDetailData {
@@ -102,7 +106,11 @@ export function buildQuizAttemptAnswerSnapshots(
 ): QuizAttemptAnswerSnapshot[] {
   return questions.map((question) => {
     const selectedIndex = answers[question.id];
-    if (!Number.isInteger(selectedIndex) || selectedIndex < 0 || selectedIndex >= question.options.length) {
+    if (
+      !Number.isInteger(selectedIndex) ||
+      selectedIndex < 0 ||
+      selectedIndex >= question.options.length
+    ) {
       throw new Error(`Question ${question.id} has no valid selected answer.`);
     }
     if (
@@ -153,7 +161,10 @@ export function recordQuizAttemptWithAnswers(input: {
   };
 
   ensureHydrated();
-  persist({ version: 1, attempts: [detail, ...state.attempts.filter((item) => item.attemptId !== attempt.id)] });
+  persist({
+    version: 1,
+    attempts: [detail, ...state.attempts.filter((item) => item.attemptId !== attempt.id)],
+  });
   updateData((current) => ({ ...current, quizAttempts: [attempt, ...current.quizAttempts] }));
   const health = inspectWorkspacePersistence(getDataSnapshot());
   return {
@@ -240,7 +251,9 @@ function normalizeAnswerSnapshot(raw: unknown): QuizAttemptAnswerSnapshot | null
     correctOption: text(value.correctOption),
     correct: value.correct === true,
     sourceChunkIds: Array.isArray(value.sourceChunkIds)
-      ? Array.from(new Set(value.sourceChunkIds.filter((item): item is string => typeof item === "string")))
+      ? Array.from(
+          new Set(value.sourceChunkIds.filter((item): item is string => typeof item === "string")),
+        )
       : [],
   };
 }

@@ -1,8 +1,5 @@
 import assert from "node:assert/strict";
-import {
-  buildStudyCommandCenter,
-  buildStudyPlan,
-} from "../src/lib/study-command-center.ts";
+import { buildStudyCommandCenter, buildStudyPlan } from "../src/lib/study-command-center.ts";
 
 const now = new Date(2026, 6, 13, 12, 0, 0, 0).getTime();
 

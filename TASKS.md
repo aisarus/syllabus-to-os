@@ -29,38 +29,38 @@ Every completed task must satisfy applicable requirements:
 
 # Completed core sequence
 
-| Task | Status | Result |
-|---|---:|---|
-| P0-001 Add continuous integration | [x] | Contracts, evals, typecheck, lint and build run in CI. |
-| P0-002 Audit and normalize active routes | [x] | Content-first shell and route inventory are stable. |
-| P0-003 Remove tracking-first flows | [x] | Timers, streaks and fake progress are outside primary navigation. |
-| P0-004 Shared material intake | [x] | Dashboard and Materials use one intake pipeline. |
-| P0-005 Multi-file upload queue | [x] | Independent progress, retry and failure states. |
-| P0-006 Duplicate detection | [x] | Exact and likely duplicate handling. |
-| P0-007 Intake review and correction | [x] | Metadata and extraction are reviewed before persistence. |
-| P0-008 Material Workspace | [x] | Source inspection, selection and actions. |
-| P0-009 Chunk editing | [x] | Split, merge, reorder and delete. |
-| P0-010 Material output history | [x] | Saved outputs remain linked to sources. |
-| P0-011 Selected-source AI | [x] | Material selection passes directly into generation. |
-| P0-012 Editable AI draft review | [x] | Notes, cards and quizzes are editable before save. |
-| P0-013 Trust and citation layer | [x] | Unknown source ids are rejected and unsupported claims warned. |
-| P0-014 Syllabus review | [x] | Explicit correction and duplicate-safe confirmation. |
-| P0-015 Course Workspace v1 | [x] | Persistent course structure and linked content. |
-| P0-016 Reliable Notes editor | [x] | Markdown editing, autosave state and source comparison. |
-| P0-017 Flashcard Studio v1 | [x] | Bulk curation and two-sided review. |
-| P0-018 Quiz Studio v1 | [x] | Validation, editing, practice and exam modes. |
-| P0-019 Core UI honesty audit | [x] | Fake/dead controls removed or explained. |
-| P0-020 Deterministic evaluation fixtures | [x] | Syllabus, grounding, multilingual and OCR baselines. |
-| P0-021 Durable image intake and OCR review | [x] | Original images, editable OCR drafts and explicit apply. |
-| P0-022A Image preprocessing | [x] | Non-destructive crop, rotation, deskew and contrast workflow. |
-| P0-022B OCR region overlay | [x] | Source-bound boxes and synchronized text/image selection. |
-| P0-022C Full visual backup | [x] | Checksummed ZIP restore with rollback. |
-| P0-023 Quizlet cards and golden quizzes | [x] | Two-sided study and grounded bilingual quiz format. |
-| P1-001 Multi-page image materials | [x] | Per-page OCR, reorder, partial success and backup. |
-| P1-002 Golden quiz quality evaluation | [x] | Category scoring, negative controls and manual review. |
-| P1-003 Critical browser E2E | [x] | Real Chromium flows for materials, OCR, cards, quizzes and backup. |
-| P1-004 Add local-first global search v2 | [x] | Ranked multilingual search with URL state and deterministic evals. |
-| P1-005 Store persistence and source-integrity hardening | [x] | Failed local writes are visible/exportable; OCR replacement preserves or repairs source links. |
+| Task                                                    | Status | Result                                                                                         |
+| ------------------------------------------------------- | -----: | ---------------------------------------------------------------------------------------------- |
+| P0-001 Add continuous integration                       |    [x] | Contracts, evals, typecheck, lint and build run in CI.                                         |
+| P0-002 Audit and normalize active routes                |    [x] | Content-first shell and route inventory are stable.                                            |
+| P0-003 Remove tracking-first flows                      |    [x] | Timers, streaks and fake progress are outside primary navigation.                              |
+| P0-004 Shared material intake                           |    [x] | Dashboard and Materials use one intake pipeline.                                               |
+| P0-005 Multi-file upload queue                          |    [x] | Independent progress, retry and failure states.                                                |
+| P0-006 Duplicate detection                              |    [x] | Exact and likely duplicate handling.                                                           |
+| P0-007 Intake review and correction                     |    [x] | Metadata and extraction are reviewed before persistence.                                       |
+| P0-008 Material Workspace                               |    [x] | Source inspection, selection and actions.                                                      |
+| P0-009 Chunk editing                                    |    [x] | Split, merge, reorder and delete.                                                              |
+| P0-010 Material output history                          |    [x] | Saved outputs remain linked to sources.                                                        |
+| P0-011 Selected-source AI                               |    [x] | Material selection passes directly into generation.                                            |
+| P0-012 Editable AI draft review                         |    [x] | Notes, cards and quizzes are editable before save.                                             |
+| P0-013 Trust and citation layer                         |    [x] | Unknown source ids are rejected and unsupported claims warned.                                 |
+| P0-014 Syllabus review                                  |    [x] | Explicit correction and duplicate-safe confirmation.                                           |
+| P0-015 Course Workspace v1                              |    [x] | Persistent course structure and linked content.                                                |
+| P0-016 Reliable Notes editor                            |    [x] | Markdown editing, autosave state and source comparison.                                        |
+| P0-017 Flashcard Studio v1                              |    [x] | Bulk curation and two-sided review.                                                            |
+| P0-018 Quiz Studio v1                                   |    [x] | Validation, editing, practice and exam modes.                                                  |
+| P0-019 Core UI honesty audit                            |    [x] | Fake/dead controls removed or explained.                                                       |
+| P0-020 Deterministic evaluation fixtures                |    [x] | Syllabus, grounding, multilingual and OCR baselines.                                           |
+| P0-021 Durable image intake and OCR review              |    [x] | Original images, editable OCR drafts and explicit apply.                                       |
+| P0-022A Image preprocessing                             |    [x] | Non-destructive crop, rotation, deskew and contrast workflow.                                  |
+| P0-022B OCR region overlay                              |    [x] | Source-bound boxes and synchronized text/image selection.                                      |
+| P0-022C Full visual backup                              |    [x] | Checksummed ZIP restore with rollback.                                                         |
+| P0-023 Quizlet cards and golden quizzes                 |    [x] | Two-sided study and grounded bilingual quiz format.                                            |
+| P1-001 Multi-page image materials                       |    [x] | Per-page OCR, reorder, partial success and backup.                                             |
+| P1-002 Golden quiz quality evaluation                   |    [x] | Category scoring, negative controls and manual review.                                         |
+| P1-003 Critical browser E2E                             |    [x] | Real Chromium flows for materials, OCR, cards, quizzes and backup.                             |
+| P1-004 Add local-first global search v2                 |    [x] | Ranked multilingual search with URL state and deterministic evals.                             |
+| P1-005 Store persistence and source-integrity hardening |    [x] | Failed local writes are visible/exportable; OCR replacement preserves or repairs source links. |
 
 > Historical note: `P0-021` is reserved for durable OCR. The one-course pilot is `P1-008`.
 

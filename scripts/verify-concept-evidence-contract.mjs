@@ -119,7 +119,11 @@ for (const marker of [
   requireMarker(riskSummary, marker, `Forgetting-risk UI is missing: ${marker}`);
 }
 
-requireMarker(appRoute, "<ConceptEvidenceLifecycle />", "Concept evidence lifecycle is not mounted.");
+requireMarker(
+  appRoute,
+  "<ConceptEvidenceLifecycle />",
+  "Concept evidence lifecycle is not mounted.",
+);
 requireMarker(
   courseRoute,
   "<ConceptEvidenceRiskSummary courseId={courseId} />",

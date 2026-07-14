@@ -185,7 +185,9 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
               : "Saved Study Packs retain note-level citations, so every proposed link still needs manual review.",
           ],
     );
-    setTrustLabel(isRu ? "Локальный разбор сохранённых Study Pack" : "Local saved Study Pack parser");
+    setTrustLabel(
+      isRu ? "Локальный разбор сохранённых Study Pack" : "Local saved Study Pack parser",
+    );
   };
 
   const updateCandidate = (id: string, patch: Partial<ConceptCandidateReview>) => {
@@ -307,7 +309,9 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
 
           <div className="mt-4 flex items-center justify-between gap-2 text-xs text-muted-foreground">
             <span>{isRu ? "Подтверждённые фрагменты" : "Approved chunks"}</span>
-            <span className="font-mono">{selectedChunkIds.length}/{MAX_SELECTED_CHUNKS}</span>
+            <span className="font-mono">
+              {selectedChunkIds.length}/{MAX_SELECTED_CHUNKS}
+            </span>
           </div>
           <div className="mt-2 max-h-72 space-y-2 overflow-auto pe-1">
             {materialChunks.map((chunk) => (
@@ -321,16 +325,21 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
                   onChange={() => toggleChunk(chunk.id)}
                 />
                 <span className="min-w-0">
-                  <strong className="block truncate">{chunk.title || chunk.section || chunk.id}</strong>
+                  <strong className="block truncate">
+                    {chunk.title || chunk.section || chunk.id}
+                  </strong>
                   <span className="mt-1 line-clamp-2 text-muted-foreground">
-                    {chunk.pageNumber ? `p.${chunk.pageNumber} · ` : ""}{chunk.text}
+                    {chunk.pageNumber ? `p.${chunk.pageNumber} · ` : ""}
+                    {chunk.text}
                   </span>
                 </span>
               </label>
             ))}
             {materialChunks.length === 0 && (
               <p className="rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
-                {isRu ? "У материала нет применённых фрагментов." : "This material has no applied chunks."}
+                {isRu
+                  ? "У материала нет применённых фрагментов."
+                  : "This material has no applied chunks."}
               </p>
             )}
           </div>
@@ -360,7 +369,9 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
           )}
           {warnings.length > 0 && (
             <div className="mb-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 text-xs text-yellow-100">
-              {warnings.map((warning) => <p key={warning}>• {warning}</p>)}
+              {warnings.map((warning) => (
+                <p key={warning}>• {warning}</p>
+              ))}
             </div>
           )}
 
@@ -397,7 +408,9 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
                   >
                     <option value="_none">{isRu ? "Без темы" : "No topic"}</option>
                     {topics.map((topic) => (
-                      <option key={topic.id} value={topic.id}>{topic.title}</option>
+                      <option key={topic.id} value={topic.id}>
+                        {topic.title}
+                      </option>
                     ))}
                   </select>
                   <Button
@@ -417,7 +430,10 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
                   const normalized = normalizeConceptCandidate(candidate, allowedChunkIds);
                   const blocked = Boolean(directExistingDuplicate || rejection || !normalized);
                   return (
-                    <article key={candidate.id} className="rounded-lg border border-border bg-background p-4">
+                    <article
+                      key={candidate.id}
+                      className="rounded-lg border border-border bg-background p-4"
+                    >
                       <div className="flex items-start gap-3">
                         <input
                           className="mt-3"
@@ -481,7 +497,9 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
                           <div className="flex flex-wrap gap-2">
                             {candidate.sourceChunkIds.map((chunkId) => {
                               const chunk = chunkById.get(chunkId);
-                              const material = chunk ? materialById.get(chunk.materialId) : undefined;
+                              const material = chunk
+                                ? materialById.get(chunk.materialId)
+                                : undefined;
                               return (
                                 <label
                                   key={chunkId}

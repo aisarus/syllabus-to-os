@@ -236,7 +236,10 @@ const existing = {
   assert.deepEqual(reviews[0].sourceChunkIds, ["chk_1"]);
   assert.equal(reviews[0].selected, false);
   assert.equal(reviews[1].title, "Судебный контроль");
-  assert.equal(reviews.some((review) => review.title === "Не брать"), false);
+  assert.equal(
+    reviews.some((review) => review.title === "Не брать"),
+    false,
+  );
 }
 
 console.log("Reviewed concept extraction evaluations passed.");

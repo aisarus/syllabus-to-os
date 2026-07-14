@@ -71,10 +71,7 @@ const blueprint = {
 {
   const ungroundedCore = {
     ...core,
-    quizQuestions: [
-      { ...core.quizQuestions[0], sourceChunkIds: [] },
-      core.quizQuestions[1],
-    ],
+    quizQuestions: [{ ...core.quizQuestions[0], sourceChunkIds: [] }, core.quizQuestions[1]],
   };
   const validation = validateExamBlueprint(blueprint, ungroundedCore);
   assert.equal(validation.ok, false);

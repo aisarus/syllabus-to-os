@@ -159,7 +159,9 @@ function DataPage() {
     } catch (backupError) {
       const message = backupError instanceof Error ? backupError.message : String(backupError);
       setError(message);
-      toast.error(isRu ? "Не удалось создать workspace-копию" : "Could not create the workspace backup");
+      toast.error(
+        isRu ? "Не удалось создать workspace-копию" : "Could not create the workspace backup",
+      );
     } finally {
       setFullBackupBusy(false);
     }
@@ -228,7 +230,9 @@ function DataPage() {
       const message = backupError instanceof Error ? backupError.message : String(backupError);
       setError(message);
       toast.error(
-        isRu ? "Восстановление отменено и полностью откатано" : "Restore was cancelled and fully rolled back",
+        isRu
+          ? "Восстановление отменено и полностью откатано"
+          : "Restore was cancelled and fully rolled back",
       );
     } finally {
       setFullBackupBusy(false);
@@ -267,14 +271,28 @@ function DataPage() {
       <div className="mb-4 rounded-lg border border-border bg-surface p-4 text-sm">
         <strong>{isRu ? "Сейчас в библиотеке" : "Current library"}</strong>
         <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground sm:grid-cols-4 lg:grid-cols-8">
-          <span>{data.courses.length} {isRu ? "курсов" : "courses"}</span>
-          <span>{data.materials.length} {isRu ? "материалов" : "materials"}</span>
-          <span>{data.notes.length} {isRu ? "конспектов" : "notes"}</span>
-          <span>{data.flashcards.length} {isRu ? "карточек" : "cards"}</span>
-          <span>{data.quizzes.length} {isRu ? "тестов" : "quizzes"}</span>
-          <span>{concepts.concepts.length} {isRu ? "понятий" : "concepts"}</span>
+          <span>
+            {data.courses.length} {isRu ? "курсов" : "courses"}
+          </span>
+          <span>
+            {data.materials.length} {isRu ? "материалов" : "materials"}
+          </span>
+          <span>
+            {data.notes.length} {isRu ? "конспектов" : "notes"}
+          </span>
+          <span>
+            {data.flashcards.length} {isRu ? "карточек" : "cards"}
+          </span>
+          <span>
+            {data.quizzes.length} {isRu ? "тестов" : "quizzes"}
+          </span>
+          <span>
+            {concepts.concepts.length} {isRu ? "понятий" : "concepts"}
+          </span>
           <span>{concepts.evidenceEvents.length} evidence</span>
-          <span>{answerSnapshotCount} {isRu ? "ответов" : "answers"}</span>
+          <span>
+            {answerSnapshotCount} {isRu ? "ответов" : "answers"}
+          </span>
         </div>
       </div>
 
@@ -283,7 +301,9 @@ function DataPage() {
           <FileImage className="mt-0.5 h-5 w-5 shrink-0 text-yellow-200" />
           <div>
             <h2 className="text-sm font-semibold text-yellow-100">
-              {isRu ? "Полный перенос — только Workspace ZIP" : "Only Workspace ZIP moves everything"}
+              {isRu
+                ? "Полный перенос — только Workspace ZIP"
+                : "Only Workspace ZIP moves everything"}
             </h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {isRu
@@ -303,7 +323,9 @@ function DataPage() {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <section className="rounded-lg border border-border bg-surface p-6">
-          <h2 className="mb-2 font-semibold">{isRu ? "Лёгкий core JSON" : "Lightweight core JSON"}</h2>
+          <h2 className="mb-2 font-semibold">
+            {isRu ? "Лёгкий core JSON" : "Lightweight core JSON"}
+          </h2>
           <p className="mb-4 text-sm text-muted-foreground">
             {isRu
               ? "Курсы, материалы, применённый текст, конспекты, карточки и тесты. Без фото, concepts и детальных ответов."
@@ -353,7 +375,11 @@ function DataPage() {
               </p>
             </div>
             <Button onClick={() => void doFullExport()} disabled={!hasAnyData || fullBackupBusy}>
-              {fullBackupBusy ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : <Download className="h-4 w-4 me-1" />}
+              {fullBackupBusy ? (
+                <Loader2 className="h-4 w-4 animate-spin me-1" />
+              ) : (
+                <Download className="h-4 w-4 me-1" />
+              )}
               {isRu ? "Скачать ZIP" : "Download ZIP"}
             </Button>
           </div>
@@ -369,12 +395,21 @@ function DataPage() {
                 event.target.value = "";
               }}
             />
-            <Button variant="outline" onClick={() => fullBackupFileRef.current?.click()} disabled={fullBackupBusy}>
-              {fullBackupBusy ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : <ArchiveRestore className="h-4 w-4 me-1" />}
+            <Button
+              variant="outline"
+              onClick={() => fullBackupFileRef.current?.click()}
+              disabled={fullBackupBusy}
+            >
+              {fullBackupBusy ? (
+                <Loader2 className="h-4 w-4 animate-spin me-1" />
+              ) : (
+                <ArchiveRestore className="h-4 w-4 me-1" />
+              )}
               {isRu ? "Проверить ZIP и восстановить" : "Verify ZIP and restore"}
             </Button>
             <span className="text-xs text-muted-foreground">
-              {isRu ? "Локальный лимит: " : "Local limit: "}{formatBytes(MAX_FULL_WORKSPACE_BACKUP_BYTES)}
+              {isRu ? "Локальный лимит: " : "Local limit: "}
+              {formatBytes(MAX_FULL_WORKSPACE_BACKUP_BYTES)}
             </span>
           </div>
         </section>
@@ -398,20 +433,37 @@ function DataPage() {
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 lg:grid-cols-8">
-              <BackupStat label={isRu ? "Материалы" : "Materials"} value={fullBackupPreview.summary.materials} />
-              <BackupStat label={isRu ? "Фото" : "Images"} value={fullBackupPreview.summary.images} />
+              <BackupStat
+                label={isRu ? "Материалы" : "Materials"}
+                value={fullBackupPreview.summary.materials}
+              />
+              <BackupStat
+                label={isRu ? "Фото" : "Images"}
+                value={fullBackupPreview.summary.images}
+              />
               <BackupStat label="Preview" value={fullBackupPreview.summary.processedImages} />
               <BackupStat label="OCR" value={fullBackupPreview.summary.ocrDrafts} />
-              <BackupStat label={isRu ? "Понятия" : "Concepts"} value={fullBackupPreview.summary.concepts} />
+              <BackupStat
+                label={isRu ? "Понятия" : "Concepts"}
+                value={fullBackupPreview.summary.concepts}
+              />
               <BackupStat label="Evidence" value={fullBackupPreview.summary.evidenceEvents} />
-              <BackupStat label={isRu ? "Попытки" : "Attempts"} value={fullBackupPreview.summary.detailedAttempts} />
-              <BackupStat label={isRu ? "Ответы" : "Answers"} value={fullBackupPreview.summary.answerSnapshots} />
+              <BackupStat
+                label={isRu ? "Попытки" : "Attempts"}
+                value={fullBackupPreview.summary.detailedAttempts}
+              />
+              <BackupStat
+                label={isRu ? "Ответы" : "Answers"}
+                value={fullBackupPreview.summary.answerSnapshots}
+              />
             </div>
 
             <BackupNotes
               title={isRu ? "Замечания архива" : "Archive notes"}
               notes={fullBackupPreview.warnings}
-              emptyLabel={isRu ? "Проверка не нашла замечаний." : "The verification found no notes."}
+              emptyLabel={
+                isRu ? "Проверка не нашла замечаний." : "The verification found no notes."
+              }
             />
             <BackupNotes
               title={isRu ? "Конфликты merge" : "Merge conflicts"}
@@ -424,11 +476,19 @@ function DataPage() {
             />
 
             <div className="mt-5 flex flex-wrap gap-3">
-              <Button variant="outline" onClick={() => void applyPreparedFullImport("merge")} disabled={fullBackupBusy}>
+              <Button
+                variant="outline"
+                onClick={() => void applyPreparedFullImport("merge")}
+                disabled={fullBackupBusy}
+              >
                 {fullBackupBusy ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : null}
                 {isRu ? "Безопасно объединить" : "Merge safely"}
               </Button>
-              <Button variant="destructive" onClick={() => void applyPreparedFullImport("replace")} disabled={fullBackupBusy}>
+              <Button
+                variant="destructive"
+                onClick={() => void applyPreparedFullImport("replace")}
+                disabled={fullBackupBusy}
+              >
                 {isRu ? "Заменить всё" : "Replace everything"}
               </Button>
               <Button
@@ -479,11 +539,18 @@ function DataPage() {
                     clearCompanionStores();
                     setError(null);
                     await refreshVisualStats();
-                    toast.success(isRu ? "Все локальные данные удалены" : "All local data was deleted");
+                    toast.success(
+                      isRu ? "Все локальные данные удалены" : "All local data was deleted",
+                    );
                   } catch (clearError) {
-                    const message = clearError instanceof Error ? clearError.message : String(clearError);
+                    const message =
+                      clearError instanceof Error ? clearError.message : String(clearError);
                     setError(message);
-                    toast.error(isRu ? "Не удалось полностью удалить данные" : "Could not fully delete local data");
+                    toast.error(
+                      isRu
+                        ? "Не удалось полностью удалить данные"
+                        : "Could not fully delete local data",
+                    );
                   }
                 }}
               >

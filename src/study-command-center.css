@@ -6,8 +6,7 @@
   border-color: rgba(199, 146, 79, 0.32);
   background:
     radial-gradient(circle at 82% 5%, rgba(199, 146, 79, 0.13), transparent 21rem),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.025), transparent 58%),
-    #151916;
+    linear-gradient(145deg, rgba(255, 255, 255, 0.025), transparent 58%), #151916;
 }
 
 .cw-command-center::after {

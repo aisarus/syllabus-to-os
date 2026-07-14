@@ -63,7 +63,9 @@ export function replaceMaterialChunksWithStableIds(
   });
 
   const retainedIds = new Set(chunks.map((chunk) => chunk.id));
-  const removedIds = existing.filter((chunk) => !retainedIds.has(chunk.id)).map((chunk) => chunk.id);
+  const removedIds = existing
+    .filter((chunk) => !retainedIds.has(chunk.id))
+    .map((chunk) => chunk.id);
   const removedSet = new Set(removedIds);
   const nextData: AppData = {
     ...data,
@@ -204,7 +206,11 @@ function pairChunks(oldChunks: MaterialChunk[], newChunks: MaterialChunk[]): Chu
   const usedNew = new Set<number>();
   const pairs: ChunkPair[] = [];
   for (const candidate of candidates) {
-    if (candidate.score < 35 || usedOld.has(candidate.oldIndex) || usedNew.has(candidate.newIndex)) {
+    if (
+      candidate.score < 35 ||
+      usedOld.has(candidate.oldIndex) ||
+      usedNew.has(candidate.newIndex)
+    ) {
       continue;
     }
     usedOld.add(candidate.oldIndex);
@@ -247,8 +253,10 @@ function chunkSimilarity(
     score += 45;
   }
   if (oldChunk.order === newChunk.order) score += 35;
-  if (normalize(oldChunk.title) && normalize(oldChunk.title) === normalize(newChunk.title)) score += 30;
-  if (normalize(oldChunk.text) && normalize(oldChunk.text) === normalize(newChunk.text)) score += 70;
+  if (normalize(oldChunk.title) && normalize(oldChunk.title) === normalize(newChunk.title))
+    score += 30;
+  if (normalize(oldChunk.text) && normalize(oldChunk.text) === normalize(newChunk.text))
+    score += 70;
   score += Math.max(0, 12 - Math.abs(oldIndex - newIndex) * 3);
   return score;
 }

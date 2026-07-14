@@ -44,7 +44,10 @@ function ActionLink({
   className: string;
   children: ReactNode;
 }) {
-  if ((action.kind === "review_material" || action.kind === "build_study_pack") && action.materialId) {
+  if (
+    (action.kind === "review_material" || action.kind === "build_study_pack") &&
+    action.materialId
+  ) {
     return (
       <Link
         to="/app/materials/$materialId"
@@ -64,7 +67,11 @@ function ActionLink({
   }
   if ((action.kind === "continue_course" || action.kind === "prepare_exam") && action.courseId) {
     return (
-      <Link to="/app/courses/$courseId" params={{ courseId: action.courseId }} className={className}>
+      <Link
+        to="/app/courses/$courseId"
+        params={{ courseId: action.courseId }}
+        className={className}
+      >
         {children}
       </Link>
     );
@@ -308,10 +315,7 @@ function Dashboard() {
             <div>
               <div className="cw-focus-card__meta">
                 <span>{copy.mainTask}</span>
-                <span
-                  className="cw-focus-card__urgency"
-                  data-urgency={commandCenter.focus.urgency}
-                >
+                <span className="cw-focus-card__urgency" data-urgency={commandCenter.focus.urgency}>
                   <Clock3 size={11} /> {commandCenter.focus.durationMinutes} {copy.minutes}
                 </span>
               </div>
@@ -409,7 +413,8 @@ function Dashboard() {
             </div>
             {commandCenter.risks.length === 0 ? (
               <div className="cw-command-empty">
-                <CheckCircle2 size={15} />&nbsp; {copy.noRisks}
+                <CheckCircle2 size={15} />
+                &nbsp; {copy.noRisks}
               </div>
             ) : (
               commandCenter.risks.map((risk) => (

@@ -54,22 +54,19 @@ export function normalizeOpenAnswerReview(
   raw: unknown,
   allowedSourceChunkIds: Iterable<string>,
 ): OpenAnswerReviewDraft {
-  const object = raw && typeof raw === "object" && !Array.isArray(raw)
-    ? (raw as Record<string, unknown>)
-    : {};
+  const object =
+    raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
   const allowed = new Set(allowedSourceChunkIds);
   const requestedIds = Array.isArray(object.supportedSourceChunkIds)
     ? object.supportedSourceChunkIds.filter((value): value is string => typeof value === "string")
     : [];
-  const supportedSourceChunkIds = Array.from(
-    new Set(requestedIds.filter((id) => allowed.has(id))),
-  );
+  const supportedSourceChunkIds = Array.from(new Set(requestedIds.filter((id) => allowed.has(id))));
   const outcome = object.suggestedOutcome === "success" ? "success" : "failure";
-  const rawMistake = typeof object.suggestedMistakeKind === "string"
-    ? object.suggestedMistakeKind
-    : "unclassified";
+  const rawMistake =
+    typeof object.suggestedMistakeKind === "string" ? object.suggestedMistakeKind : "unclassified";
   const warnings = stringArray(object.warnings);
-  const notFoundInSources = object.notFoundInSources === true || supportedSourceChunkIds.length === 0;
+  const notFoundInSources =
+    object.notFoundInSources === true || supportedSourceChunkIds.length === 0;
   if (notFoundInSources) {
     warnings.push("The selected sources were insufficient for a grounded review.");
   }
@@ -95,9 +92,7 @@ export function validateOpenAnswerSaveDraft(
   const allowed = new Set(allowedSourceChunkIds);
   const prompt = draft.prompt.trim().slice(0, 2_000);
   const response = draft.response.trim().slice(0, 12_000);
-  const sourceChunkIds = Array.from(
-    new Set(draft.sourceChunkIds.filter((id) => allowed.has(id))),
-  );
+  const sourceChunkIds = Array.from(new Set(draft.sourceChunkIds.filter((id) => allowed.has(id))));
   if (!draft.conceptId || !draft.conceptTitle.trim()) {
     return { ok: false, error: "A concept is required." };
   }
@@ -120,7 +115,7 @@ export function validateOpenAnswerSaveDraft(
       mistakeKind:
         draft.outcome === "failure"
           ? MISTAKES.includes(draft.mistakeKind ?? "unclassified")
-            ? draft.mistakeKind ?? "unclassified"
+            ? (draft.mistakeKind ?? "unclassified")
             : "unclassified"
           : undefined,
       reviewSummary: draft.reviewSummary?.trim().slice(0, 4_000) || undefined,

@@ -70,11 +70,7 @@ for (const marker of [
   requireMarker(reviewModel, marker, `Open-answer review safeguards are missing: ${marker}`);
 }
 
-for (const marker of [
-  'fetch("/api/ai/review-open-answer"',
-  "reviewOpenAnswer",
-  "repairContext",
-]) {
+for (const marker of ['fetch("/api/ai/review-open-answer"', "reviewOpenAnswer", "repairContext"]) {
   requireMarker(client, marker, `Open-answer review client is missing: ${marker}`);
 }
 
@@ -88,7 +84,11 @@ for (const marker of [
   "runOpenAnswerReviewGeneration",
   "repairContext",
 ]) {
-  requireMarker(server, marker, `Source-grounded open-answer server boundary is missing: ${marker}`);
+  requireMarker(
+    server,
+    marker,
+    `Source-grounded open-answer server boundary is missing: ${marker}`,
+  );
 }
 
 for (const marker of [
@@ -154,10 +154,7 @@ for (const marker of [
 ]) {
   requireMarker(packageJson, marker, `package.json is missing: ${marker}`);
 }
-for (const marker of [
-  '"verify:open-answer-evidence-contract"',
-  '"eval:open-answer-evidence"',
-]) {
+for (const marker of ['"verify:open-answer-evidence-contract"', '"eval:open-answer-evidence"']) {
   requireMarker(checkScript, marker, `Canonical checks are missing: ${marker}`);
 }
 for (const marker of [

@@ -15,10 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/lib/app-context";
-import type {
-  ConceptEvidenceEvent,
-  ConceptMistakeKind,
-} from "@/lib/concept-evidence";
+import type { ConceptEvidenceEvent, ConceptMistakeKind } from "@/lib/concept-evidence";
 import { conceptStore, useConceptEvidenceData } from "@/lib/concept-store";
 import {
   formatOpenAnswerReviewSummary,
@@ -79,8 +76,7 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
   const failedEvents = evidenceData.evidenceEvents
     .filter(
       (event) =>
-        event.outcome === "failure" &&
-        concepts.some((item) => item.id === event.conceptId),
+        event.outcome === "failure" && concepts.some((item) => item.id === event.conceptId),
     )
     .sort((left, right) => right.occurredAt - left.occurredAt)
     .slice(0, 8);
@@ -268,17 +264,21 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
   const beginRepair = (event: ConceptEvidenceEvent) => {
     setConceptId(event.conceptId);
     setKind(
-      event.kind === "application" || event.kind === "explanation"
-        ? event.kind
-        : "explanation",
+      event.kind === "application" || event.kind === "explanation" ? event.kind : "explanation",
     );
-    setPrompt(event.prompt || event.sourceLabel || (isRu ? "Объясни понятие ещё раз" : "Explain the concept again"));
+    setPrompt(
+      event.prompt ||
+        event.sourceLabel ||
+        (isRu ? "Объясни понятие ещё раз" : "Explain the concept again"),
+    );
     setResponse("");
     setRepairOfEvidenceId(event.id);
     setSourceChunkIds(
       event.sourceChunkIds && event.sourceChunkIds.length > 0
         ? event.sourceChunkIds
-        : evidenceData.concepts.find((item) => item.id === event.conceptId)?.sourceChunkIds.slice(0, 8) ?? [],
+        : (evidenceData.concepts
+            .find((item) => item.id === event.conceptId)
+            ?.sourceChunkIds.slice(0, 8) ?? []),
     );
     resetReviewDecision();
     toast.info(isRu ? "Открыта новая попытка исправления" : "A new repair attempt is ready");
@@ -295,7 +295,9 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
             {isRu ? "Открытый ответ и исправление ошибки" : "Open answer and mistake repair"}
           </div>
           <h2 className="mt-2 font-serif text-2xl font-semibold">
-            {isRu ? "Ответ сохраняется только после твоего решения" : "The answer is saved only after your decision"}
+            {isRu
+              ? "Ответ сохраняется только после твоего решения"
+              : "The answer is saved only after your decision"}
           </h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             {isRu
@@ -331,7 +333,9 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
                 }}
               >
                 {concepts.map((item) => (
-                  <option key={item.id} value={item.id}>{item.title}</option>
+                  <option key={item.id} value={item.id}>
+                    {item.title}
+                  </option>
                 ))}
               </select>
             </label>
@@ -382,7 +386,11 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
               setResponse(event.target.value);
               resetReviewDecision();
             }}
-            placeholder={isRu ? "Напиши полный ответ до проверки" : "Write the complete answer before reviewing"}
+            placeholder={
+              isRu
+                ? "Напиши полный ответ до проверки"
+                : "Write the complete answer before reviewing"
+            }
           />
 
           <div className="mt-4">
@@ -394,16 +402,22 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
               {conceptChunks.map((chunk) => {
                 const material = materialById.get(chunk.materialId);
                 return (
-                  <label key={chunk.id} className="flex cursor-pointer gap-2 rounded-md border border-border p-2 text-xs">
+                  <label
+                    key={chunk.id}
+                    className="flex cursor-pointer gap-2 rounded-md border border-border p-2 text-xs"
+                  >
                     <input
                       type="checkbox"
                       checked={sourceChunkIds.includes(chunk.id)}
                       onChange={() => toggleSource(chunk.id)}
                     />
                     <span className="min-w-0">
-                      <strong className="block truncate">{material?.title ?? chunk.title ?? chunk.id}</strong>
+                      <strong className="block truncate">
+                        {material?.title ?? chunk.title ?? chunk.id}
+                      </strong>
                       <span className="mt-1 line-clamp-2 text-muted-foreground">
-                        {chunk.pageNumber ? `p.${chunk.pageNumber} · ` : ""}{chunk.text}
+                        {chunk.pageNumber ? `p.${chunk.pageNumber} · ` : ""}
+                        {chunk.text}
                       </span>
                     </span>
                   </label>
@@ -414,7 +428,11 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
 
           <div className="mt-5 flex flex-wrap gap-2">
             <Button onClick={() => void runAIReview()} disabled={busy}>
-              {busy ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : <FileSearch className="h-4 w-4 me-1" />}
+              {busy ? (
+                <Loader2 className="h-4 w-4 animate-spin me-1" />
+              ) : (
+                <FileSearch className="h-4 w-4 me-1" />
+              )}
               {isRu ? "Проверить по источникам" : "Review against sources"}
             </Button>
             <Button variant="outline" onClick={startHumanReview}>
@@ -425,7 +443,9 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
         </div>
 
         <aside className="rounded-lg border border-border bg-background p-4">
-          <h3 className="font-semibold">{isRu ? "Решение перед сохранением" : "Decision before saving"}</h3>
+          <h3 className="font-semibold">
+            {isRu ? "Решение перед сохранением" : "Decision before saving"}
+          </h3>
           {!review && !reviewSummary ? (
             <p className="mt-3 text-xs leading-5 text-muted-foreground">
               {isRu
@@ -435,10 +455,24 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
           ) : (
             <div className="mt-3 space-y-3">
               {review && (
-                <div className={`rounded-md border p-3 text-xs ${review.notFoundInSources ? "border-yellow-500/30 bg-yellow-500/5" : "border-primary/30 bg-primary/5"}`}>
-                  <strong>{review.notFoundInSources ? (isRu ? "Источников недостаточно" : "Sources insufficient") : isRu ? "AI-предложение" : "AI suggestion"}</strong>
+                <div
+                  className={`rounded-md border p-3 text-xs ${review.notFoundInSources ? "border-yellow-500/30 bg-yellow-500/5" : "border-primary/30 bg-primary/5"}`}
+                >
+                  <strong>
+                    {review.notFoundInSources
+                      ? isRu
+                        ? "Источников недостаточно"
+                        : "Sources insufficient"
+                      : isRu
+                        ? "AI-предложение"
+                        : "AI suggestion"}
+                  </strong>
                   <p className="mt-1 leading-5 text-muted-foreground">{review.feedback}</p>
-                  {review.warnings.map((warning) => <p key={warning} className="mt-1 text-yellow-200">• {warning}</p>)}
+                  {review.warnings.map((warning) => (
+                    <p key={warning} className="mt-1 text-yellow-200">
+                      • {warning}
+                    </p>
+                  ))}
                 </div>
               )}
 
@@ -492,7 +526,9 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
                     }}
                   >
                     {MISTAKE_OPTIONS.map((value) => (
-                      <option key={value} value={value}>{mistakeLabel(value, isRu)}</option>
+                      <option key={value} value={value}>
+                        {mistakeLabel(value, isRu)}
+                      </option>
                     ))}
                   </select>
                 </label>
@@ -526,8 +562,12 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
 
               <Button className="w-full" onClick={saveEvidence} disabled={!confirmed}>
                 {repairOfEvidenceId
-                  ? isRu ? "Сохранить попытку исправления" : "Save repair attempt"
-                  : isRu ? "Сохранить evidence" : "Save evidence"}
+                  ? isRu
+                    ? "Сохранить попытку исправления"
+                    : "Save repair attempt"
+                  : isRu
+                    ? "Сохранить evidence"
+                    : "Save evidence"}
               </Button>
             </div>
           )}
@@ -545,11 +585,18 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
               const eventConcept = concepts.find((item) => item.id === event.conceptId);
               return (
                 <div key={event.id} className="rounded-md border border-border p-3 text-xs">
-                  <strong className="block truncate">{eventConcept?.title ?? event.conceptId}</strong>
+                  <strong className="block truncate">
+                    {eventConcept?.title ?? event.conceptId}
+                  </strong>
                   <p className="mt-1 line-clamp-2 text-muted-foreground">
                     {event.prompt ?? event.sourceLabel ?? event.note ?? event.id}
                   </p>
-                  <Button className="mt-3" size="sm" variant="outline" onClick={() => beginRepair(event)}>
+                  <Button
+                    className="mt-3"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => beginRepair(event)}
+                  >
                     <RefreshCcw className="h-3.5 w-3.5 me-1" />
                     {isRu ? "Исправить" : "Repair"}
                   </Button>
@@ -562,7 +609,9 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
 
       {openAnswerEvents.length > 0 && (
         <div className="mt-5 rounded-lg border border-border bg-background p-4">
-          <h3 className="font-semibold">{isRu ? "История открытых ответов" : "Open-answer history"}</h3>
+          <h3 className="font-semibold">
+            {isRu ? "История открытых ответов" : "Open-answer history"}
+          </h3>
           <div className="mt-3 space-y-2">
             {openAnswerEvents.slice(0, 12).map((event) => {
               const eventConcept = concepts.find((item) => item.id === event.conceptId);
@@ -572,7 +621,9 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <strong>{eventConcept?.title ?? event.conceptId}</strong>
-                        <span className={`rounded-full px-2 py-0.5 ${event.outcome === "success" ? "bg-emerald-500/10 text-emerald-200" : "bg-red-500/10 text-red-200"}`}>
+                        <span
+                          className={`rounded-full px-2 py-0.5 ${event.outcome === "success" ? "bg-emerald-500/10 text-emerald-200" : "bg-red-500/10 text-red-200"}`}
+                        >
                           {event.outcome}
                         </span>
                         <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
@@ -585,7 +636,9 @@ export function ConceptOpenAnswerReview({ courseId }: { courseId: string }) {
                         )}
                       </div>
                       <p className="mt-2 font-medium">{event.prompt}</p>
-                      <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{event.response}</p>
+                      <p className="mt-1 whitespace-pre-wrap text-muted-foreground">
+                        {event.response}
+                      </p>
                       {event.reviewSummary && (
                         <p className="mt-2 whitespace-pre-wrap rounded bg-muted/30 p-2 text-muted-foreground">
                           {event.reviewSummary}

@@ -35,9 +35,7 @@ export function persistStudyPack(input: PersistStudyPackInput): PersistStudyPack
     materialId: input.materialId,
   };
   const packSourceIds = collectStudyPackSourceIds(input.draft);
-  const allSourceIds = packSourceIds.length
-    ? packSourceIds
-    : input.fallbackSourceChunkIds;
+  const allSourceIds = packSourceIds.length ? packSourceIds : input.fallbackSourceChunkIds;
 
   const note: Note = {
     id: uid("note"),
@@ -55,9 +53,7 @@ export function persistStudyPack(input: PersistStudyPackInput): PersistStudyPack
     front: card.front,
     back: card.back,
     ...context,
-    sourceChunkIds: card.sourceChunkIds.length
-      ? card.sourceChunkIds
-      : input.fallbackSourceChunkIds,
+    sourceChunkIds: card.sourceChunkIds.length ? card.sourceChunkIds : input.fallbackSourceChunkIds,
     status: "new",
     dueAt: now,
     interval: 0,

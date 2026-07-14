@@ -20,9 +20,7 @@ const bool = (value: unknown): boolean => value === true;
 
 function languageLabel(language?: string): string {
   return (
-    { ru: "Russian", en: "English", he: "Hebrew", ar: "Arabic" }[
-      language ?? "ru"
-    ] || "Russian"
+    { ru: "Russian", en: "English", he: "Hebrew", ar: "Arabic" }[language ?? "ru"] || "Russian"
   );
 }
 
@@ -263,7 +261,12 @@ function normalizeStudyPack(raw: unknown, input: AIGenerationInput) {
   const questions = arr<Record<string, unknown>>(object.questions)
     .map((question, index) => {
       const options = Array.from(
-        new Set(arr<unknown>(question.options).map(String).map((option) => option.trim()).filter(Boolean)),
+        new Set(
+          arr<unknown>(question.options)
+            .map(String)
+            .map((option) => option.trim())
+            .filter(Boolean),
+        ),
       ).slice(0, 4);
       while (options.length < 4) options.push("");
       return {
@@ -279,7 +282,8 @@ function normalizeStudyPack(raw: unknown, input: AIGenerationInput) {
     })
     .filter((question) => {
       const key = normalizeText(question.prompt);
-      if (!key || question.options.some((option) => !option) || seenQuestions.has(key)) return false;
+      if (!key || question.options.some((option) => !option) || seenQuestions.has(key))
+        return false;
       seenQuestions.add(key);
       return true;
     })

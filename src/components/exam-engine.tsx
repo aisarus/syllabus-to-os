@@ -19,11 +19,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/app-shell";
 import { useApp } from "@/lib/app-context";
 import { useConceptEvidenceData } from "@/lib/concept-store";
-import {
-  validateExamBlueprint,
-  type ExamBlueprint,
-  type ExamSession,
-} from "@/lib/exam-engine";
+import { validateExamBlueprint, type ExamBlueprint, type ExamSession } from "@/lib/exam-engine";
 import { examEngineStore, useExamEngineData } from "@/lib/exam-engine-store";
 import { getDataSnapshot, useData } from "@/lib/store";
 
@@ -34,9 +30,7 @@ export function ExamEngine() {
   const conceptData = useConceptEvidenceData();
   const examData = useExamEngineData();
   const [courseId, setCourseId] = useState(core.courses[0]?.id ?? "");
-  const courseQuizzes = core.quizzes.filter(
-    (quiz) => !quiz.courseId || quiz.courseId === courseId,
-  );
+  const courseQuizzes = core.quizzes.filter((quiz) => !quiz.courseId || quiz.courseId === courseId);
   const [quizId, setQuizId] = useState(courseQuizzes[0]?.id ?? "");
   const quizQuestions = core.quizQuestions.filter((question) => question.quizId === quizId);
   const [title, setTitle] = useState("");
@@ -72,13 +66,12 @@ export function ExamEngine() {
   }, [displayedSession?.id, displayedSession?.status]);
 
   useEffect(() => {
-    if (
-      displayedSession?.status === "active" &&
-      now >= displayedSession.deadlineAt
-    ) {
+    if (displayedSession?.status === "active" && now >= displayedSession.deadlineAt) {
       try {
         examEngineStore.submit(displayedSession.id, now);
-        toast.warning(isRu ? "Время истекло. Экзамен отправлен." : "Time expired. The exam was submitted.");
+        toast.warning(
+          isRu ? "Время истекло. Экзамен отправлен." : "Time expired. The exam was submitted.",
+        );
       } catch (error) {
         toast.error(error instanceof Error ? error.message : String(error));
       }
@@ -118,13 +111,12 @@ export function ExamEngine() {
 
   const startBlueprint = (blueprint: ExamBlueprint) => {
     try {
-      const session = examEngineStore.startSession(
-        blueprint.id,
-        getDataSnapshot(),
-      );
+      const session = examEngineStore.startSession(blueprint.id, getDataSnapshot());
       setActiveSessionId(session.id);
       setNow(Date.now());
-      toast.success(isRu ? "Экзамен начат. Вопросы заморожены." : "Exam started. Questions are frozen.");
+      toast.success(
+        isRu ? "Экзамен начат. Вопросы заморожены." : "Exam started. Questions are frozen.",
+      );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : String(error));
     }
@@ -156,7 +148,9 @@ export function ExamEngine() {
         <div className="flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
           <div>
-            <strong>{isRu ? "Что Exam Engine делает честно" : "What the Exam Engine guarantees"}</strong>
+            <strong>
+              {isRu ? "Что Exam Engine делает честно" : "What the Exam Engine guarantees"}
+            </strong>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               {isRu
                 ? "Экзамен стартует только из source-linked вопросов. После старта prompt, options, correct answer и source ids заморожены. Итог — сырой score, а не прогноз оценки или «готовность к экзамену»."
@@ -179,7 +173,9 @@ export function ExamEngine() {
                   onChange={(event) => setCourseId(event.target.value)}
                 >
                   {core.courses.map((course) => (
-                    <option key={course.id} value={course.id}>{course.title}</option>
+                    <option key={course.id} value={course.id}>
+                      {course.title}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -191,7 +187,9 @@ export function ExamEngine() {
                   onChange={(event) => setQuizId(event.target.value)}
                 >
                   {courseQuizzes.map((quiz) => (
-                    <option key={quiz.id} value={quiz.id}>{quiz.title}</option>
+                    <option key={quiz.id} value={quiz.id}>
+                      {quiz.title}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -218,7 +216,9 @@ export function ExamEngine() {
 
             <div className="mt-5 flex items-center justify-between text-xs text-muted-foreground">
               <span>{isRu ? "Вопросы" : "Questions"}</span>
-              <span className="font-mono">{questionIds.length}/{quizQuestions.length}</span>
+              <span className="font-mono">
+                {questionIds.length}/{quizQuestions.length}
+              </span>
             </div>
             <div className="mt-2 max-h-96 space-y-2 overflow-auto pe-1">
               {quizQuestions.map((question) => {
@@ -242,7 +242,9 @@ export function ExamEngine() {
                     />
                     <span className="min-w-0 flex-1">
                       <strong className="line-clamp-2 font-medium">{question.prompt}</strong>
-                      <span className={`mt-1 block text-xs ${sourceCount ? "text-muted-foreground" : "text-red-300"}`}>
+                      <span
+                        className={`mt-1 block text-xs ${sourceCount ? "text-muted-foreground" : "text-red-300"}`}
+                      >
                         {sourceCount
                           ? `${sourceCount} source chunk(s)`
                           : isRu
@@ -258,36 +260,55 @@ export function ExamEngine() {
 
           <aside className="space-y-4">
             <div className="rounded-lg border border-border bg-background p-4">
-              <h3 className="font-semibold">{isRu ? "Проверка blueprint" : "Blueprint validation"}</h3>
+              <h3 className="font-semibold">
+                {isRu ? "Проверка blueprint" : "Blueprint validation"}
+              </h3>
               <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                <Metric label={isRu ? "Вопросы" : "Questions"} value={draftValidation.questions.length} />
-                <Metric label={isRu ? "Источники" : "Sources"} value={draftValidation.distinctSourceChunkIds.length} />
+                <Metric
+                  label={isRu ? "Вопросы" : "Questions"}
+                  value={draftValidation.questions.length}
+                />
+                <Metric
+                  label={isRu ? "Источники" : "Sources"}
+                  value={draftValidation.distinctSourceChunkIds.length}
+                />
                 <Metric label={isRu ? "Понятия" : "Concepts"} value={linkedConceptCount} />
               </div>
               {draftValidation.errors.length > 0 && (
                 <div className="mt-3 rounded-md border border-red-500/30 bg-red-500/5 p-3 text-xs text-red-200">
-                  {draftValidation.errors.map((error) => <p key={error}>• {error}</p>)}
+                  {draftValidation.errors.map((error) => (
+                    <p key={error}>• {error}</p>
+                  ))}
                 </div>
               )}
               {draftValidation.warnings.length > 0 && (
                 <div className="mt-3 rounded-md border border-yellow-500/30 bg-yellow-500/5 p-3 text-xs text-yellow-100">
-                  {draftValidation.warnings.map((warning) => <p key={warning}>• {warning}</p>)}
+                  {draftValidation.warnings.map((warning) => (
+                    <p key={warning}>• {warning}</p>
+                  ))}
                 </div>
               )}
-              <Button className="mt-4 w-full" onClick={createBlueprint} disabled={!draftValidation.ok}>
+              <Button
+                className="mt-4 w-full"
+                onClick={createBlueprint}
+                disabled={!draftValidation.ok}
+              >
                 <Play className="h-4 w-4 me-1" />
                 {isRu ? "Сохранить и начать" : "Save and start"}
               </Button>
             </div>
 
             <div className="rounded-lg border border-border bg-background p-4">
-              <h3 className="font-semibold">{isRu ? "Сохранённые blueprints" : "Saved blueprints"}</h3>
+              <h3 className="font-semibold">
+                {isRu ? "Сохранённые blueprints" : "Saved blueprints"}
+              </h3>
               <div className="mt-3 space-y-2">
                 {examData.blueprints.map((blueprint) => (
                   <div key={blueprint.id} className="rounded-md border border-border p-3 text-xs">
                     <strong className="block truncate">{blueprint.title}</strong>
                     <span className="mt-1 block text-muted-foreground">
-                      {blueprint.questionIds.length} {isRu ? "вопросов" : "questions"} · {blueprint.durationMinutes} min
+                      {blueprint.questionIds.length} {isRu ? "вопросов" : "questions"} ·{" "}
+                      {blueprint.durationMinutes} min
                     </span>
                     <div className="mt-3 flex gap-2">
                       <Button size="sm" onClick={() => startBlueprint(blueprint)}>
@@ -348,9 +369,26 @@ function ExamSessionView({
         <section className="rounded-xl border border-border bg-surface p-5">
           <div className="grid gap-3 sm:grid-cols-4">
             <ResultMetric label={isRu ? "Score" : "Score"} value={`${session.result.score}%`} />
-            <ResultMetric label={isRu ? "Верно" : "Correct"} value={`${session.result.correctCount}/${session.result.total}`} />
-            <ResultMetric label={isRu ? "Без ответа" : "Unanswered"} value={String(session.result.unansweredCount)} />
-            <ResultMetric label={isRu ? "Время" : "Timing"} value={session.result.timedOut ? (isRu ? "Истекло" : "Timed out") : (isRu ? "Сдано" : "Submitted")} />
+            <ResultMetric
+              label={isRu ? "Верно" : "Correct"}
+              value={`${session.result.correctCount}/${session.result.total}`}
+            />
+            <ResultMetric
+              label={isRu ? "Без ответа" : "Unanswered"}
+              value={String(session.result.unansweredCount)}
+            />
+            <ResultMetric
+              label={isRu ? "Время" : "Timing"}
+              value={
+                session.result.timedOut
+                  ? isRu
+                    ? "Истекло"
+                    : "Timed out"
+                  : isRu
+                    ? "Сдано"
+                    : "Submitted"
+              }
+            />
           </div>
           <div className="mt-5 flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
             <FileCheck2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
@@ -362,10 +400,15 @@ function ExamSessionView({
           </div>
           <div className="mt-5 space-y-3">
             {session.questions.map((item, index) => {
-              const result = session.result?.questions.find((value) => value.questionId === item.questionId);
+              const result = session.result?.questions.find(
+                (value) => value.questionId === item.questionId,
+              );
               const selectedIndex = result?.selectedIndex;
               return (
-                <article key={item.questionId} className="rounded-lg border border-border bg-background p-4">
+                <article
+                  key={item.questionId}
+                  className="rounded-lg border border-border bg-background p-4"
+                >
                   <div className="flex items-start gap-2">
                     {result?.correct ? (
                       <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-300" />
@@ -373,9 +416,16 @@ function ExamSessionView({
                       <XCircle className="mt-0.5 h-5 w-5 text-red-300" />
                     )}
                     <div className="min-w-0 flex-1">
-                      <strong>{index + 1}. {item.prompt}</strong>
+                      <strong>
+                        {index + 1}. {item.prompt}
+                      </strong>
                       <p className="mt-2 text-sm text-muted-foreground">
-                        {isRu ? "Твой ответ" : "Your answer"}: {selectedIndex === undefined ? (isRu ? "нет" : "none") : item.options[selectedIndex]}
+                        {isRu ? "Твой ответ" : "Your answer"}:{" "}
+                        {selectedIndex === undefined
+                          ? isRu
+                            ? "нет"
+                            : "none"
+                          : item.options[selectedIndex]}
                       </p>
                       <p className="mt-1 text-sm text-emerald-200">
                         {isRu ? "Правильный" : "Correct"}: {item.options[item.correctIndex]}
@@ -410,7 +460,9 @@ function ExamSessionView({
           </div>
           <h1 className="mt-1 font-serif text-2xl font-semibold">{session.title}</h1>
         </div>
-        <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 font-mono text-lg ${remainingMs < 60_000 ? "border-red-500/40 text-red-200" : "border-border"}`}>
+        <div
+          className={`flex items-center gap-2 rounded-lg border px-4 py-2 font-mono text-lg ${remainingMs < 60_000 ? "border-red-500/40 text-red-200" : "border-border"}`}
+        >
           <Clock3 className="h-5 w-5" />
           {formatRemaining(remainingMs)}
         </div>
@@ -418,8 +470,12 @@ function ExamSessionView({
 
       <section className="rounded-xl border border-border bg-surface p-5">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{isRu ? "Вопрос" : "Question"} {questionIndex + 1}/{session.questions.length}</span>
-          <span>{answeredCount} {isRu ? "отвечено" : "answered"}</span>
+          <span>
+            {isRu ? "Вопрос" : "Question"} {questionIndex + 1}/{session.questions.length}
+          </span>
+          <span>
+            {answeredCount} {isRu ? "отвечено" : "answered"}
+          </span>
         </div>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
           <div
@@ -458,7 +514,12 @@ function ExamSessionView({
           <Button
             variant="outline"
             disabled={questionIndex === 0}
-            onClick={() => examEngineStore.setCurrentQuestion(session.id, session.questions[questionIndex - 1].questionId)}
+            onClick={() =>
+              examEngineStore.setCurrentQuestion(
+                session.id,
+                session.questions[questionIndex - 1].questionId,
+              )
+            }
           >
             <ChevronLeft className="h-4 w-4 me-1" />
             {isRu ? "Назад" : "Previous"}
@@ -477,7 +538,12 @@ function ExamSessionView({
           </div>
           {questionIndex < session.questions.length - 1 ? (
             <Button
-              onClick={() => examEngineStore.setCurrentQuestion(session.id, session.questions[questionIndex + 1].questionId)}
+              onClick={() =>
+                examEngineStore.setCurrentQuestion(
+                  session.id,
+                  session.questions[questionIndex + 1].questionId,
+                )
+              }
             >
               {isRu ? "Дальше" : "Next"}
               <ChevronRight className="h-4 w-4 ms-1" />

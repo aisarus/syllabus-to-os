@@ -187,7 +187,9 @@ function StudyPackDialog(
               <Sparkles className="mt-0.5 h-5 w-5 text-primary" />
               <div>
                 <h3 className="font-medium">
-                  {isRu ? "Один источник → готовое занятие" : "One source → a complete study session"}
+                  {isRu
+                    ? "Один источник → готовое занятие"
+                    : "One source → a complete study session"}
                 </h3>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
                   {isRu
@@ -200,7 +202,10 @@ function StudyPackDialog(
 
           <div className="grid gap-3 sm:grid-cols-3">
             <ScopeMetric label={isRu ? "Фрагментов" : "Chunks"} value={selectedChunks.length} />
-            <ScopeMetric label={isRu ? "Знаков" : "Characters"} value={totalChars.toLocaleString()} />
+            <ScopeMetric
+              label={isRu ? "Знаков" : "Characters"}
+              value={totalChars.toLocaleString()}
+            />
             <ScopeMetric
               label={isRu ? "Цель" : "Target"}
               value={isRu ? "25–40 мин" : "25–40 min"}
@@ -241,7 +246,9 @@ function StudyPackDialog(
             type="button"
             className="w-full"
             onClick={generate}
-            disabled={selectedChunks.length === 0 || totalChars > MAX_CHARS || aiConfigured === false}
+            disabled={
+              selectedChunks.length === 0 || totalChars > MAX_CHARS || aiConfigured === false
+            }
           >
             <Sparkles className="h-4 w-4 me-2" />
             {isRu ? "Собрать учебный комплект" : "Build Study Pack"}

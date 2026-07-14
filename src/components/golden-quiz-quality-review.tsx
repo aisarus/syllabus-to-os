@@ -75,9 +75,11 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
   );
   const [activeQuestionId, setActiveQuestionId] = useState(questions[0]?.id ?? "");
   const activeQuestion = questions.find((question) => question.id === activeQuestionId);
-  const activeReport = report.questions.find((question) => question.questionId === activeQuestionId);
+  const activeReport = report.questions.find(
+    (question) => question.questionId === activeQuestionId,
+  );
   const review = activeQuestion
-    ? reviews[activeQuestion.id] ?? defaultGoldenQuizManualReview(quizId, activeQuestion.id)
+    ? (reviews[activeQuestion.id] ?? defaultGoldenQuizManualReview(quizId, activeQuestion.id))
     : undefined;
 
   if (!quiz) {
@@ -181,7 +183,10 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
         <h2 className="text-sm font-semibold">{isRu ? "Категории" : "Categories"}</h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
           {report.categories.map((category) => (
-            <div key={category.category} className="rounded-md border border-border bg-background p-3">
+            <div
+              key={category.category}
+              className="rounded-md border border-border bg-background p-3"
+            >
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
                 {categoryLabel(category.category, isRu)}
               </div>
@@ -199,7 +204,9 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
           <h2 className="px-1 text-sm font-semibold">{isRu ? "Вопросы" : "Questions"}</h2>
           <div className="mt-3 max-h-[70svh] space-y-2 overflow-y-auto">
             {questions.map((question, index) => {
-              const questionReport = report.questions.find((entry) => entry.questionId === question.id);
+              const questionReport = report.questions.find(
+                (entry) => entry.questionId === question.id,
+              );
               const savedReview = reviews[question.id];
               return (
                 <button
@@ -213,7 +220,9 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
                   onClick={() => setActiveQuestionId(question.id)}
                 >
                   <div className="flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
-                    <span>{isRu ? "Вопрос" : "Question"} {index + 1}</span>
+                    <span>
+                      {isRu ? "Вопрос" : "Question"} {index + 1}
+                    </span>
                     <span>{Math.round((questionReport?.score ?? 0) * 100)}%</span>
                   </div>
                   <strong dir="auto" className="mt-1 line-clamp-3 block text-xs leading-5">
@@ -226,10 +235,13 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
                       </span>
                     ) : (
                       <span className="inline-flex items-center text-emerald-300">
-                        <CheckCircle2 className="h-3 w-3 me-1" /> {isRu ? "структура ок" : "structure ok"}
+                        <CheckCircle2 className="h-3 w-3 me-1" />{" "}
+                        {isRu ? "структура ок" : "structure ok"}
                       </span>
                     )}
-                    {savedReview && <span className="ms-auto">{decisionLabel(savedReview.decision, isRu)}</span>}
+                    {savedReview && (
+                      <span className="ms-auto">{decisionLabel(savedReview.decision, isRu)}</span>
+                    )}
                   </div>
                 </button>
               );
@@ -258,7 +270,9 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
                         : "border-border bg-background"
                     }`}
                   >
-                    <span className="me-2 text-xs font-semibold">{String.fromCharCode(65 + index)}.</span>
+                    <span className="me-2 text-xs font-semibold">
+                      {String.fromCharCode(65 + index)}.
+                    </span>
                     <span dir="auto">{option}</span>
                   </div>
                 ))}
@@ -267,7 +281,9 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
             </section>
 
             <section className="rounded-xl border border-border bg-surface p-5">
-              <h2 className="text-sm font-semibold">{isRu ? "Автоматические замечания" : "Automatic findings"}</h2>
+              <h2 className="text-sm font-semibold">
+                {isRu ? "Автоматические замечания" : "Automatic findings"}
+              </h2>
               {activeReport?.issues.length ? (
                 <div className="mt-3 space-y-2">
                   {activeReport.issues.map((issue, index) => (
@@ -291,7 +307,9 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
                 </div>
               ) : (
                 <p className="mt-3 text-sm text-emerald-300">
-                  {isRu ? "Автоматические проверки не нашли проблем." : "Automatic checks found no issues."}
+                  {isRu
+                    ? "Автоматические проверки не нашли проблем."
+                    : "Automatic checks found no issues."}
                 </p>
               )}
             </section>
@@ -299,12 +317,19 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
             <section className="rounded-xl border border-border bg-surface p-5">
               <div className="flex items-center gap-2">
                 <Gauge className="h-4 w-4 text-primary" />
-                <h2 className="text-sm font-semibold">{isRu ? "Ручная рубрика" : "Manual rubric"}</h2>
+                <h2 className="text-sm font-semibold">
+                  {isRu ? "Ручная рубрика" : "Manual rubric"}
+                </h2>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {REVIEW_CATEGORIES.map((category) => (
-                  <label key={category} className="rounded-md border border-border bg-background p-3">
-                    <span className="text-xs font-medium">{reviewCategoryLabel(category, isRu)}</span>
+                  <label
+                    key={category}
+                    className="rounded-md border border-border bg-background p-3"
+                  >
+                    <span className="text-xs font-medium">
+                      {reviewCategoryLabel(category, isRu)}
+                    </span>
                     <div className="mt-2 flex items-center gap-2">
                       <Input
                         type="range"
@@ -330,10 +355,14 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
                     updateReview({ decision: value as GoldenQuizReviewDecision })
                   }
                 >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="approve">{isRu ? "Одобрить" : "Approve"}</SelectItem>
-                    <SelectItem value="needs_edit">{isRu ? "Нужно исправить" : "Needs edit"}</SelectItem>
+                    <SelectItem value="needs_edit">
+                      {isRu ? "Нужно исправить" : "Needs edit"}
+                    </SelectItem>
                     <SelectItem value="reject">{isRu ? "Отклонить" : "Reject"}</SelectItem>
                   </SelectContent>
                 </Select>
@@ -362,14 +391,26 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
   );
 }
 
-function FeedbackPreview({ question, isRu }: { question: Parameters<typeof parseGoldenQuizFeedback>[0] extends never ? never : any; isRu: boolean }) {
+function FeedbackPreview({
+  question,
+  isRu,
+}: {
+  question: Parameters<typeof parseGoldenQuizFeedback>[0] extends never ? never : any;
+  isRu: boolean;
+}) {
   const feedback = parseGoldenQuizFeedback(question.explanation, question.options.length);
   return (
     <div className="mt-4 space-y-2 rounded-md border border-border bg-background p-4 text-xs leading-5">
-      <p><strong>{isRu ? "Объяснение" : "Explanation"}:</strong> {feedback.correctExplanation || "—"}</p>
-      <p><strong>{isRu ? "Подсказка" : "Hint"}:</strong> {feedback.memoryHint || "—"}</p>
+      <p>
+        <strong>{isRu ? "Объяснение" : "Explanation"}:</strong> {feedback.correctExplanation || "—"}
+      </p>
+      <p>
+        <strong>{isRu ? "Подсказка" : "Hint"}:</strong> {feedback.memoryHint || "—"}
+      </p>
       {feedback.promptTranslation && (
-        <p dir="auto"><strong>{isRu ? "Перевод" : "Translation"}:</strong> {feedback.promptTranslation}</p>
+        <p dir="auto">
+          <strong>{isRu ? "Перевод" : "Translation"}:</strong> {feedback.promptTranslation}
+        </p>
       )}
     </div>
   );

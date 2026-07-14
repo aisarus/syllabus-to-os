@@ -69,7 +69,9 @@ export function StoreSafetyLifecycle() {
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
         <div>
           <strong className="block">
-            {isRu ? "Последние изменения не записаны в браузер" : "Recent changes are not saved locally"}
+            {isRu
+              ? "Последние изменения не записаны в браузер"
+              : "Recent changes are not saved locally"}
           </strong>
           <p className="mt-1 text-xs leading-5 text-red-100/80">
             {isRu

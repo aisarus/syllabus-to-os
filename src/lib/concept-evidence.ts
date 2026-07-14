@@ -96,7 +96,9 @@ export function normalizeConceptEvidenceData(raw: unknown): ConceptEvidenceData 
   const evidenceEvents = Array.isArray(object.evidenceEvents)
     ? object.evidenceEvents
         .map(normalizeEvent)
-        .filter((value): value is ConceptEvidenceEvent => Boolean(value && conceptIds.has(value.conceptId)))
+        .filter((value): value is ConceptEvidenceEvent =>
+          Boolean(value && conceptIds.has(value.conceptId)),
+        )
     : [];
   return { version: 1, concepts, evidenceEvents };
 }
@@ -171,11 +173,13 @@ function normalizeEvent(raw: unknown): ConceptEvidenceEvent | null {
     questionId,
     sourceLabel: optionalString(value.sourceLabel),
     mistakeKind:
-      mistake && ["retrieval", "confusion", "application", "careless", "unclassified"].includes(mistake)
+      mistake &&
+      ["retrieval", "confusion", "application", "careless", "unclassified"].includes(mistake)
         ? mistake
         : undefined,
     note: optionalString(value.note),
-    score: typeof value.score === "number" && Number.isFinite(value.score) ? value.score : undefined,
+    score:
+      typeof value.score === "number" && Number.isFinite(value.score) ? value.score : undefined,
     occurredAt: numberValue(value.occurredAt, Date.now()),
     sourceChunkIds: stringArray(value.sourceChunkIds),
     prompt,
@@ -202,7 +206,9 @@ export function reconcileConceptEvidenceData(
   const cardIds = new Set(core.flashcards.map((item) => item.id));
   const questionIds = new Set(core.quizQuestions.map((item) => item.id));
   const attemptsById = new Map(core.quizAttempts.map((attempt) => [attempt.id, attempt]));
-  const detailsByAttemptId = new Map(detailData.attempts.map((detail) => [detail.attemptId, detail]));
+  const detailsByAttemptId = new Map(
+    detailData.attempts.map((detail) => [detail.attemptId, detail]),
+  );
   const questionsByQuiz = new Map<string, Set<string>>();
   for (const question of core.quizQuestions) {
     const current = questionsByQuiz.get(question.quizId) ?? new Set<string>();
@@ -264,9 +270,7 @@ export function reconcileConceptEvidenceData(
     version: 1,
     concepts,
     evidenceEvents: evidenceEvents.map((event) => {
-      const repair = event.repairOfEvidenceId
-        ? eventById.get(event.repairOfEvidenceId)
-        : undefined;
+      const repair = event.repairOfEvidenceId ? eventById.get(event.repairOfEvidenceId) : undefined;
       return {
         ...event,
         repairOfEvidenceId:
@@ -287,7 +291,9 @@ export function summarizeConceptEvidence(
     .filter((event) => event.conceptId === concept.id)
     .slice()
     .sort((left, right) => left.occurredAt - right.occurredAt);
-  const scored = relevant.filter((event) => event.outcome !== "mixed" && event.kind !== "assessment");
+  const scored = relevant.filter(
+    (event) => event.outcome !== "mixed" && event.kind !== "assessment",
+  );
   const successes = scored.filter((event) => event.outcome === "success");
   const objectiveSuccesses = successes.filter(evidenceIsObjective);
   const failures = scored.filter((event) => event.outcome === "failure");
@@ -321,16 +327,23 @@ export function summarizeConceptEvidence(
   let reason: string;
   if (strong) {
     state = "strong";
-    reason = "Repeated successful evidence across multiple days and evidence types, including non-manual evidence.";
+    reason =
+      "Repeated successful evidence across multiple days and evidence types, including non-manual evidence.";
   } else if (weak) {
     state = "weak";
     reason = "Repeated failures or a recent failure dominate the available evidence.";
   } else if (successes.length > 0 || failures.length > 0) {
     state = "fragile";
-    reason = "Some learning evidence exists, but it is limited, old, too manual, or not varied enough.";
-  } else if (sourceCoverageCount > 0 || concept.flashcardIds.length > 0 || concept.quizQuestionIds.length > 0) {
+    reason =
+      "Some learning evidence exists, but it is limited, old, too manual, or not varied enough.";
+  } else if (
+    sourceCoverageCount > 0 ||
+    concept.flashcardIds.length > 0 ||
+    concept.quizQuestionIds.length > 0
+  ) {
     state = "covered";
-    reason = "The concept is linked to sources or practice, but no scored learning evidence exists yet.";
+    reason =
+      "The concept is linked to sources or practice, but no scored learning evidence exists yet.";
   } else {
     state = "unseen";
     reason = "No source coverage or learning evidence has been linked.";
@@ -379,7 +392,11 @@ function optionalString(value: unknown): string | undefined {
 }
 function stringArray(value: unknown): string[] {
   return Array.isArray(value)
-    ? Array.from(new Set(value.filter((item): item is string => typeof item === "string" && item.length > 0)))
+    ? Array.from(
+        new Set(
+          value.filter((item): item is string => typeof item === "string" && item.length > 0),
+        ),
+      )
     : [];
 }
 function numberValue(value: unknown, fallback: number): number {

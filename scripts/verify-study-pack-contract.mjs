@@ -58,10 +58,7 @@ for (const marker of [
   requireMarker(server, marker, `Study Pack trust contract is missing: ${marker}`);
 }
 
-for (const marker of [
-  "runStudyPackGeneration",
-  'createFileRoute("/api/ai/generate-study-pack")',
-]) {
+for (const marker of ["runStudyPackGeneration", 'createFileRoute("/api/ai/generate-study-pack")']) {
   requireMarker(route, marker, `Study Pack API route is missing: ${marker}`);
 }
 

@@ -92,9 +92,21 @@ for (const marker of [
   requireMarker(backup, marker, `Full ZIP backup does not preserve page-level visuals: ${marker}`);
 }
 
-requireMarker(route, "isMultiPageImageMaterial", "Material detail does not detect multi-page images.");
-requireMarker(route, "MultiPageImageWorkspace", "Material detail does not open the multi-page workspace.");
-requireMarker(lifecycle, "getAllVisualSourceIds", "Lifecycle pruning does not preserve page-level visual ids.");
+requireMarker(
+  route,
+  "isMultiPageImageMaterial",
+  "Material detail does not detect multi-page images.",
+);
+requireMarker(
+  route,
+  "MultiPageImageWorkspace",
+  "Material detail does not open the multi-page workspace.",
+);
+requireMarker(
+  lifecycle,
+  "getAllVisualSourceIds",
+  "Lifecycle pruning does not preserve page-level visual ids.",
+);
 requireMarker(client, "signal?: AbortSignal", "OCR requests are not cancellable per batch.");
 requireMarker(client, "signal,", "The browser fetch no longer receives the abort signal.");
 

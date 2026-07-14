@@ -54,7 +54,7 @@ for (const marker of [
   "createLegacyFullVisualBackup",
   "prepareLegacyFullVisualBackup",
   "applyLegacyFullVisualBackup",
-  'workspace/visual-backup-v1.zip',
+  "workspace/visual-backup-v1.zip",
 ]) {
   requireMarker(
     workspaceBackup,
@@ -120,6 +120,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(
-  "Versioned visual ZIP engine remains intact under the workspace backup v2 wrapper.",
-);
+console.log("Versioned visual ZIP engine remains intact under the workspace backup v2 wrapper.");

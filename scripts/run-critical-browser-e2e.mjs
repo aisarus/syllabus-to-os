@@ -106,12 +106,16 @@ class BrowserPage {
       page.send("DOM.enable"),
     ]);
     cdpClient.on("Runtime.consoleAPICalled", sessionId, (event) => {
-      const values = (event.args ?? []).map((argument) => argument.value ?? argument.description ?? "");
+      const values = (event.args ?? []).map(
+        (argument) => argument.value ?? argument.description ?? "",
+      );
       page.consoleMessages.push(`[console.${event.type}] ${values.join(" ")}`);
     });
     cdpClient.on("Runtime.exceptionThrown", sessionId, (event) => {
       const description = event.exceptionDetails?.exception?.description;
-      page.consoleMessages.push(`[exception] ${description ?? event.exceptionDetails?.text ?? "unknown"}`);
+      page.consoleMessages.push(
+        `[exception] ${description ?? event.exceptionDetails?.text ?? "unknown"}`,
+      );
     });
     cdpClient.on("Page.javascriptDialogOpening", sessionId, () => {
       void page.handleDialog();
@@ -133,7 +137,9 @@ class BrowserPage {
     });
     if (result.exceptionDetails) {
       throw new Error(
-        result.exceptionDetails.exception?.description || result.exceptionDetails.text || "Evaluation failed",
+        result.exceptionDetails.exception?.description ||
+          result.exceptionDetails.text ||
+          "Evaluation failed",
       );
     }
     return result.result?.value;
@@ -380,7 +386,10 @@ class BrowserPage {
   }
 
   async captureDiagnostics(name) {
-    const safeName = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const safeName = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
     const [url, body, screenshot] = await Promise.all([
       this.url().catch(() => "unknown"),
       this.bodyText().catch(() => ""),
@@ -552,9 +561,7 @@ async function flowBackupRestore(page, downloadDir) {
   const clearDialog = page.acceptNextDialog();
   await page.clickDangerSectionButton("Действие необратимо");
   await clearDialog;
-  await page.waitFor(
-    `JSON.parse(localStorage.getItem("lamdan.data.v1")).materials.length === 0`,
-  );
+  await page.waitFor(`JSON.parse(localStorage.getItem("lamdan.data.v1")).materials.length === 0`);
   assert(!(await page.hasImage("mat_backup")), "Clear all left the original image in IndexedDB.");
 
   await page.setFileInput('input[accept*="application/zip"]', zipPath);

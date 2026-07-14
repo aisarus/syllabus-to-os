@@ -70,11 +70,7 @@ for (const marker of [
   requireMarker(workspace, marker, `Exam Engine UI is missing: ${marker}`);
 }
 
-requireMarker(
-  route,
-  'createFileRoute("/app/exam-engine")',
-  "Exam Engine route is missing.",
-);
+requireMarker(route, 'createFileRoute("/app/exam-engine")', "Exam Engine route is missing.");
 requireMarker(route, "<ExamEngine />", "Exam Engine route does not render its workspace.");
 
 for (const marker of [

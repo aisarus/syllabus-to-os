@@ -43,9 +43,7 @@ const SCHEMA = `{
 
 function languageLabel(language?: string): string {
   return (
-    { ru: "Russian", en: "English", he: "Hebrew", ar: "Arabic" }[
-      language ?? "ru"
-    ] || "Russian"
+    { ru: "Russian", en: "English", he: "Hebrew", ar: "Arabic" }[language ?? "ru"] || "Russian"
   );
 }
 
@@ -137,7 +135,11 @@ export async function runOpenAnswerReviewGeneration(
   const requestedSourceChunkIds = input.chunks.map((chunk) => chunk.id);
   const rejectedSourceChunkIds = Array.from(
     new Set(
-      ((generation.data as Record<string, unknown>)?.supportedSourceChunkIds as unknown[] | undefined)
+      (
+        (generation.data as Record<string, unknown>)?.supportedSourceChunkIds as
+          | unknown[]
+          | undefined
+      )
         ?.filter((value): value is string => typeof value === "string")
         .filter((id) => !requestedSourceChunkIds.includes(id)) ?? [],
     ),

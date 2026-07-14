@@ -207,8 +207,16 @@ export function MultiPageImageWorkspace({ material }: { material: MultiPageImage
         await runPageOCR(page, controller.signal);
         completed += 1;
       } catch (error) {
-        if (controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError")) {
-          setMultiPageVisualPageStatus(material.id, page.id, "cancelled", "Batch OCR was cancelled.");
+        if (
+          controller.signal.aborted ||
+          (error instanceof DOMException && error.name === "AbortError")
+        ) {
+          setMultiPageVisualPageStatus(
+            material.id,
+            page.id,
+            "cancelled",
+            "Batch OCR was cancelled.",
+          );
         } else {
           failed += 1;
           setMultiPageVisualPageStatus(
@@ -274,10 +282,20 @@ export function MultiPageImageWorkspace({ material }: { material: MultiPageImage
               : "Each page keeps its own source image, preprocessing and OCR draft. One failed page never destroys the others."}
           </p>
           <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
-            <span>{pages.length} {isRu ? "страниц" : "pages"}</span>
-            <span>{appliedCount} {isRu ? "применено" : "applied"}</span>
-            <span>{reviewCount} {isRu ? "на проверке" : "awaiting review"}</span>
-            {errorCount > 0 && <span className="text-red-300">{errorCount} {isRu ? "ошибок" : "errors"}</span>}
+            <span>
+              {pages.length} {isRu ? "страниц" : "pages"}
+            </span>
+            <span>
+              {appliedCount} {isRu ? "применено" : "applied"}
+            </span>
+            <span>
+              {reviewCount} {isRu ? "на проверке" : "awaiting review"}
+            </span>
+            {errorCount > 0 && (
+              <span className="text-red-300">
+                {errorCount} {isRu ? "ошибок" : "errors"}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -450,7 +468,11 @@ function MultiPageSinglePageEditor({
   }, [load]);
 
   const derivedText = useMemo(
-    () => draft?.regions.map((region) => region.text.trim()).filter(Boolean).join("\n") ?? "",
+    () =>
+      draft?.regions
+        .map((region) => region.text.trim())
+        .filter(Boolean)
+        .join("\n") ?? "",
     [draft],
   );
 
@@ -470,7 +492,9 @@ function MultiPageSinglePageEditor({
   const createRegion = (boundingBox: OCRBoundingBox) => {
     const region = emptyRegion(draft?.regions.length ?? 0, boundingBox);
     setDraft((current) =>
-      current ? { ...current, regions: [...current.regions, region] } : manualDraft(sourceStyle, lang, region),
+      current
+        ? { ...current, regions: [...current.regions, region] }
+        : manualDraft(sourceStyle, lang, region),
     );
     setSelectedRegionId(region.id);
   };
@@ -490,9 +514,12 @@ function MultiPageSinglePageEditor({
       setOcrSelection(ocrSource.kind);
       setSelectedRegionId(next.regions[0]?.id ?? null);
       onStatusChange("review", "OCR draft is ready for review.");
-      toast.success(isRu ? `OCR страницы ${page.order + 1} готов` : `Page ${page.order + 1} OCR is ready`);
+      toast.success(
+        isRu ? `OCR страницы ${page.order + 1} готов` : `Page ${page.order + 1} OCR is ready`,
+      );
     } catch (recognitionError) {
-      const message = recognitionError instanceof Error ? recognitionError.message : String(recognitionError);
+      const message =
+        recognitionError instanceof Error ? recognitionError.message : String(recognitionError);
       setError(message);
       onStatusChange("error", message);
     } finally {
@@ -564,20 +591,38 @@ function MultiPageSinglePageEditor({
           <strong>{isRu ? `Страница ${page.order + 1}` : `Page ${page.order + 1}`}</strong>
           <p className="truncate text-xs text-muted-foreground">{page.fileName}</p>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            {isRu ? "Источник OCR" : "OCR source"}: {ocrSelection === "processed" ? (isRu ? "обработанная версия" : "processed") : (isRu ? "оригинал" : "original")}
+            {isRu ? "Источник OCR" : "OCR source"}:{" "}
+            {ocrSelection === "processed"
+              ? isRu
+                ? "обработанная версия"
+                : "processed"
+              : isRu
+                ? "оригинал"
+                : "original"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Select value={sourceStyle} onValueChange={(value) => setSourceStyle(value as OCRSourceStyle)}>
-            <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
+          <Select
+            value={sourceStyle}
+            onValueChange={(value) => setSourceStyle(value as OCRSourceStyle)}
+          >
+            <SelectTrigger className="w-[170px]">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {SOURCE_STYLES.map((style) => (
-                <SelectItem key={style} value={style}>{sourceStyleCopy(style, isRu)}</SelectItem>
+                <SelectItem key={style} value={style}>
+                  {sourceStyleCopy(style, isRu)}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Button onClick={() => void runOCR()} disabled={recognizing}>
-            {recognizing ? <Loader2 className="h-4 w-4 me-1 animate-spin" /> : <Sparkles className="h-4 w-4 me-1" />}
+            {recognizing ? (
+              <Loader2 className="h-4 w-4 me-1 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4 me-1" />
+            )}
             {draft ? (isRu ? "OCR заново" : "Run again") : "OCR"}
           </Button>
         </div>
@@ -622,7 +667,9 @@ function MultiPageSinglePageEditor({
           {!draft ? (
             <div className="rounded-md border border-dashed border-border p-8 text-center">
               <p className="text-sm text-muted-foreground">
-                {isRu ? "Запусти OCR или создай ручной черновик." : "Run OCR or create a manual draft."}
+                {isRu
+                  ? "Запусти OCR или создай ручной черновик."
+                  : "Run OCR or create a manual draft."}
               </p>
               <Button variant="outline" className="mt-4" onClick={startManual}>
                 <Plus className="h-4 w-4 me-1" />
@@ -632,9 +679,17 @@ function MultiPageSinglePageEditor({
           ) : (
             <>
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-background p-3 text-xs">
-                <span>{draft.regions.length} {isRu ? "регионов" : "regions"}</span>
-                <span>{derivedText.length} {isRu ? "знаков" : "characters"}</span>
-                {draft.requiresReview && <span className="text-yellow-200">{isRu ? "нужна проверка" : "review required"}</span>}
+                <span>
+                  {draft.regions.length} {isRu ? "регионов" : "regions"}
+                </span>
+                <span>
+                  {derivedText.length} {isRu ? "знаков" : "characters"}
+                </span>
+                {draft.requiresReview && (
+                  <span className="text-yellow-200">
+                    {isRu ? "нужна проверка" : "review required"}
+                  </span>
+                )}
               </div>
               <div className="space-y-3">
                 {draft.regions.map((region, index) => (
@@ -647,10 +702,14 @@ function MultiPageSinglePageEditor({
                     onSelect={() => setSelectedRegionId(region.id)}
                     onChange={(patch) => updateRegion(region.id, patch)}
                     onDelete={() => {
-                      if (!confirm(isRu ? "Удалить этот OCR-регион?" : "Delete this OCR region?")) return;
+                      if (!confirm(isRu ? "Удалить этот OCR-регион?" : "Delete this OCR region?"))
+                        return;
                       setDraft((current) =>
                         current
-                          ? { ...current, regions: current.regions.filter((entry) => entry.id !== region.id) }
+                          ? {
+                              ...current,
+                              regions: current.regions.filter((entry) => entry.id !== region.id),
+                            }
                           : current,
                       );
                     }}
@@ -716,19 +775,58 @@ function PageRow({
       <button type="button" className="flex w-full items-start gap-2 text-start" onClick={onSelect}>
         <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1">
-          <strong className="block text-xs">{isRu ? "Страница" : "Page"} {page.order + 1}</strong>
+          <strong className="block text-xs">
+            {isRu ? "Страница" : "Page"} {page.order + 1}
+          </strong>
           <span className="block truncate text-[11px] text-muted-foreground">{page.fileName}</span>
-          <span className={`mt-1 inline-flex items-center gap-1 text-[10px] ${statusClass(page.status)}`}>
+          <span
+            className={`mt-1 inline-flex items-center gap-1 text-[10px] ${statusClass(page.status)}`}
+          >
             {statusIcon(page.status)} {statusCopy(page.status, isRu)}
           </span>
         </span>
       </button>
       <div className="mt-2 flex flex-wrap gap-1 border-t border-border pt-2">
-        <Button size="icon" variant="ghost" onClick={onMoveUp} aria-label={isRu ? "Выше" : "Move up"}><ArrowUp className="h-3.5 w-3.5" /></Button>
-        <Button size="icon" variant="ghost" onClick={onMoveDown} aria-label={isRu ? "Ниже" : "Move down"}><ArrowDown className="h-3.5 w-3.5" /></Button>
-        <Button size="icon" variant="ghost" onClick={onRetry} aria-label={isRu ? "Повторить OCR" : "Retry OCR"}><RefreshCw className="h-3.5 w-3.5" /></Button>
-        <Button size="icon" variant="ghost" onClick={onReplace} aria-label={isRu ? "Заменить фото" : "Replace image"}><Upload className="h-3.5 w-3.5" /></Button>
-        <Button size="icon" variant="ghost" onClick={onDelete} aria-label={isRu ? "Удалить страницу" : "Delete page"}><Trash2 className="h-3.5 w-3.5" /></Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={onMoveUp}
+          aria-label={isRu ? "Выше" : "Move up"}
+        >
+          <ArrowUp className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={onMoveDown}
+          aria-label={isRu ? "Ниже" : "Move down"}
+        >
+          <ArrowDown className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={onRetry}
+          aria-label={isRu ? "Повторить OCR" : "Retry OCR"}
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={onReplace}
+          aria-label={isRu ? "Заменить фото" : "Replace image"}
+        >
+          <Upload className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={onDelete}
+          aria-label={isRu ? "Удалить страницу" : "Delete page"}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
       </div>
     </div>
   );
@@ -752,17 +850,41 @@ function PageRegionEditor({
   onDelete: () => void;
 }) {
   return (
-    <article className={`rounded-md border p-3 ${selected ? "border-primary" : "border-border"}`} onClick={onSelect}>
+    <article
+      className={`rounded-md border p-3 ${selected ? "border-primary" : "border-border"}`}
+      onClick={onSelect}
+    >
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold">#{index + 1}</span>
-        <Select value={region.kind} onValueChange={(value) => onChange({ kind: value as OCRRegionKind })}>
-          <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
+        <Select
+          value={region.kind}
+          onValueChange={(value) => onChange({ kind: value as OCRRegionKind })}
+        >
+          <SelectTrigger className="h-8 w-[150px]">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            {REGION_KINDS.map((kind) => <SelectItem key={kind} value={kind}>{regionKindCopy(kind, isRu)}</SelectItem>)}
+            {REGION_KINDS.map((kind) => (
+              <SelectItem key={kind} value={kind}>
+                {regionKindCopy(kind, isRu)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-        {region.confidence != null && <span className="text-xs text-muted-foreground">{Math.round(region.confidence * 100)}%</span>}
-        <Button size="icon" variant="ghost" className="ms-auto" onClick={(event) => { event.stopPropagation(); onDelete(); }}>
+        {region.confidence != null && (
+          <span className="text-xs text-muted-foreground">
+            {Math.round(region.confidence * 100)}%
+          </span>
+        )}
+        <Button
+          size="icon"
+          variant="ghost"
+          className="ms-auto"
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete();
+          }}
+        >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>
