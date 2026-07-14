@@ -21,44 +21,44 @@ This file records the active implementation plan. Product intent remains in `ROA
 - `P1-013 Concept graph and evidence model v1` — merged in PR #38.
 - `P1-013A Per-question quiz evidence` — merged in PR #39 after deterministic and Chromium persistence gates.
 - `P1-013B Workspace backup v2` — merged in PR #41 after contracts, deterministic evals, TypeScript, lint, build and three Chromium gates.
-- `P1-013C Reviewed concept extraction` — verified in PR #42 after contracts, deterministic evals, TypeScript, lint, build and four Chromium gates.
+- `P1-013C Reviewed concept extraction` — merged in PR #42 after contracts, deterministic evals, TypeScript, lint, build and four Chromium gates.
 
-## Verified delivery — Reviewed concept extraction
+## Active delivery — Open-answer evidence and mistake repair
 
 ### Product outcome
 
-Lamdan can propose atomic course concepts from explicitly selected approved source chunks or saved Study Pack key terms, while the user remains responsible for every title, description, alias and source relationship before anything enters the knowledge map.
+Lamdan can store a complete explanation or application answer as inspectable evidence, optionally obtain a source-grounded AI review, require the user to confirm the final judgment, and preserve later mistake-repair attempts without rewriting the original failure.
 
-### Delivered sequence
+### Delivery sequence
 
-1. Added an ephemeral concept-candidate model with citation filtering and duplicate detection. ✓
-2. Parsed saved Study Pack `Key terms` / `Ключевые термины` sections locally. ✓
-3. Added a strict source-only AI extraction prompt and API route. ✓
-4. Limited AI extraction to eight explicitly selected chunks. ✓
-5. Removed uncited and unknown-source candidates server-side. ✓
-6. Supplied current titles and aliases as a do-not-duplicate list. ✓
-7. Added an editable review UI for title, description, aliases and source links. ✓
-8. Blocked duplicates against the current map and original candidate batch; required explicit selection. ✓
-9. Created source-linked concepts without creating evidence or raising knowledge state. ✓
-10. Added deterministic parser, citation and duplicate evaluations. ✓
-11. Added browser proof for Study Pack extraction, review, acceptance and reload with zero evidence events. ✓
-12. Wired permanent contracts, canonical checks and CI. ✓
-13. Passed all contracts, evals, TypeScript, lint, build and four browser gates. ✓
+1. Extend the evidence schema with full prompt, response, reviewed source chunks and review mode. ✓
+2. Add additive `repairOfEvidenceId` links that retain the original failure. ✓
+3. Reconcile deleted sources and orphan repair links safely. ✓
+4. Keep human-only open answers secondary; count only confirmed source-grounded AI+human reviews as non-manual. ✓
+5. Add strict source-only AI review generation and API route. ✓
+6. Reject short, uncited and stale-source answers before persistence. ✓
+7. Add course UI for explanation/application prompts, full responses and source selection. ✓
+8. Require explicit human confirmation of outcome, score, mistake type and reviewed sources. ✓
+9. Add failure list, repair workflow and inspectable/removable history. ✓
+10. Add deterministic review, objective-evidence, reconciliation and repair-link evaluations. ✓
+11. Add Chromium proof for failure → linked repair → reload with both events preserved. ✓
+12. Wire permanent contracts, canonical checks and CI. Pending.
+13. Pass all contracts, evals, TypeScript, lint, build and five browser gates. Pending.
+14. Merge only after every gate passes. Pending.
 
 ### Non-negotiable boundaries
 
-- Candidate generation never auto-saves.
-- User instructions can shape focus but are never treated as a factual source.
-- Every accepted candidate needs at least one still-valid approved source chunk.
-- Existing-map and generated-batch duplicate titles or aliases are blocked.
-- Saved Study Pack terms carry coarse note-level citations and show that limitation.
-- Accepting a concept creates no learning evidence.
-- No mastery state, score prediction or ontology edge is inferred from extraction.
-- Cross-candidate alias/title collisions introduced only through later manual edits remain a small hardening follow-up.
+- AI review is advisory and never auto-saves.
+- The model may judge only against explicitly selected current concept source chunks.
+- The user must confirm the final outcome, score, mistake type and source selection.
+- Human-only success remains secondary evidence.
+- A confirmed source-grounded AI+human review may count as non-manual, but one answer can never create `strong` state.
+- Repair creates a new event and never overwrites the original failure.
+- Removing the reviewed source relationship invalidates the affected evidence.
+- Full prompt, response, review and repair link remain inspectable and removable.
 
-## Active next delivery
+## Next delivery after open-answer evidence
 
 1. Add the final edited-batch alias collision guard.
-2. Add open-answer evidence and mistake-repair flows.
-3. Build `P1-014 Exam Engine` on stable evidence, source coverage and deadlines.
-4. Continue `P1-015`–`P1-019` only through source-visible and reviewable contracts.
+2. Build `P1-014 Exam Engine` on stable evidence, source coverage and deadlines.
+3. Continue `P1-015`–`P1-019` only through source-visible and reviewable contracts.
