@@ -2,19 +2,35 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [details, engine, conceptStore, lifecycle, experience, route, evals, docs, tasks, status] =
-  await Promise.all([
-    read("src/lib/quiz-attempt-details.ts"),
-    read("src/lib/concept-evidence.ts"),
-    read("src/lib/concept-store.ts"),
-    read("src/components/concept-evidence-lifecycle.tsx"),
-    read("src/components/evidence-quiz-experience.tsx"),
-    read("src/routes/app.quizzes_.$quizId.tsx"),
-    read("scripts/run-per-question-evidence-evals.mjs"),
-    read("docs/CONCEPT_EVIDENCE_MODEL.md"),
-    read("TASKS.md"),
-    read("STATUS.md"),
-  ]);
+const [
+  details,
+  engine,
+  conceptStore,
+  lifecycle,
+  experience,
+  route,
+  evals,
+  browserE2E,
+  packageJson,
+  workflow,
+  docs,
+  tasks,
+  status,
+] = await Promise.all([
+  read("src/lib/quiz-attempt-details.ts"),
+  read("src/lib/concept-evidence.ts"),
+  read("src/lib/concept-store.ts"),
+  read("src/components/concept-evidence-lifecycle.tsx"),
+  read("src/components/evidence-quiz-experience.tsx"),
+  read("src/routes/app.quizzes_.$quizId.tsx"),
+  read("scripts/run-per-question-evidence-evals.mjs"),
+  read("scripts/run-question-evidence-browser-e2e.mjs"),
+  read("package.json"),
+  read(".github/workflows/ci.yml"),
+  read("docs/CONCEPT_EVIDENCE_MODEL.md"),
+  read("TASKS.md"),
+  read("STATUS.md"),
+]);
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
@@ -86,6 +102,29 @@ for (const marker of [
   "unlinked question evidence must be repaired",
 ]) {
   requireMarker(evals, marker, `Per-question evidence evaluation is missing: ${marker}`);
+}
+
+for (const marker of [
+  'localStorage.getItem("lamdan.quiz-attempt-details.v1")',
+  'event.sourceType === "quiz_question_answer"',
+  "await page.reload()",
+  "Recognition evidence duplicated or disappeared after reload",
+  "Question-level quiz evidence browser E2E passed",
+]) {
+  requireMarker(browserE2E, marker, `Question evidence browser proof is missing: ${marker}`);
+}
+
+requireMarker(
+  packageJson,
+  '"e2e:question-evidence"',
+  "package.json does not expose the question evidence browser gate.",
+);
+for (const marker of [
+  "Run question evidence browser E2E",
+  "question_evidence_e2e",
+  "question-evidence-e2e-output.txt",
+]) {
+  requireMarker(workflow, marker, `CI question evidence gate is missing: ${marker}`);
 }
 
 for (const [content, marker, file] of [
