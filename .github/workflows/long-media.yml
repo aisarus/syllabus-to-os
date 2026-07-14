@@ -1,0 +1,55 @@
+name: Long Lecture Media
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: long-media-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  long-media:
+    name: Contract, eval, build and browser proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify long lecture media contract
+        run: npm run verify:long-media-contract
+
+      - name: Run long lecture media evaluations
+        run: npm run eval:long-media
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Run long lecture media browser E2E
+        run: npm run e2e:long-media
