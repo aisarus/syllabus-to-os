@@ -1,0 +1,61 @@
+name: Apply Long Media Preview Fix
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'agent/long-lecture-media'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Patch preview readiness and diagnostics
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'scripts/run-long-media-browser-e2e.mjs';
+          let content = fs.readFileSync(path, 'utf8');
+          content = content.replace(
+            '  let cdp;\n  try {',
+            '  let cdp;\n  const previewOutput = [];\n  try {',
+          );
+          content = content.replace(
+            '        env: process.env,\n        stdio: "ignore",\n        detached: process.platform !== "win32",',
+            '        env: process.env,\n        stdio: ["ignore", "pipe", "pipe"],\n        detached: process.platform !== "win32",',
+          );
+          content = content.replace(
+            '    );\n    await waitForHttp(`${BASE_URL}/app/dashboard`, 30_000);',
+            `    );
+    preview.stdout?.on("data", (chunk) => previewOutput.push(String(chunk)));
+    preview.stderr?.on("data", (chunk) => previewOutput.push(String(chunk)));
+    try {
+      await waitForHttp(\`${BASE_URL}/\`, 60_000);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(\`${message}\\nPreview output:\\n${previewOutput.join("")}\`);
+    }`,
+          );
+          fs.writeFileSync(path, content);
+          NODE
+      - name: Remove one-time workflow
+        run: rm -f .github/workflows/apply-long-media-preview-fix.yml
+      - name: Format and commit
+        run: |
+          npx prettier --write scripts/run-long-media-browser-e2e.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "fix long media preview readiness"
+          git push origin HEAD:${{ github.head_ref }}
