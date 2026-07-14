@@ -62,7 +62,7 @@ Pending on PR #41:
 - TypeScript;
 - ESLint and formatting;
 - production build;
-- critical Chromium;
+- critical browser end-to-end Chromium execution;
 - question-evidence Chromium;
 - workspace-backup replace/tamper/rollback Chromium.
 
