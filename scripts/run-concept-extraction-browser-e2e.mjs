@@ -19,9 +19,9 @@ class Cdp {
   }
   static async connect(url) {
     const socket = new WebSocket(url);
-    await new Promise((open, reject) => {
-      socket.addEventListener("open", open, { once: true });
-      socket.addEventListener("error", reject, { once: true });
+    await new Promise((resolveOpen, rejectOpen) => {
+      socket.addEventListener("open", resolveOpen, { once: true });
+      socket.addEventListener("error", rejectOpen, { once: true });
     });
     return new Cdp(socket);
   }
@@ -63,7 +63,9 @@ class Page {
     });
     if (response.exceptionDetails) {
       throw new Error(
-        response.exceptionDetails.exception?.description ?? response.exceptionDetails.text ?? "Evaluation failed",
+        response.exceptionDetails.exception?.description ??
+          response.exceptionDetails.text ??
+          "Evaluation failed",
       );
     }
     return response.result?.value;
@@ -74,7 +76,7 @@ class Page {
       try {
         if (await this.evaluate(`Boolean(${expression})`)) return;
       } catch {
-        // Retry during navigation/hydration.
+        // Retry while navigation and hydration settle.
       }
       await sleep(120);
     }
@@ -111,7 +113,15 @@ function fixtureData() {
   return {
     version: 1,
     programs: [],
-    courses: [{ id: "crs_extract", title: "Extraction Course", status: "in_progress", order: 0, createdAt: now }],
+    courses: [
+      {
+        id: "crs_extract",
+        title: "Extraction Course",
+        status: "in_progress",
+        order: 0,
+        createdAt: now,
+      },
+    ],
     topics: [],
     notes: [
       {
@@ -177,7 +187,12 @@ async function main() {
     preview = spawn(
       npmCommand,
       ["run", "preview", "--", "--host", HOST, "--port", String(APP_PORT)],
-      { cwd: process.cwd(), env: process.env, stdio: "ignore", detached: process.platform !== "win32" },
+      {
+        cwd: process.cwd(),
+        env: process.env,
+        stdio: "ignore",
+        detached: process.platform !== "win32",
+      },
     );
     await waitForHttp(`${BASE_URL}/app/dashboard`, 30_000);
     chrome = spawn(
@@ -196,8 +211,13 @@ async function main() {
     );
     const version = await waitForJson(`http://${HOST}:${DEBUG_PORT}/json/version`, 30_000);
     cdp = await Cdp.connect(version.webSocketDebuggerUrl);
-    const { targetId } = await cdp.send("Target.createTarget", { url: `${BASE_URL}/app/dashboard` });
-    const { sessionId } = await cdp.send("Target.attachToTarget", { targetId, flatten: true });
+    const { targetId } = await cdp.send("Target.createTarget", {
+      url: `${BASE_URL}/app/dashboard`,
+    });
+    const { sessionId } = await cdp.send("Target.attachToTarget", {
+      targetId,
+      flatten: true,
+    });
     const page = new Page(cdp, sessionId);
     await Promise.all([page.send("Page.enable"), page.send("Runtime.enable")]);
     await page.waitFor("document.readyState === 'complete'");
@@ -216,7 +236,7 @@ async function main() {
     await page.waitForText("Сначала кандидаты, потом решение человека");
     await page.clickText("Из Study Pack (1)");
     await page.waitForText("Судебный контроль");
-    await page.waitForText("Кандидатов на проверку");
+    await page.waitForText("Проверка перед добавлением");
     await page.clickText("Добавить выбранные");
 
     await page.waitFor(`(() => {
@@ -259,8 +279,12 @@ function findChrome() {
   ].filter(Boolean);
   for (const candidate of candidates) if (existsSync(candidate)) return candidate;
   for (const name of ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"]) {
-    const result = spawnSync(process.platform === "win32" ? "where" : "which", [name], { encoding: "utf8" });
-    if (result.status === 0 && result.stdout.trim()) return result.stdout.trim().split(/\r?\n/)[0];
+    const result = spawnSync(process.platform === "win32" ? "where" : "which", [name], {
+      encoding: "utf8",
+    });
+    if (result.status === 0 && result.stdout.trim()) {
+      return result.stdout.trim().split(/\r?\n/)[0];
+    }
   }
   throw new Error("Chromium/Chrome was not found.");
 }
