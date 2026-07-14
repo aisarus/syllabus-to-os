@@ -91,23 +91,35 @@ export function buildReviewCandidates(input: {
   existingConcepts: Concept[];
   idPrefix?: string;
 }): ConceptCandidateReview[] {
-  const seen = new Set<string>();
   const output: ConceptCandidateReview[] = [];
+  const comparisonConcepts = [...input.existingConcepts];
   input.candidates.forEach((raw, index) => {
     const candidate = normalizeConceptCandidate(raw, input.allowedSourceChunkIds);
     if (!candidate) return;
-    const key = normalizeConceptKey(candidate.title);
-    if (!key || seen.has(key)) return;
-    seen.add(key);
-    const duplicate = findConceptDuplicate(candidate, input.existingConcepts);
+    const id = `${input.idPrefix ?? input.origin}-${Date.now()}-${index}`;
+    const duplicate = findConceptDuplicate(candidate, comparisonConcepts);
     output.push({
       ...candidate,
-      id: `${input.idPrefix ?? input.origin}-${Date.now()}-${index}`,
+      id,
       origin: input.origin,
       sourceLabel: input.sourceLabel,
       selected: !duplicate,
       duplicateOf: duplicate?.id,
     });
+    if (!duplicate) {
+      comparisonConcepts.push({
+        id,
+        courseId: "candidate-review",
+        title: candidate.title,
+        description: candidate.description,
+        aliases: candidate.aliases,
+        sourceChunkIds: candidate.sourceChunkIds,
+        flashcardIds: [],
+        quizQuestionIds: [],
+        createdAt: 0,
+        updatedAt: 0,
+      });
+    }
   });
   return output;
 }
@@ -119,6 +131,7 @@ export function extractStudyPackConceptCandidates(input: {
 }): ConceptCandidateReview[] {
   const allowed = new Set(input.allowedSourceChunkIds);
   const reviews: ConceptCandidateReview[] = [];
+  const comparisonConcepts = [...input.existingConcepts];
   for (const note of input.notes) {
     if (!note.tags.includes("study-pack")) continue;
     const sourceChunkIds = note.sourceChunkIds.filter((id) => allowed.has(id));
@@ -129,24 +142,33 @@ export function extractStudyPackConceptCandidates(input: {
       aliases: [],
       sourceChunkIds,
     }));
-    reviews.push(
-      ...buildReviewCandidates({
-        candidates,
-        origin: "study_pack_note",
-        sourceLabel: note.title,
-        allowedSourceChunkIds: allowed,
-        existingConcepts: input.existingConcepts,
-        idPrefix: `study-pack-${note.id}`,
-      }),
+    const next = buildReviewCandidates({
+      candidates,
+      origin: "study_pack_note",
+      sourceLabel: note.title,
+      allowedSourceChunkIds: allowed,
+      existingConcepts: comparisonConcepts,
+      idPrefix: `study-pack-${note.id}`,
+    });
+    reviews.push(...next);
+    comparisonConcepts.push(
+      ...next
+        .filter((candidate) => !candidate.duplicateOf)
+        .map((candidate) => ({
+          id: candidate.id,
+          courseId: "candidate-review",
+          title: candidate.title,
+          description: candidate.description,
+          aliases: candidate.aliases,
+          sourceChunkIds: candidate.sourceChunkIds,
+          flashcardIds: [],
+          quizQuestionIds: [],
+          createdAt: 0,
+          updatedAt: 0,
+        })),
     );
   }
-  const seen = new Set<string>();
-  return reviews.filter((candidate) => {
-    const key = normalizeConceptKey(candidate.title);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  return reviews;
 }
 
 export function parseStudyPackKeyTerms(content: string): Array<{
