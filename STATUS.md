@@ -6,7 +6,7 @@ Last updated: 2026-07-14
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack, Concept Graph v1 and per-question quiz evidence are implemented and verified. Workspace backup v2 is the active hardening pass.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack, Concept Graph v1, per-question quiz evidence and Workspace backup v2 are implemented and verified.
 
 ## Completed task state
 
@@ -25,12 +25,9 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37 merged.
 - `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38 merged.
 - `P1-013A Per-question quiz evidence` — complete and verified; PR #39 merged after full CI and dedicated Chromium persistence proof.
+- `P1-013B Workspace backup v2` — complete and verified; PR #41 passed all contracts, deterministic evals, TypeScript, lint, build and three Chromium gates.
 
-## Workspace backup v2
-
-**Status:** implemented on `agent/workspace-backup-v2-clean`; final CI and browser validation are in progress.
-
-Delivered:
+## Workspace backup v2 delivered state
 
 - new `lamdan-workspace-backup` format version 2;
 - nested verified visual backup v1 payload;
@@ -56,17 +53,15 @@ Current boundaries:
 
 ## Verification state
 
-Pending on PR #41:
+PR #41 passed:
 
-- all repository contracts and deterministic evals;
+- every repository contract and deterministic evaluation suite;
 - TypeScript;
 - ESLint and formatting;
 - production build;
 - critical browser end-to-end Chromium execution;
-- question-evidence Chromium;
-- workspace-backup replace/tamper/rollback Chromium.
-
-The branch must not merge until every gate passes.
+- question-evidence Chromium persistence/reload proof;
+- workspace-backup Chromium replace, checksum rejection, forced write failure, full rollback and reload proof.
 
 ## Existing validation blockers
 
@@ -84,8 +79,7 @@ The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved 
 
 ## Next execution targets
 
-1. Verify and merge Workspace backup v2.
-2. Add reviewed concept extraction from Study Pack/source chunks.
-3. Add open-answer evidence and mistake repair.
-4. Begin `P1-014 Exam Engine` after the evidence foundation remains stable in real use.
-5. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
+1. Add reviewed concept extraction from Study Pack/source chunks.
+2. Add open-answer evidence and mistake repair.
+3. Begin `P1-014 Exam Engine` after the evidence foundation remains stable in real use.
+4. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
