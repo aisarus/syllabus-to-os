@@ -23,6 +23,7 @@
     "eval:study-pack": "node --experimental-strip-types scripts/run-study-pack-evals.mjs",
     "eval:concept-evidence": "node --experimental-strip-types scripts/run-concept-evidence-evals.mjs",
     "eval:concept-extraction": "node --experimental-strip-types scripts/run-concept-extraction-evals.mjs",
+    "eval:open-answer-evidence": "node --experimental-strip-types scripts/run-open-answer-evidence-evals.mjs",
     "eval:per-question-evidence": "node --experimental-strip-types scripts/run-per-question-evidence-evals.mjs",
     "eval:visual-backup": "node --experimental-strip-types scripts/run-visual-backup-evals.mjs",
     "eval:workspace-backup": "node --experimental-strip-types scripts/run-workspace-backup-evals.mjs",
@@ -30,6 +31,7 @@
     "e2e:question-evidence": "node scripts/run-question-evidence-browser-e2e.mjs",
     "e2e:workspace-backup": "node scripts/run-workspace-backup-browser-e2e.mjs",
     "e2e:concept-extraction": "node scripts/run-concept-extraction-browser-e2e.mjs",
+    "e2e:open-answer-evidence": "node scripts/run-open-answer-evidence-browser-e2e.mjs",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
     "verify:syllabus-review-contract": "node scripts/verify-syllabus-review-contract.mjs",
@@ -54,6 +56,7 @@
     "verify:study-pack-contract": "node scripts/verify-study-pack-contract.mjs",
     "verify:concept-evidence-contract": "node scripts/verify-concept-evidence-contract.mjs",
     "verify:concept-extraction-contract": "node scripts/verify-concept-extraction-contract.mjs",
+    "verify:open-answer-evidence-contract": "node scripts/verify-open-answer-evidence-contract.mjs",
     "verify:per-question-evidence-contract": "node scripts/verify-per-question-evidence-contract.mjs",
     "check": "node scripts/check.mjs"
   },
