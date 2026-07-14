@@ -6,7 +6,7 @@ Last updated: 2026-07-14
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack, Concept Graph v1 and per-question quiz evidence are implemented and verified.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack, Concept Graph v1 and per-question quiz evidence are implemented and verified. Workspace backup v2 is the active hardening pass.
 
 ## Completed task state
 
@@ -21,49 +21,52 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-003 Critical browser end-to-end coverage` — complete and verified; PR #33 CI passed.
 - `P1-004 Add local-first global search v2` — complete and verified; PR #34 CI passed.
 - `P1-005 Store persistence and source-integrity hardening` — complete and verified; PR #35 CI passed and merged.
-- `P1-011 Study Command Center v1` — complete and verified; PR #36 full CI and critical browser end-to-end passed and merged.
-- `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37 full CI and critical browser end-to-end passed and merged.
-- `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38 full CI, CodeRabbit and critical browser end-to-end passed and merged.
-- `P1-013A Per-question quiz evidence` — complete and verified; PR #39 full CI, critical Chromium and dedicated reload/persistence Chromium proof passed.
+- `P1-011 Study Command Center v1` — complete and verified; PR #36 merged.
+- `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37 merged.
+- `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38 merged.
+- `P1-013A Per-question quiz evidence` — complete and verified; PR #39 merged after full CI and dedicated Chromium persistence proof.
 
-## P1-013A delivered state
+## Workspace backup v2
 
-- dedicated local-first `lamdan.quiz-attempt-details.v1` companion store;
-- immutable snapshot for every question in a new attempt: prompt, selected/correct indexes and option text, correctness and source chunk ids;
-- validation rejects incomplete or invalid attempts before persistence;
-- answer-detail persistence is verified before the core aggregate attempt is created;
-- core `lamdan.data.v1` schema remains compatible and historical aggregate attempts remain unchanged;
-- main quiz route uses an evidence-aware runner;
-- legacy Practice/Exam launch controls inside the editor are hidden and blocked through event capture;
-- question editing remains available without exposing aggregate-only new attempts;
-- detailed linked answers generate objective `recognition` success/failure evidence;
-- incorrect answers default to `unclassified`, never inferred as confusion or carelessness;
-- old aggregate attempts without snapshots remain neutral `assessment/mixed` context;
-- aggregate context is removed when a detailed snapshot exists for the same attempt;
-- deleting or unlinking a quiz question repairs question-level concept evidence;
-- editing a question later does not rewrite historical answer snapshots;
-- deterministic evaluations and permanent trust contracts;
-- dedicated Chromium flow verifies aggregate attempt, immutable detail snapshot, concept event and reload without duplication.
+**Status:** implemented on `agent/workspace-backup-v2-clean`; final CI and browser validation are in progress.
+
+Delivered:
+
+- new `lamdan-workspace-backup` format version 2;
+- nested verified visual backup v1 payload;
+- checksummed concept-evidence and quiz-attempt-detail payloads;
+- strict path, kind, size, SHA-256, unexpected-file and expansion-limit validation;
+- backward-compatible legacy visual ZIP import;
+- explicit legacy merge/replace evidence behavior;
+- preview counts for concepts, evidence events, detailed attempts and immutable answer snapshots;
+- conflict-safe merge that keeps current duplicate IDs;
+- no evidence mixing into a conflicting concept;
+- reconciliation against the actual resulting core workspace;
+- rollback across core localStorage, visual IndexedDB, concept evidence and attempt details;
+- Data Management and Clear All cover all four layers;
+- deterministic roundtrip, tamper, legacy and conflict evaluations;
+- dedicated browser flow for replace, checksum rejection, forced write failure, rollback and reload.
 
 Current boundaries:
 
-- attempt details are not yet included in the full visual ZIP backup;
-- old attempts cannot be retroactively reconstructed;
-- open-answer and oral-response evidence remain unimplemented;
-- concept extraction remains manual;
-- no mastery percentage, score prediction or exam-readiness number exists.
+- the outer v2 archive intentionally nests the mature visual v1 archive;
+- internal concept and attempt-detail schemas remain version 1;
+- legacy archives cannot recreate evidence they never contained;
+- cloud sync and server storage remain out of scope.
 
 ## Verification state
 
-PR #39 passed:
+Pending on PR #41:
 
-- all existing repository contracts and deterministic eval suites;
-- per-question evidence contract and deterministic evaluations;
+- all repository contracts and deterministic evals;
 - TypeScript;
 - ESLint and formatting;
-- production build and generated route tree;
-- critical Chromium end-to-end execution;
-- dedicated question-evidence Chromium flow with reload and duplicate assertion.
+- production build;
+- critical Chromium;
+- question-evidence Chromium;
+- workspace-backup replace/tamper/rollback Chromium.
+
+The branch must not merge until every gate passes.
 
 ## Existing validation blockers
 
@@ -81,7 +84,7 @@ The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved 
 
 ## Next execution targets
 
-1. Integrate attempt-detail and concept data into full visual ZIP backup.
+1. Verify and merge Workspace backup v2.
 2. Add reviewed concept extraction from Study Pack/source chunks.
 3. Add open-answer evidence and mistake repair.
 4. Begin `P1-014 Exam Engine` after the evidence foundation remains stable in real use.
