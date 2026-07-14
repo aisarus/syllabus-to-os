@@ -374,9 +374,7 @@ async function waitForPreview(url, timeout, processHandle, output) {
   const started = Date.now();
   while (Date.now() - started < timeout) {
     if (processHandle.exitCode !== null) {
-      throw new Error(
-        `Preview exited with code ${processHandle.exitCode}.\n${output.join("")}`,
-      );
+      throw new Error(`Preview exited with code ${processHandle.exitCode}.\n${output.join("")}`);
     }
     try {
       const response = await fetch(url);
