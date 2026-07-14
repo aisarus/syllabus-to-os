@@ -69,7 +69,7 @@ Pending on the current branch:
 - TypeScript;
 - ESLint and formatting;
 - production build;
-- critical Chromium, question-evidence Chromium, workspace-backup Chromium and concept-extraction Chromium.
+- critical browser end-to-end Chromium, question-evidence Chromium, workspace-backup Chromium and concept-extraction Chromium.
 
 The branch must not merge until every gate passes.
 
