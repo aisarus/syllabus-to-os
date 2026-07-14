@@ -18,16 +18,15 @@ This file records the active implementation plan. Product intent remains in `ROA
 
 - `P1-011 Study Command Center v1` — merged in PR #36 after full CI and critical Chromium E2E.
 - `P1-012 Lecture-to-Study-Pack` — merged in PR #37 after full CI and critical Chromium E2E.
+- `P1-013 Concept graph and evidence model v1` — full CI and critical Chromium E2E passed in PR #38.
 
-## Active delivery — P1-013 Concept graph and evidence model v1
-
-**Status:** implemented on `agent/concept-evidence-v1`; verification pending.
+## Verified delivery — P1-013 Concept graph and evidence model v1
 
 ### Product outcome
 
 A course gains an inspectable map of concepts and learning evidence without replacing uncertainty with a decorative mastery percentage.
 
-### Implementation sequence
+### Delivered sequence
 
 1. Add a separate local-first concept/evidence schema without rewriting `lamdan.data.v1`. ✓
 2. Normalize missing or malformed concept data safely. ✓
@@ -37,23 +36,22 @@ A course gains an inspectable map of concepts and learning evidence without repl
 6. Add explicit explanation/application checks and editable mistake taxonomy. ✓
 7. Derive `unseen`, `covered`, `fragile`, `weak` and `strong` states from deterministic evidence rules. ✓
 8. Make every evidence event inspectable and removable. ✓
-9. Reconcile dangling references after course/source/practice deletion. ✓
+9. Reconcile dangling references after course/source/practice deletion or unlinking. ✓
 10. Add course-level concept JSON export/import. ✓
 11. Add Course Workspace UI, deterministic evals, permanent contract and CI wiring. ✓
-12. Run typecheck, lint, build, all existing contracts/evals and critical browser E2E. Pending.
-13. Review desktop/mobile behavior and merge only after all gates pass. Pending.
+12. Run typecheck, lint, build, all existing contracts/evals and critical browser E2E. ✓
 
 ### Explicit boundaries
 
 - File views, note creation and time spent never create learning evidence.
-- One correct answer or one flashcard result cannot create `strong` state.
-- Strong evidence requires at least four successes across at least two days and two evidence kinds.
+- One correct answer, one flashcard result or repeated manual self-rating cannot create `strong` state.
+- Strong evidence requires at least four successes, including at least two non-manual successes, across at least two days and two evidence kinds.
 - Existing aggregate quiz attempts remain `mixed` context until per-question answers are persisted.
-- Manual explanation/application events are explicitly labeled self-recorded evidence.
+- Manual explanation/application events are explicitly labeled secondary self-recorded evidence.
 - No mastery percentage, score prediction or exam-readiness score.
 - Concept JSON export is visible; full visual ZIP integration is a follow-up.
 
-## Next delivery after P1-013
+## Active next delivery
 
 1. Persist per-question quiz answer evidence and mistake review.
 2. Add reviewed concept extraction from source chunks and Study Packs.
