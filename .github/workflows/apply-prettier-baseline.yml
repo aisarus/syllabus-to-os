@@ -1,0 +1,39 @@
+name: Apply Prettier Baseline
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.head_ref == 'agent/long-lecture-media'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Restore repository Prettier baseline
+        run: npm run format
+      - name: Remove one-time diagnostic and formatter workflows
+        run: |
+          rm -f .github/workflows/lint-diagnostics.yml
+          rm -f .github/workflows/apply-prettier-baseline.yml
+      - name: Verify lint after formatting
+        run: npm run lint
+      - name: Commit mechanical formatting
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: restore prettier baseline"
+          git push origin HEAD:${{ github.head_ref }}
