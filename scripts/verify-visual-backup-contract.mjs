@@ -2,9 +2,10 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [backup, visualStore, store, dataPage, checkScript, packageJson, workflow] =
+const [backup, workspaceBackup, visualStore, store, dataPage, checkScript, packageJson, workflow] =
   await Promise.all([
     read("src/lib/visual-backup.ts"),
+    read("src/lib/workspace-backup.ts"),
     read("src/lib/visual-source-store.ts"),
     read("src/lib/store.ts"),
     read("src/routes/app.data.tsx"),
@@ -49,6 +50,20 @@ for (const marker of [
 }
 
 for (const marker of [
+  'from "./visual-backup"',
+  "createLegacyFullVisualBackup",
+  "prepareLegacyFullVisualBackup",
+  "applyLegacyFullVisualBackup",
+  'workspace/visual-backup-v1.zip',
+]) {
+  requireMarker(
+    workspaceBackup,
+    marker,
+    `Workspace backup v2 no longer preserves the verified visual engine: ${marker}`,
+  );
+}
+
+for (const marker of [
   "VisualSourceBackupSnapshot",
   "getVisualSourceBackupSnapshot",
   "replaceVisualSourceBackupSnapshot",
@@ -64,12 +79,13 @@ for (const marker of [
   "getDataSnapshot",
   "replaceAllAtomically",
   "localStorage.setItem(KEY, serialized)",
-])
+]) {
   requireMarker(store, marker, `Text-data restore is not guarded: ${marker}`);
+}
 
 for (const marker of [
-  "Лёгкий JSON",
-  "Полная ZIP-копия",
+  "Workspace ZIP v2",
+  "visual ZIP",
   "createFullVisualBackup",
   "prepareFullVisualBackup",
   "previewFullVisualBackupImport",
@@ -77,7 +93,7 @@ for (const marker of [
   "Merge safely",
   "Replace everything",
   "application/zip,.zip",
-  "Архив проверен; выбери режим восстановления",
+  "Все payload проверены",
 ]) {
   requireMarker(dataPage, marker, `Backup UI is missing an explicit safe workflow: ${marker}`);
 }
@@ -105,5 +121,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Versioned ZIP backup, integrity validation, previewed conflict resolution and transactional rollback contract passed.",
+  "Versioned visual ZIP engine remains intact under the workspace backup v2 wrapper.",
 );
