@@ -46,8 +46,8 @@ const requireMarker = (content, marker, message) => {
 };
 
 for (const marker of [
-  'LONG_MEDIA_CHUNK_BYTES = 8 * 1024 * 1024',
-  'MAX_LONG_MEDIA_BYTES = 4 * 1024 * 1024 * 1024',
+  "LONG_MEDIA_CHUNK_BYTES = 8 * 1024 * 1024",
+  "MAX_LONG_MEDIA_BYTES = 4 * 1024 * 1024 * 1024",
   "isLongMediaMaterial",
   "validateLongMediaFile",
   "buildTranscriptSegments",
@@ -120,16 +120,10 @@ for (const marker of [
 ]) {
   requireMarker(dataBoundary, marker, `Long-media data boundary is missing: ${marker}`);
 }
-for (const marker of [
-  "<LongMediaLifecycle />",
-  "<LongMediaDataBoundary />",
-]) {
+for (const marker of ["<LongMediaLifecycle />", "<LongMediaDataBoundary />"]) {
   requireMarker(appRoute, marker, `App lifecycle wiring is missing: ${marker}`);
 }
-for (const marker of [
-  "isLongMediaMaterial",
-  "<LongMediaWorkspace material={material} />",
-]) {
+for (const marker of ["isLongMediaMaterial", "<LongMediaWorkspace material={material} />"]) {
   requireMarker(materialRoute, marker, `Material detail wiring is missing: ${marker}`);
 }
 for (const marker of [
@@ -161,11 +155,7 @@ for (const marker of [
   requireMarker(browserE2E, marker, `Long-media browser proof is missing: ${marker}`);
 }
 
-for (const marker of [
-  '"eval:long-media"',
-  '"e2e:long-media"',
-  '"verify:long-media-contract"',
-]) {
+for (const marker of ['"eval:long-media"', '"e2e:long-media"', '"verify:long-media-contract"']) {
   requireMarker(packageJson, marker, `package.json is missing: ${marker}`);
 }
 for (const marker of ['"verify:long-media-contract"', '"eval:long-media"']) {

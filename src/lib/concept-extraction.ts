@@ -31,10 +31,7 @@ export interface ConceptExtractionDraft {
   };
 }
 
-export type ConceptCandidateRejectionReason =
-  | "invalid"
-  | "duplicate_existing"
-  | "duplicate_batch";
+export type ConceptCandidateRejectionReason = "invalid" | "duplicate_existing" | "duplicate_batch";
 
 export interface ConceptCandidateAcceptancePlan {
   accepted: Array<{

@@ -102,7 +102,10 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
     setPlayerBusy(true);
     try {
       const blob = await getLongMediaBlob(material.id);
-      if (!blob) throw new Error(isRu ? "Локальный медиафайл не найден." : "Local media file was not found.");
+      if (!blob)
+        throw new Error(
+          isRu ? "Локальный медиафайл не найден." : "Local media file was not found.",
+        );
       if (mediaUrl) URL.revokeObjectURL(mediaUrl);
       setMediaUrl(URL.createObjectURL(blob));
     } catch (error) {
@@ -158,7 +161,11 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
       toast.success(isRu ? "Новая запись лекции сохранена" : "New lecture recording saved");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
-        toast.info(isRu ? "Загрузка отменена; старая копия сохранена." : "Upload cancelled; the previous copy is intact.");
+        toast.info(
+          isRu
+            ? "Загрузка отменена; старая копия сохранена."
+            : "Upload cancelled; the previous copy is intact.",
+        );
       } else {
         toast.error(error instanceof Error ? error.message : String(error));
       }
@@ -206,7 +213,11 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
       ];
     }
     if (segments.length === 0) {
-      toast.error(isRu ? "В файле не найден текст или таймкоды." : "No transcript text or timestamps were found.");
+      toast.error(
+        isRu
+          ? "В файле не найден текст или таймкоды."
+          : "No transcript text or timestamps were found.",
+      );
       return;
     }
     const now = Date.now();
@@ -219,7 +230,9 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
     });
     setTranscript(saved);
     toast.success(
-      isRu ? `Импортировано блоков: ${segments.length}` : `${segments.length} transcript blocks imported`,
+      isRu
+        ? `Импортировано блоков: ${segments.length}`
+        : `${segments.length} transcript blocks imported`,
     );
   };
 
@@ -294,7 +307,8 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
     try {
       const ok = await verifyLongMediaIntegrity(material.id);
       setIntegrityOk(ok);
-      if (ok) toast.success(isRu ? "Все локальные блоки целы" : "All local media chunks are intact");
+      if (ok)
+        toast.success(isRu ? "Все локальные блоки целы" : "All local media chunks are intact");
       else toast.error(isRu ? "Проверка целостности не пройдена" : "Media integrity check failed");
     } catch (error) {
       setIntegrityOk(false);
@@ -362,16 +376,24 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
               <MediaIcon className="h-4 w-4" />
               {isRu ? "Длинная запись лекции" : "Long lecture recording"}
             </div>
-            <h2 className="mt-2 break-words font-serif text-2xl font-semibold">{manifest.fileName}</h2>
+            <h2 className="mt-2 break-words font-serif text-2xl font-semibold">
+              {manifest.fileName}
+            </h2>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span>{formatFileSize(manifest.size)}</span>
               <span>{manifest.chunkCount} × 8 MB chunks</span>
-              {manifest.durationSeconds ? <span>{formatMediaTime(manifest.durationSeconds)}</span> : null}
+              {manifest.durationSeconds ? (
+                <span>{formatMediaTime(manifest.durationSeconds)}</span>
+              ) : null}
               <span>{manifest.mimeType}</span>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => void verifyIntegrity()} disabled={integrityBusy}>
+            <Button
+              variant="outline"
+              onClick={() => void verifyIntegrity()}
+              disabled={integrityBusy}
+            >
               {integrityBusy ? (
                 <Loader2 className="me-1 h-4 w-4 animate-spin" />
               ) : (
@@ -379,7 +401,11 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
               )}
               {isRu ? "Проверить блоки" : "Verify chunks"}
             </Button>
-            <Button variant="outline" onClick={() => replaceInputRef.current?.click()} disabled={replacing}>
+            <Button
+              variant="outline"
+              onClick={() => replaceInputRef.current?.click()}
+              disabled={replacing}
+            >
               <RefreshCw className="me-1 h-4 w-4" />
               {isRu ? "Заменить файл" : "Replace file"}
             </Button>
@@ -405,12 +431,16 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
           <div className="mt-4">
             <div className="mb-1 flex justify-between text-xs text-muted-foreground">
               <span>
-                {isRu ? "Локальная запись" : "Local write"}: {progress.completedChunks}/{progress.totalChunks}
+                {isRu ? "Локальная запись" : "Local write"}: {progress.completedChunks}/
+                {progress.totalChunks}
               </span>
               <span>{progressPercent}%</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-muted">
-              <div className="h-full bg-primary transition-all" style={{ width: `${progressPercent}%` }} />
+              <div
+                className="h-full bg-primary transition-all"
+                style={{ width: `${progressPercent}%` }}
+              />
             </div>
           </div>
         ) : null}
@@ -429,7 +459,9 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
       <section className="rounded-xl border border-border bg-surface p-4 md:p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="font-serif text-xl font-semibold">{isRu ? "Локальный плеер" : "Local player"}</h3>
+            <h3 className="font-serif text-xl font-semibold">
+              {isRu ? "Локальный плеер" : "Local player"}
+            </h3>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {isRu
                 ? "Файл не отправляется в облако. После перезагрузки плеер собирается из локальных 8‑МБ блоков; для очень большого видео это требует дополнительной памяти."
@@ -438,7 +470,11 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
           </div>
           {!mediaUrl ? (
             <Button onClick={() => void loadPlayer()} disabled={playerBusy}>
-              {playerBusy ? <Loader2 className="me-1 h-4 w-4 animate-spin" /> : <Play className="me-1 h-4 w-4" />}
+              {playerBusy ? (
+                <Loader2 className="me-1 h-4 w-4 animate-spin" />
+              ) : (
+                <Play className="me-1 h-4 w-4" />
+              )}
               {isRu ? "Загрузить плеер" : "Load player"}
             </Button>
           ) : null}
@@ -497,11 +533,22 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
               </Button>
             ) : (
               <>
-                <Button variant="outline" onClick={() => void saveTranscript()} disabled={savingTranscript}>
-                  {savingTranscript ? <Loader2 className="me-1 h-4 w-4 animate-spin" /> : <Save className="me-1 h-4 w-4" />}
+                <Button
+                  variant="outline"
+                  onClick={() => void saveTranscript()}
+                  disabled={savingTranscript}
+                >
+                  {savingTranscript ? (
+                    <Loader2 className="me-1 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="me-1 h-4 w-4" />
+                  )}
                   {isRu ? "Сохранить черновик" : "Save draft"}
                 </Button>
-                <Button onClick={() => void applyApprovedTranscript()} disabled={savingTranscript || approvedCount === 0}>
+                <Button
+                  onClick={() => void applyApprovedTranscript()}
+                  disabled={savingTranscript || approvedCount === 0}
+                >
                   <Check className="me-1 h-4 w-4" />
                   {isRu ? `Применить (${approvedCount})` : `Apply (${approvedCount})`}
                 </Button>
@@ -523,9 +570,15 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
         {transcript ? (
           <>
             <div className="mt-4 flex flex-wrap gap-3 rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground">
-              <span>{isRu ? "Всего блоков" : "Blocks"}: {transcript.segments.length}</span>
-              <span>{isRu ? "С текстом" : "With text"}: {nonEmptyCount}</span>
-              <span>{isRu ? "Подтверждено" : "Approved"}: {approvedCount}</span>
+              <span>
+                {isRu ? "Всего блоков" : "Blocks"}: {transcript.segments.length}
+              </span>
+              <span>
+                {isRu ? "С текстом" : "With text"}: {nonEmptyCount}
+              </span>
+              <span>
+                {isRu ? "Подтверждено" : "Approved"}: {approvedCount}
+              </span>
               <Button
                 size="sm"
                 variant="ghost"
@@ -548,10 +601,17 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
             </div>
             <div className="mt-4 space-y-3">
               {transcript.segments.map((segment, index) => (
-                <article key={segment.id} className="rounded-lg border border-border bg-background p-3 md:p-4">
+                <article
+                  key={segment.id}
+                  className="rounded-lg border border-border bg-background p-3 md:p-4"
+                >
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline" onClick={() => seekTo(segment.startSeconds)}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => seekTo(segment.startSeconds)}
+                      >
                         <Play className="me-1 h-3.5 w-3.5" />
                         {formatMediaTime(segment.startSeconds)}
                       </Button>
@@ -566,7 +626,11 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
                         disabled={!segment.text.trim()}
                         onChange={(event) =>
                           patchSegment(segment.id, {
-                            status: event.target.checked ? "approved" : segment.text.trim() ? "draft" : "empty",
+                            status: event.target.checked
+                              ? "approved"
+                              : segment.text.trim()
+                                ? "draft"
+                                : "empty",
                           })
                         }
                       />
@@ -575,16 +639,22 @@ export function LongMediaWorkspace({ material }: { material: Material }) {
                   </div>
                   <div className="mt-3 grid gap-3 md:grid-cols-[180px_minmax(0,1fr)]">
                     <div>
-                      <label className="text-xs text-muted-foreground">{isRu ? "Спикер" : "Speaker"}</label>
+                      <label className="text-xs text-muted-foreground">
+                        {isRu ? "Спикер" : "Speaker"}
+                      </label>
                       <Input
                         className="mt-1"
                         value={segment.speaker ?? ""}
-                        onChange={(event) => patchSegment(segment.id, { speaker: event.target.value })}
+                        onChange={(event) =>
+                          patchSegment(segment.id, { speaker: event.target.value })
+                        }
                         placeholder={isRu ? "Лектор / студент" : "Lecturer / student"}
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground">{isRu ? "Текст блока" : "Block text"}</label>
+                      <label className="text-xs text-muted-foreground">
+                        {isRu ? "Текст блока" : "Block text"}
+                      </label>
                       <Textarea
                         className="mt-1 min-h-28"
                         value={segment.text}

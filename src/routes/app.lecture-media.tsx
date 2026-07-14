@@ -15,11 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useApp } from "@/lib/app-context";
 import { formatFileSize } from "@/lib/document-ingestion";
-import {
-  detectLongMediaKind,
-  isLongMediaMaterial,
-  validateLongMediaFile,
-} from "@/lib/long-media";
+import { detectLongMediaKind, isLongMediaMaterial, validateLongMediaFile } from "@/lib/long-media";
 import {
   deleteLongMediaData,
   putLongMediaFile,
@@ -33,7 +29,12 @@ export const Route = createFileRoute("/app/lecture-media")({
 });
 
 function titleFromFile(name: string): string {
-  return name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim() || name;
+  return (
+    name
+      .replace(/\.[^.]+$/, "")
+      .replace(/[_-]+/g, " ")
+      .trim() || name
+  );
 }
 
 function readMediaDuration(file: File): Promise<number | undefined> {
@@ -54,7 +55,9 @@ function readMediaDuration(file: File): Promise<number | undefined> {
     element.preload = "metadata";
     element.onloadedmetadata = () => {
       window.clearTimeout(timer);
-      finish(Number.isFinite(element.duration) && element.duration > 0 ? element.duration : undefined);
+      finish(
+        Number.isFinite(element.duration) && element.duration > 0 ? element.duration : undefined,
+      );
     };
     element.onerror = () => {
       window.clearTimeout(timer);
@@ -91,7 +94,9 @@ function LectureMediaPage() {
 
   const upload = async () => {
     if (!file || !title.trim()) {
-      toast.error(isRu ? "Выбери запись и укажи название." : "Choose a recording and enter a title.");
+      toast.error(
+        isRu ? "Выбери запись и укажи название." : "Choose a recording and enter a title.",
+      );
       return;
     }
     const validation = validateLongMediaFile(file);
@@ -150,7 +155,11 @@ function LectureMediaPage() {
       await deleteLongMediaData(material.id).catch(() => undefined);
       store.deleteMaterial(material.id);
       if (error instanceof DOMException && error.name === "AbortError") {
-        toast.info(isRu ? "Загрузка отменена. Неполная копия удалена." : "Upload cancelled. The incomplete copy was removed.");
+        toast.info(
+          isRu
+            ? "Загрузка отменена. Неполная копия удалена."
+            : "Upload cancelled. The incomplete copy was removed.",
+        );
       } else {
         toast.error(error instanceof Error ? error.message : String(error));
       }
@@ -189,7 +198,11 @@ function LectureMediaPage() {
           >
             <Upload className="mx-auto h-8 w-8 text-primary" />
             <strong className="mt-3 block">
-              {file ? file.name : isRu ? "Выбери или перетащи запись пары" : "Choose or drop a lecture recording"}
+              {file
+                ? file.name
+                : isRu
+                  ? "Выбери или перетащи запись пары"
+                  : "Choose or drop a lecture recording"}
             </strong>
             <p className="mt-2 text-sm text-muted-foreground">
               {file
@@ -212,12 +225,16 @@ function LectureMediaPage() {
 
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <div>
-              <label className="text-xs text-muted-foreground">{isRu ? "Название материала" : "Material title"}</label>
+              <label className="text-xs text-muted-foreground">
+                {isRu ? "Название материала" : "Material title"}
+              </label>
               <Input
                 className="mt-1"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder={isRu ? "Лекция 4 — Конституционное право" : "Lecture 4 — Constitutional law"}
+                placeholder={
+                  isRu ? "Лекция 4 — Конституционное право" : "Lecture 4 — Constitutional law"
+                }
                 disabled={busy}
               />
             </div>
@@ -243,12 +260,16 @@ function LectureMediaPage() {
             <div className="mt-5 rounded-lg border border-border bg-background p-4">
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>
-                  {isRu ? "Запись в IndexedDB" : "Writing to IndexedDB"}: {progress.completedChunks}/{progress.totalChunks}
+                  {isRu ? "Запись в IndexedDB" : "Writing to IndexedDB"}: {progress.completedChunks}
+                  /{progress.totalChunks}
                 </span>
                 <span>{progressPercent}%</span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-                <div className="h-full bg-primary transition-all" style={{ width: `${progressPercent}%` }} />
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${progressPercent}%` }}
+                />
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
                 {formatFileSize(progress.writtenBytes)} / {formatFileSize(progress.totalBytes)}
@@ -258,7 +279,11 @@ function LectureMediaPage() {
 
           <div className="mt-5 flex flex-wrap gap-2">
             <Button onClick={() => void upload()} disabled={busy || !file || !title.trim()}>
-              {busy ? <Loader2 className="me-1 h-4 w-4 animate-spin" /> : <HardDrive className="me-1 h-4 w-4" />}
+              {busy ? (
+                <Loader2 className="me-1 h-4 w-4 animate-spin" />
+              ) : (
+                <HardDrive className="me-1 h-4 w-4" />
+              )}
               {isRu ? "Сохранить лекцию локально" : "Store lecture locally"}
             </Button>
             {busy ? (
@@ -281,7 +306,9 @@ function LectureMediaPage() {
           </div>
           <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-4">
             <AlertTriangle className="h-5 w-5 text-yellow-300" />
-            <strong className="mt-2 block">{isRu ? "Граница текущей версии" : "Current boundary"}</strong>
+            <strong className="mt-2 block">
+              {isRu ? "Граница текущей версии" : "Current boundary"}
+            </strong>
             <p className="mt-2 text-xs leading-5 text-muted-foreground">
               {isRu
                 ? "Сырой многогигабайтный файл пока не входит в Workspace ZIP: JSZip не подходит для потокового бэкапа таких объёмов. Метаданные материала и применённая расшифровка сохраняются в основном workspace; оригинал нужно хранить отдельно."
@@ -292,7 +319,9 @@ function LectureMediaPage() {
       </section>
 
       <section className="rounded-xl border border-border bg-surface p-4 md:p-5">
-        <h2 className="font-serif text-xl font-semibold">{isRu ? "Сохранённые записи" : "Stored recordings"}</h2>
+        <h2 className="font-serif text-xl font-semibold">
+          {isRu ? "Сохранённые записи" : "Stored recordings"}
+        </h2>
         {mediaMaterials.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
             {isRu ? "Пока нет загруженных длинных лекций." : "No long lecture recordings yet."}
@@ -311,7 +340,8 @@ function LectureMediaPage() {
                   <Icon className="h-5 w-5 text-primary" />
                   <strong className="mt-2 block break-words">{material.title}</strong>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {material.fileSize ? formatFileSize(material.fileSize) : "—"} · {material.processingStatus}
+                    {material.fileSize ? formatFileSize(material.fileSize) : "—"} ·{" "}
+                    {material.processingStatus}
                   </p>
                 </Link>
               );

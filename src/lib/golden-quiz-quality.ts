@@ -252,19 +252,51 @@ function evaluateQuestion(
     .filter((value): value is string => Boolean(value))
     .join("\n");
 
-  add("structure", options.length === 4, "option_count", "error", "Question must have exactly four options.");
-  add("structure", normalizedOptions.filter(Boolean).length === 4, "empty_option", "error", "Every option must contain text.");
-  add("structure", new Set(normalizedOptions).size === 4, "duplicate_option", "error", "Options must be unique after normalization.");
   add(
     "structure",
-    Number.isInteger(question.correctIndex) && question.correctIndex >= 0 && question.correctIndex < 4,
+    options.length === 4,
+    "option_count",
+    "error",
+    "Question must have exactly four options.",
+  );
+  add(
+    "structure",
+    normalizedOptions.filter(Boolean).length === 4,
+    "empty_option",
+    "error",
+    "Every option must contain text.",
+  );
+  add(
+    "structure",
+    new Set(normalizedOptions).size === 4,
+    "duplicate_option",
+    "error",
+    "Options must be unique after normalization.",
+  );
+  add(
+    "structure",
+    Number.isInteger(question.correctIndex) &&
+      question.correctIndex >= 0 &&
+      question.correctIndex < 4,
     "correct_index",
     "error",
     "Correct answer index is invalid.",
   );
-  add("structure", question.prompt.trim().length >= 8, "prompt_too_short", "warning", "Question prompt is too short to be unambiguous.");
+  add(
+    "structure",
+    question.prompt.trim().length >= 8,
+    "prompt_too_short",
+    "warning",
+    "Question prompt is too short to be unambiguous.",
+  );
 
-  add("sourceSupport", sourceChunkIds.length > 0, "missing_citation", "error", "Question has no source chunk reference.");
+  add(
+    "sourceSupport",
+    sourceChunkIds.length > 0,
+    "missing_citation",
+    "error",
+    "Question has no source chunk reference.",
+  );
   add(
     "sourceSupport",
     sourceChunkIds.every((sourceId) => sourceById.has(sourceId)),
@@ -272,11 +304,18 @@ function evaluateQuestion(
     "error",
     "Question references a source chunk that does not exist.",
   );
-  add("sourceSupport", sourceText.trim().length > 0, "empty_source_scope", "error", "Referenced source text is unavailable.");
+  add(
+    "sourceSupport",
+    sourceText.trim().length > 0,
+    "empty_source_scope",
+    "error",
+    "Referenced source text is unavailable.",
+  );
   const answerTokens = meaningfulTokens(correctAnswer);
   add(
     "sourceSupport",
-    answerTokens.length === 0 || answerTokens.some((token) => normalizeComparable(sourceText).includes(token)),
+    answerTokens.length === 0 ||
+      answerTokens.some((token) => normalizeComparable(sourceText).includes(token)),
     "answer_not_observable",
     "manual",
     "The correct answer has weak lexical support in the selected sources; verify it manually.",
@@ -332,18 +371,31 @@ function evaluateQuestion(
     "Some distractors may not belong to the same semantic category as the answer.",
   );
 
-  add("rationales", feedback.optionRationales.length === 4, "rationale_count", "error", "Every option needs an aligned rationale.");
+  add(
+    "rationales",
+    feedback.optionRationales.length === 4,
+    "rationale_count",
+    "error",
+    "Every option needs an aligned rationale.",
+  );
   feedback.optionRationales.forEach((rationale, optionIndex) => {
     add(
       "rationales",
-      rationale.trim().length >= 12 && !GENERIC_RATIONALES.some((pattern) => pattern.test(rationale.trim())),
+      rationale.trim().length >= 12 &&
+        !GENERIC_RATIONALES.some((pattern) => pattern.test(rationale.trim())),
       "weak_rationale",
       "warning",
       "Rationale must explain this exact option rather than only label it incorrect.",
       optionIndex,
     );
   });
-  add("rationales", feedback.correctExplanation.trim().length >= 16, "weak_correct_explanation", "warning", "Correct-answer explanation is too short.");
+  add(
+    "rationales",
+    feedback.correctExplanation.trim().length >= 16,
+    "weak_correct_explanation",
+    "warning",
+    "Correct-answer explanation is too short.",
+  );
   add(
     "rationales",
     !contradictionHeuristic(feedback.optionRationales[question.correctIndex] ?? ""),
@@ -353,10 +405,17 @@ function evaluateQuestion(
   );
 
   const translationRequired = requireRussianTranslation || containsHebrew(question.prompt);
-  add("translation", !translationRequired || Boolean(feedback.promptTranslation?.trim()), "missing_prompt_translation", "warning", "Hebrew-first question needs a Russian prompt translation.");
   add(
     "translation",
-    !translationRequired || feedback.optionTranslations?.filter((value) => value.trim()).length === 4,
+    !translationRequired || Boolean(feedback.promptTranslation?.trim()),
+    "missing_prompt_translation",
+    "warning",
+    "Hebrew-first question needs a Russian prompt translation.",
+  );
+  add(
+    "translation",
+    !translationRequired ||
+      feedback.optionTranslations?.filter((value) => value.trim()).length === 4,
     "missing_option_translation",
     "warning",
     "Hebrew-first question needs four Russian option translations.",
@@ -374,9 +433,27 @@ function evaluateQuestion(
     );
   }
 
-  add("memoryHint", feedback.memoryHint.trim().length >= 8, "missing_memory_hint", "warning", "Memory hint is missing or too short.");
-  add("memoryHint", !hintRevealsAnswer(feedback.memoryHint, correctAnswer), "hint_reveals_answer", "warning", "Memory hint reveals the correct answer too literally.");
-  add("answerBalance", question.correctIndex >= 0 && question.correctIndex < 4, "answer_position_invalid", "error", "Correct answer position cannot be analyzed.");
+  add(
+    "memoryHint",
+    feedback.memoryHint.trim().length >= 8,
+    "missing_memory_hint",
+    "warning",
+    "Memory hint is missing or too short.",
+  );
+  add(
+    "memoryHint",
+    !hintRevealsAnswer(feedback.memoryHint, correctAnswer),
+    "hint_reveals_answer",
+    "warning",
+    "Memory hint reveals the correct answer too literally.",
+  );
+  add(
+    "answerBalance",
+    question.correctIndex >= 0 && question.correctIndex < 4,
+    "answer_position_invalid",
+    "error",
+    "Correct answer position cannot be analyzed.",
+  );
 
   const categories = categoryScores(checks);
   return {
@@ -391,7 +468,12 @@ function categoryScores(checks: CheckAccumulator[]): GoldenQuizCategoryScore[] {
   return automaticCategories().map((category) => {
     const values = checks.filter((check) => check.category === category);
     const passed = values.filter((check) => check.automaticPass).length;
-    return { category, passed, total: values.length, score: values.length ? passed / values.length : 1 };
+    return {
+      category,
+      passed,
+      total: values.length,
+      score: values.length ? passed / values.length : 1,
+    };
   });
 }
 
@@ -427,7 +509,10 @@ function weightedCategoryScore(categories: GoldenQuizCategoryScore[]): number {
     answerBalance: 0.5,
   };
   const total = categories.reduce((sum, category) => sum + weights[category.category], 0);
-  return categories.reduce((sum, category) => sum + category.score * weights[category.category], 0) / total;
+  return (
+    categories.reduce((sum, category) => sum + category.score * weights[category.category], 0) /
+    total
+  );
 }
 
 function categoryThreshold(category: GoldenQuizAutomaticCategory): number {
@@ -474,7 +559,10 @@ function hintRevealsAnswer(hint: string, answer: string): boolean {
   const answerTokens = meaningfulTokens(answer).filter((token) => token.length >= 4);
   if (answerTokens.length === 0) return false;
   const normalizedHint = normalizeComparable(hint);
-  return answerTokens.filter((token) => normalizedHint.includes(token)).length / answerTokens.length >= 0.8;
+  return (
+    answerTokens.filter((token) => normalizedHint.includes(token)).length / answerTokens.length >=
+    0.8
+  );
 }
 
 function containsHebrew(value: string): boolean {
@@ -500,7 +588,9 @@ function isManualReview(value: unknown): value is GoldenQuizManualReview {
   return (
     typeof review.quizId === "string" &&
     typeof review.questionId === "string" &&
-    (review.decision === "approve" || review.decision === "reject" || review.decision === "needs_edit") &&
+    (review.decision === "approve" ||
+      review.decision === "reject" ||
+      review.decision === "needs_edit") &&
     Boolean(review.scores && typeof review.scores === "object")
   );
 }

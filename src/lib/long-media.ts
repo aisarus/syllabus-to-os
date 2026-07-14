@@ -78,9 +78,9 @@ export function isLongMediaMaterial(
 ): boolean {
   return Boolean(
     material &&
-      (material.tags.includes("long-media") ||
-        material.mimeType?.startsWith("audio/") ||
-        material.mimeType?.startsWith("video/")),
+    (material.tags.includes("long-media") ||
+      material.mimeType?.startsWith("audio/") ||
+      material.mimeType?.startsWith("video/")),
   );
 }
 
@@ -140,24 +140,38 @@ function parseTimestamp(value: string): number | undefined {
   const minutes = Number(match[2]);
   const seconds = Number(match[3]);
   const milliseconds = Number((match[4] ?? "0").padEnd(3, "0"));
-  if ([hours, minutes, seconds, milliseconds].some((item) => !Number.isFinite(item))) return undefined;
+  if ([hours, minutes, seconds, milliseconds].some((item) => !Number.isFinite(item)))
+    return undefined;
   return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
 }
 
 export function parseTimedTranscript(content: string): TranscriptSegmentDraft[] {
   const normalized = content.replace(/^WEBVTT[^\n]*\n+/i, "").replace(/\r/g, "");
-  const blocks = normalized.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
+  const blocks = normalized
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
   const segments: TranscriptSegmentDraft[] = [];
   for (const block of blocks) {
     const lines = block.split("\n").map((line) => line.trimEnd());
     const timingIndex = lines.findIndex((line) => line.includes("-->"));
     if (timingIndex < 0) continue;
-    const [startRaw, endWithSettings] = lines[timingIndex].split("-->").map((value) => value.trim());
+    const [startRaw, endWithSettings] = lines[timingIndex]
+      .split("-->")
+      .map((value) => value.trim());
     const endRaw = endWithSettings?.split(/\s+/)[0] ?? "";
     const startSeconds = parseTimestamp(startRaw);
     const endSeconds = parseTimestamp(endRaw);
-    const text = lines.slice(timingIndex + 1).join("\n").trim();
-    if (startSeconds === undefined || endSeconds === undefined || endSeconds <= startSeconds || !text) {
+    const text = lines
+      .slice(timingIndex + 1)
+      .join("\n")
+      .trim();
+    if (
+      startSeconds === undefined ||
+      endSeconds === undefined ||
+      endSeconds <= startSeconds ||
+      !text
+    ) {
       continue;
     }
     segments.push({

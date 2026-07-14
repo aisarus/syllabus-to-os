@@ -186,7 +186,9 @@ async function main() {
     );
     const version = await waitForJson(`http://${HOST}:${DEBUG_PORT}/json/version`, 30_000);
     cdp = await Cdp.connect(version.webSocketDebuggerUrl);
-    const { targetId } = await cdp.send("Target.createTarget", { url: `${BASE_URL}/app/dashboard` });
+    const { targetId } = await cdp.send("Target.createTarget", {
+      url: `${BASE_URL}/app/dashboard`,
+    });
     const { sessionId } = await cdp.send("Target.attachToTarget", { targetId, flatten: true });
     const page = new Page(cdp, sessionId);
     await Promise.all([
@@ -225,7 +227,8 @@ async function main() {
     await page.clickText("Сохранить лекцию локально");
     await page.waitForText("Длинная запись лекции", 60_000);
 
-    await page.waitFor(`(async () => {
+    await page.waitFor(
+      `(async () => {
       const core = JSON.parse(localStorage.getItem("lamdan.data.v1"));
       if (core.materials.length !== 1 || core.materials[0].fileSize !== ${18 * 1024 * 1024}) return false;
       const db = await new Promise((resolve, reject) => {
@@ -245,10 +248,15 @@ async function main() {
       });
       db.close();
       return manifest.chunkCount === 3 && chunks.length === 3 && chunks.reduce((sum, item) => sum + item.size, 0) === manifest.size;
-    })()`, 60_000);
+    })()`,
+      60_000,
+    );
 
     await page.clickText("Загрузить плеер");
-    await page.waitFor(`document.querySelector("video[src^='blob:'], audio[src^='blob:']")`, 60_000);
+    await page.waitFor(
+      `document.querySelector("video[src^='blob:'], audio[src^='blob:']")`,
+      60_000,
+    );
     await page.clickText("Проверить блоки");
     await page.waitForText("SHA-256 каждого локального блока совпадает", 60_000);
 
@@ -258,12 +266,15 @@ async function main() {
     await page.waitForText("Применить (2)");
     await page.clickText("Применить (2)");
 
-    await page.waitFor(`(() => {
+    await page.waitFor(
+      `(() => {
       const core = JSON.parse(localStorage.getItem("lamdan.data.v1"));
       return core.materialChunks.length === 2 &&
         core.materials[0].processingStatus === "ready" &&
         core.materialChunks.every((chunk) => chunk.section.startsWith("lecture-transcript:"));
-    })()`, 30_000);
+    })()`,
+      30_000,
+    );
 
     await page.reload();
     await page.waitForText("Расшифровка по таймкодам");

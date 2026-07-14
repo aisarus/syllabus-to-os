@@ -32,7 +32,9 @@ function uid(prefix: string): string {
 }
 
 function bytesToHex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer), (value) => value.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(buffer), (value) => value.toString(16).padStart(2, "0")).join(
+    "",
+  );
 }
 
 async function sha256(blob: Blob): Promise<string> {
@@ -176,7 +178,10 @@ export async function getLongMediaBlob(materialId: string): Promise<Blob | undef
   if (total !== manifest.size) {
     throw new Error("The locally stored lecture size does not match its manifest.");
   }
-  return new Blob(chunks.map((chunk) => chunk.blob), { type: manifest.mimeType });
+  return new Blob(
+    chunks.map((chunk) => chunk.blob),
+    { type: manifest.mimeType },
+  );
 }
 
 export async function verifyLongMediaIntegrity(materialId: string): Promise<boolean> {
@@ -246,7 +251,9 @@ export async function clearAllLongMediaData(): Promise<void> {
 export async function pruneLongMediaData(validMaterialIds: Iterable<string>): Promise<number> {
   const valid = new Set(validMaterialIds);
   const manifests = await listLongMediaManifests();
-  const orphanIds = manifests.filter((item) => !valid.has(item.materialId)).map((item) => item.materialId);
+  const orphanIds = manifests
+    .filter((item) => !valid.has(item.materialId))
+    .map((item) => item.materialId);
   for (const materialId of orphanIds) await deleteLongMediaData(materialId);
   return orphanIds.length;
 }
@@ -285,7 +292,8 @@ function openDatabase(): Promise<IDBDatabase> {
       }
     };
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error("Could not open lecture-media storage."));
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not open lecture-media storage."));
     request.onblocked = () => reject(new Error("Lecture-media storage is blocked by another tab."));
   });
 }
@@ -295,12 +303,18 @@ function writeRecord(db: IDBDatabase, storeName: string, value: unknown): Promis
     const transaction = db.transaction(storeName, "readwrite");
     transaction.objectStore(storeName).put(value);
     transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error ?? new Error("Could not save lecture media."));
-    transaction.onabort = () => reject(transaction.error ?? new Error("Lecture-media save was aborted."));
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Could not save lecture media."));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("Lecture-media save was aborted."));
   });
 }
 
-function readRecord<T>(db: IDBDatabase, storeName: string, key: IDBValidKey): Promise<T | undefined> {
+function readRecord<T>(
+  db: IDBDatabase,
+  storeName: string,
+  key: IDBValidKey,
+): Promise<T | undefined> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(storeName, "readonly");
     const request = transaction.objectStore(storeName).get(key);
@@ -314,7 +328,8 @@ function readAll<T>(db: IDBDatabase, storeName: string): Promise<T[]> {
     const transaction = db.transaction(storeName, "readonly");
     const request = transaction.objectStore(storeName).getAll();
     request.onsuccess = () => resolve(request.result as T[]);
-    request.onerror = () => reject(request.error ?? new Error("Could not inspect lecture-media storage."));
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not inspect lecture-media storage."));
   });
 }
 
@@ -323,7 +338,8 @@ function readChunksForUpload(db: IDBDatabase, uploadId: string): Promise<LongMed
     const transaction = db.transaction(CHUNK_STORE, "readonly");
     const request = transaction.objectStore(CHUNK_STORE).index(CHUNKS_BY_UPLOAD).getAll(uploadId);
     request.onsuccess = () => resolve(request.result as LongMediaChunkRecord[]);
-    request.onerror = () => reject(request.error ?? new Error("Could not read lecture-media chunks."));
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not read lecture-media chunks."));
   });
 }
 
@@ -338,10 +354,13 @@ function deleteChunksForUpload(db: IDBDatabase, uploadId: string): Promise<void>
       transaction.objectStore(CHUNK_STORE).delete(cursor.primaryKey);
       cursor.continue();
     };
-    request.onerror = () => reject(request.error ?? new Error("Could not inspect lecture-media chunks."));
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not inspect lecture-media chunks."));
     transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error ?? new Error("Could not delete lecture-media chunks."));
-    transaction.onabort = () => reject(transaction.error ?? new Error("Lecture-media deletion was aborted."));
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Could not delete lecture-media chunks."));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("Lecture-media deletion was aborted."));
   });
 }
 
@@ -350,8 +369,10 @@ function deleteRecord(db: IDBDatabase, storeName: string, key: IDBValidKey): Pro
     const transaction = db.transaction(storeName, "readwrite");
     transaction.objectStore(storeName).delete(key);
     transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error ?? new Error("Could not delete lecture-media data."));
-    transaction.onabort = () => reject(transaction.error ?? new Error("Lecture-media deletion was aborted."));
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Could not delete lecture-media data."));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("Lecture-media deletion was aborted."));
   });
 }
 
@@ -360,7 +381,9 @@ function clearStore(db: IDBDatabase, storeName: string): Promise<void> {
     const transaction = db.transaction(storeName, "readwrite");
     transaction.objectStore(storeName).clear();
     transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error ?? new Error("Could not clear lecture-media data."));
-    transaction.onabort = () => reject(transaction.error ?? new Error("Lecture-media clearing was aborted."));
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Could not clear lecture-media data."));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("Lecture-media clearing was aborted."));
   });
 }

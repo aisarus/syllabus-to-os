@@ -26,7 +26,8 @@ import {
     "documents must not enter the long-media path",
   );
   assert.equal(
-    validateLongMediaFile({ name: "huge.mp4", type: "video/mp4", size: MAX_LONG_MEDIA_BYTES + 1 }).ok,
+    validateLongMediaFile({ name: "huge.mp4", type: "video/mp4", size: MAX_LONG_MEDIA_BYTES + 1 })
+      .ok,
     false,
     "files above the explicit 4 GB boundary must be rejected",
   );

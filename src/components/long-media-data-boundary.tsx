@@ -61,7 +61,9 @@ export function LongMediaDataBoundary() {
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-200" />
           <div>
             <h2 className="text-sm font-semibold text-orange-100">
-              {isRu ? "Длинные аудио/видеозаписи — отдельный локальный слой" : "Long audio/video recordings are a separate local layer"}
+              {isRu
+                ? "Длинные аудио/видеозаписи — отдельный локальный слой"
+                : "Long audio/video recordings are a separate local layer"}
             </h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {isRu
@@ -84,7 +86,11 @@ export function LongMediaDataBoundary() {
           onClick={() => void clearMedia()}
           disabled={busy || !stats?.mediaCount}
         >
-          {busy ? <Loader2 className="me-1 h-4 w-4 animate-spin" /> : <Trash2 className="me-1 h-4 w-4" />}
+          {busy ? (
+            <Loader2 className="me-1 h-4 w-4 animate-spin" />
+          ) : (
+            <Trash2 className="me-1 h-4 w-4" />
+          )}
           {isRu ? "Удалить только записи" : "Delete recordings only"}
         </Button>
       </div>
