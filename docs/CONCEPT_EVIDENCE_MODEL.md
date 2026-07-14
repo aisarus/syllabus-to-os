@@ -24,7 +24,7 @@ Each concept may link to:
 - quiz questions used for assessment context;
 - aliases and a user-editable description.
 
-Dangling chunk, card, question, topic and course references are reconciled against the current core store. Evidence tied to a deleted flashcard is removed rather than left dangling.
+Dangling chunk, card, question, topic and course references are reconciled against the current core store. Evidence tied to a deleted or unlinked flashcard, quiz attempt or quiz question is removed rather than left dangling.
 
 ## Evidence kinds
 
@@ -36,15 +36,17 @@ Dangling chunk, card, question, topic and course references are reconciled again
 
 Aggregate quiz attempts are stored as `mixed` context. They do not count as success or failure for a specific concept because the existing QuizAttempt record contains no per-question answers. This avoids inventing concept-level correctness from a whole-quiz score.
 
+Manual explanation and application checks are secondary evidence. They remain visible and useful, but manual events alone cannot create `strong` state.
+
 ## Knowledge states
 
 - `unseen` — no linked source or evidence;
 - `covered` — linked source/practice exists, but no scored evidence;
-- `fragile` — some success or failure exists, but evidence is limited, old or one-dimensional;
+- `fragile` — some success or failure exists, but evidence is limited, old, too manual or one-dimensional;
 - `weak` — repeated failures or a recent failure dominate;
-- `strong` — at least four successes, at least two distinct days, at least two evidence kinds, no dominant recent failure and a successful event within 21 days.
+- `strong` — at least four successes, including at least two non-manual successes, across at least two distinct days and at least two evidence kinds, with no dominant recent failure and a successful event within 21 days.
 
-One correct answer, one flashcard rating, file views, note creation, elapsed time and aggregate quiz score cannot create `strong` state.
+One correct answer, one flashcard rating, repeated manual self-rating, file views, note creation, elapsed time and aggregate quiz score cannot create `strong` state.
 
 ## Forgetting risk
 
