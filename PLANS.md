@@ -20,42 +20,45 @@ This file records the active implementation plan. Product intent remains in `ROA
 - `P1-012 Lecture-to-Study-Pack` — merged in PR #37.
 - `P1-013 Concept graph and evidence model v1` — merged in PR #38.
 - `P1-013A Per-question quiz evidence` — merged in PR #39 after deterministic and Chromium persistence gates.
-- `P1-013B Workspace backup v2` — verified in PR #41 after contracts, deterministic evals, TypeScript, lint, build and three Chromium gates.
+- `P1-013B Workspace backup v2` — merged in PR #41 after contracts, deterministic evals, TypeScript, lint, build and three Chromium gates.
+- `P1-013C Reviewed concept extraction` — verified in PR #42 after contracts, deterministic evals, TypeScript, lint, build and four Chromium gates.
 
-## Verified delivery — Workspace backup v2
+## Verified delivery — Reviewed concept extraction
 
 ### Product outcome
 
-One verified ZIP transfers or restores the complete local Lamdan workspace: core entities, original and processed visual sources, OCR drafts, concept relationships, evidence history and immutable per-question answers.
+Lamdan can propose atomic course concepts from explicitly selected approved source chunks or saved Study Pack key terms, while the user remains responsible for every title, description, alias and source relationship before anything enters the knowledge map.
 
 ### Delivered sequence
 
-1. Kept the mature visual backup v1 engine intact inside a v2 workspace container. ✓
-2. Added separate checksummed concept-evidence and attempt-detail payloads. ✓
-3. Validated paths, kinds, sizes, SHA-256 and expansion limits before mutation. ✓
-4. Preserved legacy visual ZIP v1 compatibility with explicit missing-evidence semantics. ✓
-5. Added evidence counts and merge conflicts to preview. ✓
-6. Preserved current duplicate IDs and skipped evidence for conflicting concepts. ✓
-7. Reconciled imported evidence against the actual resulting core workspace. ✓
-8. Added rollback for core localStorage, visual IndexedDB, concept evidence and attempt details. ✓
-9. Updated Data Management and Clear All for all four layers. ✓
-10. Added deterministic archive, tamper, legacy and conflict evaluations. ✓
-11. Added browser proof for replace, checksum rejection, forced write failure, rollback and reload. ✓
-12. Passed all contracts, evals, TypeScript, lint, build and three browser gates. ✓
+1. Added an ephemeral concept-candidate model with citation filtering and duplicate detection. ✓
+2. Parsed saved Study Pack `Key terms` / `Ключевые термины` sections locally. ✓
+3. Added a strict source-only AI extraction prompt and API route. ✓
+4. Limited AI extraction to eight explicitly selected chunks. ✓
+5. Removed uncited and unknown-source candidates server-side. ✓
+6. Supplied current titles and aliases as a do-not-duplicate list. ✓
+7. Added an editable review UI for title, description, aliases and source links. ✓
+8. Blocked duplicates against the current map and original candidate batch; required explicit selection. ✓
+9. Created source-linked concepts without creating evidence or raising knowledge state. ✓
+10. Added deterministic parser, citation and duplicate evaluations. ✓
+11. Added browser proof for Study Pack extraction, review, acceptance and reload with zero evidence events. ✓
+12. Wired permanent contracts, canonical checks and CI. ✓
+13. Passed all contracts, evals, TypeScript, lint, build and four browser gates. ✓
 
 ### Non-negotiable boundaries
 
-- No store changes before all outer checksums pass.
-- Legacy merge preserves current evidence; legacy replace clears it only after explicit confirmation.
-- Duplicate concept, event and attempt-detail IDs never overwrite current records in merge mode.
-- Evidence from an imported conflicting concept is not attached to the current concept.
-- Any apply failure triggers rollback across all four storage layers.
-- Lightweight JSON remains explicitly incomplete.
-- No server upload, cloud copy or background sync is introduced.
+- Candidate generation never auto-saves.
+- User instructions can shape focus but are never treated as a factual source.
+- Every accepted candidate needs at least one still-valid approved source chunk.
+- Existing-map and generated-batch duplicate titles or aliases are blocked.
+- Saved Study Pack terms carry coarse note-level citations and show that limitation.
+- Accepting a concept creates no learning evidence.
+- No mastery state, score prediction or ontology edge is inferred from extraction.
+- Cross-candidate alias/title collisions introduced only through later manual edits remain a small hardening follow-up.
 
 ## Active next delivery
 
-1. Add reviewed concept extraction from source chunks and Study Packs.
+1. Add the final edited-batch alias collision guard.
 2. Add open-answer evidence and mistake-repair flows.
 3. Build `P1-014 Exam Engine` on stable evidence, source coverage and deadlines.
 4. Continue `P1-015`–`P1-019` only through source-visible and reviewable contracts.

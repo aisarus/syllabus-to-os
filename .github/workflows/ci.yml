@@ -90,6 +90,8 @@ jobs:
         run: npm run verify:study-pack-contract
       - name: Verify concept evidence contract
         run: npm run verify:concept-evidence-contract
+      - name: Verify reviewed concept extraction contract
+        run: npm run verify:concept-extraction-contract
       - name: Verify per-question evidence contract
         run: npm run verify:per-question-evidence-contract
 
@@ -120,6 +122,10 @@ jobs:
         id: concept_evidence_eval
         continue-on-error: true
         run: npm run eval:concept-evidence 2>&1 | tee concept-evidence-eval-output.txt
+      - name: Run reviewed concept extraction evaluations
+        id: concept_extraction_eval
+        continue-on-error: true
+        run: npm run eval:concept-extraction 2>&1 | tee concept-extraction-eval-output.txt
       - name: Run per-question evidence evaluations
         id: per_question_evidence_eval
         continue-on-error: true
@@ -160,6 +166,11 @@ jobs:
         if: steps.build.outcome == 'success'
         continue-on-error: true
         run: npm run e2e:workspace-backup 2>&1 | tee workspace-backup-e2e-output.txt
+      - name: Run reviewed concept extraction browser E2E
+        id: concept_extraction_e2e
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        run: npm run e2e:concept-extraction 2>&1 | tee concept-extraction-e2e-output.txt
 
       - name: Generate formatting patch after lint failure
         if: steps.lint.outcome == 'failure'
@@ -168,7 +179,7 @@ jobs:
           git diff -- . ':!bun.lock' > prettier-fix.patch
 
       - name: Upload failure diagnostics
-        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.per_question_evidence_eval.outcome == 'failure' || steps.visual_backup_eval.outcome == 'failure' || steps.workspace_backup_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure' || steps.question_evidence_e2e.outcome == 'failure' || steps.workspace_backup_e2e.outcome == 'failure'
+        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.concept_extraction_eval.outcome == 'failure' || steps.per_question_evidence_eval.outcome == 'failure' || steps.visual_backup_eval.outcome == 'failure' || steps.workspace_backup_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure' || steps.question_evidence_e2e.outcome == 'failure' || steps.workspace_backup_e2e.outcome == 'failure' || steps.concept_extraction_e2e.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: ci-diagnostics
@@ -179,6 +190,7 @@ jobs:
             study-command-eval-output.txt
             study-pack-eval-output.txt
             concept-evidence-eval-output.txt
+            concept-extraction-eval-output.txt
             per-question-evidence-eval-output.txt
             visual-backup-eval-output.txt
             workspace-backup-eval-output.txt
@@ -188,13 +200,14 @@ jobs:
             critical-e2e-output.txt
             question-evidence-e2e-output.txt
             workspace-backup-e2e-output.txt
+            concept-extraction-e2e-output.txt
             critical-e2e-artifacts
             prettier-fix.patch
           if-no-files-found: ignore
           retention-days: 7
 
       - name: Fail when quality gates fail
-        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.per_question_evidence_eval.outcome == 'failure' || steps.visual_backup_eval.outcome == 'failure' || steps.workspace_backup_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure' || steps.question_evidence_e2e.outcome == 'failure' || steps.workspace_backup_e2e.outcome == 'failure'
+        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.concept_extraction_eval.outcome == 'failure' || steps.per_question_evidence_eval.outcome == 'failure' || steps.visual_backup_eval.outcome == 'failure' || steps.workspace_backup_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure' || steps.question_evidence_e2e.outcome == 'failure' || steps.workspace_backup_e2e.outcome == 'failure' || steps.concept_extraction_e2e.outcome == 'failure'
         run: |
           echo "One or more quality gates failed. Download the ci-diagnostics artifact for details."
           exit 1

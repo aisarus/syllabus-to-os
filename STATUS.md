@@ -6,7 +6,7 @@ Last updated: 2026-07-14
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack, Concept Graph v1, per-question quiz evidence and Workspace backup v2 are implemented and verified.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack, Concept Graph v1, per-question quiz evidence, Workspace backup v2 and Reviewed concept extraction are implemented and verified.
 
 ## Completed task state
 
@@ -24,44 +24,51 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-011 Study Command Center v1` — complete and verified; PR #36 merged.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37 merged.
 - `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38 merged.
-- `P1-013A Per-question quiz evidence` — complete and verified; PR #39 merged after full CI and dedicated Chromium persistence proof.
-- `P1-013B Workspace backup v2` — complete and verified; PR #41 passed all contracts, deterministic evals, TypeScript, lint, build and three Chromium gates.
+- `P1-013A Per-question quiz evidence` — complete and verified; PR #39 merged.
+- `P1-013B Workspace backup v2` — complete and verified; PR #41 merged after all contracts, evals, build and three Chromium gates.
+- `P1-013C Reviewed concept extraction` — complete and verified; PR #42 passed all contracts, evals, typecheck, lint, build and four Chromium gates.
 
-## Workspace backup v2 delivered state
+## Reviewed concept extraction delivered state
 
-- new `lamdan-workspace-backup` format version 2;
-- nested verified visual backup v1 payload;
-- checksummed concept-evidence and quiz-attempt-detail payloads;
-- strict path, kind, size, SHA-256, unexpected-file and expansion-limit validation;
-- backward-compatible legacy visual ZIP import;
-- explicit legacy merge/replace evidence behavior;
-- preview counts for concepts, evidence events, detailed attempts and immutable answer snapshots;
-- conflict-safe merge that keeps current duplicate IDs;
-- no evidence mixing into a conflicting concept;
-- reconciliation against the actual resulting core workspace;
-- rollback across core localStorage, visual IndexedDB, concept evidence and attempt details;
-- Data Management and Clear All cover all four layers;
-- deterministic roundtrip, tamper, legacy and conflict evaluations;
-- dedicated browser flow for replace, checksum rejection, forced write failure, rollback and reload.
+- source-grounded concept extraction API at `/api/ai/extract-concepts`;
+- at most eight explicitly selected approved material chunks per request;
+- prompt forbids model-memory facts, hidden citations and duplicate existing concepts;
+- every AI candidate requires one or more exact allowed `sourceChunkIds`;
+- uncited candidates are removed server-side before reaching the browser;
+- unknown source ids are rejected and recorded in trust metadata;
+- existing concept titles and aliases are supplied as a do-not-duplicate list;
+- local parser for `Key terms` / `Ключевые термины` sections in saved Study Pack notes;
+- Study Pack proposals retain only still-valid note-level source links and show an explicit coarse-citation warning;
+- editable candidate title, description, aliases and source relationships;
+- duplicate detection against the current course map and original candidate batch;
+- optional target topic assignment at acceptance time;
+- candidates remain ephemeral until explicit selection and confirmation;
+- accepted candidates create source-linked concepts only;
+- accepting a candidate creates no evidence event and does not increase knowledge state;
+- deterministic parser, citation, normalization and duplicate evaluations;
+- dedicated Chromium proof for Study Pack proposal → review → acceptance → reload with zero evidence events.
 
 Current boundaries:
 
-- the outer v2 archive intentionally nests the mature visual v1 archive;
-- internal concept and attempt-detail schemas remain version 1;
-- legacy archives cannot recreate evidence they never contained;
-- cloud sync and server storage remain out of scope.
+- extraction proposes atomic concepts, not an automatic ontology or relationship graph;
+- saved Study Packs only retain note-level source ids, so term-level links require human review;
+- AI extraction needs a configured provider;
+- rejected and abandoned candidates are not persisted;
+- manually edited cross-candidate alias/title collisions receive a final hardening follow-up;
+- open-answer evidence and mistake repair remain a separate follow-up.
 
 ## Verification state
 
-PR #41 passed:
+PR #42 passed:
 
 - every repository contract and deterministic evaluation suite;
 - TypeScript;
 - ESLint and formatting;
 - production build;
-- critical browser end-to-end Chromium execution;
-- question-evidence Chromium persistence/reload proof;
-- workspace-backup Chromium replace, checksum rejection, forced write failure, full rollback and reload proof.
+- critical browser end-to-end Chromium;
+- question-evidence Chromium;
+- workspace-backup Chromium;
+- reviewed concept extraction Chromium with reload and zero evidence events.
 
 ## Existing validation blockers
 
@@ -79,7 +86,7 @@ The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved 
 
 ## Next execution targets
 
-1. Add reviewed concept extraction from Study Pack/source chunks.
+1. Add final edited-batch alias collision hardening.
 2. Add open-answer evidence and mistake repair.
 3. Begin `P1-014 Exam Engine` after the evidence foundation remains stable in real use.
 4. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.

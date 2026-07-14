@@ -12,7 +12,7 @@ The Concept Evidence Model represents what the student has encountered, recalled
 - Missing concept or attempt-detail data migrates to an empty v1 layer.
 - Import normalizes malformed records and never mutates the core workspace.
 - Course-level concept/evidence JSON can be exported and merged back explicitly.
-- Full visual ZIP integration remains a follow-up; the concept workspace exposes its own visible export so the limitation is not hidden.
+- Workspace backup v2 includes core data, visual sources, concept evidence and immutable question-level attempt details with separate checksums and rollback.
 
 ## Concept relationships
 
@@ -26,6 +26,23 @@ Each concept may link to:
 - aliases and a user-editable description.
 
 Dangling chunk, card, question, topic and course references are reconciled against the current core store. Evidence tied to a deleted or unlinked flashcard, quiz attempt or quiz question is removed rather than left dangling.
+
+## Reviewed concept extraction
+
+Concept extraction is a proposal-and-review workflow, not an automatic mutation:
+
+- AI can inspect at most eight explicitly selected approved chunks.
+- The prompt forbids model-memory facts and requires exact allowed `sourceChunkIds` for every candidate.
+- Candidates without a validated source id are removed before they reach the browser.
+- Existing concept titles and aliases are supplied as a do-not-duplicate list.
+- Saved Study Pack notes can be scanned locally for their `Key terms` / `Ключевые термины` section.
+- Study Pack candidates inherit only still-valid note-level source chunk ids, so the UI explicitly warns that every relationship needs review.
+- Candidate title, description, aliases and source links remain editable before acceptance.
+- Duplicate titles or aliases are blocked from acceptance.
+- Nothing enters `lamdan.concept-evidence.v1` until the user selects and confirms a candidate.
+- Accepting a candidate creates a source-linked concept only. It creates no learning evidence, no success event and no knowledge-state increase.
+
+The AI result is intentionally ephemeral. Rejected or abandoned candidates are not persisted.
 
 ## Evidence kinds
 
@@ -102,8 +119,7 @@ Every event is removable. Removing evidence recalculates the concept state immed
 
 ## Current boundaries
 
-- Concepts are created and linked manually; AI concept extraction review is not implemented yet.
+- Reviewed extraction proposes atomic concepts from selected chunks or saved Study Pack key terms; it does not infer a full ontology or hidden relationships.
 - Old aggregate attempts remain neutral because historical per-question choices do not exist.
 - Open-answer and oral-response capture are not implemented yet.
-- Attempt-detail snapshots and concept data are separate from the full visual ZIP backup.
 - No score prediction or exam-readiness percentage is produced.
