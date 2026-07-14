@@ -99,12 +99,20 @@ requireMarker(
 requireMarker(search, "Clear search", "Search no-result state is not actionable.");
 
 for (const marker of [
-  "Импорт полностью заменит текстовые данные Lamdan",
-  "Import will replace Lamdan text data",
+  "JSON полностью заменит core-данные",
+  "JSON will replace core data",
   "importJSON(raw)",
   "clearAllVisualSourceData",
+  "clearCompanionStores",
+  "Workspace ZIP v2",
+  "prepareFullVisualBackup(file)",
+  "previewFullVisualBackupImport(prepared)",
+  "applyFullVisualBackup(preparedFullBackup, mode)",
+  "MAX_FULL_WORKSPACE_BACKUP_BYTES",
+  "concept graph",
+  "immutable question answers",
+  "all four layers",
   "store.reset()",
-  "Экспортировать текстовые данные пока нечего",
 ]) {
   requireMarker(
     data,
