@@ -1,3 +1,5 @@
+import type { Material } from "./store";
+
 export const LONG_MEDIA_STORE_KEY = "lamdan.long-media.v1";
 export const LONG_MEDIA_CHUNK_BYTES = 8 * 1024 * 1024;
 export const MAX_LONG_MEDIA_BYTES = 4 * 1024 * 1024 * 1024;
@@ -69,6 +71,17 @@ export function detectLongMediaKind(file: Pick<File, "name" | "type">): LongMedi
   if (AUDIO_EXTENSIONS.includes(extension)) return "audio";
   if (VIDEO_EXTENSIONS.includes(extension)) return "video";
   return undefined;
+}
+
+export function isLongMediaMaterial(
+  material: Pick<Material, "mimeType" | "tags"> | undefined,
+): boolean {
+  return Boolean(
+    material &&
+      (material.tags.includes("long-media") ||
+        material.mimeType?.startsWith("audio/") ||
+        material.mimeType?.startsWith("video/")),
+  );
 }
 
 export function validateLongMediaFile(
