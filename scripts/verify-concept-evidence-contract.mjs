@@ -25,11 +25,13 @@ for (const marker of [
   "ConceptEvidenceKind",
   "ConceptKnowledgeState",
   "successes.length >= 4",
+  "objectiveSuccesses.length >= 2",
   "distinctSuccessDays >= 2",
   "distinctSuccessKinds.length >= 2",
   "event.kind !== \"assessment\"",
   "event.outcome !== \"mixed\"",
   "reconcileConceptEvidenceData",
+  "attemptsById",
 ]) {
   requireMarker(engine, marker, `Concept evidence engine is missing: ${marker}`);
 }
@@ -37,7 +39,9 @@ for (const marker of [
 for (const marker of [
   "one lucky answer must not create strong knowledge",
   "aggregate quiz context must not increase concept state",
+  "manual self-evidence must remain secondary",
   "deleted practice must not leave dangling evidence",
+  "unlinked quiz context must be removed",
 ]) {
   requireMarker(evals, marker, `Concept evidence evaluation is missing: ${marker}`);
 }
@@ -56,8 +60,9 @@ for (const marker of [
 
 for (const marker of [
   "installConceptEvidenceBridge",
-  "reconcileConceptEvidence(core)",
-  "syncQuizAttemptEvidence(core)",
+  "getDataSnapshot()",
+  "reconcileConceptEvidence(hydratedCore)",
+  "syncQuizAttemptEvidence(hydratedCore)",
 ]) {
   requireMarker(lifecycle, marker, `Concept lifecycle is missing: ${marker}`);
 }
