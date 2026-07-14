@@ -1,0 +1,57 @@
+name: Apply Typecheck Fixes
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.head_ref == 'agent/long-lecture-media'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Normalize legacy optional quiz sources
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'src/lib/golden-quiz-quality.ts';
+          let content = fs.readFileSync(path, 'utf8');
+          content = content.replace(
+            '  const sourceText = question.sourceChunkIds\n    .map((sourceId) => sourceById.get(sourceId))',
+            '  const sourceChunkIds = question.sourceChunkIds ?? [];\n  const sourceText = sourceChunkIds\n    .map((sourceId) => sourceById.get(sourceId))',
+          );
+          content = content.replace(
+            'add("sourceSupport", question.sourceChunkIds.length > 0,',
+            'add("sourceSupport", sourceChunkIds.length > 0,',
+          );
+          content = content.replace(
+            '    question.sourceChunkIds.every((sourceId) => sourceById.has(sourceId)),',
+            '    sourceChunkIds.every((sourceId) => sourceById.has(sourceId)),',
+          );
+          fs.writeFileSync(path, content);
+          NODE
+      - name: Generate TanStack route tree
+        run: npm run build
+      - name: Remove one-time diagnostic workflows
+        run: |
+          rm -f .github/workflows/typecheck-diagnostics.yml
+          rm -f .github/workflows/apply-typecheck-fixes.yml
+      - name: Commit generated fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/routeTree.gen.ts src/lib/golden-quiz-quality.ts .github/workflows/typecheck-diagnostics.yml .github/workflows/apply-typecheck-fixes.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "fix generated routes and optional quiz sources"
+          git push origin HEAD:${{ github.head_ref }}
