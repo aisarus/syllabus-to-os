@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [engine, store, lifecycle, workspace, appRoute, courseRoute, roadmap, tasks, status] =
+const [engine, store, lifecycle, workspace, appRoute, courseRoute, evals, roadmap, tasks, status] =
   await Promise.all([
     read("src/lib/concept-evidence.ts"),
     read("src/lib/concept-store.ts"),
@@ -10,6 +10,7 @@ const [engine, store, lifecycle, workspace, appRoute, courseRoute, roadmap, task
     read("src/components/concept-evidence-workspace.tsx"),
     read("src/routes/app.tsx"),
     read("src/routes/app.courses_.$courseId.tsx"),
+    read("scripts/run-concept-evidence-evals.mjs"),
     read("ROADMAP.md"),
     read("TASKS.md"),
     read("STATUS.md"),
@@ -23,13 +24,22 @@ const requireMarker = (content, marker, message) => {
 for (const marker of [
   "ConceptEvidenceKind",
   "ConceptKnowledgeState",
-  "one lucky answer must not create strong knowledge",
   "successes.length >= 4",
   "distinctSuccessDays >= 2",
   "distinctSuccessKinds.length >= 2",
+  "event.kind !== \"assessment\"",
+  "event.outcome !== \"mixed\"",
   "reconcileConceptEvidenceData",
 ]) {
   requireMarker(engine, marker, `Concept evidence engine is missing: ${marker}`);
+}
+
+for (const marker of [
+  "one lucky answer must not create strong knowledge",
+  "aggregate quiz context must not increase concept state",
+  "deleted practice must not leave dangling evidence",
+]) {
+  requireMarker(evals, marker, `Concept evidence evaluation is missing: ${marker}`);
 }
 
 for (const marker of [
