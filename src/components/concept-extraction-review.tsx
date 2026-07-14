@@ -19,7 +19,9 @@ import {
   extractStudyPackConceptCandidates,
   findConceptDuplicate,
   normalizeConceptCandidate,
+  planConceptCandidateAcceptance,
   type ConceptCandidateReview,
+  type ConceptCandidateRejectionReason,
 } from "@/lib/concept-extraction";
 import { generateConceptCandidatesDraft } from "@/lib/concept-extraction-client";
 import { conceptStore, useConceptEvidenceData } from "@/lib/concept-store";
@@ -35,7 +37,7 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
   const course = core.courses.find((item) => item.id === courseId);
   const topics = core.topics.filter((item) => item.courseId === courseId);
   const materials = core.materials.filter((item) => item.courseId === courseId);
-  const materialIds = new Set(materials.map((item) => item.id));
+  const materialIds = useMemo(() => new Set(materials.map((item) => item.id)), [materials]);
   const courseChunks = core.materialChunks.filter((item) => materialIds.has(item.materialId));
   const courseNotes = core.notes.filter((item) => item.courseId === courseId);
   const existingConcepts = conceptData.concepts.filter((item) => item.courseId === courseId);
@@ -52,6 +54,20 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
     () => core.materialChunks.filter((chunk) => chunk.materialId === materialId),
     [core.materialChunks, materialId],
   );
+  const allowedChunkIds = useMemo(
+    () => new Set(courseChunks.map((chunk) => chunk.id)),
+    [courseChunks],
+  );
+  const materialById = useMemo(
+    () => new Map(materials.map((item) => [item.id, item])),
+    [materials],
+  );
+  const chunkById = useMemo(
+    () => new Map(courseChunks.map((item) => [item.id, item])),
+    [courseChunks],
+  );
+  const studyPackNotes = courseNotes.filter((note) => note.tags.includes("study-pack"));
+  const selectedChunks = materialChunks.filter((chunk) => selectedChunkIds.includes(chunk.id));
 
   useEffect(() => {
     if (!materialId && materials[0]) setMaterialId(materials[0].id);
@@ -61,10 +77,19 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
     setSelectedChunkIds(materialChunks.slice(0, MAX_SELECTED_CHUNKS).map((chunk) => chunk.id));
   }, [materialId, materialChunks.length]);
 
-  const selectedChunks = materialChunks.filter((chunk) => selectedChunkIds.includes(chunk.id));
-  const materialById = new Map(materials.map((item) => [item.id, item]));
-  const chunkById = new Map(courseChunks.map((item) => [item.id, item]));
-  const studyPackNotes = courseNotes.filter((note) => note.tags.includes("study-pack"));
+  const finalBatchPreview = useMemo(
+    () =>
+      planConceptCandidateAcceptance({
+        candidates: candidates.map((candidate) => ({ ...candidate, selected: true })),
+        allowedSourceChunkIds: allowedChunkIds,
+        existingConcepts,
+      }),
+    [candidates, allowedChunkIds, existingConcepts],
+  );
+  const rejectionByCandidateId = useMemo(
+    () => new Map(finalBatchPreview.rejected.map((item) => [item.candidateId, item])),
+    [finalBatchPreview],
+  );
 
   const toggleChunk = (id: string) => {
     setSelectedChunkIds((current) => {
@@ -165,37 +190,20 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
 
   const updateCandidate = (id: string, patch: Partial<ConceptCandidateReview>) => {
     setCandidates((current) =>
-      current.map((candidate) => (candidate.id === id ? { ...candidate, ...patch } : candidate)),
+      current.map((candidate) =>
+        candidate.id === id ? { ...candidate, ...patch, duplicateOf: undefined } : candidate,
+      ),
     );
   };
 
   const acceptSelected = () => {
-    const allowed = new Set(courseChunks.map((chunk) => chunk.id));
-    const acceptedTitles = new Set<string>();
-    let accepted = 0;
-    let skipped = 0;
-    for (const candidate of candidates.filter((item) => item.selected)) {
-      const normalized = normalizeConceptCandidate(candidate, allowed);
-      const duplicate = normalized
-        ? findConceptDuplicate(normalized, [
-            ...existingConcepts,
-            ...Array.from(acceptedTitles).map((title, index) => ({
-              id: `accepted-${index}`,
-              courseId,
-              title,
-              aliases: [],
-              sourceChunkIds: [],
-              flashcardIds: [],
-              quizQuestionIds: [],
-              createdAt: 0,
-              updatedAt: 0,
-            })),
-          ])
-        : undefined;
-      if (!normalized || duplicate) {
-        skipped += 1;
-        continue;
-      }
+    const plan = planConceptCandidateAcceptance({
+      candidates,
+      allowedSourceChunkIds: allowedChunkIds,
+      existingConcepts,
+    });
+    const acceptedIds = new Set(plan.accepted.map((item) => item.candidateId));
+    for (const { normalized } of plan.accepted) {
       const created = conceptStore.createConcept({
         courseId,
         topicId: targetTopicId === "_none" ? undefined : targetTopicId,
@@ -206,14 +214,32 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
       conceptStore.updateConcept(created.id, {
         sourceChunkIds: normalized.sourceChunkIds,
       });
-      acceptedTitles.add(normalized.title);
-      accepted += 1;
     }
-    setCandidates((current) => current.filter((candidate) => !candidate.selected));
+    setCandidates((current) =>
+      current
+        .filter((candidate) => !acceptedIds.has(candidate.id))
+        .map((candidate) =>
+          plan.rejected.some((item) => item.candidateId === candidate.id)
+            ? { ...candidate, selected: false }
+            : candidate,
+        ),
+    );
+    if (plan.rejected.length > 0) {
+      setWarnings((current) =>
+        Array.from(
+          new Set([
+            ...current,
+            isRu
+              ? `Финальная проверка отклонила кандидатов: ${plan.rejected.length}. Исправь title/aliases или source-связи.`
+              : `Final validation rejected ${plan.rejected.length} candidate(s). Fix title/aliases or source links.`,
+          ]),
+        ),
+      );
+    }
     toast.success(
       isRu
-        ? `Добавлено понятий: ${accepted}${skipped ? `, пропущено: ${skipped}` : ""}`
-        : `Added ${accepted} concepts${skipped ? `; skipped ${skipped}` : ""}`,
+        ? `Добавлено понятий: ${plan.accepted.length}${plan.rejected.length ? `, отклонено: ${plan.rejected.length}` : ""}`
+        : `Added ${plan.accepted.length} concepts${plan.rejected.length ? `; rejected ${plan.rejected.length}` : ""}`,
     );
   };
 
@@ -226,7 +252,9 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
             {isRu ? "Извлечение понятий" : "Concept extraction"}
           </div>
           <h2 className="mt-2 font-serif text-2xl font-semibold">
-            {isRu ? "Сначала кандидаты, потом решение человека" : "Candidates first, human decision second"}
+            {isRu
+              ? "Сначала кандидаты, потом решение человека"
+              : "Candidates first, human decision second"}
           </h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             {isRu
@@ -241,10 +269,19 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
             disabled={studyPackNotes.length === 0 || busy}
           >
             <FileText className="h-4 w-4 me-1" />
-            {isRu ? `Из Study Pack (${studyPackNotes.length})` : `From Study Packs (${studyPackNotes.length})`}
+            {isRu
+              ? `Из Study Pack (${studyPackNotes.length})`
+              : `From Study Packs (${studyPackNotes.length})`}
           </Button>
-          <Button onClick={() => void extractFromAI()} disabled={busy || selectedChunks.length === 0}>
-            {busy ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : <Sparkles className="h-4 w-4 me-1" />}
+          <Button
+            onClick={() => void extractFromAI()}
+            disabled={busy || selectedChunks.length === 0}
+          >
+            {busy ? (
+              <Loader2 className="h-4 w-4 animate-spin me-1" />
+            ) : (
+              <Sparkles className="h-4 w-4 me-1" />
+            )}
             {isRu ? "Предложить из источников" : "Propose from sources"}
           </Button>
         </div>
@@ -258,7 +295,9 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
             value={materialId}
             onChange={(event) => setMaterialId(event.target.value)}
           >
-            {materials.length === 0 && <option value="">{isRu ? "Нет материалов" : "No materials"}</option>}
+            {materials.length === 0 && (
+              <option value="">{isRu ? "Нет материалов" : "No materials"}</option>
+            )}
             {materials.map((material) => (
               <option key={material.id} value={material.id}>
                 {material.title}
@@ -266,15 +305,16 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
             ))}
           </select>
 
-          <div className="mt-4 flex items-center justify-between gap-2">
-            <span className="text-xs text-muted-foreground">{isRu ? "Подтверждённые фрагменты" : "Approved chunks"}</span>
-            <span className="font-mono text-[10px] text-muted-foreground">
-              {selectedChunkIds.length}/{MAX_SELECTED_CHUNKS}
-            </span>
+          <div className="mt-4 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>{isRu ? "Подтверждённые фрагменты" : "Approved chunks"}</span>
+            <span className="font-mono">{selectedChunkIds.length}/{MAX_SELECTED_CHUNKS}</span>
           </div>
           <div className="mt-2 max-h-72 space-y-2 overflow-auto pe-1">
             {materialChunks.map((chunk) => (
-              <label key={chunk.id} className="flex cursor-pointer gap-2 rounded-md border border-border p-2 text-xs">
+              <label
+                key={chunk.id}
+                className="flex cursor-pointer gap-2 rounded-md border border-border p-2 text-xs"
+              >
                 <input
                   type="checkbox"
                   checked={selectedChunkIds.includes(chunk.id)}
@@ -295,13 +335,19 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
             )}
           </div>
           <label className="mt-4 block text-xs text-muted-foreground">
-            {isRu ? "Дополнительное указание (не источник фактов)" : "Optional instruction (not a factual source)"}
+            {isRu
+              ? "Дополнительное указание (не источник фактов)"
+              : "Optional instruction (not a factual source)"}
           </label>
           <Textarea
             className="mt-1 min-h-20"
             value={instructions}
             onChange={(event) => setInstructions(event.target.value)}
-            placeholder={isRu ? "Например: выделяй юридические доктрины" : "For example: focus on legal doctrines"}
+            placeholder={
+              isRu
+                ? "Например: выделяй юридические доктрины"
+                : "For example: focus on legal doctrines"
+            }
           />
         </aside>
 
@@ -321,7 +367,9 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
           {candidates.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border p-8 text-center">
               <ScanSearch className="mx-auto h-9 w-9 text-muted-foreground" />
-              <strong className="mt-3 block">{isRu ? "Кандидатов пока нет" : "No candidates yet"}</strong>
+              <strong className="mt-3 block">
+                {isRu ? "Кандидатов пока нет" : "No candidates yet"}
+              </strong>
               <p className="mx-auto mt-1 max-w-xl text-sm text-muted-foreground">
                 {isRu
                   ? "Выбери до восьми фрагментов для ИИ или разбери уже сохранённые Study Pack. Результат всегда открывается как редактируемый черновик."
@@ -332,9 +380,13 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
             <>
               <div className="mb-3 flex flex-col gap-3 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <strong className="text-sm">{isRu ? "Проверка перед добавлением" : "Review before adding"}</strong>
+                  <strong className="text-sm">
+                    {isRu ? "Проверка перед добавлением" : "Review before adding"}
+                  </strong>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {isRu ? "Проверь формулировку и каждую source-связь." : "Verify the wording and every source relationship."}
+                    {isRu
+                      ? "Проверь формулировку и каждую source-связь. Финальная проверка повторно сравнит все title и aliases после ручных правок."
+                      : "Verify wording and every source relationship. Final validation rechecks all titles and aliases after manual edits."}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -344,7 +396,9 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
                     onChange={(event) => setTargetTopicId(event.target.value)}
                   >
                     <option value="_none">{isRu ? "Без темы" : "No topic"}</option>
-                    {topics.map((topic) => <option key={topic.id} value={topic.id}>{topic.title}</option>)}
+                    {topics.map((topic) => (
+                      <option key={topic.id} value={topic.id}>{topic.title}</option>
+                    ))}
                   </select>
                   <Button
                     onClick={acceptSelected}
@@ -358,75 +412,114 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
 
               <div className="space-y-3">
                 {candidates.map((candidate) => {
-                  const duplicate = findConceptDuplicate(candidate, existingConcepts);
+                  const directExistingDuplicate = findConceptDuplicate(candidate, existingConcepts);
+                  const rejection = rejectionByCandidateId.get(candidate.id);
+                  const normalized = normalizeConceptCandidate(candidate, allowedChunkIds);
+                  const blocked = Boolean(directExistingDuplicate || rejection || !normalized);
                   return (
                     <article key={candidate.id} className="rounded-lg border border-border bg-background p-4">
                       <div className="flex items-start gap-3">
                         <input
                           className="mt-3"
                           type="checkbox"
-                          checked={candidate.selected && !duplicate}
-                          disabled={Boolean(duplicate)}
-                          onChange={(event) => updateCandidate(candidate.id, { selected: event.target.checked })}
+                          checked={candidate.selected && !blocked}
+                          disabled={blocked}
+                          onChange={(event) =>
+                            updateCandidate(candidate.id, { selected: event.target.checked })
+                          }
                         />
                         <div className="min-w-0 flex-1 space-y-3">
                           <div className="grid gap-3 md:grid-cols-2">
-                            <div>
-                              <label className="text-xs text-muted-foreground">{isRu ? "Название" : "Title"}</label>
-                              <Input value={candidate.title} onChange={(event) => updateCandidate(candidate.id, { title: event.target.value })} />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">{isRu ? "Алиасы через запятую" : "Aliases, comma-separated"}</label>
+                            <label className="text-xs text-muted-foreground">
+                              {isRu ? "Название" : "Title"}
                               <Input
-                                value={candidate.aliases.join(", ")}
-                                onChange={(event) => updateCandidate(candidate.id, {
-                                  aliases: event.target.value.split(",").map((value) => value.trim()).filter(Boolean),
-                                })}
+                                className="mt-1"
+                                value={candidate.title}
+                                onChange={(event) =>
+                                  updateCandidate(candidate.id, { title: event.target.value })
+                                }
                               />
-                            </div>
+                            </label>
+                            <label className="text-xs text-muted-foreground">
+                              {isRu ? "Алиасы через запятую" : "Aliases, comma-separated"}
+                              <Input
+                                className="mt-1"
+                                value={candidate.aliases.join(", ")}
+                                onChange={(event) =>
+                                  updateCandidate(candidate.id, {
+                                    aliases: event.target.value
+                                      .split(",")
+                                      .map((value) => value.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                              />
+                            </label>
                           </div>
-                          <div>
-                            <label className="text-xs text-muted-foreground">{isRu ? "Описание" : "Description"}</label>
+                          <label className="block text-xs text-muted-foreground">
+                            {isRu ? "Описание" : "Description"}
                             <Textarea
                               className="mt-1 min-h-20"
                               value={candidate.description}
-                              onChange={(event) => updateCandidate(candidate.id, { description: event.target.value })}
+                              onChange={(event) =>
+                                updateCandidate(candidate.id, { description: event.target.value })
+                              }
                             />
-                          </div>
-                          {duplicate && (
-                            <div className="flex items-center gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/5 p-2 text-xs text-yellow-100">
-                              <AlertTriangle className="h-4 w-4 shrink-0" />
-                              {isRu ? `Дубликат существующего понятия: ${duplicate.title}` : `Duplicates existing concept: ${duplicate.title}`}
+                          </label>
+
+                          {blocked && (
+                            <div className="flex items-start gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/5 p-2 text-xs text-yellow-100">
+                              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                              {rejectionLabel(
+                                rejection?.reason ??
+                                  (directExistingDuplicate ? "duplicate_existing" : "invalid"),
+                                isRu,
+                              )}
                             </div>
                           )}
+
                           <div className="flex flex-wrap gap-2">
                             {candidate.sourceChunkIds.map((chunkId) => {
                               const chunk = chunkById.get(chunkId);
                               const material = chunk ? materialById.get(chunk.materialId) : undefined;
                               return (
-                                <label key={chunkId} className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-1 text-[10px] text-muted-foreground">
+                                <label
+                                  key={chunkId}
+                                  className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-1 text-[10px] text-muted-foreground"
+                                >
                                   <input
                                     type="checkbox"
                                     checked
-                                    onChange={() => updateCandidate(candidate.id, {
-                                      sourceChunkIds: candidate.sourceChunkIds.filter((id) => id !== chunkId),
-                                    })}
+                                    onChange={() =>
+                                      updateCandidate(candidate.id, {
+                                        sourceChunkIds: candidate.sourceChunkIds.filter(
+                                          (id) => id !== chunkId,
+                                        ),
+                                      })
+                                    }
                                   />
-                                  {material?.title ?? chunkId}{chunk?.pageNumber ? ` · p.${chunk.pageNumber}` : ""}
+                                  {material?.title ?? chunkId}
+                                  {chunk?.pageNumber ? ` · p.${chunk.pageNumber}` : ""}
                                 </label>
                               );
                             })}
                           </div>
                           <p className="text-[10px] text-muted-foreground">
                             {candidate.origin === "ai_source_chunks"
-                              ? isRu ? "Источник кандидата: выбранные чанки через ИИ" : "Candidate origin: AI over selected chunks"
+                              ? isRu
+                                ? "Источник кандидата: выбранные чанки через ИИ"
+                                : "Candidate origin: AI over selected chunks"
                               : `${isRu ? "Источник кандидата" : "Candidate origin"}: ${candidate.sourceLabel ?? "Study Pack"}`}
                           </p>
                         </div>
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={() => setCandidates((current) => current.filter((item) => item.id !== candidate.id))}
+                          onClick={() =>
+                            setCandidates((current) =>
+                              current.filter((item) => item.id !== candidate.id),
+                            )
+                          }
                           aria-label={isRu ? "Удалить кандидата" : "Remove candidate"}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -442,4 +535,22 @@ export function ConceptExtractionReview({ courseId }: { courseId: string }) {
       </div>
     </section>
   );
+}
+
+function rejectionLabel(reason: ConceptCandidateRejectionReason, isRu: boolean): string {
+  const labels: Record<ConceptCandidateRejectionReason, [string, string]> = {
+    invalid: [
+      "Кандидат неполный или потерял все действующие source-связи.",
+      "The candidate is incomplete or lost all current source relationships.",
+    ],
+    duplicate_existing: [
+      "Title или alias совпадает с существующим понятием.",
+      "A title or alias collides with an existing concept.",
+    ],
+    duplicate_batch: [
+      "После ручных правок title или alias совпадает с другим кандидатом в этой партии.",
+      "After manual edits, a title or alias collides with another candidate in this batch.",
+    ],
+  };
+  return labels[reason][isRu ? 0 : 1];
 }
