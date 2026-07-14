@@ -24,7 +24,7 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-011 Study Command Center v1` — complete and verified; PR #36.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37.
 - `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38.
-- `P1-013A Per-question quiz evidence` — complete and verified; PR #39.
+- `P1-013A per-question quiz evidence` — complete and verified; PR #39.
 - `P1-013B Workspace backup v2` — complete and verified; PR #41.
 - `P1-013C Reviewed concept extraction` — complete and verified; PR #42.
 - `P1-013D Open-answer evidence and mistake repair` — complete and verified; PR #43.
