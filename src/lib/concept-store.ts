@@ -10,6 +10,10 @@ import {
   type ConceptEvidenceOutcome,
   type ConceptMistakeKind,
 } from "./concept-evidence";
+import {
+  getQuizAttemptDetailSnapshot,
+  type QuizAttemptDetailData,
+} from "./quiz-attempt-details";
 import { store, uid, type AppData } from "./store";
 
 const KEY = "lamdan.concept-evidence.v1";
@@ -136,9 +140,12 @@ export const conceptStore = {
   },
 };
 
-export function reconcileConceptEvidence(core: AppData): void {
+export function reconcileConceptEvidence(
+  core: AppData,
+  detailData: QuizAttemptDetailData = getQuizAttemptDetailSnapshot(),
+): void {
   ensureHydrated();
-  const reconciled = reconcileConceptEvidenceData(state, core);
+  const reconciled = reconcileConceptEvidenceData(state, core, detailData);
   if (JSON.stringify(reconciled) !== JSON.stringify(state)) persist(reconciled);
 }
 
@@ -182,17 +189,28 @@ export function recordFlashcardReviewEvidence(
 }
 
 /**
- * Existing QuizAttempt records contain only aggregate results. We preserve them as
- * neutral assessment context for linked concepts. They never count as success or
- * failure because assigning a whole-quiz score to one concept would invent evidence.
+ * New attempts with immutable answer snapshots become question-level recognition
+ * evidence. Historical attempts without snapshots remain neutral aggregate context.
  */
-export function syncQuizAttemptEvidence(core: AppData): void {
+export function syncQuizAttemptEvidence(
+  core: AppData,
+  detailData: QuizAttemptDetailData = getQuizAttemptDetailSnapshot(),
+): void {
   ensureHydrated();
-  const existing = new Set(
+  const questionEvents = new Set(
+    state.evidenceEvents
+      .filter(
+        (event) =>
+          event.sourceType === "quiz_question_answer" && event.attemptId && event.questionId,
+      )
+      .map((event) => `${event.conceptId}:${event.attemptId}:${event.questionId}`),
+  );
+  const aggregateEvents = new Set(
     state.evidenceEvents
       .filter((event) => event.sourceType === "quiz_attempt" && event.sourceId)
       .map((event) => `${event.conceptId}:${event.sourceId}`),
   );
+  const detailsByAttemptId = new Map(detailData.attempts.map((detail) => [detail.attemptId, detail]));
   const quizzes = new Map(core.quizzes.map((quiz) => [quiz.id, quiz]));
   const questionsByQuiz = new Map<string, string[]>();
   for (const question of core.quizQuestions) {
@@ -201,15 +219,48 @@ export function syncQuizAttemptEvidence(core: AppData): void {
     questionsByQuiz.set(question.quizId, current);
   }
   const additions: ConceptEvidenceEvent[] = [];
+
   for (const attempt of core.quizAttempts) {
+    const detail = detailsByAttemptId.get(attempt.id);
+    if (detail && detail.answers.length > 0) {
+      for (const answer of detail.answers) {
+        const linkedConcepts = state.concepts.filter((concept) =>
+          concept.quizQuestionIds.includes(answer.questionId),
+        );
+        for (const concept of linkedConcepts) {
+          const dedupeKey = `${concept.id}:${attempt.id}:${answer.questionId}`;
+          if (questionEvents.has(dedupeKey)) continue;
+          questionEvents.add(dedupeKey);
+          additions.push({
+            id: uid("cev"),
+            conceptId: concept.id,
+            kind: "recognition",
+            outcome: answer.correct ? "success" : "failure",
+            sourceType: "quiz_question_answer",
+            sourceId: attempt.id,
+            attemptId: attempt.id,
+            questionId: answer.questionId,
+            sourceLabel: answer.questionPrompt,
+            mistakeKind: answer.correct ? undefined : "unclassified",
+            note: answer.correct
+              ? `Selected: ${answer.selectedOption}`
+              : `Selected: ${answer.selectedOption} · Correct: ${answer.correctOption}`,
+            score: answer.correct ? 100 : 0,
+            occurredAt: attempt.takenAt,
+          });
+        }
+      }
+      continue;
+    }
+
     const questionIds = new Set(questionsByQuiz.get(attempt.quizId) ?? []);
     if (questionIds.size === 0) continue;
     const quiz = quizzes.get(attempt.quizId);
     for (const concept of state.concepts) {
       if (!concept.quizQuestionIds.some((id) => questionIds.has(id))) continue;
       const dedupeKey = `${concept.id}:${attempt.id}`;
-      if (existing.has(dedupeKey)) continue;
-      existing.add(dedupeKey);
+      if (aggregateEvents.has(dedupeKey)) continue;
+      aggregateEvents.add(dedupeKey);
       additions.push({
         id: uid("cev"),
         conceptId: concept.id,
@@ -224,6 +275,7 @@ export function syncQuizAttemptEvidence(core: AppData): void {
       });
     }
   }
+
   if (additions.length > 0) {
     update((current) => ({ ...current, evidenceEvents: [...additions, ...current.evidenceEvents] }));
   }
