@@ -2,19 +2,31 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [engine, store, lifecycle, workspace, appRoute, courseRoute, evals, roadmap, tasks, status] =
-  await Promise.all([
-    read("src/lib/concept-evidence.ts"),
-    read("src/lib/concept-store.ts"),
-    read("src/components/concept-evidence-lifecycle.tsx"),
-    read("src/components/concept-evidence-workspace.tsx"),
-    read("src/routes/app.tsx"),
-    read("src/routes/app.courses_.$courseId.tsx"),
-    read("scripts/run-concept-evidence-evals.mjs"),
-    read("ROADMAP.md"),
-    read("TASKS.md"),
-    read("STATUS.md"),
-  ]);
+const [
+  engine,
+  store,
+  lifecycle,
+  workspace,
+  riskSummary,
+  appRoute,
+  courseRoute,
+  evals,
+  roadmap,
+  tasks,
+  status,
+] = await Promise.all([
+  read("src/lib/concept-evidence.ts"),
+  read("src/lib/concept-store.ts"),
+  read("src/components/concept-evidence-lifecycle.tsx"),
+  read("src/components/concept-evidence-workspace.tsx"),
+  read("src/components/concept-evidence-risk-summary.tsx"),
+  read("src/routes/app.tsx"),
+  read("src/routes/app.courses_.$courseId.tsx"),
+  read("scripts/run-concept-evidence-evals.mjs"),
+  read("ROADMAP.md"),
+  read("TASKS.md"),
+  read("STATUS.md"),
+]);
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
@@ -78,7 +90,21 @@ for (const marker of [
   requireMarker(workspace, marker, `Knowledge map trust UI is missing: ${marker}`);
 }
 
+for (const marker of [
+  "Риск забывания",
+  "time since the latest successful scored event",
+  "File views, time in the app and neutral quiz attempts do not reduce it",
+  "forgettingRisk",
+]) {
+  requireMarker(riskSummary, marker, `Forgetting-risk UI is missing: ${marker}`);
+}
+
 requireMarker(appRoute, "<ConceptEvidenceLifecycle />", "Concept evidence lifecycle is not mounted.");
+requireMarker(
+  courseRoute,
+  "<ConceptEvidenceRiskSummary courseId={courseId} />",
+  "Course route does not expose forgetting risk.",
+);
 requireMarker(
   courseRoute,
   "<ConceptEvidenceWorkspace courseId={courseId} />",
