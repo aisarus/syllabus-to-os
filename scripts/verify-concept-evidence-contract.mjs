@@ -40,10 +40,12 @@ for (const marker of [
   "objectiveSuccesses.length >= 2",
   "distinctSuccessDays >= 2",
   "distinctSuccessKinds.length >= 2",
-  "event.kind !== \"assessment\"",
-  "event.outcome !== \"mixed\"",
+  'event.kind !== "assessment"',
+  'event.outcome !== "mixed"',
   "reconcileConceptEvidenceData",
   "attemptsById",
+  "detailsByAttemptId",
+  'event.sourceType === "quiz_question_answer"',
 ]) {
   requireMarker(engine, marker, `Concept evidence engine is missing: ${marker}`);
 }
@@ -62,8 +64,9 @@ for (const marker of [
   "lamdan.concept-evidence.v1",
   "recordFlashcardReviewEvidence",
   "syncQuizAttemptEvidence",
-  "outcome: \"mixed\"",
-  "never count as success or",
+  'sourceType: "quiz_question_answer"',
+  'kind: "recognition"',
+  "Historical attempts without snapshots remain neutral aggregate context",
   "exportConceptEvidenceJSON",
   "importConceptEvidenceJSON",
 ]) {
@@ -73,8 +76,9 @@ for (const marker of [
 for (const marker of [
   "installConceptEvidenceBridge",
   "getDataSnapshot()",
-  "reconcileConceptEvidence(hydratedCore)",
-  "syncQuizAttemptEvidence(hydratedCore)",
+  "reconcileQuizAttemptDetails(hydratedCore)",
+  "reconcileConceptEvidence(hydratedCore, hydratedDetails)",
+  "syncQuizAttemptEvidence(hydratedCore, hydratedDetails)",
 ]) {
   requireMarker(lifecycle, marker, `Concept lifecycle is missing: ${marker}`);
 }
