@@ -1,20 +1,21 @@
 name: Apply Long Media Preview Fix
 
 on:
-  pull_request:
+  push:
+    branches:
+      - agent/long-lecture-media
 
 permissions:
   contents: write
 
 jobs:
   fix:
-    if: github.head_ref == 'agent/long-lecture-media'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: agent/long-lecture-media
           fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
         with:
@@ -58,4 +59,4 @@ jobs:
           git add -A
           git diff --cached --quiet && exit 0
           git commit -m "fix long media preview readiness"
-          git push origin HEAD:${{ github.head_ref }}
+          git push origin HEAD:agent/long-lecture-media
