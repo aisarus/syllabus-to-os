@@ -56,7 +56,8 @@ Delivered:
 - explicit statement that raw multi-gigabyte media and editable transcript drafts are not yet in Workspace ZIP v2;
 - deterministic evaluation suite and a real 18 MB / three-chunk Chromium proof;
 - repository-wide Prettier baseline restored so canonical `eslint .` can detect semantic errors instead of stale formatting noise;
-- legacy `any` and empty compatibility-interface lint blockers replaced with typed equivalents.
+- legacy `any` and empty compatibility-interface lint blockers replaced with typed equivalents;
+- final long-media browser runner and workflow pass the scoped Prettier and semantic lint check.
 
 Current boundaries:
 
