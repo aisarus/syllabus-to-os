@@ -31,6 +31,23 @@ export interface ConceptExtractionDraft {
   };
 }
 
+export type ConceptCandidateRejectionReason =
+  | "invalid"
+  | "duplicate_existing"
+  | "duplicate_batch";
+
+export interface ConceptCandidateAcceptancePlan {
+  accepted: Array<{
+    candidateId: string;
+    normalized: ConceptCandidateDraft;
+  }>;
+  rejected: Array<{
+    candidateId: string;
+    reason: ConceptCandidateRejectionReason;
+    duplicateOf?: string;
+  }>;
+}
+
 export function normalizeConceptKey(value: string): string {
   return value
     .normalize("NFKC")
@@ -81,6 +98,62 @@ export function normalizeConceptCandidate(
   );
   if (!title || !description || sourceChunkIds.length === 0) return null;
   return { title, description, aliases, sourceChunkIds };
+}
+
+/**
+ * Re-validates the final edited batch immediately before persistence. The plan
+ * compares full title+alias key sets against the current map and previously
+ * accepted candidates, so manual edits cannot create alias/title collisions.
+ */
+export function planConceptCandidateAcceptance(input: {
+  candidates: ConceptCandidateReview[];
+  allowedSourceChunkIds: Iterable<string>;
+  existingConcepts: Concept[];
+}): ConceptCandidateAcceptancePlan {
+  const accepted: ConceptCandidateAcceptancePlan["accepted"] = [];
+  const rejected: ConceptCandidateAcceptancePlan["rejected"] = [];
+  const acceptedConcepts: Concept[] = [];
+
+  for (const candidate of input.candidates.filter((item) => item.selected)) {
+    const normalized = normalizeConceptCandidate(candidate, input.allowedSourceChunkIds);
+    if (!normalized) {
+      rejected.push({ candidateId: candidate.id, reason: "invalid" });
+      continue;
+    }
+    const existingDuplicate = findConceptDuplicate(normalized, input.existingConcepts);
+    if (existingDuplicate) {
+      rejected.push({
+        candidateId: candidate.id,
+        reason: "duplicate_existing",
+        duplicateOf: existingDuplicate.id,
+      });
+      continue;
+    }
+    const batchDuplicate = findConceptDuplicate(normalized, acceptedConcepts);
+    if (batchDuplicate) {
+      rejected.push({
+        candidateId: candidate.id,
+        reason: "duplicate_batch",
+        duplicateOf: batchDuplicate.id,
+      });
+      continue;
+    }
+    accepted.push({ candidateId: candidate.id, normalized });
+    acceptedConcepts.push({
+      id: candidate.id,
+      courseId: "candidate-review",
+      title: normalized.title,
+      description: normalized.description,
+      aliases: normalized.aliases,
+      sourceChunkIds: normalized.sourceChunkIds,
+      flashcardIds: [],
+      quizQuestionIds: [],
+      createdAt: 0,
+      updatedAt: 0,
+    });
+  }
+
+  return { accepted, rejected };
 }
 
 export function buildReviewCandidates(input: {
