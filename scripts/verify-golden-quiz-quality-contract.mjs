@@ -2,12 +2,13 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [quality, review, route, detail, manifest, runner, packageJson, checkScript, workflow] =
+const [quality, review, route, detail, experience, manifest, runner, packageJson, checkScript, workflow] =
   await Promise.all([
     read("src/lib/golden-quiz-quality.ts"),
     read("src/components/golden-quiz-quality-review.tsx"),
     read("src/routes/app.quiz-quality_.$quizId.tsx"),
     read("src/routes/app.quizzes_.$quizId.tsx"),
+    read("src/components/evidence-quiz-experience.tsx"),
     read("evals/golden-quiz-manifest.json"),
     read("scripts/run-golden-quiz-evals.mjs"),
     read("package.json"),
@@ -60,7 +61,16 @@ for (const marker of [
 }
 
 requireMarker(route, 'createFileRoute("/app/quiz-quality_/$quizId")', "Quality review route is missing.");
-requireMarker(detail, 'to="/app/quiz-quality/$quizId"', "Quiz detail no longer links to quality review.");
+requireMarker(
+  detail,
+  "EvidenceQuizExperience",
+  "Quiz detail no longer renders the active evidence-aware experience.",
+);
+requireMarker(
+  experience,
+  'to="/app/quiz-quality/$quizId"',
+  "Active quiz experience no longer links to quality review.",
+);
 
 const fixtureManifest = JSON.parse(manifest);
 requireMarker(manifest, "hebrew-archaeology-periods", "Archaeology fixture is missing.");

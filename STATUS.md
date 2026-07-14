@@ -6,7 +6,7 @@ Last updated: 2026-07-14
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack and the first honest Concept Graph and Evidence Model vertical slice are implemented and verified.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack, Concept Graph v1 and per-question quiz evidence are implemented and verified.
 
 ## Completed task state
 
@@ -23,46 +23,47 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-005 Store persistence and source-integrity hardening` — complete and verified; PR #35 CI passed and merged.
 - `P1-011 Study Command Center v1` — complete and verified; PR #36 full CI and critical browser end-to-end passed and merged.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37 full CI and critical browser end-to-end passed and merged.
-- `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38 full CI and critical browser end-to-end passed.
+- `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38 full CI, CodeRabbit and critical browser end-to-end passed and merged.
+- `P1-013A Per-question quiz evidence` — complete and verified; PR #39 full CI, critical Chromium and dedicated reload/persistence Chromium proof passed.
 
-## P1-013 delivered state
+## P1-013A delivered state
 
-- separate local-first `lamdan.concept-evidence.v1` layer without rewriting `lamdan.data.v1`;
-- explicit migration from missing or malformed concept data to a normalized empty/safe layer;
-- course concepts linked manually to topics, approved source chunks, flashcards and quiz questions;
-- knowledge states `unseen`, `covered`, `fragile`, `weak` and `strong`;
-- strong evidence requires at least four successful events, including at least two non-manual successes, across two distinct days and two evidence kinds;
-- one lucky answer, one flashcard rating or repeated manual self-rating cannot create strong state;
-- flashcard review outcomes create recall success/failure events only for explicitly linked concepts;
-- aggregate quiz attempts appear as neutral `mixed` assessment context and never raise concept state;
-- explicit explanation/application checks remain secondary self-recorded evidence;
-- editable mistake taxonomy: retrieval, confusion, application, careless and unclassified;
-- forgetting-risk label from time since latest successful scored evidence;
-- inspectable and removable evidence history with immediate recalculation;
-- reconciliation removes dangling course/topic/chunk/card/question/attempt relationships;
-- deleting or unlinking practice removes its dangling evidence;
-- visible course-level concept JSON export/import;
-- RU/EN Course Workspace UI using the Academic Content Workspace design system;
-- deterministic evaluations and a permanent trust contract.
+- dedicated local-first `lamdan.quiz-attempt-details.v1` companion store;
+- immutable snapshot for every question in a new attempt: prompt, selected/correct indexes and option text, correctness and source chunk ids;
+- validation rejects incomplete or invalid attempts before persistence;
+- answer-detail persistence is verified before the core aggregate attempt is created;
+- core `lamdan.data.v1` schema remains compatible and historical aggregate attempts remain unchanged;
+- main quiz route uses an evidence-aware runner;
+- legacy Practice/Exam launch controls inside the editor are hidden and blocked through event capture;
+- question editing remains available without exposing aggregate-only new attempts;
+- detailed linked answers generate objective `recognition` success/failure evidence;
+- incorrect answers default to `unclassified`, never inferred as confusion or carelessness;
+- old aggregate attempts without snapshots remain neutral `assessment/mixed` context;
+- aggregate context is removed when a detailed snapshot exists for the same attempt;
+- deleting or unlinking a quiz question repairs question-level concept evidence;
+- editing a question later does not rewrite historical answer snapshots;
+- deterministic evaluations and permanent trust contracts;
+- dedicated Chromium flow verifies aggregate attempt, immutable detail snapshot, concept event and reload without duplication.
 
-Current v1 boundaries:
+Current boundaries:
 
-- concept extraction is manual; AI extraction review is not implemented;
-- existing `QuizAttempt` records do not contain per-question answers, so quiz evidence remains neutral context;
-- open-answer and oral evidence are not implemented;
-- concept export is separate from the full visual ZIP backup;
+- attempt details are not yet included in the full visual ZIP backup;
+- old attempts cannot be retroactively reconstructed;
+- open-answer and oral-response evidence remain unimplemented;
+- concept extraction remains manual;
 - no mastery percentage, score prediction or exam-readiness number exists.
 
 ## Verification state
 
-PR #38 passed:
+PR #39 passed:
 
-- concept evidence contract and deterministic evaluations;
-- all existing documentation, source-integrity, Study Pack and OCR contracts;
+- all existing repository contracts and deterministic eval suites;
+- per-question evidence contract and deterministic evaluations;
 - TypeScript;
 - ESLint and formatting;
 - production build and generated route tree;
-- critical Chromium end-to-end execution.
+- critical Chromium end-to-end execution;
+- dedicated question-evidence Chromium flow with reload and duplicate assertion.
 
 ## Existing validation blockers
 
@@ -80,8 +81,8 @@ The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved 
 
 ## Next execution targets
 
-1. Persist per-question quiz answer evidence without changing historical aggregate attempts.
+1. Integrate attempt-detail and concept data into full visual ZIP backup.
 2. Add reviewed concept extraction from Study Pack/source chunks.
-3. Integrate concept data into full visual ZIP backup.
+3. Add open-answer evidence and mistake repair.
 4. Begin `P1-014 Exam Engine` after the evidence foundation remains stable in real use.
 5. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.

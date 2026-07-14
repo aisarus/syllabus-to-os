@@ -25,7 +25,7 @@ const routes = [
     oldDetail: "src/routes/app.quizzes.$quizId.tsx",
     link: 'to="/app/quizzes/$quizId"',
     route: 'createFileRoute("/app/quizzes_/$quizId")',
-    surface: "GoldenQuizExperience",
+    surface: "EvidenceQuizExperience",
   },
   {
     name: "course",

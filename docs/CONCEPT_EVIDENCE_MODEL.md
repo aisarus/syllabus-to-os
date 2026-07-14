@@ -8,7 +8,8 @@ The Concept Evidence Model represents what the student has encountered, recalled
 
 - Core user data remains in the existing `lamdan.data.v1` store and is not rewritten.
 - Concept data uses `lamdan.concept-evidence.v1`.
-- Missing concept data migrates to an empty v1 concept layer.
+- Immutable per-question attempt snapshots use `lamdan.quiz-attempt-details.v1` and reference the core aggregate attempt id.
+- Missing concept or attempt-detail data migrates to an empty v1 layer.
 - Import normalizes malformed records and never mutates the core workspace.
 - Course-level concept/evidence JSON can be exported and merged back explicitly.
 - Full visual ZIP integration remains a follow-up; the concept workspace exposes its own visible export so the limitation is not hidden.
@@ -21,20 +22,35 @@ Each concept may link to:
 - one optional topic;
 - approved material chunks;
 - flashcards used for recall;
-- quiz questions used for assessment context;
+- quiz questions used for assessment evidence;
 - aliases and a user-editable description.
 
 Dangling chunk, card, question, topic and course references are reconciled against the current core store. Evidence tied to a deleted or unlinked flashcard, quiz attempt or quiz question is removed rather than left dangling.
 
 ## Evidence kinds
 
-- `recognition` — reserved for future per-question answer evidence;
+- `recognition` — recorded from a linked per-question multiple-choice answer;
 - `recall` — recorded from a linked flashcard review;
 - `explanation` — explicit user-recorded check;
 - `application` — explicit user-recorded check;
-- `assessment` — aggregate quiz-attempt context.
+- `assessment` — historical aggregate quiz-attempt context.
 
-Aggregate quiz attempts are stored as `mixed` context. They do not count as success or failure for a specific concept because the existing QuizAttempt record contains no per-question answers. This avoids inventing concept-level correctness from a whole-quiz score.
+## Per-question quiz evidence
+
+Every new attempt made through the main evidence-aware quiz runner stores an immutable snapshot for each question:
+
+- question id and prompt at attempt time;
+- selected index and selected option text;
+- correct index and correct option text;
+- correctness;
+- source chunk ids copied from the question;
+- attempt mode and timestamp.
+
+Editing the quiz later does not rewrite the attempt snapshot. A correct linked answer creates objective `recognition/success` evidence; an incorrect linked answer creates `recognition/failure` with mistake kind `unclassified`. Lamdan does not infer confusion or carelessness automatically.
+
+Historical attempts without per-question snapshots remain `assessment/mixed` context. They do not count as success or failure for a specific concept because assigning a whole-quiz score to one concept would invent evidence. When a detailed snapshot exists, the old aggregate context is removed for that attempt.
+
+The legacy Practice/Exam launch controls inside the editor are hidden and blocked. The primary quiz route is the only supported attempt runner, ensuring that new user attempts retain question-level history.
 
 Manual explanation and application checks are secondary evidence. They remain visible and useful, but manual events alone cannot create `strong` state.
 
@@ -69,7 +85,7 @@ Failure events can be classified and edited as:
 - careless error;
 - unclassified.
 
-The application never infers a specific mistake category from an aggregate quiz score.
+The application never infers a specific mistake category from an aggregate quiz score or a wrong multiple-choice answer.
 
 ## Inspectability
 
@@ -84,10 +100,10 @@ Every event shows:
 
 Every event is removable. Removing evidence recalculates the concept state immediately.
 
-## V1 boundaries
+## Current boundaries
 
 - Concepts are created and linked manually; AI concept extraction review is not implemented yet.
-- Quiz attempts are neutral context until per-question answers are persisted.
+- Old aggregate attempts remain neutral because historical per-question choices do not exist.
 - Open-answer and oral-response capture are not implemented yet.
-- Concept data has a dedicated JSON export; full visual ZIP integration is pending.
+- Attempt-detail snapshots and concept data are separate from the full visual ZIP backup.
 - No score prediction or exam-readiness percentage is produced.

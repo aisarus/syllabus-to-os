@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 const library = await readFile(resolve(process.cwd(), "src/components/quiz-library.tsx"), "utf8");
 const studio = await readFile(resolve(process.cwd(), "src/components/quiz-studio.tsx"), "utf8");
 const experience = await readFile(
-  resolve(process.cwd(), "src/components/golden-quiz-experience.tsx"),
+  resolve(process.cwd(), "src/components/evidence-quiz-experience.tsx"),
   "utf8",
 );
 const feedback = await readFile(resolve(process.cwd(), "src/lib/golden-quiz.ts"), "utf8");
@@ -85,21 +85,22 @@ for (const marker of [
 }
 
 for (const marker of [
-  "export function GoldenQuizExperience",
+  "export function EvidenceQuizExperience",
   "deterministicShuffle",
   "parseGoldenQuizFeedback",
   "hasQuizTranslation",
   "setSelectedOriginalIndex",
   "option.rationale",
-  "presented.feedback.memoryHint",
+  "feedback.memoryHint",
   "border-emerald-500/60",
   "border-red-500/60",
-  "store.recordAttempt",
+  "recordQuizAttemptWithAnswers",
   "<QuizStudio quizId={quizId} />",
   "Показать перевод",
   "Следующий вопрос",
+  "onClickCapture={blockLegacyRunner}",
 ]) {
-  requireMarker(experience, marker, `Golden quiz trainer is missing required behavior: ${marker}`);
+  requireMarker(experience, marker, `Evidence-aware golden quiz trainer is missing: ${marker}`);
 }
 
 requireMarker(
@@ -108,7 +109,7 @@ requireMarker(
   "Quiz generation API no longer uses the golden quiz generator.",
 );
 requireMarker(listRoute, "QuizLibrary", "The active quiz list route no longer uses QuizLibrary.");
-for (const marker of ['createFileRoute("/app/quizzes_/$quizId")', "GoldenQuizExperience"]) {
+for (const marker of ['createFileRoute("/app/quizzes_/$quizId")', "EvidenceQuizExperience"]) {
   requireMarker(
     detailRoute,
     marker,
@@ -123,5 +124,5 @@ if (failures.length) {
 }
 
 console.log(
-  "Golden bilingual quiz generation, trainer, routing and advanced editor contract passed.",
+  "Golden bilingual quiz generation, evidence-aware trainer, routing and advanced editor contract passed.",
 );
