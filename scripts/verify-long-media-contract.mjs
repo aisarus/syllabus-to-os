@@ -12,6 +12,7 @@ const [
   appRoute,
   materialRoute,
   appShell,
+  routeTree,
   evals,
   browserE2E,
   packageJson,
@@ -30,6 +31,7 @@ const [
   read("src/routes/app.tsx"),
   read("src/routes/app.materials_.$materialId.tsx"),
   read("src/components/app-shell.tsx"),
+  read("src/routeTree.gen.ts"),
   read("scripts/run-long-media-evals.mjs"),
   read("scripts/run-long-media-browser-e2e.mjs"),
   read("package.json"),
@@ -134,6 +136,14 @@ for (const marker of [
 ]) {
   requireMarker(appShell, marker, `Primary navigation is missing: ${marker}`);
 }
+for (const marker of [
+  "AppLectureMediaRouteImport",
+  "AppExamEngineRouteImport",
+  "'/app/lecture-media'",
+  "'/app/exam-engine'",
+]) {
+  requireMarker(routeTree, marker, `Committed TanStack route tree is missing: ${marker}`);
+}
 
 for (const marker of [
   "a 65-minute lecture needs seven bounded transcript blocks",
@@ -164,6 +174,7 @@ for (const marker of ['"verify:long-media-contract"', '"eval:long-media"']) {
 for (const marker of [
   "Verify long lecture media contract",
   "Run long lecture media evaluations",
+  "Build and verify generated route tree",
   "Run long lecture media browser E2E",
 ]) {
   requireMarker(workflow, marker, `Long-media workflow is missing: ${marker}`);
