@@ -1,3 +1,4 @@
+import type { QuizAttemptDetailData } from "./quiz-attempt-details";
 import type { AppData } from "./store";
 
 export type ConceptEvidenceKind =
@@ -35,8 +36,10 @@ export interface ConceptEvidenceEvent {
   conceptId: string;
   kind: ConceptEvidenceKind;
   outcome: ConceptEvidenceOutcome;
-  sourceType: "flashcard_review" | "quiz_attempt" | "manual";
+  sourceType: "flashcard_review" | "quiz_attempt" | "quiz_question_answer" | "manual";
   sourceId?: string;
+  attemptId?: string;
+  questionId?: string;
   sourceLabel?: string;
   mistakeKind?: ConceptMistakeKind;
   note?: string;
@@ -122,11 +125,14 @@ function normalizeEvent(raw: unknown): ConceptEvidenceEvent | null {
     !conceptId ||
     !["recognition", "recall", "explanation", "application", "assessment"].includes(kind) ||
     !["success", "failure", "mixed"].includes(outcome) ||
-    !["flashcard_review", "quiz_attempt", "manual"].includes(sourceType)
+    !["flashcard_review", "quiz_attempt", "quiz_question_answer", "manual"].includes(sourceType)
   ) {
     return null;
   }
   const mistake = optionalString(value.mistakeKind) as ConceptMistakeKind | undefined;
+  const attemptId = optionalString(value.attemptId);
+  const questionId = optionalString(value.questionId);
+  if (sourceType === "quiz_question_answer" && (!attemptId || !questionId)) return null;
   return {
     id,
     conceptId,
@@ -134,6 +140,8 @@ function normalizeEvent(raw: unknown): ConceptEvidenceEvent | null {
     outcome,
     sourceType,
     sourceId: optionalString(value.sourceId),
+    attemptId,
+    questionId,
     sourceLabel: optionalString(value.sourceLabel),
     mistakeKind:
       mistake && ["retrieval", "confusion", "application", "careless", "unclassified"].includes(mistake)
@@ -148,6 +156,7 @@ function normalizeEvent(raw: unknown): ConceptEvidenceEvent | null {
 export function reconcileConceptEvidenceData(
   input: ConceptEvidenceData,
   core: AppData,
+  detailData: QuizAttemptDetailData = { version: 1, attempts: [] },
 ): ConceptEvidenceData {
   const courseIds = new Set(core.courses.map((item) => item.id));
   const topicIds = new Set(core.topics.map((item) => item.id));
@@ -155,6 +164,7 @@ export function reconcileConceptEvidenceData(
   const cardIds = new Set(core.flashcards.map((item) => item.id));
   const questionIds = new Set(core.quizQuestions.map((item) => item.id));
   const attemptsById = new Map(core.quizAttempts.map((attempt) => [attempt.id, attempt]));
+  const detailsByAttemptId = new Map(detailData.attempts.map((detail) => [detail.attemptId, detail]));
   const questionsByQuiz = new Map<string, Set<string>>();
   for (const question of core.quizQuestions) {
     const current = questionsByQuiz.get(question.quizId) ?? new Set<string>();
@@ -178,9 +188,20 @@ export function reconcileConceptEvidenceData(
     if (event.sourceType === "flashcard_review" && event.sourceId) {
       return concept.flashcardIds.includes(event.sourceId) && cardIds.has(event.sourceId);
     }
+    if (event.sourceType === "quiz_question_answer") {
+      if (!event.attemptId || !event.questionId) return false;
+      const attempt = attemptsById.get(event.attemptId);
+      const detail = detailsByAttemptId.get(event.attemptId);
+      if (!attempt || !detail || attempt.quizId !== detail.quizId) return false;
+      return (
+        questionIds.has(event.questionId) &&
+        concept.quizQuestionIds.includes(event.questionId) &&
+        detail.answers.some((answer) => answer.questionId === event.questionId)
+      );
+    }
     if (event.sourceType === "quiz_attempt" && event.sourceId) {
       const attempt = attemptsById.get(event.sourceId);
-      if (!attempt) return false;
+      if (!attempt || detailsByAttemptId.has(attempt.id)) return false;
       const quizQuestionIds = questionsByQuiz.get(attempt.quizId) ?? new Set<string>();
       return concept.quizQuestionIds.some((id) => quizQuestionIds.has(id));
     }
