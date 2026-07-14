@@ -69,7 +69,9 @@ class Page {
     });
     if (response.exceptionDetails) {
       throw new Error(
-        response.exceptionDetails.exception?.description ?? response.exceptionDetails.text ?? "Evaluation failed",
+        response.exceptionDetails.exception?.description ??
+          response.exceptionDetails.text ??
+          "Evaluation failed",
       );
     }
     return response.result?.value;
@@ -122,11 +124,26 @@ function fixtureData() {
   return {
     version: 1,
     programs: [],
-    courses: [{ id: "crs_evidence", title: "Evidence Course", status: "in_progress", order: 0, createdAt: now }],
+    courses: [
+      {
+        id: "crs_evidence",
+        title: "Evidence Course",
+        status: "in_progress",
+        order: 0,
+        createdAt: now,
+      },
+    ],
     topics: [],
     notes: [],
     flashcards: [],
-    quizzes: [{ id: "quiz_evidence", title: "Question Evidence Quiz", courseId: "crs_evidence", createdAt: now }],
+    quizzes: [
+      {
+        id: "quiz_evidence",
+        title: "Question Evidence Quiz",
+        courseId: "crs_evidence",
+        createdAt: now,
+      },
+    ],
     quizQuestions: [
       {
         id: "qq_evidence",
@@ -206,7 +223,12 @@ async function main() {
     preview = spawn(
       npmCommand,
       ["run", "preview", "--", "--host", HOST, "--port", String(APP_PORT)],
-      { cwd: process.cwd(), env: process.env, stdio: ["ignore", "pipe", "pipe"] },
+      {
+        cwd: process.cwd(),
+        env: process.env,
+        stdio: "ignore",
+        detached: process.platform !== "win32",
+      },
     );
     await waitForHttp(`${BASE_URL}/app/dashboard`, 30_000);
 
@@ -222,12 +244,17 @@ async function main() {
         `--user-data-dir=${profileDir}`,
         "about:blank",
       ],
-      { stdio: ["ignore", "pipe", "pipe"] },
+      { stdio: "ignore", detached: process.platform !== "win32" },
     );
     const version = await waitForJson(`http://${HOST}:${DEBUG_PORT}/json/version`, 30_000);
     cdp = await Cdp.connect(version.webSocketDebuggerUrl);
-    const { targetId } = await cdp.send("Target.createTarget", { url: `${BASE_URL}/app/dashboard` });
-    const { sessionId } = await cdp.send("Target.attachToTarget", { targetId, flatten: true });
+    const { targetId } = await cdp.send("Target.createTarget", {
+      url: `${BASE_URL}/app/dashboard`,
+    });
+    const { sessionId } = await cdp.send("Target.attachToTarget", {
+      targetId,
+      flatten: true,
+    });
     const page = new Page(cdp, sessionId);
     await Promise.all([page.send("Page.enable"), page.send("Runtime.enable")]);
     await page.waitFor("document.readyState === 'complete'");
@@ -248,7 +275,8 @@ async function main() {
     await page.clickText("Сохранить попытку");
     await page.waitForText("1 снимков ответов");
 
-    await page.waitFor(`(() => {
+    await page.waitFor(
+      `(() => {
       const core = JSON.parse(localStorage.getItem("lamdan.data.v1"));
       const details = JSON.parse(localStorage.getItem("lamdan.quiz-attempt-details.v1"));
       const concepts = JSON.parse(localStorage.getItem("lamdan.concept-evidence.v1"));
@@ -261,7 +289,9 @@ async function main() {
           event.questionId === "qq_evidence" &&
           event.outcome === "success"
         );
-    })()`, 20_000);
+    })()`,
+      20_000,
+    );
 
     await page.reload();
     await page.waitForText("Question Evidence Quiz");
@@ -276,12 +306,15 @@ async function main() {
     })()`);
     assert(persisted.attempts === 1, "Question snapshots did not survive reload.");
     assert(persisted.answer === "Verified answer", "Selected answer snapshot changed after reload.");
-    assert(persisted.recognition === 1, "Recognition evidence duplicated or disappeared after reload.");
+    assert(
+      persisted.recognition === 1,
+      "Recognition evidence duplicated or disappeared after reload.",
+    );
     console.log("Question-level quiz evidence browser E2E passed.");
   } finally {
     cdp?.close();
-    terminate(chrome);
-    terminate(preview);
+    terminateProcessGroup(chrome);
+    terminateProcessGroup(preview);
     await rm(profileDir, { recursive: true, force: true }).catch(() => {});
   }
 }
@@ -298,8 +331,12 @@ function findChrome() {
   ].filter(Boolean);
   for (const candidate of candidates) if (existsSync(candidate)) return candidate;
   for (const name of ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"]) {
-    const result = spawnSync(process.platform === "win32" ? "where" : "which", [name], { encoding: "utf8" });
-    if (result.status === 0 && result.stdout.trim()) return result.stdout.trim().split(/\r?\n/)[0];
+    const result = spawnSync(process.platform === "win32" ? "where" : "which", [name], {
+      encoding: "utf8",
+    });
+    if (result.status === 0 && result.stdout.trim()) {
+      return result.stdout.trim().split(/\r?\n/)[0];
+    }
   }
   throw new Error("Chromium/Chrome was not found.");
 }
@@ -332,8 +369,17 @@ async function waitForJson(url, timeout) {
   throw new Error(`Chrome debugger did not start at ${url}.`);
 }
 
-function terminate(handle) {
-  if (handle && !handle.killed) handle.kill("SIGTERM");
+function terminateProcessGroup(handle) {
+  if (!handle || handle.killed) return;
+  if (process.platform !== "win32" && handle.pid) {
+    try {
+      process.kill(-handle.pid, "SIGTERM");
+      return;
+    } catch {
+      // Fall back to terminating the direct child.
+    }
+  }
+  handle.kill("SIGTERM");
 }
 
 function assert(condition, message) {
