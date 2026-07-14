@@ -34,7 +34,7 @@ import {
   type GoldenQuizReviewCategory,
   type GoldenQuizReviewDecision,
 } from "@/lib/golden-quiz-quality";
-import { useData } from "@/lib/store";
+import { useData, type QuizQuestion } from "@/lib/store";
 
 const REVIEW_CATEGORIES: GoldenQuizReviewCategory[] = [
   "clarity",
@@ -391,13 +391,7 @@ export function GoldenQuizQualityReview({ quizId }: { quizId: string }) {
   );
 }
 
-function FeedbackPreview({
-  question,
-  isRu,
-}: {
-  question: Parameters<typeof parseGoldenQuizFeedback>[0] extends never ? never : any;
-  isRu: boolean;
-}) {
+function FeedbackPreview({ question, isRu }: { question: QuizQuestion; isRu: boolean }) {
   const feedback = parseGoldenQuizFeedback(question.explanation, question.options.length);
   return (
     <div className="mt-4 space-y-2 rounded-md border border-border bg-background p-4 text-xs leading-5">
