@@ -114,7 +114,7 @@ for (const marker of [
 
 for (const marker of [
   "Reviewed concept extraction browser E2E passed",
-  "Кандидатов на проверку",
+  "Проверка перед добавлением",
   "Добавить выбранные",
   'localStorage.getItem("lamdan.concept-evidence.v1")',
   "evidenceEvents.length === 0",
