@@ -74,7 +74,7 @@ Pending on the current branch:
 - TypeScript;
 - ESLint and formatting;
 - production build;
-- existing browser regression gates;
+- critical browser end-to-end and the other existing browser regression gates;
 - long-media Chromium: 18 MB upload → three IndexedDB chunks → SHA verification → SRT import → two approved source chunks → reload.
 
 The branch must not merge until every applicable gate passes.
