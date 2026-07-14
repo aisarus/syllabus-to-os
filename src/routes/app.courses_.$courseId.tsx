@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ConceptEvidenceWorkspace } from "@/components/concept-evidence-workspace";
 import { CourseWorkspace } from "@/components/course-workspace";
 
 export const Route = createFileRoute("/app/courses_/$courseId")({
@@ -7,5 +8,10 @@ export const Route = createFileRoute("/app/courses_/$courseId")({
 
 function CoursePage() {
   const { courseId } = Route.useParams();
-  return <CourseWorkspace courseId={courseId} />;
+  return (
+    <>
+      <CourseWorkspace courseId={courseId} />
+      <ConceptEvidenceWorkspace courseId={courseId} />
+    </>
+  );
 }
