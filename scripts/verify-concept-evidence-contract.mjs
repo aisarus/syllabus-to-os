@@ -7,6 +7,7 @@ const [
   store,
   lifecycle,
   workspace,
+  openAnswerWorkspace,
   riskSummary,
   appRoute,
   courseRoute,
@@ -19,6 +20,7 @@ const [
   read("src/lib/concept-store.ts"),
   read("src/components/concept-evidence-lifecycle.tsx"),
   read("src/components/concept-evidence-workspace.tsx"),
+  read("src/components/concept-open-answer-review.tsx"),
   read("src/components/concept-evidence-risk-summary.tsx"),
   read("src/routes/app.tsx"),
   read("src/routes/app.courses_.$courseId.tsx"),
@@ -46,6 +48,10 @@ for (const marker of [
   "attemptsById",
   "detailsByAttemptId",
   'event.sourceType === "quiz_question_answer"',
+  'event.sourceType === "open_answer_review"',
+  'event.reviewMode === "ai_human"',
+  "evidenceIsObjective",
+  "repairOfEvidenceId",
 ]) {
   requireMarker(engine, marker, `Concept evidence engine is missing: ${marker}`);
 }
@@ -95,6 +101,16 @@ for (const marker of [
 }
 
 for (const marker of [
+  "Открытый ответ и исправление ошибки",
+  "Human-only review остаётся вторичным evidence",
+  'sourceType: "open_answer_review"',
+  "repairOfEvidenceId",
+  "История открытых ответов",
+]) {
+  requireMarker(openAnswerWorkspace, marker, `Open-answer evidence surface is missing: ${marker}`);
+}
+
+for (const marker of [
   "Риск забывания",
   "time since the latest successful scored event",
   "File views, time in the app and neutral quiz attempts do not reduce it",
@@ -108,6 +124,11 @@ requireMarker(
   courseRoute,
   "<ConceptEvidenceRiskSummary courseId={courseId} />",
   "Course route does not expose forgetting risk.",
+);
+requireMarker(
+  courseRoute,
+  "<ConceptOpenAnswerReview courseId={courseId} />",
+  "Course route does not expose open-answer evidence.",
 );
 requireMarker(
   courseRoute,
