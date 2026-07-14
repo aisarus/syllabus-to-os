@@ -110,6 +110,9 @@ jobs:
       - name: Verify concept evidence contract
         run: npm run verify:concept-evidence-contract
 
+      - name: Verify per-question evidence contract
+        run: npm run verify:per-question-evidence-contract
+
       - name: Run deterministic evaluation suites
         run: npm run eval
 
@@ -143,6 +146,11 @@ jobs:
         continue-on-error: true
         run: npm run eval:concept-evidence 2>&1 | tee concept-evidence-eval-output.txt
 
+      - name: Run per-question evidence evaluations
+        id: per_question_evidence_eval
+        continue-on-error: true
+        run: npm run eval:per-question-evidence 2>&1 | tee per-question-evidence-eval-output.txt
+
       - name: Typecheck
         id: typecheck
         continue-on-error: true
@@ -171,7 +179,7 @@ jobs:
           git diff -- . ':!bun.lock' > prettier-fix.patch
 
       - name: Upload failure diagnostics
-        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure'
+        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.per_question_evidence_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: ci-diagnostics
@@ -182,6 +190,7 @@ jobs:
             study-command-eval-output.txt
             study-pack-eval-output.txt
             concept-evidence-eval-output.txt
+            per-question-evidence-eval-output.txt
             typecheck-output.txt
             lint-output.txt
             build-output.txt
@@ -192,7 +201,7 @@ jobs:
           retention-days: 7
 
       - name: Fail when quality gates fail
-        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure'
+        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.per_question_evidence_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure'
         run: |
           echo "One or more quality gates failed. Download the ci-diagnostics artifact for details."
           exit 1
