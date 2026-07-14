@@ -5,7 +5,7 @@ import {
   syncQuizAttemptEvidence,
   useConceptEvidenceData,
 } from "@/lib/concept-store";
-import { useData } from "@/lib/store";
+import { getDataSnapshot, useData } from "@/lib/store";
 
 installConceptEvidenceBridge();
 
@@ -14,8 +14,9 @@ export function ConceptEvidenceLifecycle() {
   const conceptData = useConceptEvidenceData();
 
   useEffect(() => {
-    reconcileConceptEvidence(core);
-    syncQuizAttemptEvidence(core);
+    const hydratedCore = getDataSnapshot();
+    reconcileConceptEvidence(hydratedCore);
+    syncQuizAttemptEvidence(hydratedCore);
   }, [
     core.courses,
     core.topics,
