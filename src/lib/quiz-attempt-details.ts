@@ -43,19 +43,23 @@ export interface RecordedQuizAttempt {
 }
 
 const KEY = "lamdan.quiz-attempt-details.v1";
-const SERVER_SNAPSHOT: QuizAttemptDetailData = { version: 1, attempts: [] };
+const SERVER_SNAPSHOT: QuizAttemptDetailData = emptyQuizAttemptDetailData();
 let state = SERVER_SNAPSHOT;
 let hydrated = false;
 const listeners = new Set<() => void>();
+
+export function emptyQuizAttemptDetailData(): QuizAttemptDetailData {
+  return { version: 1, attempts: [] };
+}
 
 function ensureHydrated(): void {
   if (hydrated || typeof window === "undefined") return;
   hydrated = true;
   try {
     const raw = localStorage.getItem(KEY);
-    state = raw ? normalizeQuizAttemptDetailData(JSON.parse(raw)) : SERVER_SNAPSHOT;
+    state = raw ? normalizeQuizAttemptDetailData(JSON.parse(raw)) : emptyQuizAttemptDetailData();
   } catch {
-    state = SERVER_SNAPSHOT;
+    state = emptyQuizAttemptDetailData();
   }
 }
 
@@ -86,6 +90,10 @@ export function useQuizAttemptDetailData(): QuizAttemptDetailData {
 export function getQuizAttemptDetailSnapshot(): QuizAttemptDetailData {
   ensureHydrated();
   return JSON.parse(JSON.stringify(state)) as QuizAttemptDetailData;
+}
+
+export function replaceQuizAttemptDetailData(next: QuizAttemptDetailData): void {
+  persist(next);
 }
 
 export function buildQuizAttemptAnswerSnapshots(
@@ -156,14 +164,24 @@ export function recordQuizAttemptWithAnswers(input: {
   };
 }
 
-export function reconcileQuizAttemptDetails(core: AppData): void {
-  ensureHydrated();
+export function reconcileQuizAttemptDetailData(
+  input: QuizAttemptDetailData,
+  core: AppData,
+): QuizAttemptDetailData {
   const attemptIds = new Set(core.quizAttempts.map((attempt) => attempt.id));
   const quizIds = new Set(core.quizzes.map((quiz) => quiz.id));
-  const next = state.attempts.filter(
-    (detail) => attemptIds.has(detail.attemptId) && quizIds.has(detail.quizId),
-  );
-  if (next.length !== state.attempts.length) persist({ version: 1, attempts: next });
+  return {
+    version: 1,
+    attempts: input.attempts.filter(
+      (detail) => attemptIds.has(detail.attemptId) && quizIds.has(detail.quizId),
+    ),
+  };
+}
+
+export function reconcileQuizAttemptDetails(core: AppData): void {
+  ensureHydrated();
+  const next = reconcileQuizAttemptDetailData(state, core);
+  if (JSON.stringify(next) !== JSON.stringify(state)) persist(next);
 }
 
 export function deleteQuizAttemptDetailsForQuiz(quizId: string): void {
@@ -173,7 +191,7 @@ export function deleteQuizAttemptDetailsForQuiz(quizId: string): void {
 }
 
 export function normalizeQuizAttemptDetailData(raw: unknown): QuizAttemptDetailData {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return SERVER_SNAPSHOT;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return emptyQuizAttemptDetailData();
   const object = raw as Record<string, unknown>;
   const attempts = Array.isArray(object.attempts)
     ? object.attempts
