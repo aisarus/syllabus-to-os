@@ -1,12 +1,12 @@
 # Lamdan — Current execution status
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 ## Current milestone
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. The first M2 layer, Study Command Center, is merged; the next vertical layer, Lecture-to-Study-Pack, is implemented in the current branch and under verification.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack and the first honest Concept Graph and Evidence Model vertical slice are implemented and verified.
 
 ## Completed task state
 
@@ -22,67 +22,47 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-004 Add local-first global search v2` — complete and verified; PR #34 CI passed.
 - `P1-005 Store persistence and source-integrity hardening` — complete and verified; PR #35 CI passed and merged.
 - `P1-011 Study Command Center v1` — complete and verified; PR #36 full CI and critical browser end-to-end passed and merged.
+- `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37 full CI and critical browser end-to-end passed and merged.
+- `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38 full CI and critical browser end-to-end passed.
 
-## Current implementation pass
+## P1-013 delivered state
 
-### P1-012 — Lecture-to-Study-Pack
-
-**Status:** implemented on `agent/lecture-study-pack`; full CI, review and browser verification pending.
-
-Delivered:
-
-- primary “Prepare me from this lecture” action on material detail;
-- selected approved source chunks only;
-- one combined editable draft rather than disconnected generation dialogs;
-- concise orientation and realistic total duration;
-- ordered orient/learn/recall/practice/repair steps;
-- clean structured note;
-- source-linked key terminology;
-- deduplicated atomic flashcards;
-- diagnostic questions with four unique options, one answer and grounded explanations;
-- explicit unclear areas and `notFoundInSources` instead of model-memory gap filling;
-- unknown source IDs are rejected and uncited items are counted;
-- user review and correction before any save;
-- approved pack persists as normal first-class note, flashcards and quiz entities;
-- source references remain attached to each saved item;
-- no claim that finishing the pack proves mastery;
-- deterministic helper evaluations and a permanent trust contract;
-- package, local check and GitHub Actions wiring.
+- separate local-first `lamdan.concept-evidence.v1` layer without rewriting `lamdan.data.v1`;
+- explicit migration from missing or malformed concept data to a normalized empty/safe layer;
+- course concepts linked manually to topics, approved source chunks, flashcards and quiz questions;
+- knowledge states `unseen`, `covered`, `fragile`, `weak` and `strong`;
+- strong evidence requires at least four successful events, including at least two non-manual successes, across two distinct days and two evidence kinds;
+- one lucky answer, one flashcard rating or repeated manual self-rating cannot create strong state;
+- flashcard review outcomes create recall success/failure events only for explicitly linked concepts;
+- aggregate quiz attempts appear as neutral `mixed` assessment context and never raise concept state;
+- explicit explanation/application checks remain secondary self-recorded evidence;
+- editable mistake taxonomy: retrieval, confusion, application, careless and unclassified;
+- forgetting-risk label from time since latest successful scored evidence;
+- inspectable and removable evidence history with immediate recalculation;
+- reconciliation removes dangling course/topic/chunk/card/question/attempt relationships;
+- deleting or unlinking practice removes its dangling evidence;
+- visible course-level concept JSON export/import;
+- RU/EN Course Workspace UI using the Academic Content Workspace design system;
+- deterministic evaluations and a permanent trust contract.
 
 Current v1 boundaries:
 
-- one material at a time;
-- at most eight selected source chunks / 20,000 characters;
-- no persistent dedicated `StudyPack` entity yet;
-- no section-level AI regeneration yet;
-- no completion evidence or first-step Study Cockpit yet;
-- live provider quality still requires real Hebrew course material.
-
-### Academic Autopilot roadmap
-
-`ROADMAP.md`, `TASKS.md` and `PLANS.md` define the connected sequence:
-
-- `P1-013` concept graph and evidence model;
-- `P1-014` Exam Engine;
-- `P1-015` Assignment Copilot;
-- `P1-016` Lecture Mode;
-- `P1-017` Ask My Course;
-- `P1-018` intelligent calendar and workload forecast;
-- `P1-019` personal explanation and accessibility layer.
+- concept extraction is manual; AI extraction review is not implemented;
+- existing `QuizAttempt` records do not contain per-question answers, so quiz evidence remains neutral context;
+- open-answer and oral evidence are not implemented;
+- concept export is separate from the full visual ZIP backup;
+- no mastery percentage, score prediction or exam-readiness number exists.
 
 ## Verification state
 
-Pending on the current branch:
+PR #38 passed:
 
-- Study Pack contract and deterministic evaluations;
-- all existing documentation, source-integrity and OCR contracts;
+- concept evidence contract and deterministic evaluations;
+- all existing documentation, source-integrity, Study Pack and OCR contracts;
 - TypeScript;
 - ESLint and formatting;
 - production build and generated route tree;
-- critical browser end-to-end execution;
-- review of save behavior and mobile-width modal usability.
-
-The branch must not merge until the full quality workflow passes.
+- critical Chromium end-to-end execution.
 
 ## Existing validation blockers
 
@@ -100,9 +80,8 @@ The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved 
 
 ## Next execution targets
 
-1. Verify `P1-012` in CI and fix every failure.
-2. Review Study Pack trust, save and mobile behavior.
-3. Merge PR #37 only after all repository gates pass.
-4. Run `P1-006` and `P1-007` when private inputs are supplied.
-5. Execute `P1-008` and fix pilot blockers.
-6. Start `P1-013 Concept graph and evidence model` after Study Pack is stable.
+1. Persist per-question quiz answer evidence without changing historical aggregate attempts.
+2. Add reviewed concept extraction from Study Pack/source chunks.
+3. Integrate concept data into full visual ZIP backup.
+4. Begin `P1-014 Exam Engine` after the evidence foundation remains stable in real use.
+5. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
