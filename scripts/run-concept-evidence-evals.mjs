@@ -72,14 +72,36 @@ const event = (id, kind, outcome, occurredAt, extra = {}) => ({
   const summary = summarizeConceptEvidence(
     concept,
     [
-      event("s1", "recall", "success", now - 2 * DAY),
+      event("m1", "explanation", "success", now - 2 * DAY),
+      event("m2", "application", "success", now - 2 * DAY + 1000),
+      event("m3", "explanation", "success", now - DAY),
+      event("m4", "application", "success", now),
+    ],
+    now,
+  );
+  assert.equal(summary.state, "fragile", "manual self-evidence must remain secondary");
+  assert.equal(summary.objectiveSuccessCount, 0);
+}
+
+{
+  const summary = summarizeConceptEvidence(
+    concept,
+    [
+      event("s1", "recall", "success", now - 2 * DAY, {
+        sourceType: "flashcard_review",
+        sourceId: "card_1",
+      }),
       event("s2", "explanation", "success", now - 2 * DAY + 1000),
-      event("s3", "recall", "success", now - DAY),
+      event("s3", "recall", "success", now - DAY, {
+        sourceType: "flashcard_review",
+        sourceId: "card_1",
+      }),
       event("s4", "application", "success", now),
     ],
     now,
   );
   assert.equal(summary.state, "strong");
+  assert.equal(summary.objectiveSuccessCount, 2);
   assert.equal(summary.distinctSuccessDays, 3);
   assert.ok(summary.distinctSuccessKinds.length >= 2);
 }
@@ -115,9 +137,9 @@ const event = (id, kind, outcome, occurredAt, extra = {}) => ({
     topics: [{ id: "top_1" }],
     notes: [],
     flashcards: [],
-    quizzes: [],
-    quizQuestions: [{ id: "qq_1" }],
-    quizAttempts: [],
+    quizzes: [{ id: "quiz_1" }],
+    quizQuestions: [{ id: "qq_1", quizId: "quiz_1" }],
+    quizAttempts: [{ id: "att_1", quizId: "quiz_1" }],
     assignments: [],
     materials: [],
     materialChunks: [{ id: "chk_1" }],
@@ -136,6 +158,10 @@ const event = (id, kind, outcome, occurredAt, extra = {}) => ({
           sourceType: "flashcard_review",
           sourceId: "card_1",
         }),
+        event("quiz-event", "assessment", "mixed", now, {
+          sourceType: "quiz_attempt",
+          sourceId: "att_1",
+        }),
         event("manual-event", "explanation", "success", now),
       ],
     },
@@ -144,8 +170,24 @@ const event = (id, kind, outcome, occurredAt, extra = {}) => ({
   assert.deepEqual(reconciled.concepts[0].sourceChunkIds, ["chk_1"]);
   assert.deepEqual(reconciled.concepts[0].flashcardIds, []);
   assert.deepEqual(reconciled.concepts[0].quizQuestionIds, ["qq_1"]);
-  assert.equal(reconciled.evidenceEvents.length, 1, "deleted practice must not leave dangling evidence");
-  assert.equal(reconciled.evidenceEvents[0].id, "manual-event");
+  assert.deepEqual(
+    reconciled.evidenceEvents.map((item) => item.id).sort(),
+    ["manual-event", "quiz-event"],
+    "deleted practice must not leave dangling evidence",
+  );
+
+  const unlinked = reconcileConceptEvidenceData(
+    {
+      ...reconciled,
+      concepts: [{ ...reconciled.concepts[0], quizQuestionIds: [] }],
+    },
+    core,
+  );
+  assert.equal(
+    unlinked.evidenceEvents.some((item) => item.id === "quiz-event"),
+    false,
+    "unlinked quiz context must be removed",
+  );
 }
 
 assert.deepEqual(emptyConceptEvidenceData(), { version: 1, concepts: [], evidenceEvents: [] });
