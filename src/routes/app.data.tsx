@@ -15,6 +15,12 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
+import { conceptStore, useConceptEvidenceData } from "@/lib/concept-store";
+import {
+  emptyQuizAttemptDetailData,
+  replaceQuizAttemptDetailData,
+  useQuizAttemptDetailData,
+} from "@/lib/quiz-attempt-details";
 import { exportJSON, importJSON, store, useData } from "@/lib/store";
 import {
   clearAllVisualSourceData,
@@ -24,20 +30,21 @@ import {
 import {
   applyFullVisualBackup,
   createFullVisualBackup,
+  MAX_FULL_WORKSPACE_BACKUP_BYTES,
   prepareFullVisualBackup,
   previewFullVisualBackupImport,
   type FullVisualBackupImportPreview,
   type PreparedFullVisualBackup,
-} from "@/lib/visual-backup";
+} from "@/lib/workspace-backup";
 
-export const Route = createFileRoute("/app/data")({
-  component: DataPage,
-});
+export const Route = createFileRoute("/app/data")({ component: DataPage });
 
 function DataPage() {
   const { t, lang } = useApp();
   const isRu = lang === "ru";
   const data = useData();
+  const concepts = useConceptEvidenceData();
+  const attemptDetails = useQuizAttemptDetailData();
   const jsonFileRef = useRef<HTMLInputElement>(null);
   const fullBackupFileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,19 +70,18 @@ function DataPage() {
   }, [refreshVisualStats, data.materials.length]);
 
   const doExport = () => {
-    const json = exportJSON();
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `lamdan-${new Date().toISOString().slice(0, 10)}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    const blob = new Blob([exportJSON()], { type: "application/json" });
+    downloadBlob(blob, `lamdan-${new Date().toISOString().slice(0, 10)}.json`);
     toast.success(
       isRu
-        ? "JSON-копия экспортирована; исходные фото в неё не входят"
-        : "JSON backup exported; original images are not included",
+        ? "JSON-копия экспортирована; фото, concept graph и история ответов в неё не входят"
+        : "JSON backup exported; images, concept graph and answer history are not included",
     );
+  };
+
+  const clearCompanionStores = () => {
+    conceptStore.reset();
+    replaceQuizAttemptDetailData(emptyQuizAttemptDetailData());
   };
 
   const doImport = (file: File) => {
@@ -104,35 +110,29 @@ function DataPage() {
 
       const confirmed = confirm(
         isRu
-          ? "Импорт полностью заменит текстовые данные Lamdan и удалит локальные исходные фото и OCR-черновики, потому что JSON-копия их не содержит. Продолжить?"
-          : "Import will replace Lamdan text data and remove local source images and OCR drafts because the JSON backup does not contain them. Continue?",
+          ? "JSON полностью заменит core-данные и удалит фото, OCR, concept graph и детальную историю ответов, потому что JSON их не содержит. Продолжить?"
+          : "JSON will replace core data and remove images, OCR, the concept graph and detailed answer history because JSON does not contain them. Continue?",
       );
-      if (!confirmed) {
-        toast.message(
-          isRu ? "Импорт отменён, данные не изменены" : "Import cancelled; data was not changed",
-        );
-        return;
-      }
-
+      if (!confirmed) return;
       const result = importJSON(raw);
-      if (result.ok) {
-        try {
-          await clearAllVisualSourceData();
-          await refreshVisualStats();
-        } catch (visualError) {
-          const message = visualError instanceof Error ? visualError.message : String(visualError);
-          setError(message);
-          toast.warning(
-            isRu
-              ? "Текст восстановлен, но локальные фото не удалось полностью очистить"
-              : "Text was restored, but local images could not be fully cleared",
-          );
-          return;
-        }
-        toast.success(t.importSuccess);
-      } else {
+      if (!result.ok) {
         setError(result.error);
         toast.error(t.invalidFile);
+        return;
+      }
+      try {
+        await clearAllVisualSourceData();
+        clearCompanionStores();
+        await refreshVisualStats();
+        toast.success(t.importSuccess);
+      } catch (clearError) {
+        const message = clearError instanceof Error ? clearError.message : String(clearError);
+        setError(message);
+        toast.warning(
+          isRu
+            ? "Core восстановлен, но дополнительные локальные слои очищены не полностью"
+            : "Core data was restored, but companion local layers were not fully cleared",
+        );
       }
     };
     reader.readAsText(file);
@@ -143,11 +143,11 @@ function DataPage() {
     setFullBackupBusy(true);
     try {
       const result = await createFullVisualBackup();
-      downloadBlob(result.blob, `lamdan-full-${new Date().toISOString().slice(0, 10)}.zip`);
+      downloadBlob(result.blob, `lamdan-workspace-${new Date().toISOString().slice(0, 10)}.zip`);
       toast.success(
         isRu
-          ? "Полная ZIP-копия с фото и OCR-черновиками экспортирована"
-          : "Full ZIP backup with images and OCR drafts exported",
+          ? "Workspace ZIP v2 с фото, OCR, concepts и immutable answers экспортирован"
+          : "Workspace ZIP v2 with images, OCR, concepts and immutable answers exported",
       );
       if (result.skippedOrphanMaterialIds.length > 0) {
         toast.warning(
@@ -159,7 +159,7 @@ function DataPage() {
     } catch (backupError) {
       const message = backupError instanceof Error ? backupError.message : String(backupError);
       setError(message);
-      toast.error(isRu ? "Не удалось создать полную копию" : "Could not create the full backup");
+      toast.error(isRu ? "Не удалось создать workspace-копию" : "Could not create the workspace backup");
     } finally {
       setFullBackupBusy(false);
     }
@@ -177,8 +177,8 @@ function DataPage() {
       setFullBackupPreview(preview);
       toast.success(
         isRu
-          ? "Архив проверен; выбери режим восстановления"
-          : "Archive verified; choose a restore mode",
+          ? "Все payload проверены; выбери режим восстановления"
+          : "All payloads verified; choose a restore mode",
       );
     } catch (backupError) {
       const message = backupError instanceof Error ? backupError.message : String(backupError);
@@ -195,8 +195,8 @@ function DataPage() {
       mode === "replace" &&
       !confirm(
         isRu
-          ? "Полностью заменить текущие текстовые данные, фотографии, обработанные preview и OCR-черновики данными из проверенного ZIP?"
-          : "Replace current text data, source images, processed previews and OCR drafts with this verified ZIP?",
+          ? "Полностью заменить core, фото, OCR, concept graph и детальную историю ответов данными из проверенного ZIP?"
+          : "Replace core data, images, OCR, concept graph and detailed answer history with this verified ZIP?",
       )
     ) {
       return;
@@ -211,13 +211,13 @@ function DataPage() {
       toast.success(
         isRu
           ? mode === "replace"
-            ? "Полная копия восстановлена"
-            : "Полная копия безопасно объединена"
+            ? "Workspace-копия восстановлена"
+            : "Workspace-копия безопасно объединена"
           : mode === "replace"
-            ? "Full backup restored"
-            : "Full backup merged safely",
+            ? "Workspace backup restored"
+            : "Workspace backup merged safely",
       );
-      if (result.warnings.length > 0 || result.conflicts.length > 0) {
+      if (result.warnings.length || result.conflicts.length) {
         toast.warning(
           isRu
             ? `Восстановление завершено с замечаниями: ${result.warnings.length + result.conflicts.length}`
@@ -228,54 +228,53 @@ function DataPage() {
       const message = backupError instanceof Error ? backupError.message : String(backupError);
       setError(message);
       toast.error(
-        isRu ? "Восстановление отменено и откатано" : "Restore was cancelled and rolled back",
+        isRu ? "Восстановление отменено и полностью откатано" : "Restore was cancelled and fully rolled back",
       );
     } finally {
       setFullBackupBusy(false);
     }
   };
 
-  const itemCount =
+  const coreCount =
     data.courses.length +
     data.materials.length +
     data.notes.length +
     data.flashcards.length +
     data.quizzes.length;
-  const visualItemCount =
+  const visualCount =
     (visualStats?.imageCount ?? 0) +
     (visualStats?.processedImageCount ?? 0) +
     (visualStats?.ocrDraftCount ?? 0);
-  const hasAnyData = itemCount > 0 || visualItemCount > 0;
+  const answerSnapshotCount = attemptDetails.attempts.reduce(
+    (sum, attempt) => sum + attempt.answers.length,
+    0,
+  );
+  const companionCount =
+    concepts.concepts.length + concepts.evidenceEvents.length + attemptDetails.attempts.length;
+  const hasAnyData = coreCount + visualCount + companionCount > 0;
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="mx-auto max-w-4xl">
       <PageHeader
         title={t.dataTitle}
         subtitle={
           isRu
-            ? "Лёгкий JSON и полная ZIP-копия для текстов, фото, preview и OCR-черновиков."
-            : "Lightweight JSON and full ZIP backups for text, images, previews and OCR drafts."
+            ? "Лёгкий core JSON и checksummed Workspace ZIP v2 для полного учебного пространства."
+            : "Lightweight core JSON and a checksummed Workspace ZIP v2 for the complete study workspace."
         }
       />
 
       <div className="mb-4 rounded-lg border border-border bg-surface p-4 text-sm">
         <strong>{isRu ? "Сейчас в библиотеке" : "Current library"}</strong>
-        <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground sm:grid-cols-5">
-          <span>
-            {data.courses.length} {isRu ? "курсов" : "courses"}
-          </span>
-          <span>
-            {data.materials.length} {isRu ? "материалов" : "materials"}
-          </span>
-          <span>
-            {data.notes.length} {isRu ? "конспектов" : "notes"}
-          </span>
-          <span>
-            {data.flashcards.length} {isRu ? "карточек" : "cards"}
-          </span>
-          <span>
-            {data.quizzes.length} {isRu ? "тестов" : "quizzes"}
-          </span>
+        <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground sm:grid-cols-4 lg:grid-cols-8">
+          <span>{data.courses.length} {isRu ? "курсов" : "courses"}</span>
+          <span>{data.materials.length} {isRu ? "материалов" : "materials"}</span>
+          <span>{data.notes.length} {isRu ? "конспектов" : "notes"}</span>
+          <span>{data.flashcards.length} {isRu ? "карточек" : "cards"}</span>
+          <span>{data.quizzes.length} {isRu ? "тестов" : "quizzes"}</span>
+          <span>{concepts.concepts.length} {isRu ? "понятий" : "concepts"}</span>
+          <span>{concepts.evidenceEvents.length} evidence</span>
+          <span>{answerSnapshotCount} {isRu ? "ответов" : "answers"}</span>
         </div>
       </div>
 
@@ -284,58 +283,44 @@ function DataPage() {
           <FileImage className="mt-0.5 h-5 w-5 shrink-0 text-yellow-200" />
           <div>
             <h2 className="text-sm font-semibold text-yellow-100">
-              {isRu ? "Фото хранятся отдельно" : "Images are stored separately"}
+              {isRu ? "Полный перенос — только Workspace ZIP" : "Only Workspace ZIP moves everything"}
             </h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {isRu
-                ? "Есть два формата: лёгкий JSON для текстовых данных и полный ZIP с исходными фото, обработанными preview и OCR-черновиками из IndexedDB. Для надёжного переноса всего учебного пространства выбирай ZIP."
-                : "There are two formats: lightweight JSON for text data and a full ZIP with source images, processed previews and OCR drafts from IndexedDB. Use ZIP when you need to move the complete study workspace."}
+                ? "JSON содержит только core store. Workspace ZIP v2 содержит checksummed visual ZIP, concept graph, evidence events и immutable question answers."
+                : "JSON contains only the core store. Workspace ZIP v2 includes a checksummed visual ZIP, concept graph, evidence events and immutable question answers."}
             </p>
             <p className="mt-2 text-xs text-foreground">
               {visualStats
-                ? isRu
-                  ? `${visualStats.imageCount} фото · ${visualStats.processedImageCount} preview · ${visualStats.ocrDraftCount} OCR-черновиков · ${formatBytes(visualStats.totalVisualBytes)}`
-                  : `${visualStats.imageCount} images · ${visualStats.processedImageCount} previews · ${visualStats.ocrDraftCount} OCR drafts · ${formatBytes(visualStats.totalVisualBytes)}`
+                ? `${visualStats.imageCount} ${isRu ? "фото" : "images"} · ${visualStats.processedImageCount} preview · ${visualStats.ocrDraftCount} OCR · ${formatBytes(visualStats.totalVisualBytes)}`
                 : isRu
-                  ? "Не удалось прочитать статистику локальных фото"
-                  : "Could not read local image statistics"}
+                  ? "Не удалось прочитать статистику визуального хранилища"
+                  : "Could not read visual storage statistics"}
             </p>
           </div>
         </div>
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <section className="rounded-lg border border-border bg-surface p-6">
-          <h2 className="font-semibold mb-2">{isRu ? "Лёгкий JSON" : "Lightweight JSON"}</h2>
-          <p className="text-sm text-muted-foreground mb-4">
+          <h2 className="mb-2 font-semibold">{isRu ? "Лёгкий core JSON" : "Lightweight core JSON"}</h2>
+          <p className="mb-4 text-sm text-muted-foreground">
             {isRu
-              ? "Скачивает JSON с курсами, материалами, применённым распознанным текстом, конспектами, карточками, тестами и связями. Исходные фото не входят."
-              : "Downloads JSON containing courses, materials, applied recognized text, notes, flashcards, quizzes and relationships. Original images are not included."}
+              ? "Курсы, материалы, применённый текст, конспекты, карточки и тесты. Без фото, concepts и детальных ответов."
+              : "Courses, materials, applied text, notes, cards and quizzes. No images, concepts or detailed answers."}
           </p>
-          <Button
-            onClick={doExport}
-            disabled={itemCount === 0}
-            title={
-              itemCount === 0
-                ? isRu
-                  ? "Экспортировать текстовые данные пока нечего"
-                  : "There is no text data to export yet"
-                : undefined
-            }
-          >
+          <Button onClick={doExport} disabled={coreCount === 0}>
             <Download className="h-4 w-4 me-1" />
             {t.export}
           </Button>
         </section>
 
         <section className="rounded-lg border border-border bg-surface p-6">
-          <h2 className="font-semibold mb-2">
-            {isRu ? "Импорт лёгкого JSON" : "Import lightweight JSON"}
-          </h2>
-          <p className="text-sm text-muted-foreground mb-4">
+          <h2 className="mb-2 font-semibold">{isRu ? "Импорт core JSON" : "Import core JSON"}</h2>
+          <p className="mb-4 text-sm text-muted-foreground">
             {isRu
-              ? "Восстанавливает JSON-копию. Текущие исходные фото, обработанные preview и отдельные OCR-черновики будут удалены после подтверждения."
-              : "Restores a JSON backup. Current source images, processed previews and separate OCR drafts are removed after confirmation."}
+              ? "Полная замена core. Дополнительные visual/evidence-слои очищаются после подтверждения."
+              : "Complete core replacement. Companion visual/evidence layers are cleared after confirmation."}
           </p>
           <input
             ref={jsonFileRef}
@@ -359,20 +344,16 @@ function DataPage() {
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <FileArchive className="h-5 w-5 text-primary" />
-                <h2 className="font-semibold">{isRu ? "Полная ZIP-копия" : "Full ZIP backup"}</h2>
+                <h2 className="font-semibold">Workspace ZIP v2</h2>
               </div>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                 {isRu
-                  ? "Сохраняет и восстанавливает текстовые данные, оригиналы, обработанные preview, рецепты обработки и отдельные OCR-черновики. Каждый файл проверяется по SHA-256 до изменения текущей библиотеки."
-                  : "Exports and restores text data, originals, processed previews, preprocessing recipes and standalone OCR drafts. Every file is verified by SHA-256 before the current library can change."}
+                  ? "Core, оригиналы, preview, processing recipes, OCR, concept graph и история ответов. Каждый payload проверяется по отдельному SHA-256 до изменения библиотеки."
+                  : "Core data, originals, previews, processing recipes, OCR, concept graph and answer history. Every payload gets a separate SHA-256 verification before mutation."}
               </p>
             </div>
             <Button onClick={() => void doFullExport()} disabled={!hasAnyData || fullBackupBusy}>
-              {fullBackupBusy ? (
-                <Loader2 className="h-4 w-4 animate-spin me-1" />
-              ) : (
-                <Download className="h-4 w-4 me-1" />
-              )}
+              {fullBackupBusy ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : <Download className="h-4 w-4 me-1" />}
               {isRu ? "Скачать ZIP" : "Download ZIP"}
             </Button>
           </div>
@@ -388,20 +369,12 @@ function DataPage() {
                 event.target.value = "";
               }}
             />
-            <Button
-              variant="outline"
-              onClick={() => fullBackupFileRef.current?.click()}
-              disabled={fullBackupBusy}
-            >
-              {fullBackupBusy ? (
-                <Loader2 className="h-4 w-4 animate-spin me-1" />
-              ) : (
-                <ArchiveRestore className="h-4 w-4 me-1" />
-              )}
+            <Button variant="outline" onClick={() => fullBackupFileRef.current?.click()} disabled={fullBackupBusy}>
+              {fullBackupBusy ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : <ArchiveRestore className="h-4 w-4 me-1" />}
               {isRu ? "Проверить ZIP и восстановить" : "Verify ZIP and restore"}
             </Button>
             <span className="text-xs text-muted-foreground">
-              {isRu ? "Локальный лимит архива: 150 MB" : "Local archive limit: 150 MB"}
+              {isRu ? "Локальный лимит: " : "Local limit: "}{formatBytes(MAX_FULL_WORKSPACE_BACKUP_BYTES)}
             </span>
           </div>
         </section>
@@ -411,14 +384,12 @@ function DataPage() {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="font-semibold">
-                  {isRu
-                    ? "Проверенная копия готова к восстановлению"
-                    : "Verified backup is ready to restore"}
+                  {isRu ? "Проверенная копия готова" : "Verified backup is ready"}
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {isRu
-                    ? "Ни один текущий файл ещё не изменён. Выбери безопасное объединение или полную замену."
-                    : "No current file has changed yet. Choose a safe merge or a complete replacement."}
+                    ? "Ни один store ещё не изменён. Merge сохраняет текущие ID при конфликте; replace заменяет all four layers."
+                    : "No store has changed. Merge keeps current IDs on conflict; replace swaps all four layers."}
                 </p>
               </div>
               <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
@@ -426,56 +397,38 @@ function DataPage() {
               </span>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-              <BackupStat
-                label={isRu ? "Материалы" : "Materials"}
-                value={fullBackupPreview.summary.materials}
-              />
-              <BackupStat
-                label={isRu ? "Фото" : "Images"}
-                value={fullBackupPreview.summary.images}
-              />
-              <BackupStat
-                label={isRu ? "Preview" : "Previews"}
-                value={fullBackupPreview.summary.processedImages}
-              />
-              <BackupStat
-                label={isRu ? "OCR-черновики" : "OCR drafts"}
-                value={fullBackupPreview.summary.ocrDrafts}
-              />
+            <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 lg:grid-cols-8">
+              <BackupStat label={isRu ? "Материалы" : "Materials"} value={fullBackupPreview.summary.materials} />
+              <BackupStat label={isRu ? "Фото" : "Images"} value={fullBackupPreview.summary.images} />
+              <BackupStat label="Preview" value={fullBackupPreview.summary.processedImages} />
+              <BackupStat label="OCR" value={fullBackupPreview.summary.ocrDrafts} />
+              <BackupStat label={isRu ? "Понятия" : "Concepts"} value={fullBackupPreview.summary.concepts} />
+              <BackupStat label="Evidence" value={fullBackupPreview.summary.evidenceEvents} />
+              <BackupStat label={isRu ? "Попытки" : "Attempts"} value={fullBackupPreview.summary.detailedAttempts} />
+              <BackupStat label={isRu ? "Ответы" : "Answers"} value={fullBackupPreview.summary.answerSnapshots} />
             </div>
 
             <BackupNotes
               title={isRu ? "Замечания архива" : "Archive notes"}
               notes={fullBackupPreview.warnings}
-              emptyLabel={
-                isRu ? "Проверка не нашла замечаний." : "The verification found no notes."
-              }
+              emptyLabel={isRu ? "Проверка не нашла замечаний." : "The verification found no notes."}
             />
             <BackupNotes
-              title={isRu ? "Конфликты при безопасном объединении" : "Safe merge conflicts"}
+              title={isRu ? "Конфликты merge" : "Merge conflicts"}
               notes={fullBackupPreview.mergeConflicts}
               emptyLabel={
                 isRu
-                  ? "Конфликтов не найдено: объединение не перезапишет существующие записи."
-                  : "No conflicts found: the merge will not overwrite existing records."
+                  ? "Конфликтов не найдено: merge не перезапишет существующие ID."
+                  : "No conflicts found: merge will not overwrite existing IDs."
               }
             />
 
             <div className="mt-5 flex flex-wrap gap-3">
-              <Button
-                variant="outline"
-                onClick={() => void applyPreparedFullImport("merge")}
-                disabled={fullBackupBusy}
-              >
+              <Button variant="outline" onClick={() => void applyPreparedFullImport("merge")} disabled={fullBackupBusy}>
                 {fullBackupBusy ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : null}
                 {isRu ? "Безопасно объединить" : "Merge safely"}
               </Button>
-              <Button
-                variant="destructive"
-                onClick={() => void applyPreparedFullImport("replace")}
-                disabled={fullBackupBusy}
-              >
+              <Button variant="destructive" onClick={() => void applyPreparedFullImport("replace")} disabled={fullBackupBusy}>
                 {isRu ? "Заменить всё" : "Replace everything"}
               </Button>
               <Button
@@ -495,7 +448,7 @@ function DataPage() {
         )}
 
         {error && (
-          <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive break-words md:col-span-2">
+          <p className="break-words rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive md:col-span-2">
             {error}
           </p>
         )}
@@ -504,48 +457,33 @@ function DataPage() {
           <div className="flex items-start gap-3">
             <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
             <div className="min-w-0 flex-1">
-              <h2 className="font-semibold mb-2">{t.clearAll}</h2>
-              <p className="text-sm text-muted-foreground mb-4">
+              <h2 className="mb-2 font-semibold">{t.clearAll}</h2>
+              <p className="mb-4 text-sm text-muted-foreground">
                 {isRu
-                  ? "Удаляет localStorage, исходные изображения, обработанные preview и OCR-черновики из IndexedDB в этом браузере. Действие необратимо."
-                  : "Deletes localStorage, source images, processed previews and OCR drafts from IndexedDB in this browser. This cannot be undone."}
+                  ? "Удаляет core localStorage, visual IndexedDB, concept graph и immutable answer history. Действие необратимо."
+                  : "Deletes core localStorage, visual IndexedDB, concept graph and immutable answer history. This cannot be undone."}
               </p>
               <Button
                 variant="destructive"
                 disabled={!hasAnyData}
-                title={
-                  !hasAnyData
-                    ? isRu
-                      ? "Локальное хранилище уже пустое"
-                      : "Local storage is already empty"
-                    : undefined
-                }
                 onClick={async () => {
                   const confirmed = confirm(
                     isRu
-                      ? "Безвозвратно удалить все текстовые данные, исходные фото, обработанные preview и OCR-черновики Lamdan в этом браузере?"
-                      : "Permanently delete all Lamdan text data, source images, processed previews and OCR drafts in this browser?",
+                      ? "Безвозвратно удалить все четыре локальных слоя Lamdan?"
+                      : "Permanently delete all four local Lamdan storage layers?",
                   );
                   if (!confirmed) return;
                   try {
                     await clearAllVisualSourceData();
                     store.reset();
+                    clearCompanionStores();
                     setError(null);
                     await refreshVisualStats();
-                    toast.success(
-                      isRu
-                        ? "Все локальные данные и фото удалены"
-                        : "All local data and images were deleted",
-                    );
+                    toast.success(isRu ? "Все локальные данные удалены" : "All local data was deleted");
                   } catch (clearError) {
-                    const message =
-                      clearError instanceof Error ? clearError.message : String(clearError);
+                    const message = clearError instanceof Error ? clearError.message : String(clearError);
                     setError(message);
-                    toast.error(
-                      isRu
-                        ? "Не удалось полностью удалить локальные фото"
-                        : "Could not fully delete local images",
-                    );
+                    toast.error(isRu ? "Не удалось полностью удалить данные" : "Could not fully delete local data");
                   }
                 }}
               >
@@ -578,8 +516,7 @@ function BackupNotes({
   notes: string[];
   emptyLabel: string;
 }) {
-  const visibleNotes = notes.slice(0, 4);
-
+  const visibleNotes = notes.slice(0, 5);
   return (
     <div className="mt-4 rounded-md border border-border bg-muted/20 p-3 text-xs">
       <h3 className="font-medium text-foreground">

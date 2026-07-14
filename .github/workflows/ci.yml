@@ -46,70 +46,50 @@ jobs:
 
       - name: Verify project documentation
         run: npm run verify:docs
-
       - name: Verify selected-source AI contract
         run: npm run verify:ai-source-contract
-
       - name: Verify syllabus review contract
         run: npm run verify:syllabus-review-contract
-
       - name: Verify Course Workspace contract
         run: npm run verify:course-workspace-contract
-
       - name: Verify Notes editor contract
         run: npm run verify:notes-editor-contract
-
       - name: Verify Flashcard Studio contract
         run: npm run verify:flashcard-studio-contract
-
       - name: Verify Quiz Studio contract
         run: npm run verify:quiz-studio-contract
-
       - name: Verify detail route reachability
         run: npm run verify:detail-route-contract
-
       - name: Verify core UI audit contract
         run: npm run verify:core-ui-audit
-
       - name: Verify evaluation fixture coverage
         run: npm run verify:evaluation-fixtures
-
       - name: Verify image OCR contract
         run: npm run verify:image-ocr-contract
-
       - name: Verify image preprocessing contract
         run: npm run verify:image-preprocessing-contract
-
       - name: Verify OCR region overlay contract
         run: npm run verify:ocr-region-overlay-contract
-
       - name: Verify visual backup contract
         run: npm run verify:visual-backup-contract
-
+      - name: Verify workspace backup v2 contract
+        run: npm run verify:workspace-backup-contract
       - name: Verify multi-page image contract
         run: npm run verify:multipage-image-contract
-
       - name: Verify golden quiz quality contract
         run: npm run verify:golden-quiz-quality-contract
-
       - name: Verify critical browser E2E contract
         run: npm run verify:critical-browser-e2e-contract
-
       - name: Verify global search v2 contract
         run: npm run verify:global-search-v2-contract
-
       - name: Verify store safety contract
         run: npm run verify:store-safety-contract
-
       - name: Verify study command center contract
         run: npm run verify:study-command-center-contract
-
       - name: Verify Study Pack contract
         run: npm run verify:study-pack-contract
-
       - name: Verify concept evidence contract
         run: npm run verify:concept-evidence-contract
-
       - name: Verify per-question evidence contract
         run: npm run verify:per-question-evidence-contract
 
@@ -120,63 +100,66 @@ jobs:
         id: golden_quiz_eval
         continue-on-error: true
         run: npm run eval:golden-quiz 2>&1 | tee golden-quiz-eval-output.txt
-
       - name: Run global search v2 evaluations
         id: global_search_eval
         continue-on-error: true
         run: npm run eval:global-search 2>&1 | tee global-search-eval-output.txt
-
       - name: Run store safety evaluations
         id: store_safety_eval
         continue-on-error: true
         run: npm run eval:store-safety 2>&1 | tee store-safety-eval-output.txt
-
       - name: Run study command center evaluations
         id: study_command_eval
         continue-on-error: true
         run: npm run eval:study-command 2>&1 | tee study-command-eval-output.txt
-
       - name: Run Study Pack evaluations
         id: study_pack_eval
         continue-on-error: true
         run: npm run eval:study-pack 2>&1 | tee study-pack-eval-output.txt
-
       - name: Run concept evidence evaluations
         id: concept_evidence_eval
         continue-on-error: true
         run: npm run eval:concept-evidence 2>&1 | tee concept-evidence-eval-output.txt
-
       - name: Run per-question evidence evaluations
         id: per_question_evidence_eval
         continue-on-error: true
         run: npm run eval:per-question-evidence 2>&1 | tee per-question-evidence-eval-output.txt
+      - name: Run visual backup evaluations
+        id: visual_backup_eval
+        continue-on-error: true
+        run: npm run eval:visual-backup 2>&1 | tee visual-backup-eval-output.txt
+      - name: Run workspace backup v2 evaluations
+        id: workspace_backup_eval
+        continue-on-error: true
+        run: npm run eval:workspace-backup 2>&1 | tee workspace-backup-eval-output.txt
 
       - name: Typecheck
         id: typecheck
         continue-on-error: true
         run: npm run typecheck 2>&1 | tee typecheck-output.txt
-
       - name: Lint
         id: lint
         continue-on-error: true
         run: npm run lint 2>&1 | tee lint-output.txt
-
       - name: Build production bundle
         id: build
         continue-on-error: true
         run: npm run build 2>&1 | tee build-output.txt
-
       - name: Run critical browser E2E
         id: critical_e2e
         if: steps.build.outcome == 'success'
         continue-on-error: true
         run: npm run e2e:critical 2>&1 | tee critical-e2e-output.txt
-
       - name: Run question evidence browser E2E
         id: question_evidence_e2e
         if: steps.build.outcome == 'success'
         continue-on-error: true
         run: npm run e2e:question-evidence 2>&1 | tee question-evidence-e2e-output.txt
+      - name: Run workspace backup browser E2E
+        id: workspace_backup_e2e
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        run: npm run e2e:workspace-backup 2>&1 | tee workspace-backup-e2e-output.txt
 
       - name: Generate formatting patch after lint failure
         if: steps.lint.outcome == 'failure'
@@ -185,7 +168,7 @@ jobs:
           git diff -- . ':!bun.lock' > prettier-fix.patch
 
       - name: Upload failure diagnostics
-        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.per_question_evidence_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure' || steps.question_evidence_e2e.outcome == 'failure'
+        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.per_question_evidence_eval.outcome == 'failure' || steps.visual_backup_eval.outcome == 'failure' || steps.workspace_backup_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure' || steps.question_evidence_e2e.outcome == 'failure' || steps.workspace_backup_e2e.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: ci-diagnostics
@@ -197,18 +180,21 @@ jobs:
             study-pack-eval-output.txt
             concept-evidence-eval-output.txt
             per-question-evidence-eval-output.txt
+            visual-backup-eval-output.txt
+            workspace-backup-eval-output.txt
             typecheck-output.txt
             lint-output.txt
             build-output.txt
             critical-e2e-output.txt
             question-evidence-e2e-output.txt
+            workspace-backup-e2e-output.txt
             critical-e2e-artifacts
             prettier-fix.patch
           if-no-files-found: ignore
           retention-days: 7
 
       - name: Fail when quality gates fail
-        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.per_question_evidence_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure' || steps.question_evidence_e2e.outcome == 'failure'
+        if: steps.golden_quiz_eval.outcome == 'failure' || steps.global_search_eval.outcome == 'failure' || steps.store_safety_eval.outcome == 'failure' || steps.study_command_eval.outcome == 'failure' || steps.study_pack_eval.outcome == 'failure' || steps.concept_evidence_eval.outcome == 'failure' || steps.per_question_evidence_eval.outcome == 'failure' || steps.visual_backup_eval.outcome == 'failure' || steps.workspace_backup_eval.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.critical_e2e.outcome == 'failure' || steps.question_evidence_e2e.outcome == 'failure' || steps.workspace_backup_e2e.outcome == 'failure'
         run: |
           echo "One or more quality gates failed. Download the ci-diagnostics artifact for details."
           exit 1

@@ -80,11 +80,12 @@ requireMarker(
 for (const marker of [
   "getVisualSourceStorageStats",
   "clearAllVisualSourceData",
-  "исходные фото в неё не входят",
-  "original images are not included",
-  "JSON-копия их не содержит",
-  "source images, processed previews and OCR drafts",
-  "IndexedDB",
+  "JSON-копия экспортирована; фото, concept graph и история ответов в неё не входят",
+  "JSON backup exported; images, concept graph and answer history are not included",
+  "Workspace ZIP v2",
+  "visual ZIP",
+  "фото, OCR, concepts и immutable answers",
+  "core localStorage, visual IndexedDB, concept graph и immutable answer history",
 ]) {
   requireMarker(dataRoute, marker, `Data management is not honest about visual sources: ${marker}`);
 }
