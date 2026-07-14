@@ -22,43 +22,38 @@ This file records the active implementation plan. Product intent remains in `ROA
 - `P1-013A Per-question quiz evidence` — merged in PR #39 after deterministic and Chromium persistence gates.
 - `P1-013B Workspace backup v2` — merged in PR #41 after contracts, deterministic evals, TypeScript, lint, build and three Chromium gates.
 - `P1-013C Reviewed concept extraction` — merged in PR #42 after contracts, deterministic evals, TypeScript, lint, build and four Chromium gates.
-- `P1-013D Open-answer evidence and mistake repair` — verified in PR #43 after contracts, deterministic evals, TypeScript, lint, build and five Chromium gates.
+- `P1-013D Open-answer evidence and mistake repair` — merged in PR #43 after contracts, deterministic evals, TypeScript, lint, build and five Chromium gates.
 
-## Verified delivery — Open-answer evidence and mistake repair
+## Active delivery — Final edited-batch concept collision guard
 
 ### Product outcome
 
-Lamdan can store a complete explanation or application answer as inspectable evidence, optionally obtain a source-grounded AI review, require the user to confirm the final judgment, and preserve later mistake-repair attempts without rewriting the original failure.
+Manual edits made inside the concept review queue cannot create a duplicate concept by colliding a title with another title or alias immediately before acceptance.
 
-### Delivered sequence
+### Delivery sequence
 
-1. Extended the evidence schema with full prompt, response, reviewed source chunks and review mode. ✓
-2. Added additive `repairOfEvidenceId` links that retain the original failure. ✓
-3. Reconciled deleted sources and orphan repair links safely. ✓
-4. Kept human-only open answers secondary; only confirmed source-grounded AI+human reviews may count as non-manual. ✓
-5. Added strict source-only AI review generation and API route. ✓
-6. Rejected short, uncited and stale-source answers before persistence. ✓
-7. Added course UI for explanation/application prompts, full responses and source selection. ✓
-8. Required explicit human confirmation of outcome, score, mistake type and reviewed sources. ✓
-9. Added failure list, repair workflow and inspectable/removable history. ✓
-10. Added deterministic review, objective-evidence, reconciliation and repair-link evaluations. ✓
-11. Added Chromium proof for failure → linked repair → reload with both events preserved. ✓
-12. Wired permanent contracts, canonical checks and CI. ✓
-13. Passed all contracts, evals, TypeScript, lint, build and five browser gates. ✓
+1. Add a pure final acceptance planner that re-normalizes every selected candidate. ✓
+2. Compare full title+alias key sets against the current course knowledge map. ✓
+3. Compare full title+alias key sets against earlier accepted candidates in the same batch. ✓
+4. Reject stale source relationships at the final persistence boundary. ✓
+5. Expose `invalid`, `duplicate_existing` and `duplicate_batch` reasons. ✓
+6. Recalculate visible collision warnings after every manual edit. ✓
+7. Rerun the same guard immediately before writing concepts. ✓
+8. Allow valid candidates to save while rejected candidates remain editable. ✓
+9. Add deterministic alias→title, alias→alias, existing-alias and stale-source regression coverage. ✓
+10. Pass all contracts, evals, TypeScript, lint, build and five browser gates. Pending.
+11. Merge only after every gate passes. Pending.
 
 ### Non-negotiable boundaries
 
-- AI review is advisory and never auto-saves.
-- The model may judge only against explicitly selected current concept source chunks.
-- The user must confirm the final outcome, score, mistake type and source selection.
-- Human-only success remains secondary evidence.
-- A confirmed source-grounded AI+human review may count as non-manual, but one answer can never create `strong` state.
-- Repair creates a new event and never overwrites the original failure.
-- Removing the reviewed source relationship invalidates the affected evidence.
-- Full prompt, response, review and repair link remain inspectable and removable.
+- The persisted concept map remains the final source of truth.
+- A title or alias cannot collide with any current course concept.
+- A later selected candidate cannot collide with a title or alias of an earlier accepted candidate.
+- Source-less or stale-source candidates cannot be accepted.
+- Rejected candidates are not silently deleted and remain available for correction.
+- Accepting candidates still creates no learning evidence.
 
-## Active next delivery
+## Next delivery after collision hardening
 
-1. Add the final edited-batch alias collision guard.
-2. Build `P1-014 Exam Engine` on stable evidence, source coverage and deadlines.
-3. Continue `P1-015`–`P1-019` only through source-visible and reviewable contracts.
+1. Build `P1-014 Exam Engine` on stable evidence, source coverage and deadlines.
+2. Continue `P1-015`–`P1-019` only through source-visible and reviewable contracts.

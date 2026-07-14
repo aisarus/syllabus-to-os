@@ -5,6 +5,7 @@ import {
   findConceptDuplicate,
   normalizeConceptCandidate,
   parseStudyPackKeyTerms,
+  planConceptCandidateAcceptance,
 } from "../src/lib/concept-extraction.ts";
 
 const existing = {
@@ -119,6 +120,88 @@ const existing = {
   assert.equal(reviews[0].selected, false);
   assert.equal(reviews[0].duplicateOf, "con_existing");
   assert.equal(reviews[1].selected, true);
+}
+
+{
+  const plan = planConceptCandidateAcceptance({
+    candidates: [
+      {
+        id: "edited_1",
+        origin: "ai_source_chunks",
+        title: "Judicial review",
+        description: "First edited candidate",
+        aliases: ["Constitutional control"],
+        sourceChunkIds: ["chk_1"],
+        selected: true,
+      },
+      {
+        id: "edited_2",
+        origin: "ai_source_chunks",
+        title: "Constitutional control",
+        description: "Second edited candidate",
+        aliases: [],
+        sourceChunkIds: ["chk_1"],
+        selected: true,
+      },
+      {
+        id: "edited_3",
+        origin: "ai_source_chunks",
+        title: "Judicial oversight",
+        description: "Third edited candidate",
+        aliases: ["Constitutional control"],
+        sourceChunkIds: ["chk_1"],
+        selected: true,
+      },
+    ],
+    allowedSourceChunkIds: ["chk_1"],
+    existingConcepts: [],
+  });
+  assert.deepEqual(
+    plan.accepted.map((item) => item.candidateId),
+    ["edited_1"],
+  );
+  assert.deepEqual(
+    plan.rejected.map((item) => [item.candidateId, item.reason]),
+    [
+      ["edited_2", "duplicate_batch"],
+      ["edited_3", "duplicate_batch"],
+    ],
+    "manual alias/title edits must be rechecked against the full accepted batch",
+  );
+}
+
+{
+  const plan = planConceptCandidateAcceptance({
+    candidates: [
+      {
+        id: "existing_alias_collision",
+        origin: "study_pack_note",
+        title: "New label",
+        description: "Edited candidate",
+        aliases: ["הפרדת רשויות"],
+        sourceChunkIds: ["chk_1"],
+        selected: true,
+      },
+      {
+        id: "stale_source",
+        origin: "study_pack_note",
+        title: "Stale source",
+        description: "Lost citation",
+        aliases: [],
+        sourceChunkIds: ["deleted"],
+        selected: true,
+      },
+    ],
+    allowedSourceChunkIds: ["chk_1"],
+    existingConcepts: [existing],
+  });
+  assert.deepEqual(
+    plan.rejected.map((item) => [item.candidateId, item.reason]),
+    [
+      ["existing_alias_collision", "duplicate_existing"],
+      ["stale_source", "invalid"],
+    ],
+  );
 }
 
 {

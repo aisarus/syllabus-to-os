@@ -6,7 +6,7 @@ Last updated: 2026-07-14
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack, Concept Graph v1, per-question quiz evidence, Workspace backup v2, Reviewed concept extraction and Open-answer evidence with mistake repair are implemented and verified.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live validation. Study Command Center, Lecture-to-Study-Pack, Concept Graph v1, per-question quiz evidence, Workspace backup v2, Reviewed concept extraction and Open-answer evidence with mistake repair are implemented and verified. Final edited-batch concept collision hardening is the active pass.
 
 ## Completed task state
 
@@ -27,48 +27,43 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-013A Per-question quiz evidence` — complete and verified; PR #39 merged.
 - `P1-013B Workspace backup v2` — complete and verified; PR #41 merged after all contracts, evals, build and three Chromium gates.
 - `P1-013C Reviewed concept extraction` — complete and verified; PR #42 merged after all contracts, evals, typecheck, lint, build and four Chromium gates.
-- `P1-013D Open-answer evidence and mistake repair` — complete and verified; PR #43 passed all contracts, evals, typecheck, lint, build and five Chromium gates.
+- `P1-013D Open-answer evidence and mistake repair` — complete and verified; PR #43 merged after all contracts, evals, typecheck, lint, build and five Chromium gates.
 
-## Open-answer evidence and mistake repair delivered state
+## Current implementation pass — Final edited-batch concept collision guard
 
-- source-grounded open-answer review API at `/api/ai/review-open-answer`;
-- stored exact prompt, full response, evidence kind, outcome, score, review summary and reviewed source chunks;
-- explanation and application evidence modes;
-- strict AI prompt forbids model memory and outside knowledge;
-- insufficient or uncited sources cannot produce a grounded success suggestion;
-- AI output remains a suggestion and is never saved automatically;
-- mandatory human confirmation of outcome, score, mistake type and source chunks;
-- human-only reviews remain secondary evidence;
-- source-grounded `ai_human` reviews may count as non-manual only after explicit human confirmation;
-- linked mistake repair through `repairOfEvidenceId`;
-- repair creates a new event and preserves the original failure;
-- orphan or invalid repair links are removed during reconciliation;
-- deleting or unlinking reviewed source chunks removes the affected open-answer evidence;
-- inspectable and removable open-answer history;
-- deterministic review, objective-evidence, source-repair and orphan-link evaluations;
-- dedicated Chromium flow for failure → repair → reload with both events preserved.
+**Status:** implemented on `agent/concept-review-collision-guard`; full CI pending.
+
+Delivered:
+
+- pure `planConceptCandidateAcceptance` final validation immediately before persistence;
+- full title+alias comparison against the current course map;
+- full title+alias comparison against earlier accepted candidates in the same edited batch;
+- explicit `duplicate_existing`, `duplicate_batch` and `invalid` rejection reasons;
+- stale or removed source relationships rejected at the final persistence boundary;
+- review UI recalculates collisions after every manual title or alias edit;
+- colliding candidates are disabled and show a visible reason before acceptance;
+- final acceptance reruns the same guard even if UI state was stale;
+- valid candidates can still be saved while invalid or colliding candidates remain in review;
+- deterministic alias→title, alias→alias, existing-alias and stale-source regression coverage;
+- existing reviewed concept extraction Chromium remains an end-to-end regression gate.
 
 Current boundaries:
 
-- live AI review quality still requires a configured provider and licensed real source pack;
-- human-only review is intentionally secondary and cannot satisfy the objective-success requirement alone;
-- oral-response capture is not implemented;
-- manually edited cross-candidate alias/title collisions remain a separate small hardening follow-up;
-- no automatic score prediction or exam-readiness percentage is introduced.
+- candidate ordering determines which of two colliding new concepts is retained; the first valid selected candidate wins and the later collision remains for editing;
+- live AI extraction quality still requires a configured provider and licensed source pack;
+- no automatic ontology or hidden relationship inference is introduced.
 
 ## Verification state
 
-PR #43 passed:
+Pending on the current branch:
 
-- every repository contract and deterministic evaluation suite;
+- all repository contracts and deterministic evaluations;
 - TypeScript;
 - ESLint and formatting;
 - production build;
-- critical browser end-to-end Chromium;
-- question-evidence Chromium;
-- workspace-backup Chromium;
-- reviewed concept extraction Chromium;
-- open-answer failure → linked repair → reload Chromium with both events preserved.
+- all five existing Chromium flows.
+
+The branch must not merge until every gate passes.
 
 ## Existing validation blockers
 
@@ -86,6 +81,6 @@ The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved 
 
 ## Next execution targets
 
-1. Add final edited-batch alias collision hardening.
-2. Begin `P1-014 Exam Engine` after the evidence foundation remains stable in real use.
+1. Verify and merge final concept-review collision hardening.
+2. Begin `P1-014 Exam Engine`.
 3. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.

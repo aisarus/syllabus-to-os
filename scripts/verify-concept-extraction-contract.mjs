@@ -45,6 +45,12 @@ for (const marker of [
   "findConceptDuplicate",
   "extractStudyPackConceptCandidates",
   "parseStudyPackKeyTerms",
+  "ConceptCandidateRejectionReason",
+  "ConceptCandidateAcceptancePlan",
+  "planConceptCandidateAcceptance",
+  '"duplicate_existing"',
+  '"duplicate_batch"',
+  "acceptedConcepts",
   'note.tags.includes("study-pack")',
   "sourceChunkIds.length === 0",
 ]) {
@@ -91,6 +97,11 @@ for (const marker of [
   "extractStudyPackConceptCandidates",
   "findConceptDuplicate",
   "normalizeConceptCandidate",
+  "planConceptCandidateAcceptance",
+  "finalBatchPreview",
+  "rejectionByCandidateId",
+  "Финальная проверка повторно сравнит все title и aliases после ручных правок",
+  "После ручных правок title или alias совпадает с другим кандидатом",
   "conceptStore.createConcept",
   "sourceChunkIds: normalized.sourceChunkIds",
   "Проверь формулировку и каждую source-связь",
@@ -107,6 +118,9 @@ requireMarker(
 for (const marker of [
   "uncited concept candidates must not survive normalization",
   "an alias collision must be treated as an existing concept duplicate",
+  "manual alias/title edits must be rechecked against the full accepted batch",
+  '"duplicate_batch"',
+  '"duplicate_existing"',
   "Reviewed concept extraction evaluations passed",
 ]) {
   requireMarker(evals, marker, `Concept extraction evaluation is missing: ${marker}`);
