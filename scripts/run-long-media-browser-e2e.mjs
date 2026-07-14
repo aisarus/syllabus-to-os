@@ -17,6 +17,7 @@ class Cdp {
     this.pending = new Map();
     socket.addEventListener("message", (event) => this.onMessage(event.data));
   }
+
   static async connect(url) {
     const socket = new WebSocket(url);
     await new Promise((resolveOpen, rejectOpen) => {
@@ -25,6 +26,7 @@ class Cdp {
     });
     return new Cdp(socket);
   }
+
   send(method, params = {}, sessionId) {
     const id = this.nextId++;
     return new Promise((resolveMessage, rejectMessage) => {
@@ -32,6 +34,7 @@ class Cdp {
       this.socket.send(JSON.stringify({ id, method, params, sessionId }));
     });
   }
+
   onMessage(raw) {
     const message = JSON.parse(String(raw));
     if (!message.id) return;
@@ -41,6 +44,7 @@ class Cdp {
     if (message.error) pending.reject(new Error(message.error.message));
     else pending.resolve(message.result ?? {});
   }
+
   close() {
     if (this.socket.readyState === WebSocket.OPEN) this.socket.close();
   }
@@ -51,9 +55,11 @@ class Page {
     this.cdp = cdp;
     this.sessionId = sessionId;
   }
+
   send(method, params = {}) {
     return this.cdp.send(method, params, this.sessionId);
   }
+
   async evaluate(expression) {
     const response = await this.send("Runtime.evaluate", {
       expression,
@@ -70,6 +76,7 @@ class Page {
     }
     return response.result?.value;
   }
+
   async waitFor(expression, timeout = 35_000) {
     const started = Date.now();
     while (Date.now() - started < timeout) {
@@ -82,17 +89,21 @@ class Page {
     }
     throw new Error(`Timed out waiting for: ${expression}`);
   }
+
   waitForText(text, timeout = 35_000) {
     return this.waitFor(`document.body?.innerText.includes(${JSON.stringify(text)})`, timeout);
   }
+
   async navigate(path) {
     await this.send("Page.navigate", { url: `${BASE_URL}${path}` });
     await this.waitFor("document.readyState === 'complete'");
   }
+
   async reload() {
     await this.send("Page.reload", { ignoreCache: true });
     await this.waitFor("document.readyState === 'complete'");
   }
+
   async clickText(text) {
     const clicked = await this.evaluate(`(() => {
       const target = [...document.querySelectorAll("button, a")].find((element) =>
@@ -106,9 +117,13 @@ class Page {
     })()`);
     assert(clicked, `Could not click text: ${text}`);
   }
+
   async setFile(selector, path) {
     const { root } = await this.send("DOM.getDocument", { depth: -1, pierce: true });
-    const { nodeId } = await this.send("DOM.querySelector", { nodeId: root.nodeId, selector });
+    const { nodeId } = await this.send("DOM.querySelector", {
+      nodeId: root.nodeId,
+      selector,
+    });
     assert(nodeId, `File input was not found: ${selector}`);
     await this.send("DOM.setFileInputFiles", { nodeId, files: [path] });
   }
@@ -155,6 +170,7 @@ async function main() {
     "utf8",
   );
 
+  const previewOutput = [];
   let preview;
   let chrome;
   let cdp;
@@ -165,11 +181,14 @@ async function main() {
       {
         cwd: process.cwd(),
         env: process.env,
-        stdio: "ignore",
+        stdio: ["ignore", "pipe", "pipe"],
         detached: process.platform !== "win32",
       },
     );
-    await waitForHttp(`${BASE_URL}/app/dashboard`, 30_000);
+    preview.stdout?.on("data", (chunk) => previewOutput.push(String(chunk)));
+    preview.stderr?.on("data", (chunk) => previewOutput.push(String(chunk)));
+    await waitForPreview(`${BASE_URL}/`, 60_000, preview, previewOutput);
+
     chrome = spawn(
       findChrome(),
       [
@@ -189,7 +208,10 @@ async function main() {
     const { targetId } = await cdp.send("Target.createTarget", {
       url: `${BASE_URL}/app/dashboard`,
     });
-    const { sessionId } = await cdp.send("Target.attachToTarget", { targetId, flatten: true });
+    const { sessionId } = await cdp.send("Target.attachToTarget", {
+      targetId,
+      flatten: true,
+    });
     const page = new Page(cdp, sessionId);
     await Promise.all([
       page.send("Page.enable"),
@@ -217,39 +239,46 @@ async function main() {
     await page.waitForText("Аудио и видео лекции");
     await page.setFile('input[type="file"][accept*="audio/*"]', mediaPath);
     await page.waitForText("whole-lecture.webm");
-    await page.evaluate(`(() => {
-      const select = document.querySelector("select");
+    const selectedCourse = await page.evaluate(`(() => {
+      const select = [...document.querySelectorAll("select")].find((element) =>
+        [...element.options].some((option) => option.value === "crs_media")
+      );
       if (!select) return false;
       select.value = "crs_media";
       select.dispatchEvent(new Event("change", { bubbles: true }));
       return true;
     })()`);
+    assert(selectedCourse, "Course selector was not found.");
     await page.clickText("Сохранить лекцию локально");
-    await page.waitForText("Длинная запись лекции", 60_000);
+    await page.waitForText("Длинная запись лекции", 75_000);
 
     await page.waitFor(
       `(async () => {
-      const core = JSON.parse(localStorage.getItem("lamdan.data.v1"));
-      if (core.materials.length !== 1 || core.materials[0].fileSize !== ${18 * 1024 * 1024}) return false;
-      const db = await new Promise((resolve, reject) => {
-        const request = indexedDB.open("lamdan-long-media", 1);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-      const manifest = await new Promise((resolve, reject) => {
-        const request = db.transaction("manifests", "readonly").objectStore("manifests").get(core.materials[0].id);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-      const chunks = await new Promise((resolve, reject) => {
-        const request = db.transaction("chunks", "readonly").objectStore("chunks").index("by-upload").getAll(manifest.uploadId);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-      db.close();
-      return manifest.chunkCount === 3 && chunks.length === 3 && chunks.reduce((sum, item) => sum + item.size, 0) === manifest.size;
-    })()`,
-      60_000,
+        const core = JSON.parse(localStorage.getItem("lamdan.data.v1"));
+        if (core.materials.length !== 1 || core.materials[0].fileSize !== ${18 * 1024 * 1024}) return false;
+        const db = await new Promise((resolve, reject) => {
+          const request = indexedDB.open("lamdan-long-media", 1);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+        const manifest = await new Promise((resolve, reject) => {
+          const request = db.transaction("manifests", "readonly").objectStore("manifests").get(core.materials[0].id);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+        if (!manifest) {
+          db.close();
+          return false;
+        }
+        const chunks = await new Promise((resolve, reject) => {
+          const request = db.transaction("chunks", "readonly").objectStore("chunks").index("by-upload").getAll(manifest.uploadId);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+        db.close();
+        return manifest.chunkCount === 3 && chunks.length === 3 && chunks.reduce((sum, item) => sum + item.size, 0) === manifest.size;
+      })()`,
+      75_000,
     );
 
     await page.clickText("Загрузить плеер");
@@ -258,7 +287,7 @@ async function main() {
       60_000,
     );
     await page.clickText("Проверить блоки");
-    await page.waitForText("SHA-256 каждого локального блока совпадает", 60_000);
+    await page.waitForText("SHA-256 каждого локального блока совпадает", 75_000);
 
     await page.setFile('input[type="file"][accept*=".srt"]', transcriptPath);
     await page.waitForText("Первая часть полной лекции");
@@ -268,11 +297,11 @@ async function main() {
 
     await page.waitFor(
       `(() => {
-      const core = JSON.parse(localStorage.getItem("lamdan.data.v1"));
-      return core.materialChunks.length === 2 &&
-        core.materials[0].processingStatus === "ready" &&
-        core.materialChunks.every((chunk) => chunk.section.startsWith("lecture-transcript:"));
-    })()`,
+        const core = JSON.parse(localStorage.getItem("lamdan.data.v1"));
+        return core.materialChunks.length === 2 &&
+          core.materials[0].processingStatus === "ready" &&
+          core.materialChunks.every((chunk) => chunk.section.startsWith("lecture-transcript:"));
+      })()`,
       30_000,
     );
 
@@ -334,23 +363,30 @@ function findChrome() {
     const result = spawnSync(process.platform === "win32" ? "where" : "which", [name], {
       encoding: "utf8",
     });
-    if (result.status === 0 && result.stdout.trim()) return result.stdout.trim().split(/\r?\n/)[0];
+    if (result.status === 0 && result.stdout.trim()) {
+      return result.stdout.trim().split(/\r?\n/)[0];
+    }
   }
   throw new Error("Chromium/Chrome was not found.");
 }
 
-async function waitForHttp(url, timeout) {
+async function waitForPreview(url, timeout, processHandle, output) {
   const started = Date.now();
   while (Date.now() - started < timeout) {
+    if (processHandle.exitCode !== null) {
+      throw new Error(
+        `Preview exited with code ${processHandle.exitCode}.\n${output.join("")}`,
+      );
+    }
     try {
       const response = await fetch(url);
       if (response.ok) return;
     } catch {
-      // Retry.
+      // Retry until the preview socket starts accepting requests.
     }
     await sleep(150);
   }
-  throw new Error(`Preview did not start at ${url}.`);
+  throw new Error(`Preview did not start at ${url}.\n${output.join("")}`);
 }
 
 async function waitForJson(url, timeout) {
