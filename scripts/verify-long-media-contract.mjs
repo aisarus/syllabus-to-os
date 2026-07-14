@@ -19,7 +19,6 @@ const [
   workflow,
   docs,
   status,
-  tasks,
   plans,
 ] = await Promise.all([
   read("src/lib/long-media.ts"),
@@ -38,7 +37,6 @@ const [
   read(".github/workflows/long-media.yml"),
   read("docs/LONG_MEDIA_ARCHITECTURE.md"),
   read("STATUS.md"),
-  read("TASKS.md"),
   read("PLANS.md"),
 ]);
 
@@ -186,8 +184,9 @@ for (const [content, marker, file] of [
   [docs, "Review before apply", "docs/LONG_MEDIA_ARCHITECTURE.md"],
   [docs, "Raw-media backup boundary", "docs/LONG_MEDIA_ARCHITECTURE.md"],
   [status, "Durable whole-lecture audio/video intake", "STATUS.md"],
-  [tasks, "P1-010A", "TASKS.md"],
   [plans, "Whole-lecture media", "PLANS.md"],
+  [plans, "P1-010A", "PLANS.md"],
+  [plans, "P1-010B", "PLANS.md"],
 ]) {
   requireMarker(content, marker, `${file} is missing long-media delivery status: ${marker}`);
 }
