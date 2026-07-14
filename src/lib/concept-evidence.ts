@@ -54,6 +54,7 @@ export interface ConceptEvidenceSummary {
   state: ConceptKnowledgeState;
   forgettingRisk: ForgettingRisk;
   successCount: number;
+  objectiveSuccessCount: number;
   failureCount: number;
   neutralAssessmentCount: number;
   distinctSuccessKinds: ConceptEvidenceKind[];
@@ -153,6 +154,13 @@ export function reconcileConceptEvidenceData(
   const chunkIds = new Set(core.materialChunks.map((item) => item.id));
   const cardIds = new Set(core.flashcards.map((item) => item.id));
   const questionIds = new Set(core.quizQuestions.map((item) => item.id));
+  const attemptsById = new Map(core.quizAttempts.map((attempt) => [attempt.id, attempt]));
+  const questionsByQuiz = new Map<string, Set<string>>();
+  for (const question of core.quizQuestions) {
+    const current = questionsByQuiz.get(question.quizId) ?? new Set<string>();
+    current.add(question.id);
+    questionsByQuiz.set(question.quizId, current);
+  }
 
   const concepts = input.concepts
     .filter((concept) => courseIds.has(concept.courseId))
@@ -170,7 +178,12 @@ export function reconcileConceptEvidenceData(
     if (event.sourceType === "flashcard_review" && event.sourceId) {
       return concept.flashcardIds.includes(event.sourceId) && cardIds.has(event.sourceId);
     }
-    if (event.sourceType === "quiz_attempt" && event.sourceId) return true;
+    if (event.sourceType === "quiz_attempt" && event.sourceId) {
+      const attempt = attemptsById.get(event.sourceId);
+      if (!attempt) return false;
+      const quizQuestionIds = questionsByQuiz.get(attempt.quizId) ?? new Set<string>();
+      return concept.quizQuestionIds.some((id) => quizQuestionIds.has(id));
+    }
     return true;
   });
   return { version: 1, concepts, evidenceEvents };
@@ -187,6 +200,7 @@ export function summarizeConceptEvidence(
     .sort((left, right) => left.occurredAt - right.occurredAt);
   const scored = relevant.filter((event) => event.outcome !== "mixed" && event.kind !== "assessment");
   const successes = scored.filter((event) => event.outcome === "success");
+  const objectiveSuccesses = successes.filter((event) => event.sourceType !== "manual");
   const failures = scored.filter((event) => event.outcome === "failure");
   const latestSuccessAt = successes.at(-1)?.occurredAt;
   const latestFailureAt = failures.at(-1)?.occurredAt;
@@ -206,6 +220,7 @@ export function summarizeConceptEvidence(
   const recentSuccess = latestSuccessAt ? now - latestSuccessAt <= 21 * DAY : false;
   const strong =
     successes.length >= 4 &&
+    objectiveSuccesses.length >= 2 &&
     distinctSuccessDays >= 2 &&
     distinctSuccessKinds.length >= 2 &&
     failureRate <= 0.34 &&
@@ -217,13 +232,13 @@ export function summarizeConceptEvidence(
   let reason: string;
   if (strong) {
     state = "strong";
-    reason = "Repeated successful evidence across multiple days and evidence types.";
+    reason = "Repeated successful evidence across multiple days and evidence types, including non-manual evidence.";
   } else if (weak) {
     state = "weak";
     reason = "Repeated failures or a recent failure dominate the available evidence.";
   } else if (successes.length > 0 || failures.length > 0) {
     state = "fragile";
-    reason = "Some learning evidence exists, but it is limited, old, or not varied enough.";
+    reason = "Some learning evidence exists, but it is limited, old, too manual, or not varied enough.";
   } else if (sourceCoverageCount > 0 || concept.flashcardIds.length > 0 || concept.quizQuestionIds.length > 0) {
     state = "covered";
     reason = "The concept is linked to sources or practice, but no scored learning evidence exists yet.";
@@ -242,6 +257,7 @@ export function summarizeConceptEvidence(
     state,
     forgettingRisk,
     successCount: successes.length,
+    objectiveSuccessCount: objectiveSuccesses.length,
     failureCount: failures.length,
     neutralAssessmentCount,
     distinctSuccessKinds,
