@@ -11,27 +11,22 @@ function readArgument(name, fallback) {
 
 const host = readArgument("--host", process.env.HOST || process.env.NITRO_HOST || "127.0.0.1");
 const port = readArgument("--port", process.env.PORT || process.env.NITRO_PORT || "4173");
-const candidates = [
-  ".output/server/index.mjs",
-  ".output/server/index.js",
-  ".output/server/server.mjs",
-  "dist/server/server.js",
-  "dist/server/index.mjs",
-  "dist/server/index.js",
-];
-const entry = candidates.map((candidate) => resolve(process.cwd(), candidate)).find(existsSync);
+const nitroExecutable = resolve(
+  process.cwd(),
+  "node_modules",
+  ".bin",
+  process.platform === "win32" ? "nitro.cmd" : "nitro",
+);
 
-if (!entry) {
-  console.error(
-    `No built Lamdan server entry was found. Checked:\n${candidates.map((item) => `- ${item}`).join("\n")}`,
-  );
+if (!existsSync(nitroExecutable)) {
+  console.error(`Nitro preview executable was not found: ${nitroExecutable}`);
   process.exit(1);
 }
 
-console.log(`Starting built Lamdan server: ${entry}`);
+console.log(`Starting built Lamdan server through Nitro preview: ${nitroExecutable}`);
 console.log(`Listening on http://${host}:${port}`);
 
-const child = spawn(process.execPath, [entry], {
+const child = spawn(nitroExecutable, ["preview"], {
   cwd: process.cwd(),
   env: {
     ...process.env,
