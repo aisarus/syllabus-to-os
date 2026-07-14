@@ -16,6 +16,7 @@ export type ConceptMistakeKind =
   | "unclassified";
 export type ConceptKnowledgeState = "unseen" | "covered" | "fragile" | "weak" | "strong";
 export type ForgettingRisk = "none" | "low" | "medium" | "high";
+export type OpenAnswerReviewMode = "human" | "ai_human";
 
 export interface Concept {
   id: string;
@@ -36,7 +37,12 @@ export interface ConceptEvidenceEvent {
   conceptId: string;
   kind: ConceptEvidenceKind;
   outcome: ConceptEvidenceOutcome;
-  sourceType: "flashcard_review" | "quiz_attempt" | "quiz_question_answer" | "manual";
+  sourceType:
+    | "flashcard_review"
+    | "quiz_attempt"
+    | "quiz_question_answer"
+    | "open_answer_review"
+    | "manual";
   sourceId?: string;
   attemptId?: string;
   questionId?: string;
@@ -45,6 +51,12 @@ export interface ConceptEvidenceEvent {
   note?: string;
   score?: number;
   occurredAt: number;
+  sourceChunkIds?: string[];
+  prompt?: string;
+  response?: string;
+  reviewMode?: OpenAnswerReviewMode;
+  reviewSummary?: string;
+  repairOfEvidenceId?: string;
 }
 
 export interface ConceptEvidenceData {
@@ -125,7 +137,13 @@ function normalizeEvent(raw: unknown): ConceptEvidenceEvent | null {
     !conceptId ||
     !["recognition", "recall", "explanation", "application", "assessment"].includes(kind) ||
     !["success", "failure", "mixed"].includes(outcome) ||
-    !["flashcard_review", "quiz_attempt", "quiz_question_answer", "manual"].includes(sourceType)
+    ![
+      "flashcard_review",
+      "quiz_attempt",
+      "quiz_question_answer",
+      "open_answer_review",
+      "manual",
+    ].includes(sourceType)
   ) {
     return null;
   }
@@ -133,6 +151,15 @@ function normalizeEvent(raw: unknown): ConceptEvidenceEvent | null {
   const attemptId = optionalString(value.attemptId);
   const questionId = optionalString(value.questionId);
   if (sourceType === "quiz_question_answer" && (!attemptId || !questionId)) return null;
+  const reviewMode = optionalString(value.reviewMode) as OpenAnswerReviewMode | undefined;
+  const prompt = optionalString(value.prompt);
+  const response = optionalString(value.response);
+  if (
+    sourceType === "open_answer_review" &&
+    (!prompt || !response || !["explanation", "application"].includes(kind) || outcome === "mixed")
+  ) {
+    return null;
+  }
   return {
     id,
     conceptId,
@@ -150,6 +177,17 @@ function normalizeEvent(raw: unknown): ConceptEvidenceEvent | null {
     note: optionalString(value.note),
     score: typeof value.score === "number" && Number.isFinite(value.score) ? value.score : undefined,
     occurredAt: numberValue(value.occurredAt, Date.now()),
+    sourceChunkIds: stringArray(value.sourceChunkIds),
+    prompt,
+    response,
+    reviewMode:
+      sourceType === "open_answer_review" &&
+      reviewMode &&
+      ["human", "ai_human"].includes(reviewMode)
+        ? reviewMode
+        : undefined,
+    reviewSummary: optionalString(value.reviewSummary),
+    repairOfEvidenceId: optionalString(value.repairOfEvidenceId),
   };
 }
 
@@ -182,32 +220,62 @@ export function reconcileConceptEvidenceData(
       quizQuestionIds: concept.quizQuestionIds.filter((id) => questionIds.has(id)),
     }));
   const byId = new Map(concepts.map((concept) => [concept.id, concept]));
-  const evidenceEvents = input.evidenceEvents.filter((event) => {
-    const concept = byId.get(event.conceptId);
-    if (!concept) return false;
-    if (event.sourceType === "flashcard_review" && event.sourceId) {
-      return concept.flashcardIds.includes(event.sourceId) && cardIds.has(event.sourceId);
-    }
-    if (event.sourceType === "quiz_question_answer") {
-      if (!event.attemptId || !event.questionId) return false;
-      const attempt = attemptsById.get(event.attemptId);
-      const detail = detailsByAttemptId.get(event.attemptId);
-      if (!attempt || !detail || attempt.quizId !== detail.quizId) return false;
-      return (
-        questionIds.has(event.questionId) &&
-        concept.quizQuestionIds.includes(event.questionId) &&
-        detail.answers.some((answer) => answer.questionId === event.questionId)
-      );
-    }
-    if (event.sourceType === "quiz_attempt" && event.sourceId) {
-      const attempt = attemptsById.get(event.sourceId);
-      if (!attempt || detailsByAttemptId.has(attempt.id)) return false;
-      const quizQuestionIds = questionsByQuiz.get(attempt.quizId) ?? new Set<string>();
-      return concept.quizQuestionIds.some((id) => quizQuestionIds.has(id));
-    }
-    return true;
-  });
-  return { version: 1, concepts, evidenceEvents };
+  const evidenceEvents = input.evidenceEvents
+    .map((event) => {
+      const concept = byId.get(event.conceptId);
+      if (!concept) return null;
+      if (event.sourceType === "open_answer_review") {
+        const sourceChunkIds = (event.sourceChunkIds ?? []).filter(
+          (id) => chunkIds.has(id) && concept.sourceChunkIds.includes(id),
+        );
+        if (sourceChunkIds.length === 0) return null;
+        return { ...event, sourceChunkIds };
+      }
+      return event;
+    })
+    .filter((event): event is ConceptEvidenceEvent => {
+      if (!event) return false;
+      const concept = byId.get(event.conceptId);
+      if (!concept) return false;
+      if (event.sourceType === "flashcard_review" && event.sourceId) {
+        return concept.flashcardIds.includes(event.sourceId) && cardIds.has(event.sourceId);
+      }
+      if (event.sourceType === "quiz_question_answer") {
+        if (!event.attemptId || !event.questionId) return false;
+        const attempt = attemptsById.get(event.attemptId);
+        const detail = detailsByAttemptId.get(event.attemptId);
+        if (!attempt || !detail || attempt.quizId !== detail.quizId) return false;
+        return (
+          questionIds.has(event.questionId) &&
+          concept.quizQuestionIds.includes(event.questionId) &&
+          detail.answers.some((answer) => answer.questionId === event.questionId)
+        );
+      }
+      if (event.sourceType === "quiz_attempt" && event.sourceId) {
+        const attempt = attemptsById.get(event.sourceId);
+        if (!attempt || detailsByAttemptId.has(attempt.id)) return false;
+        const quizQuestionIds = questionsByQuiz.get(attempt.quizId) ?? new Set<string>();
+        return concept.quizQuestionIds.some((id) => quizQuestionIds.has(id));
+      }
+      return true;
+    });
+  const eventById = new Map(evidenceEvents.map((event) => [event.id, event]));
+  return {
+    version: 1,
+    concepts,
+    evidenceEvents: evidenceEvents.map((event) => {
+      const repair = event.repairOfEvidenceId
+        ? eventById.get(event.repairOfEvidenceId)
+        : undefined;
+      return {
+        ...event,
+        repairOfEvidenceId:
+          repair && repair.conceptId === event.conceptId && repair.outcome === "failure"
+            ? repair.id
+            : undefined,
+      };
+    }),
+  };
 }
 
 export function summarizeConceptEvidence(
@@ -221,7 +289,7 @@ export function summarizeConceptEvidence(
     .sort((left, right) => left.occurredAt - right.occurredAt);
   const scored = relevant.filter((event) => event.outcome !== "mixed" && event.kind !== "assessment");
   const successes = scored.filter((event) => event.outcome === "success");
-  const objectiveSuccesses = successes.filter((event) => event.sourceType !== "manual");
+  const objectiveSuccesses = successes.filter(evidenceIsObjective);
   const failures = scored.filter((event) => event.outcome === "failure");
   const latestSuccessAt = successes.at(-1)?.occurredAt;
   const latestFailureAt = failures.at(-1)?.occurredAt;
@@ -292,6 +360,14 @@ export function summarizeConceptEvidence(
 
 export function evidenceCountsTowardKnowledge(event: ConceptEvidenceEvent): boolean {
   return event.kind !== "assessment" && event.outcome !== "mixed";
+}
+
+export function evidenceIsObjective(event: ConceptEvidenceEvent): boolean {
+  return (
+    event.sourceType === "flashcard_review" ||
+    event.sourceType === "quiz_question_answer" ||
+    (event.sourceType === "open_answer_review" && event.reviewMode === "ai_human")
+  );
 }
 
 function stringValue(value: unknown): string {
