@@ -54,7 +54,8 @@ Delivered:
 - source-integrity-aware transcript apply and normal Study Pack compatibility;
 - orphan cleanup, local storage statistics and delete-recordings-only control;
 - explicit statement that raw multi-gigabyte media and editable transcript drafts are not yet in Workspace ZIP v2;
-- deterministic evaluation suite and a real 18 MB / three-chunk Chromium proof.
+- deterministic evaluation suite and a real 18 MB / three-chunk Chromium proof;
+- repository-wide Prettier baseline restored so canonical `eslint .` can detect semantic errors instead of stale formatting noise.
 
 Current boundaries:
 
