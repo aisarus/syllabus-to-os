@@ -48,8 +48,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Build
-        run: npm run build
+      - name: Build and verify generated route tree
+        run: |
+          npm run build
+          git diff --exit-code -- src/routeTree.gen.ts
 
       - name: Run long lecture media browser E2E
         run: npm run e2e:long-media
