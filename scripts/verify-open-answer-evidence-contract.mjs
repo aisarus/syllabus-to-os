@@ -102,7 +102,7 @@ for (const marker of [
 for (const marker of [
   "Открытый ответ и исправление ошибки",
   "Ответ сохраняется только после твоего решения",
-  "ИИ — только предложение",
+  "AI — только предложение",
   "Human-only review остаётся вторичным evidence",
   "reviewOpenAnswer",
   "validateOpenAnswerSaveDraft",
