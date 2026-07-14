@@ -1,0 +1,56 @@
+name: Apply Long Media Formatting
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.head_ref == 'agent/long-lecture-media'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Format changed source files
+        run: |
+          npx prettier --write \
+            package.json \
+            scripts/check.mjs \
+            scripts/verify-long-media-contract.mjs \
+            scripts/run-long-media-evals.mjs \
+            scripts/run-long-media-browser-e2e.mjs \
+            src/lib/long-media.ts \
+            src/lib/long-media-store.ts \
+            src/lib/concept-extraction.ts \
+            src/lib/golden-quiz-quality.ts \
+            src/components/long-media-lifecycle.tsx \
+            src/components/long-media-data-boundary.tsx \
+            src/components/long-media-workspace.tsx \
+            src/components/app-shell.tsx \
+            src/routes/app.tsx \
+            'src/routes/app.materials_.$materialId.tsx' \
+            src/routes/app.lecture-media.tsx \
+            .github/workflows/long-media.yml \
+            docs/LONG_MEDIA_ARCHITECTURE.md \
+            STATUS.md \
+            PLANS.md
+      - name: Remove one-time formatter
+        run: rm -f .github/workflows/apply-long-media-format.yml
+      - name: Commit formatting
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "format long media change set"
+          git push origin HEAD:${{ github.head_ref }}
