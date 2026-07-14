@@ -246,7 +246,8 @@ function evaluateQuestion(
   const normalizedOptions = options.map(normalizeComparable);
   const feedback = parseGoldenQuizFeedback(question.explanation, options.length);
   const correctAnswer = options[question.correctIndex] ?? "";
-  const sourceText = question.sourceChunkIds
+  const sourceChunkIds = question.sourceChunkIds ?? [];
+  const sourceText = sourceChunkIds
     .map((sourceId) => sourceById.get(sourceId))
     .filter((value): value is string => Boolean(value))
     .join("\n");
@@ -263,10 +264,10 @@ function evaluateQuestion(
   );
   add("structure", question.prompt.trim().length >= 8, "prompt_too_short", "warning", "Question prompt is too short to be unambiguous.");
 
-  add("sourceSupport", question.sourceChunkIds.length > 0, "missing_citation", "error", "Question has no source chunk reference.");
+  add("sourceSupport", sourceChunkIds.length > 0, "missing_citation", "error", "Question has no source chunk reference.");
   add(
     "sourceSupport",
-    question.sourceChunkIds.every((sourceId) => sourceById.has(sourceId)),
+    sourceChunkIds.every((sourceId) => sourceById.has(sourceId)),
     "unknown_citation",
     "error",
     "Question references a source chunk that does not exist.",
