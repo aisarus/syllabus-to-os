@@ -82,4 +82,19 @@ jobs:
         run: npm run build
 
       - name: Run Exam Engine browser E2E
-        run: node scripts/run-exam-engine-browser-e2e.mjs
+        id: exam_browser
+        continue-on-error: true
+        run: node scripts/run-exam-engine-browser-e2e.mjs > exam-engine-browser-output.txt 2>&1
+
+      - name: Upload Exam Engine browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exam-engine-browser-diagnostics
+          path: exam-engine-browser-output.txt
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Fail when Exam Engine browser E2E fails
+        if: steps.exam_browser.outcome == 'failure'
+        run: exit 1
