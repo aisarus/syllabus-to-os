@@ -8,7 +8,11 @@ export function LongMediaLifecycle() {
   const data = useData();
   const orphanSinceRef = useRef(new Map<string, number>());
   const materialRevision = useMemo(
-    () => data.materials.map((item) => item.id).sort().join("|"),
+    () =>
+      data.materials
+        .map((item) => item.id)
+        .sort()
+        .join("|"),
     [data.materials],
   );
 
