@@ -42,6 +42,16 @@ const functionalSessionWait = `    try {
       console.error("Exam Engine session-start diagnostics:", JSON.stringify(state, null, 2));
       throw error;
     }`;
+const decorativeResultWait =
+  '    await page.waitForText("Замороженный результат экзамена");';
+const functionalResultWait = `    await page.waitFor(\`(() => {
+      const exams = JSON.parse(localStorage.getItem("lamdan.exam-engine.v1"));
+      const session = exams.sessions?.[0];
+      return session?.status === "submitted" &&
+        session.result?.score === 100 &&
+        session.result?.unansweredCount === 0 &&
+        document.body?.innerText.includes("100%");
+    })()\`);`;
 
 try {
   const source = await readFile(sourcePath, "utf8");
@@ -51,10 +61,14 @@ try {
   if (!source.includes(decorativeSessionWait)) {
     throw new Error("The Exam Engine E2E source no longer contains the active-session heading check.");
   }
+  if (!source.includes(decorativeResultWait)) {
+    throw new Error("The Exam Engine E2E source no longer contains the result heading check.");
+  }
 
   const patched = source
     .replace(decorativeCounterWait, functionalBlueprintWait)
-    .replace(decorativeSessionWait, functionalSessionWait);
+    .replace(decorativeSessionWait, functionalSessionWait)
+    .replace(decorativeResultWait, functionalResultWait);
   await writeFile(temporaryScript, patched, "utf8");
 
   const result = spawnSync(process.execPath, [temporaryScript], {
