@@ -9,6 +9,12 @@ const sourcePath = join(scriptDirectory, "run-long-media-browser-e2e-v2.mjs");
 const temporaryDirectory = await mkdtemp(join(tmpdir(), "lamdan-long-media-e2e-final-"));
 const temporaryScript = join(temporaryDirectory, "run-long-media-browser-e2e.mjs");
 
+const initialReadyBeforeSeed = `    await page.waitFor("document.readyState === 'complete'");
+
+    await page.evaluate(\`(async () => {`;
+const explicitOriginBeforeSeed = `    await page.navigate("/app/dashboard");
+
+    await page.evaluate(\`(async () => {`;
 const earlyHardNavigation = `    if (!(await page.evaluate(\`location.pathname === "/app/materials/\${materialId}"\`))) {
       await page.navigate(\`/app/materials/\${materialId}\`);
     }
@@ -67,6 +73,9 @@ const renderedTranscriptHeadingWait =
 
 try {
   const source = await readFile(sourcePath, "utf8");
+  if (!source.includes(initialReadyBeforeSeed)) {
+    throw new Error("The long-media E2E source no longer contains the initial origin boundary.");
+  }
   if (!source.includes(earlyHardNavigation)) {
     throw new Error("The long-media E2E source no longer contains the guarded navigation block.");
   }
@@ -87,6 +96,7 @@ try {
   }
 
   const patched = source
+    .replace(initialReadyBeforeSeed, explicitOriginBeforeSeed)
     .replace(eagerPromiseBoolean, awaitedPredicate)
     .replace(passiveFileInput, eventfulFileInput)
     .replace(mediaTextWait, mediaInputWait)
