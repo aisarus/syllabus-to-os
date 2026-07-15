@@ -24,16 +24,20 @@ if (!existsSync(workerEntry)) {
 
 const configNames = ["wrangler.json", "wrangler.jsonc", "wrangler.toml"];
 const configDirectories = [outputDirectory, resolve(outputDirectory, "server"), process.cwd()];
-const configDirectory = configDirectories.find((directory) =>
-  configNames.some((name) => existsSync(resolve(directory, name))),
-);
+let configPath;
+for (const directory of configDirectories) {
+  const name = configNames.find((candidate) => existsSync(resolve(directory, candidate)));
+  if (name) {
+    configPath = resolve(directory, name);
+    break;
+  }
+}
 
 const commonArguments = [
   "wrangler",
-  ...(configDirectory ? ["--cwd", configDirectory] : []),
   "dev",
-  ...(configDirectory ? [] : [workerEntry]),
-  ...(configDirectory || !existsSync(publicDirectory) ? [] : ["--assets", publicDirectory]),
+  ...(configPath ? ["--config", configPath] : [workerEntry]),
+  ...(configPath || !existsSync(publicDirectory) ? [] : ["--assets", publicDirectory]),
   "--ip",
   host,
   "--port",
@@ -44,8 +48,8 @@ const commonArguments = [
 ];
 
 console.log(
-  configDirectory
-    ? `Starting built Lamdan Cloudflare Worker with config from ${configDirectory}`
+  configPath
+    ? `Starting built Lamdan Cloudflare Worker with config ${configPath}`
     : `Starting built Lamdan Cloudflare Worker directly from ${workerEntry}`,
 );
 console.log(`Listening on http://${host}:${port}`);
