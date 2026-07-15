@@ -33,7 +33,7 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source â
 
 ## Current implementation pass â€” Durable whole-lecture audio/video intake
 
-**Status:** implemented on `agent/long-lecture-media`; full CI pending.
+**Status:** implemented on `agent/long-lecture-media`; final verification rerun is active.
 
 Delivered:
 
@@ -73,7 +73,7 @@ Current boundaries:
 
 ## Verification state
 
-Pending on the current branch:
+Final rerun on the current head must pass:
 
 - all repository contracts and deterministic evaluations;
 - long-media contract and deterministic evaluations;
