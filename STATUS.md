@@ -33,7 +33,7 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 
 ## Current implementation pass — Durable whole-lecture audio/video intake
 
-**Status:** implemented on `agent/long-lecture-media`; final two-phase verification rerun is active.
+**Status:** implemented on `agent/long-lecture-media`; final long-media verification and Exam Engine hydration regression fix are active.
 
 Delivered:
 
@@ -61,7 +61,8 @@ Delivered:
 - hardened browser proof validates core material and all three IndexedDB chunks before opening the detail route;
 - repository-wide Prettier baseline restored so canonical `eslint .` can detect semantic errors instead of stale formatting noise;
 - legacy `any` and empty compatibility-interface lint blockers replaced with typed equivalents;
-- final long-media browser runner and workflow pass the scoped Prettier and semantic lint check.
+- final long-media browser runner and workflow pass the scoped Prettier and semantic lint check;
+- Exam Engine now reconciles its selected course after client hydration instead of remaining on an empty SSR-derived id.
 
 Current boundaries:
 
@@ -82,6 +83,7 @@ Final rerun on the current head must pass:
 - ESLint and formatting;
 - production build;
 - critical browser end-to-end and the other existing browser regression gates;
+- Exam Engine browser regression after SSR/client hydration;
 - long-media Chromium: 18 MB upload → three IndexedDB chunks → SHA verification → SRT import → two approved source chunks → reload.
 
 The branch must not merge until every applicable gate passes.
