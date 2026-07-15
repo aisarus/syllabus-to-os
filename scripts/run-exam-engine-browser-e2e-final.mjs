@@ -19,13 +19,29 @@ const functionalBlueprintWait = `    await page.waitFor(\`(() => {
     })()\`);`;
 const decorativeSessionWait =
   '    await page.waitForText("Замороженная экзаменационная сессия");';
-const functionalSessionWait = `    await page.waitFor(\`(() => {
-      const exams = JSON.parse(localStorage.getItem("lamdan.exam-engine.v1"));
-      const session = exams.sessions?.[0];
-      return session?.status === "active" &&
-        session.questions?.length === 2 &&
-        document.body?.innerText.includes("constitutional review");
-    })()\`);`;
+const functionalSessionWait = `    try {
+      await page.waitFor(\`(() => {
+        const exams = JSON.parse(localStorage.getItem("lamdan.exam-engine.v1"));
+        const session = exams.sessions?.[0];
+        return session?.status === "active" &&
+          session.questions?.length === 2 &&
+          document.body?.innerText.includes("constitutional review");
+      })()\`);
+    } catch (error) {
+      const state = await page.evaluate(\`(() => {
+        const startButton = [...document.querySelectorAll("button")].find((button) =>
+          button.textContent?.includes("Сохранить и начать")
+        );
+        return {
+          exams: localStorage.getItem("lamdan.exam-engine.v1"),
+          core: localStorage.getItem("lamdan.data.v1"),
+          buttonDisabled: startButton?.disabled,
+          body: document.body?.innerText.slice(0, 4000),
+        };
+      })()\`);
+      console.error("Exam Engine session-start diagnostics:", JSON.stringify(state, null, 2));
+      throw error;
+    }`;
 
 try {
   const source = await readFile(sourcePath, "utf8");
