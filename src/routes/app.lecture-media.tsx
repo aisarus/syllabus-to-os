@@ -46,7 +46,10 @@ function readMediaDuration(file: File): Promise<number | undefined> {
     }
     const element = document.createElement(kind === "video" ? "video" : "audio");
     const url = URL.createObjectURL(file);
+    let finished = false;
     const finish = (value?: number) => {
+      if (finished) return;
+      finished = true;
       URL.revokeObjectURL(url);
       element.removeAttribute("src");
       resolve(value);
@@ -130,28 +133,18 @@ function LectureMediaPage() {
       sourceLanguage: "unknown",
     });
 
-    let uploadSucceeded = false;
+    let manifest;
     try {
-      const manifest = await putLongMediaFile(material.id, file, {
+      manifest = await putLongMediaFile(material.id, file, {
         signal: controller.signal,
         onProgress: setProgress,
       });
-      const duration = await durationPromise;
-      if (duration) await updateLongMediaDuration(material.id, duration);
-      store.updateMaterial(material.id, {
-        processingMessage: isRu
-          ? "Запись сохранена локально. Создай или импортируй расшифровку и подтверди source chunks."
-          : "Recording saved locally. Create or import a transcript and approve source chunks.",
-      });
-      uploadSucceeded = true;
-      toast.success(
-        isRu
-          ? `Лекция сохранена: ${manifest.chunkCount} локальных блоков`
-          : `Lecture saved in ${manifest.chunkCount} local chunks`,
-      );
     } catch (error) {
       await deleteLongMediaData(material.id).catch(() => undefined);
       store.deleteMaterial(material.id);
+      abortRef.current = null;
+      setBusy(false);
+      setProgress(null);
       if (error instanceof DOMException && error.name === "AbortError") {
         toast.info(
           isRu
@@ -161,13 +154,35 @@ function LectureMediaPage() {
       } else {
         toast.error(error instanceof Error ? error.message : String(error));
       }
+      return;
+    }
+
+    try {
+      const duration = await durationPromise;
+      if (duration) await updateLongMediaDuration(material.id, duration);
+      store.updateMaterial(material.id, {
+        processingMessage: isRu
+          ? "Запись сохранена локально. Создай или импортируй расшифровку и подтверди source chunks."
+          : "Recording saved locally. Create or import a transcript and approve source chunks.",
+      });
+      toast.success(
+        isRu
+          ? `Лекция сохранена: ${manifest.chunkCount} локальных блоков`
+          : `Lecture saved in ${manifest.chunkCount} local chunks`,
+      );
+    } catch (finalizeError) {
+      console.warn("Lecture media was stored, but optional metadata finalization failed.", finalizeError);
+      toast.warning(
+        isRu
+          ? "Запись сохранена, но часть метаданных не обновилась."
+          : "The recording is saved, but some optional metadata was not updated.",
+      );
     } finally {
       abortRef.current = null;
       setBusy(false);
       setProgress(null);
     }
 
-    if (!uploadSucceeded) return;
     try {
       await navigate({
         to: "/app/materials/$materialId",
