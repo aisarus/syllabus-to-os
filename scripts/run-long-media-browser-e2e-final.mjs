@@ -29,6 +29,9 @@ const transcriptTextareaWait = `    await page.waitFor(
         element.value.includes("Первая часть полной лекции")
       )\`,
     );`;
+const transcriptHeadingWait = '    await page.waitForText("Расшифровка по таймкодам");';
+const renderedTranscriptHeadingWait =
+  '    await page.waitForText("РАСШИФРОВКА ПО ТАЙМКОДАМ");';
 
 try {
   const source = await readFile(sourcePath, "utf8");
@@ -41,11 +44,15 @@ try {
   if (source.split(transcriptTextWait).length - 1 !== 2) {
     throw new Error("The long-media E2E source no longer contains both transcript text checks.");
   }
+  if (!source.includes(transcriptHeadingWait)) {
+    throw new Error("The long-media E2E source no longer contains the transcript heading check.");
+  }
 
   const patched = source
     .replace(eagerPromiseBoolean, awaitedPredicate)
     .replace(earlyHardNavigation, completedUploadNavigation)
-    .replaceAll(transcriptTextWait, transcriptTextareaWait);
+    .replaceAll(transcriptTextWait, transcriptTextareaWait)
+    .replace(transcriptHeadingWait, renderedTranscriptHeadingWait);
   await writeFile(temporaryScript, patched, "utf8");
 
   const result = spawnSync(process.execPath, [temporaryScript], {
