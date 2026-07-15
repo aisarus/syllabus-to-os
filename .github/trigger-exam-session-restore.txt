@@ -1,1 +1,0 @@
-Trigger the one-shot Exam Engine session restore patch on the current branch head.
