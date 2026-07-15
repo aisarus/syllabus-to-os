@@ -88,6 +88,8 @@ for (const marker of [
   "deleteLongMediaData(material.id)",
   "store.deleteMaterial(material.id)",
   "onProgress: setProgress",
+  "if (!uploadSucceeded) return",
+  "Лекция сохранена, но переход не открылся",
   "Сохранить лекцию локально",
   "до 4 ГБ",
   "staging",
