@@ -35,7 +35,12 @@ export const Route = createFileRoute("/app/lecture-media")({
 });
 
 function titleFromFile(name: string): string {
-  return name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim() || name;
+  return (
+    name
+      .replace(/\.[^.]+$/, "")
+      .replace(/[_-]+/g, " ")
+      .trim() || name
+  );
 }
 
 function readMediaDuration(file: File): Promise<number | undefined> {
