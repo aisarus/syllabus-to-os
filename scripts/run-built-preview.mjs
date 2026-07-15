@@ -11,29 +11,52 @@ function readArgument(name, fallback) {
 
 const host = readArgument("--host", process.env.HOST || process.env.NITRO_HOST || "127.0.0.1");
 const port = readArgument("--port", process.env.PORT || process.env.NITRO_PORT || "4173");
-const nitroExecutable = resolve(
-  process.cwd(),
-  "node_modules",
-  ".bin",
-  process.platform === "win32" ? "nitro.cmd" : "nitro",
-);
+const outputDirectory = resolve(process.cwd(), ".output");
+const workerEntry = resolve(outputDirectory, "server", "index.mjs");
+const publicDirectory = resolve(outputDirectory, "public");
+const npxExecutable = process.platform === "win32" ? "npx.cmd" : "npx";
 
-if (!existsSync(nitroExecutable)) {
-  console.error(`Nitro preview executable was not found: ${nitroExecutable}`);
+if (!existsSync(workerEntry)) {
+  console.error(`Built Cloudflare Worker entry was not found: ${workerEntry}`);
+  console.error("Run `npm run build` before starting the production preview.");
   process.exit(1);
 }
 
-console.log(`Starting built Lamdan server through Nitro preview: ${nitroExecutable}`);
-console.log(`Listening on http://${host}:${port}`);
+const configNames = ["wrangler.json", "wrangler.jsonc", "wrangler.toml"];
+const configDirectories = [outputDirectory, resolve(outputDirectory, "server"), process.cwd()];
+const configDirectory = configDirectories.find((directory) =>
+  configNames.some((name) => existsSync(resolve(directory, name))),
+);
 
-const child = spawn(nitroExecutable, ["preview"], {
+const commonArguments = [
+  "wrangler",
+  ...(configDirectory ? ["--cwd", configDirectory] : []),
+  "dev",
+  ...(configDirectory ? [] : [workerEntry]),
+  ...(configDirectory || !existsSync(publicDirectory) ? [] : ["--assets", publicDirectory]),
+  "--ip",
+  host,
+  "--port",
+  String(port),
+  "--local",
+  "--local-protocol",
+  "http",
+];
+
+console.log(
+  configDirectory
+    ? `Starting built Lamdan Cloudflare Worker with config from ${configDirectory}`
+    : `Starting built Lamdan Cloudflare Worker directly from ${workerEntry}`,
+);
+console.log(`Listening on http://${host}:${port}`);
+console.log(`${npxExecutable} ${commonArguments.join(" ")}`);
+
+const child = spawn(npxExecutable, commonArguments, {
   cwd: process.cwd(),
   env: {
     ...process.env,
     HOST: host,
     PORT: String(port),
-    NITRO_HOST: host,
-    NITRO_PORT: String(port),
   },
   stdio: "inherit",
 });
