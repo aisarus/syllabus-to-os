@@ -17,14 +17,28 @@ const functionalBlueprintWait = `    await page.waitFor(\`(() => {
       );
       return checkboxes.length === 2 && startButton && !startButton.disabled;
     })()\`);`;
+const decorativeSessionWait =
+  '    await page.waitForText("Замороженная экзаменационная сессия");';
+const functionalSessionWait = `    await page.waitFor(\`(() => {
+      const exams = JSON.parse(localStorage.getItem("lamdan.exam-engine.v1"));
+      const session = exams.sessions?.[0];
+      return session?.status === "active" &&
+        session.questions?.length === 2 &&
+        document.body?.innerText.includes("constitutional review");
+    })()\`);`;
 
 try {
   const source = await readFile(sourcePath, "utf8");
   if (!source.includes(decorativeCounterWait)) {
     throw new Error("The Exam Engine E2E source no longer contains the readiness counter check.");
   }
+  if (!source.includes(decorativeSessionWait)) {
+    throw new Error("The Exam Engine E2E source no longer contains the active-session heading check.");
+  }
 
-  const patched = source.replace(decorativeCounterWait, functionalBlueprintWait);
+  const patched = source
+    .replace(decorativeCounterWait, functionalBlueprintWait)
+    .replace(decorativeSessionWait, functionalSessionWait);
   await writeFile(temporaryScript, patched, "utf8");
 
   const result = spawnSync(process.execPath, [temporaryScript], {
