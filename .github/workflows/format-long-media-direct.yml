@@ -1,0 +1,34 @@
+name: Format direct long-media fixes
+
+on:
+  push:
+    branches:
+      - agent/long-lecture-media
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/long-lecture-media
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: npx prettier --write src/routes/app.lecture-media.tsx src/lib/long-media-store.ts scripts/verify-long-media-contract.mjs scripts/run-long-media-browser-e2e-final.mjs
+      - name: Commit and remove workflow
+        run: |
+          rm .github/workflows/format-long-media-direct.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/routes/app.lecture-media.tsx src/lib/long-media-store.ts scripts/verify-long-media-contract.mjs scripts/run-long-media-browser-e2e-final.mjs .github/workflows/format-long-media-direct.yml
+          git commit -m "style: format committed lecture upload boundaries"
+          git push origin HEAD:agent/long-lecture-media
