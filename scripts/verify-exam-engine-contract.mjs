@@ -2,18 +2,29 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [model, store, workspace, route, evals, browserE2E, browserRunner, docs, workflow] =
-  await Promise.all([
-    read("src/lib/exam-engine.ts"),
-    read("src/lib/exam-engine-store.ts"),
-    read("src/components/exam-engine.tsx"),
-    read("src/routes/app.exam-engine.tsx"),
-    read("scripts/run-exam-engine-evals.mjs"),
-    read("scripts/run-exam-engine-browser-e2e.mjs"),
-    read("scripts/run-exam-engine-browser-e2e-final.mjs"),
-    read("docs/EXAM_ENGINE_V1.md"),
-    read(".github/workflows/exam-engine.yml"),
-  ]);
+const [
+  model,
+  store,
+  workspace,
+  restoredResult,
+  route,
+  evals,
+  browserE2E,
+  browserRunner,
+  docs,
+  workflow,
+] = await Promise.all([
+  read("src/lib/exam-engine.ts"),
+  read("src/lib/exam-engine-store.ts"),
+  read("src/components/exam-engine.tsx"),
+  read("src/components/exam-engine-restored-result.tsx"),
+  read("src/routes/app.exam-engine.tsx"),
+  read("scripts/run-exam-engine-evals.mjs"),
+  read("scripts/run-exam-engine-browser-e2e.mjs"),
+  read("scripts/run-exam-engine-browser-e2e-final.mjs"),
+  read("docs/EXAM_ENGINE_V1.md"),
+  read(".github/workflows/exam-engine.yml"),
+]);
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
@@ -73,10 +84,23 @@ for (const marker of [
 }
 
 for (const marker of [
+  "Замороженный результат экзамена",
+  "Результат восстановлен из локальной frozen session после reload",
+  "сырой score",
+  "Правильный ответ",
+  "К blueprints",
+]) {
+  requireMarker(restoredResult, marker, `Restored Exam result surface is missing: ${marker}`);
+}
+
+for (const marker of [
   'createFileRoute("/app/exam-engine")',
   "const data = useData()",
+  "const exams = useExamEngineData()",
   "data.courses.length === 0",
-  "Сначала добавь курс и source-linked вопросы",
+  'session.status === "submitted" && session.result',
+  "<ExamEngineRestoredResult",
+  "setShowRestoredResult(false)",
   "<ExamEngine key=",
   "data.quizzes.length",
 ]) {
@@ -106,6 +130,9 @@ for (const marker of [
 for (const marker of [
   "functionalBlueprintWait",
   'input[type="checkbox"]',
+  "currentQuestionId",
+  "functionalResultWait",
+  "submitted-result diagnostics",
   "Сохранить и начать",
   "spawnSync",
 ]) {
