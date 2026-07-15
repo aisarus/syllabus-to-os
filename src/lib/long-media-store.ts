@@ -90,6 +90,7 @@ export async function putLongMediaFile(
   const uploadId = uid("media");
   const totalChunks = Math.ceil(file.size / LONG_MEDIA_CHUNK_BYTES);
   let writtenBytes = 0;
+  let committed = false;
 
   try {
     for (let index = 0; index < totalChunks; index += 1) {
@@ -130,13 +131,21 @@ export async function putLongMediaFile(
       updatedAt: now,
     };
     await writeRecord(db, MANIFEST_STORE, manifest);
-    await deleteRecord(db, TRANSCRIPT_STORE, materialId);
-    if (existing && existing.uploadId !== uploadId) {
-      await deleteChunksForUpload(db, existing.uploadId);
+    committed = true;
+    try {
+      await deleteRecord(db, TRANSCRIPT_STORE, materialId);
+      if (existing && existing.uploadId !== uploadId) {
+        await deleteChunksForUpload(db, existing.uploadId);
+      }
+    } catch (cleanupError) {
+      console.warn(
+        "Lecture-media cleanup failed after commit; the new recording remains active.",
+        cleanupError,
+      );
     }
     return manifest;
   } catch (error) {
-    await deleteChunksForUpload(db, uploadId).catch(() => undefined);
+    if (!committed) await deleteChunksForUpload(db, uploadId).catch(() => undefined);
     throw error;
   }
 }
