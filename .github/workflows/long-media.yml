@@ -56,7 +56,7 @@ jobs:
       - name: Run long lecture media browser E2E
         id: long_media_e2e
         continue-on-error: true
-        run: npm run e2e:long-media > long-media-e2e-output.txt 2>&1
+        run: node scripts/run-long-media-browser-e2e-final.mjs > long-media-e2e-output.txt 2>&1
 
       - name: Upload long media browser diagnostics
         if: always()
