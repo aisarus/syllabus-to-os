@@ -61,14 +61,14 @@ try {
   if (!source.includes(decorativeSessionWait)) {
     throw new Error("The Exam Engine E2E source no longer contains the active-session heading check.");
   }
-  if (!source.includes(decorativeResultWait)) {
-    throw new Error("The Exam Engine E2E source no longer contains the result heading check.");
+  if (source.split(decorativeResultWait).length - 1 !== 2) {
+    throw new Error("The Exam Engine E2E source no longer contains both result heading checks.");
   }
 
   const patched = source
     .replace(decorativeCounterWait, functionalBlueprintWait)
     .replace(decorativeSessionWait, functionalSessionWait)
-    .replace(decorativeResultWait, functionalResultWait);
+    .replaceAll(decorativeResultWait, functionalResultWait);
   await writeFile(temporaryScript, patched, "utf8");
 
   const result = spawnSync(process.execPath, [temporaryScript], {
