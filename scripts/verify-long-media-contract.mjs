@@ -115,7 +115,15 @@ for (const marker of [
   requireMarker(workspace, marker, `Long-media review workspace is missing: ${marker}`);
 }
 
-requireMarker(lifecycle, "pruneLongMediaData", "Long-media orphan cleanup is not mounted.");
+for (const marker of [
+  "ORPHAN_CONFIRMATION_MS = 15_000",
+  "listLongMediaManifests",
+  "getDataSnapshot",
+  "deleteLongMediaData",
+  "orphanSinceRef",
+]) {
+  requireMarker(lifecycle, marker, `Long-media orphan lifecycle is missing: ${marker}`);
+}
 for (const marker of [
   "Workspace ZIP v2 пока не включает сырой многогигабайтный файл",
   "getLongMediaStorageStats",
