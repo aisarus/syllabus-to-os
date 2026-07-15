@@ -171,7 +171,10 @@ function LectureMediaPage() {
           : `Lecture saved in ${manifest.chunkCount} local chunks`,
       );
     } catch (finalizeError) {
-      console.warn("Lecture media was stored, but optional metadata finalization failed.", finalizeError);
+      console.warn(
+        "Lecture media was stored, but optional metadata finalization failed.",
+        finalizeError,
+      );
       toast.warning(
         isRu
           ? "Запись сохранена, но часть метаданных не обновилась."
