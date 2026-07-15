@@ -1,0 +1,99 @@
+name: Integrate reviewed transcription
+
+on:
+  push:
+    branches:
+      - agent/reviewed-auto-transcription
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/reviewed-auto-transcription
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Integrate transcription panel and generate routes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          panel = Path('src/components/long-media-transcription-panel.tsx')
+          text = panel.read_text()
+          text = text.replace(
+              'import { formatMediaTime, putLongMediaTranscript, type LongMediaManifest, type LongMediaTranscriptDraft } from "@/lib/long-media";',
+              'import { formatMediaTime, type LongMediaManifest, type LongMediaTranscriptDraft } from "@/lib/long-media";',
+          )
+          panel.write_text(text)
+
+          workspace = Path('src/components/long-media-workspace.tsx')
+          text = workspace.read_text()
+          import_anchor = 'import { Button } from "@/components/ui/button";'
+          panel_import = 'import { LongMediaTranscriptionPanel } from "@/components/long-media-transcription-panel";'
+          if panel_import not in text:
+              text = text.replace(import_anchor, panel_import + '\n' + import_anchor, 1)
+
+          marker = '''      </section>
+
+      <section className="rounded-xl border border-border bg-surface p-4 md:p-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-primary">
+              <Clock3 className="h-4 w-4" />'''
+          replacement = '''      </section>
+
+      <LongMediaTranscriptionPanel
+        material={material}
+        manifest={manifest}
+        transcript={transcript}
+        onTranscriptChange={setTranscript}
+        isRu={isRu}
+      />
+
+      <section className="rounded-xl border border-border bg-surface p-4 md:p-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-primary">
+              <Clock3 className="h-4 w-4" />'''
+          if '<LongMediaTranscriptionPanel' not in text:
+              if marker not in text:
+                  raise SystemExit('workspace insertion marker not found')
+              text = text.replace(marker, replacement, 1)
+          workspace.write_text(text)
+          PY
+          bunx prettier --write \
+            src/lib/long-media.ts \
+            src/lib/long-media-transcription.ts \
+            src/lib/long-media-transcription-store.ts \
+            src/lib/long-media-transcription-client.ts \
+            src/lib/server/gemini-transcription.ts \
+            src/routes/api/ai/transcription.ts \
+            src/components/long-media-transcription-panel.tsx \
+            src/components/long-media-workspace.tsx \
+            scripts/run-reviewed-transcription-evals.mjs
+          bun run build
+          rm .github/workflows/integrate-reviewed-transcription.yml
+      - name: Commit integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/lib/long-media.ts \
+            src/lib/long-media-transcription.ts \
+            src/lib/long-media-transcription-store.ts \
+            src/lib/long-media-transcription-client.ts \
+            src/lib/server/gemini-transcription.ts \
+            src/routes/api/ai/transcription.ts \
+            src/components/long-media-transcription-panel.tsx \
+            src/components/long-media-workspace.tsx \
+            src/routeTree.gen.ts \
+            scripts/run-reviewed-transcription-evals.mjs \
+            .github/workflows/integrate-reviewed-transcription.yml
+          git commit -m "feat: integrate reviewed automatic transcription"
+          git push origin HEAD:agent/reviewed-auto-transcription
