@@ -14,7 +14,8 @@ const [
   appShell,
   routeTree,
   evals,
-  browserE2E,
+  browserScenario,
+  browserRunner,
   packageJson,
   checkScript,
   workflow,
@@ -34,6 +35,7 @@ const [
   read("src/routeTree.gen.ts"),
   read("scripts/run-long-media-evals.mjs"),
   read("scripts/run-long-media-browser-e2e-v2.mjs"),
+  read("scripts/run-long-media-browser-e2e-final.mjs"),
   read("package.json"),
   read("scripts/check.mjs"),
   read(".github/workflows/long-media.yml"),
@@ -71,6 +73,9 @@ for (const marker of [
   'crypto.subtle.digest("SHA-256"',
   "deleteChunksForUpload",
   "existing.uploadId !== uploadId",
+  "let committed = false",
+  "cleanup failed after commit",
+  "if (!committed)",
   "options.signal?.aborted",
   "sourceUploadId",
   "getLongMediaBlob",
@@ -88,7 +93,8 @@ for (const marker of [
   "deleteLongMediaData(material.id)",
   "store.deleteMaterial(material.id)",
   "onProgress: setProgress",
-  "if (!uploadSucceeded) return",
+  "let manifest",
+  "optional metadata finalization failed",
   "Лекция сохранена, но переход не открылся",
   "Сохранить лекцию локально",
   "до 4 ГБ",
@@ -173,7 +179,15 @@ for (const marker of [
   "core.materialChunks.length === 2",
   "Long lecture media browser E2E passed",
 ]) {
-  requireMarker(browserE2E, marker, `Long-media browser proof is missing: ${marker}`);
+  requireMarker(browserScenario, marker, `Long-media browser scenario is missing: ${marker}`);
+}
+for (const marker of [
+  "run-long-media-browser-e2e-v2.mjs",
+  "earlyHardNavigation",
+  "completedUploadNavigation",
+  "spawnSync",
+]) {
+  requireMarker(browserRunner, marker, `Long-media browser runner is missing: ${marker}`);
 }
 
 for (const marker of ['"eval:long-media"', '"e2e:long-media"', '"verify:long-media-contract"']) {
@@ -187,6 +201,7 @@ for (const marker of [
   "Run long lecture media evaluations",
   "Build and verify generated route tree",
   "Run long lecture media browser E2E",
+  "run-long-media-browser-e2e-final.mjs",
 ]) {
   requireMarker(workflow, marker, `Long-media workflow is missing: ${marker}`);
 }
