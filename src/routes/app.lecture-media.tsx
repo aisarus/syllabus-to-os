@@ -18,6 +18,7 @@ import { formatFileSize } from "@/lib/document-ingestion";
 import { detectLongMediaKind, isLongMediaMaterial, validateLongMediaFile } from "@/lib/long-media";
 import {
   deleteLongMediaData,
+  getLongMediaManifest,
   putLongMediaFile,
   updateLongMediaDuration,
   type LongMediaWriteProgress,
@@ -140,21 +141,35 @@ function LectureMediaPage() {
         onProgress: setProgress,
       });
     } catch (error) {
-      await deleteLongMediaData(material.id).catch(() => undefined);
-      store.deleteMaterial(material.id);
-      abortRef.current = null;
-      setBusy(false);
-      setProgress(null);
-      if (error instanceof DOMException && error.name === "AbortError") {
-        toast.info(
+      const committedManifest = await getLongMediaManifest(material.id).catch(() => undefined);
+      if (committedManifest) {
+        manifest = committedManifest;
+        console.warn(
+          "Lecture media was committed before a late storage error; preserving the recording.",
+          error,
+        );
+        toast.warning(
           isRu
-            ? "Загрузка отменена. Неполная копия удалена."
-            : "Upload cancelled. The incomplete copy was removed.",
+            ? "Запись сохранена, несмотря на ошибку завершающей очистки."
+            : "The recording was saved despite a late cleanup error.",
         );
       } else {
-        toast.error(error instanceof Error ? error.message : String(error));
+        await deleteLongMediaData(material.id).catch(() => undefined);
+        store.deleteMaterial(material.id);
+        abortRef.current = null;
+        setBusy(false);
+        setProgress(null);
+        if (error instanceof DOMException && error.name === "AbortError") {
+          toast.info(
+            isRu
+              ? "Загрузка отменена. Неполная копия удалена."
+              : "Upload cancelled. The incomplete copy was removed.",
+          );
+        } else {
+          toast.error(error instanceof Error ? error.message : String(error));
+        }
+        return;
       }
-      return;
     }
 
     try {
@@ -171,10 +186,7 @@ function LectureMediaPage() {
           : `Lecture saved in ${manifest.chunkCount} local chunks`,
       );
     } catch (finalizeError) {
-      console.warn(
-        "Lecture media was stored, but optional metadata finalization failed.",
-        finalizeError,
-      );
+      console.warn("Lecture media was stored, but optional metadata finalization failed.", finalizeError);
       toast.warning(
         isRu
           ? "Запись сохранена, но часть метаданных не обновилась."
