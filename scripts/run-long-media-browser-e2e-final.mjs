@@ -20,12 +20,22 @@ const completedUploadNavigation = `    await page.waitFor(
     );
     await page.waitForText("Длинная запись лекции", 45_000);`;
 
+const eagerPromiseBoolean = "if (await this.evaluate(`Boolean(${expression})`)) return;";
+const awaitedPredicate =
+  "if (await this.evaluate(`Promise.resolve(${expression}).then(Boolean)`)) return;";
+
 try {
   const source = await readFile(sourcePath, "utf8");
   if (!source.includes(earlyHardNavigation)) {
     throw new Error("The long-media E2E source no longer contains the guarded navigation block.");
   }
-  const patched = source.replace(earlyHardNavigation, completedUploadNavigation);
+  if (!source.includes(eagerPromiseBoolean)) {
+    throw new Error("The long-media E2E source no longer contains the predicate evaluation block.");
+  }
+
+  const patched = source
+    .replace(eagerPromiseBoolean, awaitedPredicate)
+    .replace(earlyHardNavigation, completedUploadNavigation);
   await writeFile(temporaryScript, patched, "utf8");
 
   const result = spawnSync(process.execPath, [temporaryScript], {
