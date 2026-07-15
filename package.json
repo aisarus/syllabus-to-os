@@ -33,7 +33,7 @@
     "e2e:workspace-backup": "node scripts/run-workspace-backup-browser-e2e.mjs",
     "e2e:concept-extraction": "node scripts/run-concept-extraction-browser-e2e.mjs",
     "e2e:open-answer-evidence": "node scripts/run-open-answer-evidence-browser-e2e.mjs",
-    "e2e:long-media": "node scripts/run-long-media-browser-e2e-v2.mjs",
+    "e2e:long-media": "node scripts/run-long-media-browser-e2e-final.mjs",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
     "verify:syllabus-review-contract": "node scripts/verify-syllabus-review-contract.mjs",
