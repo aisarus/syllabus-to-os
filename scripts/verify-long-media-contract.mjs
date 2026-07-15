@@ -33,7 +33,7 @@ const [
   read("src/components/app-shell.tsx"),
   read("src/routeTree.gen.ts"),
   read("scripts/run-long-media-evals.mjs"),
-  read("scripts/run-long-media-browser-e2e.mjs"),
+  read("scripts/run-long-media-browser-e2e-v2.mjs"),
   read("package.json"),
   read("scripts/check.mjs"),
   read(".github/workflows/long-media.yml"),
@@ -156,6 +156,7 @@ for (const marker of [
 }
 for (const marker of [
   "18 * 1024 * 1024",
+  "storedUploadPredicate",
   "manifest.chunkCount === 3",
   "chunks.length === 3",
   "SHA-256 каждого локального блока совпадает",
