@@ -15,7 +15,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useApp } from "@/lib/app-context";
 import { formatFileSize } from "@/lib/document-ingestion";
-import { detectLongMediaKind, isLongMediaMaterial, validateLongMediaFile } from "@/lib/long-media";
+import {
+  detectLongMediaKind,
+  isLongMediaMaterial,
+  validateLongMediaFile,
+  type LongMediaManifest,
+} from "@/lib/long-media";
 import {
   deleteLongMediaData,
   getLongMediaManifest,
@@ -23,19 +28,14 @@ import {
   updateLongMediaDuration,
   type LongMediaWriteProgress,
 } from "@/lib/long-media-store";
-import { store, useData } from "@/lib/store";
+import { store, uid, updateData, useData, type Material } from "@/lib/store";
 
 export const Route = createFileRoute("/app/lecture-media")({
   component: LectureMediaPage,
 });
 
 function titleFromFile(name: string): string {
-  return (
-    name
-      .replace(/\.[^.]+$/, "")
-      .replace(/[_-]+/g, " ")
-      .trim() || name
-  );
+  return name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim() || name;
 }
 
 function readMediaDuration(file: File): Promise<number | undefined> {
@@ -45,6 +45,7 @@ function readMediaDuration(file: File): Promise<number | undefined> {
       resolve(undefined);
       return;
     }
+
     const element = document.createElement(kind === "video" ? "video" : "audio");
     const url = URL.createObjectURL(file);
     let finished = false;
@@ -56,6 +57,7 @@ function readMediaDuration(file: File): Promise<number | undefined> {
       resolve(value);
     };
     const timer = window.setTimeout(() => finish(undefined), 12_000);
+
     element.preload = "metadata";
     element.onloadedmetadata = () => {
       window.clearTimeout(timer);
@@ -103,6 +105,7 @@ function LectureMediaPage() {
       );
       return;
     }
+
     const validation = validateLongMediaFile(file);
     if (!validation.ok) {
       toast.error(validation.message);
@@ -113,8 +116,11 @@ function LectureMediaPage() {
     abortRef.current = controller;
     setBusy(true);
     setProgress(null);
+
+    const now = Date.now();
     const durationPromise = readMediaDuration(file);
-    const material = store.createMaterial({
+    const material: Material = {
+      id: uid("mat"),
       title: title.trim(),
       type: "lecture",
       sourceMode: "uploaded_file",
@@ -132,9 +138,11 @@ function LectureMediaPage() {
       charCount: 0,
       extractionMethod: "manual",
       sourceLanguage: "unknown",
-    });
+      createdAt: now,
+      updatedAt: now,
+    };
 
-    let manifest;
+    let manifest: LongMediaManifest | undefined;
     try {
       manifest = await putLongMediaFile(material.id, file, {
         signal: controller.signal,
@@ -155,15 +163,14 @@ function LectureMediaPage() {
         );
       } else {
         await deleteLongMediaData(material.id).catch(() => undefined);
-        store.deleteMaterial(material.id);
         abortRef.current = null;
         setBusy(false);
         setProgress(null);
         if (error instanceof DOMException && error.name === "AbortError") {
           toast.info(
             isRu
-              ? "Загрузка отменена. Неполная копия удалена."
-              : "Upload cancelled. The incomplete copy was removed.",
+              ? "Загрузка отменена. Неполная staging-копия удалена."
+              : "Upload cancelled. The incomplete staging copy was removed.",
           );
         } else {
           toast.error(error instanceof Error ? error.message : String(error));
@@ -171,6 +178,13 @@ function LectureMediaPage() {
         return;
       }
     }
+
+    if (!manifest) return;
+
+    updateData((current) => ({
+      ...current,
+      materials: [material, ...current.materials.filter((item) => item.id !== material.id)],
+    }));
 
     try {
       const duration = await durationPromise;
