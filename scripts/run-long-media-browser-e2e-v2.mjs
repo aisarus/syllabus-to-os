@@ -87,11 +87,13 @@ class Page {
       }
       await sleep(140);
     }
-    const diagnostics = await this.evaluate(`(() => ({
+    const diagnostics = await this.evaluate(
+      `(() => ({
       href: location.href,
       body: document.body?.innerText.slice(0, 5000),
       core: localStorage.getItem("lamdan.data.v1"),
-    }))()`).catch((error) => ({ error: error instanceof Error ? error.message : String(error) }));
+    }))()`,
+    ).catch((error) => ({ error: error instanceof Error ? error.message : String(error) }));
     throw new Error(
       `Timed out waiting for: ${expression}\nBrowser diagnostics: ${JSON.stringify(diagnostics)}`,
     );
