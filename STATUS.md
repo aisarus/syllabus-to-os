@@ -80,7 +80,7 @@ PR #46 passed on the same final head:
 - long-media contract and deterministic evaluations;
 - TypeScript, ESLint and formatting;
 - production build and committed TanStack route tree;
-- complete repository browser suite;
+- critical browser end-to-end and the complete repository browser suite;
 - dedicated Exam Engine browser regression with shuffled frozen questions, score 100, two immutable snapshots, two concept recognition events and restored result after reload;
 - dedicated long-media Chromium: 18 MB upload → three IndexedDB chunks → SHA verification → SRT import → two approved source chunks → reload.
 
