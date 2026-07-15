@@ -68,7 +68,11 @@ function subscribe(listener: () => void): () => void {
 }
 
 export function useExamEngineData(): ExamEngineData {
-  return useSyncExternalStore(subscribe, () => state, () => SERVER_SNAPSHOT);
+  return useSyncExternalStore(
+    subscribe,
+    () => state,
+    () => SERVER_SNAPSHOT,
+  );
 }
 
 export function getExamEngineSnapshot(): ExamEngineData {

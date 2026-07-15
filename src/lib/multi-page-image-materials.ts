@@ -1,5 +1,9 @@
 import { countWords, type IngestChunk } from "./document-ingestion";
-import { fingerprintFile, materialIdForFingerprint, rememberMaterialFingerprint } from "./material-fingerprints";
+import {
+  fingerprintFile,
+  materialIdForFingerprint,
+  rememberMaterialFingerprint,
+} from "./material-fingerprints";
 import { inferMaterialType, normalizeMaterialTitle } from "./material-intake";
 import {
   normalizeOCRDraft,
@@ -75,8 +79,8 @@ export function isMultiPageImageMaterial(
 ): material is MultiPageImageMaterial {
   return Boolean(
     material &&
-      material.mimeType === MULTI_PAGE_IMAGE_MIME &&
-      Array.isArray((material as MultiPageImageMaterial).visualPages),
+    material.mimeType === MULTI_PAGE_IMAGE_MIME &&
+    Array.isArray((material as MultiPageImageMaterial).visualPages),
   );
 }
 
@@ -141,7 +145,8 @@ export async function createMultiPageImageMaterial(
 
   const material = store.createMaterial({
     title,
-    type: options.type ?? inferMaterialType(accepted.pages.map((entry) => entry.file.name).join(" ")),
+    type:
+      options.type ?? inferMaterialType(accepted.pages.map((entry) => entry.file.name).join(" ")),
     sourceMode: "uploaded_file",
     fileName: `${visualPages.length} images`,
     mimeType: MULTI_PAGE_IMAGE_MIME,
@@ -187,13 +192,18 @@ export async function appendMultiPageImages(
 ): Promise<MultiPageCreateResult> {
   const data = getDataSnapshot();
   const material = data.materials.find((entry) => entry.id === materialId);
-  if (!isMultiPageImageMaterial(material)) throw new Error("Material is not a multi-page image set.");
+  if (!isMultiPageImageMaterial(material))
+    throw new Error("Material is not a multi-page image set.");
 
   const accepted = await prepareUniquePages(files, data);
   const existingFingerprints = new Set(
-    material.visualPages.map((page) => page.fingerprint).filter((value): value is string => Boolean(value)),
+    material.visualPages
+      .map((page) => page.fingerprint)
+      .filter((value): value is string => Boolean(value)),
   );
-  const newEntries = accepted.pages.filter((entry) => !entry.fingerprint || !existingFingerprints.has(entry.fingerprint));
+  const newEntries = accepted.pages.filter(
+    (entry) => !entry.fingerprint || !existingFingerprints.has(entry.fingerprint),
+  );
   const skippedDuplicates = [
     ...accepted.skippedDuplicates,
     ...accepted.pages
@@ -245,7 +255,11 @@ export async function appendMultiPageImages(
     visualPages: nextPages,
     pageCount: nextPages.length,
   } as MultiPageImageMaterial;
-  return { material: nextMaterial, addedPages, skippedDuplicates: Array.from(new Set(skippedDuplicates)) };
+  return {
+    material: nextMaterial,
+    addedPages,
+    skippedDuplicates: Array.from(new Set(skippedDuplicates)),
+  };
 }
 
 export async function replaceMultiPageImage(
@@ -253,7 +267,8 @@ export async function replaceMultiPageImage(
   pageId: string,
   file: File,
 ): Promise<void> {
-  if (!isSupportedVisualSource(file)) throw new Error("Only JPEG, PNG and WebP images up to 20 MB are supported.");
+  if (!isSupportedVisualSource(file))
+    throw new Error("Only JPEG, PNG and WebP images up to 20 MB are supported.");
   const fingerprint = await fingerprintFile(file);
   await putMaterialVisualSource(pageId, file);
   await deleteMaterialOCRDraft(pageId);
@@ -361,7 +376,8 @@ export async function applyOCRDraftToMultiPageImage(
     );
   }
   const material = getDataSnapshot().materials.find((entry) => entry.id === materialId);
-  if (!isMultiPageImageMaterial(material)) throw new Error("Material is not a multi-page image set.");
+  if (!isMultiPageImageMaterial(material))
+    throw new Error("Material is not a multi-page image set.");
   const page = material.visualPages.find((entry) => entry.id === pageId);
   if (!page) throw new Error("Image page no longer exists.");
   const pageNumber = page.order + 1;
@@ -399,8 +415,13 @@ export function refreshMultiPageMaterialAggregate(materialId: string): void {
   const chunks = data.materialChunks
     .filter((chunk) => chunk.materialId === materialId && visualPageIdFromChunk(chunk))
     .slice()
-    .sort((left, right) => (left.pageNumber ?? 0) - (right.pageNumber ?? 0) || left.order - right.order);
-  const rawText = chunks.map((chunk) => chunk.text.trim()).filter(Boolean).join("\n\n");
+    .sort(
+      (left, right) => (left.pageNumber ?? 0) - (right.pageNumber ?? 0) || left.order - right.order,
+    );
+  const rawText = chunks
+    .map((chunk) => chunk.text.trim())
+    .filter(Boolean)
+    .join("\n\n");
   const applied = material.visualPages.filter((page) => page.status === "applied").length;
   const errors = material.visualPages.filter((page) => page.status === "error").length;
   const languages = Array.from(
@@ -471,9 +492,7 @@ function replaceChunksForVisualPage(
 function removeChunksForVisualPage(materialId: string, pageId: string): void {
   const data = getDataSnapshot();
   const chunkIds = data.materialChunks
-    .filter(
-      (chunk) => chunk.materialId === materialId && visualPageIdFromChunk(chunk) === pageId,
-    )
+    .filter((chunk) => chunk.materialId === materialId && visualPageIdFromChunk(chunk) === pageId)
     .map((chunk) => chunk.id);
   for (const chunkId of chunkIds) store.deleteMaterialChunk(chunkId);
 }
@@ -510,7 +529,9 @@ async function prepareUniquePages(
     const indexedMaterialId = fingerprint ? materialIdForFingerprint(fingerprint) : undefined;
     if (
       fingerprint &&
-      (batchFingerprints.has(fingerprint) || knownFingerprints.has(fingerprint) || indexedMaterialId)
+      (batchFingerprints.has(fingerprint) ||
+        knownFingerprints.has(fingerprint) ||
+        indexedMaterialId)
     ) {
       skippedDuplicates.push(file.name);
       continue;
@@ -525,7 +546,9 @@ function suggestedBatchTitle(fileNames: string[]): string {
   if (fileNames.length === 0) return "Image material";
   const stems = fileNames.map((name) => name.replace(/\.[^.]+$/, "").trim()).filter(Boolean);
   const first = stems[0] || "Image material";
-  const prefix = stems.reduce((current, value) => commonPrefix(current, value), first).replace(/[\s_-]+$/, "");
+  const prefix = stems
+    .reduce((current, value) => commonPrefix(current, value), first)
+    .replace(/[\s_-]+$/, "");
   return `${prefix.length >= 4 ? prefix : first} — ${fileNames.length} pages`;
 }
 

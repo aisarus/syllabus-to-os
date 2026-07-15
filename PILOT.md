@@ -91,18 +91,18 @@ Evidence / failures:
 
 ## Metrics
 
-| Metric | Result |
-|---|---|
-| Failed uploads | |
-| Incorrect classifications | |
-| Manual OCR corrections | |
-| Invented/unsupported AI claims | |
-| Broken source links | |
-| Save/persistence failures | |
-| Repeated or confusing steps | |
-| Desktop blockers | |
-| Mobile blockers | |
-| Total time to usable course | |
+| Metric                         | Result |
+| ------------------------------ | ------ |
+| Failed uploads                 |        |
+| Incorrect classifications      |        |
+| Manual OCR corrections         |        |
+| Invented/unsupported AI claims |        |
+| Broken source links            |        |
+| Save/persistence failures      |        |
+| Repeated or confusing steps    |        |
+| Desktop blockers               |        |
+| Mobile blockers                |        |
+| Total time to usable course    |        |
 
 ## Findings
 

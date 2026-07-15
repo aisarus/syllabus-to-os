@@ -17,7 +17,12 @@ import type { AppData, Course } from "./store";
 
 export type SyllabusSourceType = "xlsx" | "pdf" | "docx" | "text" | "csv";
 export type SyllabusFieldKey =
-  "title" | "number" | "instructor" | "credits" | "semester" | "description";
+  | "title"
+  | "number"
+  | "instructor"
+  | "credits"
+  | "semester"
+  | "description";
 
 export interface ReviewCourseDraft extends ParsedCourseDraft {
   readings: string[];

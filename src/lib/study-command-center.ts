@@ -255,7 +255,11 @@ export function buildStudyCommandCenter(
     actions.push({
       id: `material-review:${material.id}`,
       kind: "review_material",
-      title: translate(locale, `Разобрать источник: ${material.title}`, `Review source: ${material.title}`),
+      title: translate(
+        locale,
+        `Разобрать источник: ${material.title}`,
+        `Review source: ${material.title}`,
+      ),
       detail: [course, material.processingMessage || material.processingStatus]
         .filter(Boolean)
         .join(" · "),
@@ -279,7 +283,10 @@ export function buildStudyCommandCenter(
       id: `quiz:${quiz.id}`,
       kind: "practice_quiz",
       title: translate(locale, `Разобрать ошибки: ${quiz.title}`, `Repair mistakes: ${quiz.title}`),
-      detail: [course, translate(locale, `последний результат ${attempt.score}%`, `last score ${attempt.score}%`)]
+      detail: [
+        course,
+        translate(locale, `последний результат ${attempt.score}%`, `last score ${attempt.score}%`),
+      ]
         .filter(Boolean)
         .join(" · "),
       durationMinutes: 18,
@@ -307,7 +314,11 @@ export function buildStudyCommandCenter(
       ),
       detail: [
         course,
-        translate(locale, "нет сохранённых конспектов, карточек или тестов", "no saved notes, cards or quizzes"),
+        translate(
+          locale,
+          "нет сохранённых конспектов, карточек или тестов",
+          "no saved notes, cards or quizzes",
+        ),
       ]
         .filter(Boolean)
         .join(" · "),
@@ -369,7 +380,11 @@ export function buildStudyCommandCenter(
       actions.push({
         id: `continue:${latestMaterial.id}`,
         kind: "build_study_pack",
-        title: translate(locale, `Продолжить: ${latestMaterial.title}`, `Continue: ${latestMaterial.title}`),
+        title: translate(
+          locale,
+          `Продолжить: ${latestMaterial.title}`,
+          `Continue: ${latestMaterial.title}`,
+        ),
         detail: translate(
           locale,
           "Источник готов. Создай из него следующий полезный учебный результат.",
@@ -385,7 +400,11 @@ export function buildStudyCommandCenter(
       actions.push({
         id: `course:${firstCourse.id}`,
         kind: "continue_course",
-        title: translate(locale, `Открыть курс: ${firstCourse.title}`, `Open course: ${firstCourse.title}`),
+        title: translate(
+          locale,
+          `Открыть курс: ${firstCourse.title}`,
+          `Open course: ${firstCourse.title}`,
+        ),
         detail: translate(
           locale,
           "Добавь первый источник или проверь структуру курса.",

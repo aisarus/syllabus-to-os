@@ -2,7 +2,19 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [workspace, route, details, evals, browserE2E, visualContract, packageJson, checkScript, workflow, status, plans] = await Promise.all([
+const [
+  workspace,
+  route,
+  details,
+  evals,
+  browserE2E,
+  visualContract,
+  packageJson,
+  checkScript,
+  workflow,
+  status,
+  plans,
+] = await Promise.all([
   read("src/lib/workspace-backup.ts"),
   read("src/routes/app.data.tsx"),
   read("src/lib/quiz-attempt-details.ts"),
@@ -24,9 +36,9 @@ const requireMarker = (content, marker, message) => {
 for (const marker of [
   'FULL_WORKSPACE_BACKUP_FORMAT = "lamdan-workspace-backup"',
   "FULL_WORKSPACE_BACKUP_VERSION = 2",
-  'workspace/visual-backup-v1.zip',
-  'workspace/concept-evidence.json',
-  'workspace/quiz-attempt-details.json',
+  "workspace/visual-backup-v1.zip",
+  "workspace/concept-evidence.json",
+  "workspace/quiz-attempt-details.json",
   "addPayload",
   "sha256",
   "validateArchiveEntries",
@@ -100,10 +112,7 @@ for (const marker of [
 ]) {
   requireMarker(packageJson, marker, `package.json is missing: ${marker}`);
 }
-for (const marker of [
-  '"verify:workspace-backup-contract"',
-  '"eval:workspace-backup"',
-]) {
+for (const marker of ['"verify:workspace-backup-contract"', '"eval:workspace-backup"']) {
   requireMarker(checkScript, marker, `Canonical checks are missing: ${marker}`);
 }
 for (const marker of [

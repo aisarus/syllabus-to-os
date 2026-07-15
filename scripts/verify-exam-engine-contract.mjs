@@ -2,13 +2,26 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [model, store, workspace, route, evals, browserE2E, docs, workflow] = await Promise.all([
+const [
+  model,
+  store,
+  workspace,
+  restoredResult,
+  route,
+  evals,
+  browserE2E,
+  browserRunner,
+  docs,
+  workflow,
+] = await Promise.all([
   read("src/lib/exam-engine.ts"),
   read("src/lib/exam-engine-store.ts"),
   read("src/components/exam-engine.tsx"),
+  read("src/components/exam-engine-restored-result.tsx"),
   read("src/routes/app.exam-engine.tsx"),
   read("scripts/run-exam-engine-evals.mjs"),
   read("scripts/run-exam-engine-browser-e2e.mjs"),
+  read("scripts/run-exam-engine-browser-e2e-final.mjs"),
   read("docs/EXAM_ENGINE_V1.md"),
   read(".github/workflows/exam-engine.yml"),
 ]);
@@ -70,12 +83,29 @@ for (const marker of [
   requireMarker(workspace, marker, `Exam Engine UI is missing: ${marker}`);
 }
 
-requireMarker(
-  route,
+for (const marker of [
+  "Замороженный результат экзамена",
+  "Результат восстановлен из локальной frozen session после reload",
+  "сырой score",
+  "Правильный ответ",
+  "К blueprints",
+]) {
+  requireMarker(restoredResult, marker, `Restored Exam result surface is missing: ${marker}`);
+}
+
+for (const marker of [
   'createFileRoute("/app/exam-engine")',
-  "Exam Engine route is missing.",
-);
-requireMarker(route, "<ExamEngine />", "Exam Engine route does not render its workspace.");
+  "const data = useData()",
+  "const exams = useExamEngineData()",
+  "data.courses.length === 0",
+  'session.status === "submitted" && session.result',
+  "<ExamEngineRestoredResult",
+  "setShowRestoredResult(false)",
+  "<ExamEngine key=",
+  "data.quizzes.length",
+]) {
+  requireMarker(route, marker, `Exam Engine hydrated route is missing: ${marker}`);
+}
 
 for (const marker of [
   "an ungrounded question must block exam start",
@@ -98,6 +128,18 @@ for (const marker of [
 }
 
 for (const marker of [
+  "functionalBlueprintWait",
+  'input[type="checkbox"]',
+  "currentQuestionId",
+  "functionalResultWait",
+  "submitted-result diagnostics",
+  "Сохранить и начать",
+  "spawnSync",
+]) {
+  requireMarker(browserRunner, marker, `Functional Exam Engine browser runner is missing: ${marker}`);
+}
+
+for (const marker of [
   "Frozen session",
   "Source-grounded question bank",
   "Partial answers",
@@ -111,6 +153,7 @@ for (const marker of [
   "Verify Exam Engine contract",
   "Run Exam Engine evaluations",
   "Run Exam Engine browser E2E",
+  "run-exam-engine-browser-e2e-final.mjs",
   "npm run typecheck",
   "npm run lint",
   "npm run build",

@@ -270,9 +270,7 @@ async function main() {
     await page.clickText("Из Study Pack (1)");
     await page.waitForText("Проверка перед добавлением");
     await page.fillCandidateAlias("Судебный контроль", "Разделение властей");
-    await page.waitForText(
-      "После ручных правок title или alias совпадает с другим кандидатом",
-    );
+    await page.waitForText("После ручных правок title или alias совпадает с другим кандидатом");
     await page.clickText("Добавить выбранные");
 
     await page.waitFor(`(() => {
@@ -380,6 +378,6 @@ function sleep(milliseconds) {
 }
 
 await main().catch((error) => {
-  console.error(error instanceof Error ? error.stack ?? error.message : String(error));
+  console.error(error instanceof Error ? (error.stack ?? error.message) : String(error));
   process.exitCode = 1;
 });

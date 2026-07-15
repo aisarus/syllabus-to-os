@@ -10,6 +10,6 @@ try {
   process.exit(process.exitCode ?? 0);
 } catch (error) {
   clearTimeout(timeout);
-  console.error(error instanceof Error ? error.stack ?? error.message : String(error));
+  console.error(error instanceof Error ? (error.stack ?? error.message) : String(error));
   process.exit(1);
 }

@@ -1,0 +1,87 @@
+name: Long Lecture Media
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: long-media-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  long-media:
+    name: Contract, eval, build and browser proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify long lecture media contract
+        run: npm run verify:long-media-contract
+
+      - name: Run long lecture media evaluations
+        run: npm run eval:long-media
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint 2>&1 | tee long-media-lint-output.txt
+
+      - name: Upload long media lint diagnostics
+        if: steps.lint.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: long-media-lint-diagnostics
+          path: long-media-lint-output.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when long media lint fails
+        if: steps.lint.outcome == 'failure'
+        run: exit 1
+
+      - name: Build and verify generated route tree
+        run: |
+          npm run build
+          git diff --exit-code -- src/routeTree.gen.ts
+
+      - name: Run long lecture media browser E2E
+        id: long_media_e2e
+        continue-on-error: true
+        run: node scripts/run-long-media-browser-e2e-final.mjs > long-media-e2e-output.txt 2>&1
+
+      - name: Upload long media browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: long-media-browser-diagnostics
+          path: long-media-e2e-output.txt
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Fail when long media browser E2E fails
+        if: steps.long_media_e2e.outcome == 'failure'
+        run: exit 1

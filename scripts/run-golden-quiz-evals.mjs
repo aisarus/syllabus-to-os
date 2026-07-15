@@ -57,7 +57,9 @@ if (jsonMode) {
     }
     if (fixture.negative.pass) console.log("  negative control incorrectly passed");
   }
-  console.log(`\n${report.pass ? "All golden quiz quality gates passed." : "Golden quiz quality gates failed."}`);
+  console.log(
+    `\n${report.pass ? "All golden quiz quality gates passed." : "Golden quiz quality gates failed."}`,
+  );
 }
 
 if (!report.pass) process.exit(1);
@@ -121,7 +123,8 @@ function evaluateQuestion(question, sourceById, requireRussianTranslation) {
   const answerTokens = tokens(correctAnswer);
   add(
     "sourceSupport",
-    answerTokens.length === 0 || answerTokens.some((token) => normalize(sourceText).includes(token)),
+    answerTokens.length === 0 ||
+      answerTokens.some((token) => normalize(sourceText).includes(token)),
     "manual",
     "weak_answer_support",
   );
@@ -205,7 +208,8 @@ function evaluateQuestion(question, sourceById, requireRussianTranslation) {
   );
   add(
     "translation",
-    !translationRequired || feedback.optionTranslations.filter((value) => value.trim()).length === 4,
+    !translationRequired ||
+      feedback.optionTranslations.filter((value) => value.trim()).length === 4,
     "warning",
     "missing_option_translation",
   );
@@ -234,10 +238,7 @@ function parseFeedback(value, optionCount) {
   const read = (headings) => {
     for (const heading of headings) {
       const match = value.match(
-        new RegExp(
-          `###\\s+${escapeRegex(heading)}\\s*\\n([\\s\\S]*?)(?=\\n\\n###\\s+|$)`,
-          "i",
-        ),
+        new RegExp(`###\\s+${escapeRegex(heading)}\\s*\\n([\\s\\S]*?)(?=\\n\\n###\\s+|$)`, "i"),
       );
       if (match) return match[1].trim();
     }
@@ -291,10 +292,8 @@ function weightedScore(categories) {
   };
   const weight = categories.reduce((sum, category) => sum + weights[category.category], 0);
   return (
-    categories.reduce(
-      (sum, category) => sum + category.score * weights[category.category],
-      0,
-    ) / weight
+    categories.reduce((sum, category) => sum + category.score * weights[category.category], 0) /
+    weight
   );
 }
 
@@ -328,14 +327,20 @@ function sameSurfaceCategory(left, right) {
   const leftNumber = /^[-+]?\d/.test(left.trim());
   const rightNumber = /^[-+]?\d/.test(right.trim());
   if (leftNumber || rightNumber) return leftNumber === rightNumber;
-  return Math.abs(tokens(left).length - tokens(right).length) <= Math.max(3, Math.ceil(tokens(right).length * 0.8));
+  return (
+    Math.abs(tokens(left).length - tokens(right).length) <=
+    Math.max(3, Math.ceil(tokens(right).length * 0.8))
+  );
 }
 
 function hintRevealsAnswer(hint, answer) {
   const answerTokens = tokens(answer).filter((token) => token.length >= 4);
   if (answerTokens.length === 0) return false;
   const normalizedHint = normalize(hint);
-  return answerTokens.filter((token) => normalizedHint.includes(token)).length / answerTokens.length >= 0.8;
+  return (
+    answerTokens.filter((token) => normalizedHint.includes(token)).length / answerTokens.length >=
+    0.8
+  );
 }
 
 function medianValue(values) {

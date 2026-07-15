@@ -10,10 +10,7 @@ import {
   type ConceptEvidenceOutcome,
   type ConceptMistakeKind,
 } from "./concept-evidence";
-import {
-  getQuizAttemptDetailSnapshot,
-  type QuizAttemptDetailData,
-} from "./quiz-attempt-details";
+import { getQuizAttemptDetailSnapshot, type QuizAttemptDetailData } from "./quiz-attempt-details";
 import { store, uid, type AppData } from "./store";
 
 const KEY = "lamdan.concept-evidence.v1";
@@ -59,7 +56,11 @@ function subscribe(listener: () => void): () => void {
 }
 
 export function useConceptEvidenceData(): ConceptEvidenceData {
-  return useSyncExternalStore(subscribe, () => state, () => SERVER_SNAPSHOT);
+  return useSyncExternalStore(
+    subscribe,
+    () => state,
+    () => SERVER_SNAPSHOT,
+  );
 }
 
 export function getConceptEvidenceSnapshot(): ConceptEvidenceData {
@@ -107,7 +108,9 @@ export const conceptStore = {
       evidenceEvents: current.evidenceEvents.filter((event) => event.conceptId !== id),
     }));
   },
-  recordEvidence(input: Omit<ConceptEvidenceEvent, "id" | "occurredAt"> & { occurredAt?: number }): void {
+  recordEvidence(
+    input: Omit<ConceptEvidenceEvent, "id" | "occurredAt"> & { occurredAt?: number },
+  ): void {
     const event: ConceptEvidenceEvent = {
       ...input,
       id: uid("cev"),
@@ -210,7 +213,9 @@ export function syncQuizAttemptEvidence(
       .filter((event) => event.sourceType === "quiz_attempt" && event.sourceId)
       .map((event) => `${event.conceptId}:${event.sourceId}`),
   );
-  const detailsByAttemptId = new Map(detailData.attempts.map((detail) => [detail.attemptId, detail]));
+  const detailsByAttemptId = new Map(
+    detailData.attempts.map((detail) => [detail.attemptId, detail]),
+  );
   const quizzes = new Map(core.quizzes.map((quiz) => [quiz.id, quiz]));
   const questionsByQuiz = new Map<string, string[]>();
   for (const question of core.quizQuestions) {
@@ -277,7 +282,10 @@ export function syncQuizAttemptEvidence(
   }
 
   if (additions.length > 0) {
-    update((current) => ({ ...current, evidenceEvents: [...additions, ...current.evidenceEvents] }));
+    update((current) => ({
+      ...current,
+      evidenceEvents: [...additions, ...current.evidenceEvents],
+    }));
   }
 }
 

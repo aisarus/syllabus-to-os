@@ -47,22 +47,20 @@ for (const marker of [
   requireMarker(route, marker, `Global search route is missing: ${marker}`);
 }
 
-for (const marker of [
-  '"eval:global-search"',
-  '"verify:global-search-v2-contract"',
-]) {
+for (const marker of ['"eval:global-search"', '"verify:global-search-v2-contract"']) {
   requireMarker(packageJson, marker, `package.json is missing: ${marker}`);
 }
 for (const marker of ["verify:global-search-v2-contract", "eval:global-search"]) {
   requireMarker(checkScript, marker, `npm run check is missing: ${marker}`);
 }
-for (const marker of [
-  "Verify global search v2 contract",
-  "Run global search v2 evaluations",
-]) {
+for (const marker of ["Verify global search v2 contract", "Run global search v2 evaluations"]) {
   requireMarker(workflow, marker, `CI is missing: ${marker}`);
 }
-requireMarker(status, "P1-004 Add local-first global search v2", "STATUS.md is not updated for search v2.");
+requireMarker(
+  status,
+  "P1-004 Add local-first global search v2",
+  "STATUS.md is not updated for search v2.",
+);
 
 if (failures.length > 0) {
   console.error("Global search v2 contract verification failed:\n");

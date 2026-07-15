@@ -142,5 +142,7 @@ function imageMimeType(path) {
 }
 
 function printHelp() {
-  console.log(`Run Lamdan's connected OCR provider against the private evaluation pack.\n\nUsage:\n  npm run eval:ocr:live -- --base-url https://your-preview.example --asset-dir ./private-ocr-assets\n\nThe asset filenames must match the manifest asset ids, for example:\n  printed-hebrew-page-01.jpg\n  handwritten-hebrew-notes-01.jpg\n  handwritten-math-notebook-01.jpg\n  blurred-notebook-photo-01.jpg\n`);
+  console.log(
+    `Run Lamdan's connected OCR provider against the private evaluation pack.\n\nUsage:\n  npm run eval:ocr:live -- --base-url https://your-preview.example --asset-dir ./private-ocr-assets\n\nThe asset filenames must match the manifest asset ids, for example:\n  printed-hebrew-page-01.jpg\n  handwritten-hebrew-notes-01.jpg\n  handwritten-math-notebook-01.jpg\n  blurred-notebook-photo-01.jpg\n`,
+  );
 }

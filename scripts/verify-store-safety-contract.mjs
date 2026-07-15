@@ -36,7 +36,11 @@ for (const marker of [
 ]) {
   requireMarker(installer, marker, `Store safety installer is missing: ${marker}`);
 }
-for (const marker of ["LAMDAN_DATA_STORAGE_KEY", "QuotaExceededError", "inspectWorkspacePersistence"]) {
+for (const marker of [
+  "LAMDAN_DATA_STORAGE_KEY",
+  "QuotaExceededError",
+  "inspectWorkspacePersistence",
+]) {
   requireMarker(persistence, marker, `Persistence honesty contract is missing: ${marker}`);
 }
 for (const marker of [

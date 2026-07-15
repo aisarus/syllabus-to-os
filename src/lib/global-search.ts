@@ -112,9 +112,7 @@ export function searchWorkspace(
   return hits.slice(0, limit);
 }
 
-export function countGlobalSearchKinds(
-  hits: GlobalSearchHit[],
-): Record<GlobalSearchKind, number> {
+export function countGlobalSearchKinds(hits: GlobalSearchHit[]): Record<GlobalSearchKind, number> {
   const counts = Object.fromEntries(GLOBAL_SEARCH_KINDS.map((kind) => [kind, 0])) as Record<
     GlobalSearchKind,
     number
@@ -356,7 +354,12 @@ function scoreDocument(document: SearchDocument, query: ParsedQuery): GlobalSear
   };
 }
 
-function field(name: string, value: string | undefined, weight: number, snippet: boolean): SearchField {
+function field(
+  name: string,
+  value: string | undefined,
+  weight: number,
+  snippet: boolean,
+): SearchField {
   return { name, value: value ?? "", weight, snippet };
 }
 
@@ -392,8 +395,7 @@ function selectSnippetField(
       candidate,
       matches: terms.filter((term) => candidate.normalized.includes(term)).length,
       score: terms.reduce(
-        (total, term) =>
-          total + fieldMatchScore(candidate.normalized, term, candidate.item.weight),
+        (total, term) => total + fieldMatchScore(candidate.normalized, term, candidate.item.weight),
         0,
       ),
     }))

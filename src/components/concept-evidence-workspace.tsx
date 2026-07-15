@@ -207,10 +207,7 @@ function ConceptPanel({
   quizzes: ReturnType<typeof useData>["quizzes"];
   isRu: boolean;
 }) {
-  const summary = useMemo(
-    () => summarizeConceptEvidence(concept, events),
-    [concept, events],
-  );
+  const summary = useMemo(() => summarizeConceptEvidence(concept, events), [concept, events]);
   const materialById = new Map(materials.map((item) => [item.id, item]));
   const quizById = new Map(quizzes.map((item) => [item.id, item]));
   const firstQuestion = questions.find((item) => concept.quizQuestionIds.includes(item.id));
@@ -222,7 +219,11 @@ function ConceptPanel({
         label: isRu ? "Проверить тестом" : "Practice with quiz",
       }
     : concept.flashcardIds.length > 0
-      ? { to: "/app/flashcards", params: undefined, label: isRu ? "Повторить карточки" : "Review cards" }
+      ? {
+          to: "/app/flashcards",
+          params: undefined,
+          label: isRu ? "Повторить карточки" : "Review cards",
+        }
       : firstChunk
         ? {
             to: "/app/materials/$materialId",
@@ -231,10 +232,7 @@ function ConceptPanel({
           }
         : null;
 
-  const toggle = (
-    field: "sourceChunkIds" | "flashcardIds" | "quizQuestionIds",
-    id: string,
-  ) => {
+  const toggle = (field: "sourceChunkIds" | "flashcardIds" | "quizQuestionIds", id: string) => {
     const values = concept[field];
     conceptStore.updateConcept(concept.id, {
       [field]: values.includes(id) ? values.filter((value) => value !== id) : [...values, id],
@@ -272,11 +270,15 @@ function ConceptPanel({
           <div className="space-y-5">
             <section className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="text-xs text-muted-foreground">{isRu ? "Название" : "Title"}</label>
+                <label className="text-xs text-muted-foreground">
+                  {isRu ? "Название" : "Title"}
+                </label>
                 <Input
                   className="mt-1"
                   value={concept.title}
-                  onChange={(event) => conceptStore.updateConcept(concept.id, { title: event.target.value })}
+                  onChange={(event) =>
+                    conceptStore.updateConcept(concept.id, { title: event.target.value })
+                  }
                 />
               </div>
               <div>
@@ -299,12 +301,16 @@ function ConceptPanel({
                 </select>
               </div>
               <div className="sm:col-span-2">
-                <label className="text-xs text-muted-foreground">{isRu ? "Описание" : "Description"}</label>
+                <label className="text-xs text-muted-foreground">
+                  {isRu ? "Описание" : "Description"}
+                </label>
                 <Textarea
                   className="mt-1 min-h-20"
                   value={concept.description ?? ""}
                   onChange={(event) =>
-                    conceptStore.updateConcept(concept.id, { description: event.target.value || undefined })
+                    conceptStore.updateConcept(concept.id, {
+                      description: event.target.value || undefined,
+                    })
                   }
                 />
               </div>
@@ -317,7 +323,10 @@ function ConceptPanel({
                   value={concept.aliases.join(", ")}
                   onChange={(event) =>
                     conceptStore.updateConcept(concept.id, {
-                      aliases: event.target.value.split(",").map((item) => item.trim()).filter(Boolean),
+                      aliases: event.target.value
+                        .split(",")
+                        .map((item) => item.trim())
+                        .filter(Boolean),
                     })
                   }
                 />
@@ -333,13 +342,20 @@ function ConceptPanel({
                   key={chunk.id}
                   checked={concept.sourceChunkIds.includes(chunk.id)}
                   onChange={() => toggle("sourceChunkIds", chunk.id)}
-                  title={chunk.title || chunk.section || `${isRu ? "Фрагмент" : "Chunk"} ${chunk.order + 1}`}
+                  title={
+                    chunk.title ||
+                    chunk.section ||
+                    `${isRu ? "Фрагмент" : "Chunk"} ${chunk.order + 1}`
+                  }
                   meta={materialById.get(chunk.materialId)?.title ?? chunk.materialId}
                 />
               ))}
             </LinkSection>
 
-            <LinkSection title={isRu ? "Карточки для recall" : "Flashcards for recall"} empty={isRu ? "Карточек нет." : "No cards."}>
+            <LinkSection
+              title={isRu ? "Карточки для recall" : "Flashcards for recall"}
+              empty={isRu ? "Карточек нет." : "No cards."}
+            >
               {cards.map((card) => (
                 <CheckRow
                   key={card.id}
@@ -351,7 +367,10 @@ function ConceptPanel({
               ))}
             </LinkSection>
 
-            <LinkSection title={isRu ? "Вопросы тестов" : "Quiz questions"} empty={isRu ? "Вопросов нет." : "No questions."}>
+            <LinkSection
+              title={isRu ? "Вопросы тестов" : "Quiz questions"}
+              empty={isRu ? "Вопросов нет." : "No questions."}
+            >
               {questions.map((question) => (
                 <CheckRow
                   key={question.id}
@@ -366,7 +385,9 @@ function ConceptPanel({
 
           <aside className="space-y-4">
             <section className="rounded-lg border border-border bg-surface p-4">
-              <h3 className="font-semibold">{isRu ? "Следующее доказательство" : "Next evidence"}</h3>
+              <h3 className="font-semibold">
+                {isRu ? "Следующее доказательство" : "Next evidence"}
+              </h3>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 {isRu
                   ? "Нейтральная попытка теста видна в журнале, но не повышает состояние отдельного понятия без ответов по вопросам."
@@ -386,7 +407,11 @@ function ConceptPanel({
                 <Button
                   variant="outline"
                   onClick={() =>
-                    recordManualConceptEvidence({ conceptId: concept.id, kind: "explanation", outcome: "success" })
+                    recordManualConceptEvidence({
+                      conceptId: concept.id,
+                      kind: "explanation",
+                      outcome: "success",
+                    })
                   }
                 >
                   {isRu ? "Смог объяснить без подсказки" : "Explained without help"}
@@ -394,7 +419,11 @@ function ConceptPanel({
                 <Button
                   variant="outline"
                   onClick={() =>
-                    recordManualConceptEvidence({ conceptId: concept.id, kind: "explanation", outcome: "failure" })
+                    recordManualConceptEvidence({
+                      conceptId: concept.id,
+                      kind: "explanation",
+                      outcome: "failure",
+                    })
                   }
                 >
                   {isRu ? "Не смог объяснить" : "Could not explain"}
@@ -402,7 +431,11 @@ function ConceptPanel({
                 <Button
                   variant="outline"
                   onClick={() =>
-                    recordManualConceptEvidence({ conceptId: concept.id, kind: "application", outcome: "success" })
+                    recordManualConceptEvidence({
+                      conceptId: concept.id,
+                      kind: "application",
+                      outcome: "success",
+                    })
                   }
                 >
                   {isRu ? "Применил в новой задаче" : "Applied in a new task"}
@@ -410,7 +443,11 @@ function ConceptPanel({
                 <Button
                   variant="outline"
                   onClick={() =>
-                    recordManualConceptEvidence({ conceptId: concept.id, kind: "application", outcome: "failure" })
+                    recordManualConceptEvidence({
+                      conceptId: concept.id,
+                      kind: "application",
+                      outcome: "failure",
+                    })
                   }
                 >
                   {isRu ? "Ошибка в применении" : "Application failed"}
@@ -442,7 +479,15 @@ function ConceptPanel({
   );
 }
 
-function EvidenceHistory({ concept, events, isRu }: { concept: Concept; events: ConceptEvidenceEvent[]; isRu: boolean }) {
+function EvidenceHistory({
+  concept,
+  events,
+  isRu,
+}: {
+  concept: Concept;
+  events: ConceptEvidenceEvent[];
+  isRu: boolean;
+}) {
   const sorted = events.slice().sort((left, right) => right.occurredAt - left.occurredAt);
   return (
     <section className="rounded-lg border border-border bg-surface p-4">
@@ -457,7 +502,10 @@ function EvidenceHistory({ concept, events, isRu }: { concept: Concept; events: 
       ) : (
         <div className="mt-3 max-h-[440px] space-y-2 overflow-auto">
           {sorted.map((event) => (
-            <div key={event.id} className="rounded-md border border-border bg-background p-3 text-xs">
+            <div
+              key={event.id}
+              className="rounded-md border border-border bg-background p-3 text-xs"
+            >
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -492,10 +540,16 @@ function EvidenceHistory({ concept, events, isRu }: { concept: Concept; events: 
                     })
                   }
                 >
-                  <option value="unclassified">{isRu ? "Причина не классифицирована" : "Unclassified"}</option>
+                  <option value="unclassified">
+                    {isRu ? "Причина не классифицирована" : "Unclassified"}
+                  </option>
                   <option value="retrieval">{isRu ? "Не вспомнил" : "Retrieval failure"}</option>
-                  <option value="confusion">{isRu ? "Перепутал понятия" : "Concept confusion"}</option>
-                  <option value="application">{isRu ? "Не смог применить" : "Application failure"}</option>
+                  <option value="confusion">
+                    {isRu ? "Перепутал понятия" : "Concept confusion"}
+                  </option>
+                  <option value="application">
+                    {isRu ? "Не смог применить" : "Application failure"}
+                  </option>
                   <option value="careless">{isRu ? "Невнимательность" : "Careless error"}</option>
                 </select>
               )}
@@ -512,25 +566,53 @@ function EvidenceHistory({ concept, events, isRu }: { concept: Concept; events: 
   );
 }
 
-function LinkSection({ title, empty, children }: { title: string; empty: string; children: React.ReactNode }) {
+function LinkSection({
+  title,
+  empty,
+  children,
+}: {
+  title: string;
+  empty: string;
+  children: React.ReactNode;
+}) {
   const items = Array.isArray(children) ? children : [children];
   return (
     <section>
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {title}
+      </h3>
       <div className="mt-2 max-h-64 space-y-1 overflow-auto rounded-md border border-border bg-surface p-2">
-        {items.length === 0 ? <p className="p-2 text-xs text-muted-foreground">{empty}</p> : children}
+        {items.length === 0 ? (
+          <p className="p-2 text-xs text-muted-foreground">{empty}</p>
+        ) : (
+          children
+        )}
       </div>
     </section>
   );
 }
 
-function CheckRow({ checked, onChange, title, meta }: { checked: boolean; onChange: () => void; title: string; meta?: string }) {
+function CheckRow({
+  checked,
+  onChange,
+  title,
+  meta,
+}: {
+  checked: boolean;
+  onChange: () => void;
+  title: string;
+  meta?: string;
+}) {
   return (
     <label className="flex cursor-pointer items-start gap-2 rounded p-2 hover:bg-accent">
       <input type="checkbox" className="mt-1" checked={checked} onChange={onChange} />
       <span className="min-w-0">
         <strong className="block truncate text-xs">{title}</strong>
-        {meta && <span className="mt-0.5 block line-clamp-1 text-[10px] text-muted-foreground">{meta}</span>}
+        {meta && (
+          <span className="mt-0.5 block line-clamp-1 text-[10px] text-muted-foreground">
+            {meta}
+          </span>
+        )}
       </span>
     </label>
   );
@@ -578,7 +660,9 @@ function OutcomeBadge({ event, isRu }: { event: ConceptEvidenceEvent; isRu: bool
   return (
     <span
       className={`rounded px-1.5 py-0.5 text-[10px] ${
-        event.outcome === "success" ? "bg-emerald-500/10 text-emerald-200" : "bg-red-500/10 text-red-200"
+        event.outcome === "success"
+          ? "bg-emerald-500/10 text-emerald-200"
+          : "bg-red-500/10 text-red-200"
       }`}
     >
       {event.outcome === "success" ? (isRu ? "Успех" : "Success") : isRu ? "Ошибка" : "Failure"}
@@ -599,15 +683,35 @@ function eventKind(event: ConceptEvidenceEvent, isRu: boolean): string {
 
 function localizedReason(state: ConceptKnowledgeState, isRu: boolean): string {
   const reasons: Record<ConceptKnowledgeState, [string, string]> = {
-    unseen: ["Нет связанных источников и учебных доказательств.", "No linked sources or learning evidence."],
-    covered: ["Есть источник или практика, но ещё нет оцениваемого результата.", "Source or practice exists, but no scored evidence yet."],
-    fragile: ["Есть отдельные результаты, но их мало, они однотипны или устарели.", "Evidence exists but is limited, one-dimensional, or old."],
-    weak: ["Повторные ошибки или последняя ошибка перевешивают успехи.", "Repeated failures or a recent failure dominate."],
-    strong: ["Минимум четыре успеха, два дня и два типа доказательств без доминирующей свежей ошибки.", "At least four successes across two days and two evidence types without a dominant recent failure."],
+    unseen: [
+      "Нет связанных источников и учебных доказательств.",
+      "No linked sources or learning evidence.",
+    ],
+    covered: [
+      "Есть источник или практика, но ещё нет оцениваемого результата.",
+      "Source or practice exists, but no scored evidence yet.",
+    ],
+    fragile: [
+      "Есть отдельные результаты, но их мало, они однотипны или устарели.",
+      "Evidence exists but is limited, one-dimensional, or old.",
+    ],
+    weak: [
+      "Повторные ошибки или последняя ошибка перевешивают успехи.",
+      "Repeated failures or a recent failure dominate.",
+    ],
+    strong: [
+      "Минимум четыре успеха, два дня и два типа доказательств без доминирующей свежей ошибки.",
+      "At least four successes across two days and two evidence types without a dominant recent failure.",
+    ],
   };
   return reasons[state][isRu ? 0 : 1];
 }
 
 function safeName(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9а-яё_-]+/gi, "-").replace(/^-+|-+$/g, "") || "course";
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9а-яё_-]+/gi, "-")
+      .replace(/^-+|-+$/g, "") || "course"
+  );
 }

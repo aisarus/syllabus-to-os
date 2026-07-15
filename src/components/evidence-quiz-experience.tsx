@@ -223,7 +223,8 @@ export function EvidenceQuizExperience({ quizId }: { quizId: string }) {
                 : "Every answer is saved as an immutable snapshot. A linked concept receives recognition evidence only from that exact question."}
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
-              {detailedAttempts.length} {isRu ? "попыток с полными ответами" : "attempts with full answer history"}
+              {detailedAttempts.length}{" "}
+              {isRu ? "попыток с полными ответами" : "attempts with full answer history"}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -276,7 +277,8 @@ export function EvidenceQuizExperience({ quizId }: { quizId: string }) {
               {isRu ? "Вопрос" : "Question"} {index + 1} / {questions.length}
             </span>
             <span>
-              {Object.values(answers).length} {isRu ? "ответов сохранено в черновике" : "answers in draft"}
+              {Object.values(answers).length}{" "}
+              {isRu ? "ответов сохранено в черновике" : "answers in draft"}
             </span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -291,7 +293,10 @@ export function EvidenceQuizExperience({ quizId }: { quizId: string }) {
               {current.prompt}
             </h2>
             {showTranslation && feedback.promptTranslation && (
-              <p dir="auto" className="mt-3 rounded-lg border border-border bg-background p-3 text-sm text-muted-foreground">
+              <p
+                dir="auto"
+                className="mt-3 rounded-lg border border-border bg-background p-3 text-sm text-muted-foreground"
+              >
                 {feedback.promptTranslation}
               </p>
             )}
@@ -326,21 +331,38 @@ export function EvidenceQuizExperience({ quizId }: { quizId: string }) {
                         </span>
                       )}
                       {answered && (selected || option.correct) && option.rationale && (
-                        <span dir="auto" className="mt-2 block text-xs leading-5 text-muted-foreground">
+                        <span
+                          dir="auto"
+                          className="mt-2 block text-xs leading-5 text-muted-foreground"
+                        >
                           {option.rationale}
                         </span>
                       )}
                     </span>
-                    {answered && option.correct && <CheckCircle2 className="h-5 w-5 text-emerald-300" />}
-                    {answered && selected && !option.correct && <XCircle className="h-5 w-5 text-red-300" />}
+                    {answered && option.correct && (
+                      <CheckCircle2 className="h-5 w-5 text-emerald-300" />
+                    )}
+                    {answered && selected && !option.correct && (
+                      <XCircle className="h-5 w-5 text-red-300" />
+                    )}
                   </button>
                 );
               })}
             </div>
 
             {answered && (
-              <div className={`mt-5 rounded-xl border p-4 ${answeredCorrectly ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}`}>
-                <strong>{answeredCorrectly ? (isRu ? "Верно" : "Correct") : isRu ? "Неверно" : "Incorrect"}</strong>
+              <div
+                className={`mt-5 rounded-xl border p-4 ${answeredCorrectly ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}`}
+              >
+                <strong>
+                  {answeredCorrectly
+                    ? isRu
+                      ? "Верно"
+                      : "Correct"
+                    : isRu
+                      ? "Неверно"
+                      : "Incorrect"}
+                </strong>
                 {feedback.memoryHint && (
                   <p dir="auto" className="mt-2 text-sm text-muted-foreground">
                     {feedback.memoryHint}

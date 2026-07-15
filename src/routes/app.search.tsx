@@ -132,8 +132,8 @@ function SearchPage() {
             aria-label={t.searchNav}
             placeholder={
               isRu
-                ? 'Термин, фраза, номер курса…  Кавычки ищут точную фразу'
-                : 'Term, phrase, course number…  Quotes keep a phrase together'
+                ? "Термин, фраза, номер курса…  Кавычки ищут точную фразу"
+                : "Term, phrase, course number…  Quotes keep a phrase together"
             }
             value={search.q}
             onChange={(event) => updateSearch({ q: event.target.value })}
@@ -270,7 +270,9 @@ function SearchPage() {
                       {courseTitle && <span>{courseTitle}</span>}
                       {result.sourceTitle && <span>{result.sourceTitle}</span>}
                       {result.pageNumber && (
-                        <span>{isRu ? `стр. ${result.pageNumber}` : `p. ${result.pageNumber}`}</span>
+                        <span>
+                          {isRu ? `стр. ${result.pageNumber}` : `p. ${result.pageNumber}`}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -328,7 +330,10 @@ function SearchEmpty({ isRu }: { isRu: boolean }) {
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           {examples.map((example) => (
-            <span key={example} className="rounded-full border border-border bg-background px-3 py-1 text-xs">
+            <span
+              key={example}
+              className="rounded-full border border-border bg-background px-3 py-1 text-xs"
+            >
               {example}
             </span>
           ))}
@@ -370,11 +375,7 @@ function ResultLink({ hit, label }: { hit: GlobalSearchHit; label: string }) {
       );
     case "topic":
       return hit.courseId ? (
-        <Link
-          to="/app/courses/$courseId"
-          params={{ courseId: hit.courseId }}
-          className={className}
-        >
+        <Link to="/app/courses/$courseId" params={{ courseId: hit.courseId }} className={className}>
           {label}
         </Link>
       ) : null;

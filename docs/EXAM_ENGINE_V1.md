@@ -28,7 +28,7 @@ At start time Lamdan copies and shuffles:
 
 Later edits to the quiz bank cannot rewrite the active or submitted session.
 
-## Timing and partial answers
+## Partial answers and timing
 
 The session persists after every answer. Once the deadline passes, the exam submits as timed out. Manual submission is also available.
 

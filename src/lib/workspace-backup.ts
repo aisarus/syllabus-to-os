@@ -237,13 +237,17 @@ export async function prepareFullVisualBackup(file: Blob): Promise<PreparedFullV
   const removedEvents =
     normalizedConcepts.evidenceEvents.length - reconciledConcepts.evidenceEvents.length;
   if (removedDetails > 0) {
-    warnings.push(`${removedDetails} detailed quiz attempt(s) were removed because the core attempt is missing.`);
+    warnings.push(
+      `${removedDetails} detailed quiz attempt(s) were removed because the core attempt is missing.`,
+    );
   }
   if (removedConcepts > 0) {
     warnings.push(`${removedConcepts} concept(s) were removed because their course is missing.`);
   }
   if (removedEvents > 0) {
-    warnings.push(`${removedEvents} evidence event(s) were removed because their links are invalid.`);
+    warnings.push(
+      `${removedEvents} evidence event(s) were removed because their links are invalid.`,
+    );
   }
   return {
     source: "workspace-v2",
@@ -271,7 +275,11 @@ export async function previewFullVisualBackupImport(
     : { conflicts: [], warnings: [] };
   return {
     summary: summarizePrepared(prepared, legacyPreview.summary),
-    warnings: unique([...prepared.warnings, ...legacyPreview.warnings, ...evidencePreview.warnings]),
+    warnings: unique([
+      ...prepared.warnings,
+      ...legacyPreview.warnings,
+      ...evidencePreview.warnings,
+    ]),
     mergeConflicts: unique([...legacyPreview.mergeConflicts, ...evidencePreview.conflicts]),
   };
 }
@@ -327,7 +335,9 @@ export async function applyFullVisualBackup(
     const rollbackSuffix = rollbackErrors.length
       ? ` Rollback errors: ${rollbackErrors.join("; ")}`
       : "";
-    throw new Error(`Workspace backup import was rolled back: ${messageOf(error)}.${rollbackSuffix}`);
+    throw new Error(
+      `Workspace backup import was rolled back: ${messageOf(error)}.${rollbackSuffix}`,
+    );
   }
 }
 
@@ -341,7 +351,9 @@ export function mergeWorkspaceEvidenceSafely(
   const conflicts: string[] = [];
   const warnings: string[] = [];
 
-  const detailByAttempt = new Map(currentDetails.attempts.map((detail) => [detail.attemptId, detail]));
+  const detailByAttempt = new Map(
+    currentDetails.attempts.map((detail) => [detail.attemptId, detail]),
+  );
   for (const detail of incomingDetails.attempts) {
     if (detailByAttempt.has(detail.attemptId)) {
       conflicts.push(`quiz attempt detail: ${detail.attemptId}`);
@@ -355,7 +367,9 @@ export function mergeWorkspaceEvidenceSafely(
   );
   const droppedDetails = detailByAttempt.size - mergedDetails.attempts.length;
   if (droppedDetails > 0) {
-    warnings.push(`${droppedDetails} detailed attempt(s) were skipped because no matching core attempt exists.`);
+    warnings.push(
+      `${droppedDetails} detailed attempt(s) were skipped because no matching core attempt exists.`,
+    );
   }
 
   const conceptById = new Map(currentConcepts.concepts.map((concept) => [concept.id, concept]));
@@ -372,7 +386,9 @@ export function mergeWorkspaceEvidenceSafely(
   const eventById = new Map(currentConcepts.evidenceEvents.map((event) => [event.id, event]));
   for (const event of incomingConcepts.evidenceEvents) {
     if (blockedConceptIds.has(event.conceptId)) {
-      warnings.push(`Evidence ${event.id} was skipped because concept ${event.conceptId} conflicted.`);
+      warnings.push(
+        `Evidence ${event.id} was skipped because concept ${event.conceptId} conflicted.`,
+      );
       continue;
     }
     if (eventById.has(event.id)) {
@@ -386,11 +402,7 @@ export function mergeWorkspaceEvidenceSafely(
     concepts: [...conceptById.values()],
     evidenceEvents: [...eventById.values()],
   };
-  const mergedConcepts = reconcileConceptEvidenceData(
-    preReconcileConcepts,
-    core,
-    mergedDetails,
-  );
+  const mergedConcepts = reconcileConceptEvidenceData(preReconcileConcepts, core, mergedDetails);
   const droppedConcepts = preReconcileConcepts.concepts.length - mergedConcepts.concepts.length;
   const droppedEvents =
     preReconcileConcepts.evidenceEvents.length - mergedConcepts.evidenceEvents.length;
@@ -398,7 +410,9 @@ export function mergeWorkspaceEvidenceSafely(
     warnings.push(`${droppedConcepts} concept(s) were skipped because their course is missing.`);
   }
   if (droppedEvents > 0) {
-    warnings.push(`${droppedEvents} evidence event(s) were skipped because their links are invalid.`);
+    warnings.push(
+      `${droppedEvents} evidence event(s) were skipped because their links are invalid.`,
+    );
   }
   return {
     conceptEvidence: mergedConcepts,
@@ -433,7 +447,9 @@ function previewWorkspaceEvidenceMerge(
   const currentEventIds = new Set(currentConcepts.evidenceEvents.map((event) => event.id));
   for (const event of incomingConcepts.evidenceEvents) {
     if (blockedConceptIds.has(event.conceptId)) {
-      warnings.push(`Evidence ${event.id} will be skipped because concept ${event.conceptId} conflicts.`);
+      warnings.push(
+        `Evidence ${event.id} will be skipped because concept ${event.conceptId} conflicts.`,
+      );
     } else if (currentEventIds.has(event.id)) {
       conflicts.push(`evidence event: ${event.id}`);
     }
@@ -472,17 +488,15 @@ function buildEvidenceApplyPlan(
       conceptEvidence: emptyConceptEvidenceData(),
       quizAttemptDetails: emptyQuizAttemptDetailData(),
       conflicts: [],
-      warnings: ["Legacy replace cleared concept and per-question evidence because the archive did not contain it."],
+      warnings: [
+        "Legacy replace cleared concept and per-question evidence because the archive did not contain it.",
+      ],
     };
   }
   const details = reconcileQuizAttemptDetailData(prepared.quizAttemptDetails, resultingCore);
   return {
     quizAttemptDetails: details,
-    conceptEvidence: reconcileConceptEvidenceData(
-      prepared.conceptEvidence,
-      resultingCore,
-      details,
-    ),
+    conceptEvidence: reconcileConceptEvidenceData(prepared.conceptEvidence, resultingCore, details),
     conflicts: [],
     warnings: [],
   };
@@ -588,7 +602,8 @@ function validateArchiveEntries(zip: JSZip, manifest: WorkspaceBackupManifest): 
     if (descriptors.has(descriptor.kind)) {
       throw new Error(`Duplicate workspace payload kind: ${descriptor.kind}.`);
     }
-    if (paths.has(descriptor.path)) throw new Error(`Duplicate workspace payload path: ${descriptor.path}.`);
+    if (paths.has(descriptor.path))
+      throw new Error(`Duplicate workspace payload path: ${descriptor.path}.`);
     if (descriptor.path !== expectedPathByKind[descriptor.kind]) {
       throw new Error(`Unexpected path for ${descriptor.kind}: ${descriptor.path}.`);
     }
@@ -612,7 +627,11 @@ function validateConceptEnvelope(raw: unknown): void {
     throw new Error("Concept evidence payload is not an object.");
   }
   const object = raw as Record<string, unknown>;
-  if (object.version !== 1 || !Array.isArray(object.concepts) || !Array.isArray(object.evidenceEvents)) {
+  if (
+    object.version !== 1 ||
+    !Array.isArray(object.concepts) ||
+    !Array.isArray(object.evidenceEvents)
+  ) {
     throw new Error("Concept evidence payload has an unsupported schema.");
   }
 }
@@ -670,7 +689,12 @@ function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
 }
 
 function safePath(path: string): boolean {
-  return Boolean(path) && !path.startsWith("/") && !path.includes("\\") && !path.split("/").includes("..");
+  return (
+    Boolean(path) &&
+    !path.startsWith("/") &&
+    !path.includes("\\") &&
+    !path.split("/").includes("..")
+  );
 }
 
 function finiteInteger(value: unknown, fallback: number): number {

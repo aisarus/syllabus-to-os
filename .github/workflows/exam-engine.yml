@@ -37,7 +37,22 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Verify Exam Engine contract
-        run: node scripts/verify-exam-engine-contract.mjs
+        id: exam_contract
+        continue-on-error: true
+        run: node scripts/verify-exam-engine-contract.mjs > exam-engine-contract-output.txt 2>&1
+
+      - name: Upload Exam Engine contract diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exam-engine-contract-diagnostics
+          path: exam-engine-contract-output.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when Exam Engine contract fails
+        if: steps.exam_contract.outcome == 'failure'
+        run: exit 1
 
       - name: Run Exam Engine evaluations
         run: node --experimental-strip-types scripts/run-exam-engine-evals.mjs
@@ -46,10 +61,40 @@ jobs:
         run: npm run typecheck
 
       - name: Lint
-        run: npm run lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint 2>&1 | tee exam-engine-lint-output.txt
+
+      - name: Upload Exam Engine lint diagnostics
+        if: steps.lint.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: exam-engine-lint-diagnostics
+          path: exam-engine-lint-output.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when Exam Engine lint fails
+        if: steps.lint.outcome == 'failure'
+        run: exit 1
 
       - name: Build
         run: npm run build
 
       - name: Run Exam Engine browser E2E
-        run: node scripts/run-exam-engine-browser-e2e.mjs
+        id: exam_browser
+        continue-on-error: true
+        run: node scripts/run-exam-engine-browser-e2e-final.mjs > exam-engine-browser-output.txt 2>&1
+
+      - name: Upload Exam Engine browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exam-engine-browser-diagnostics
+          path: exam-engine-browser-output.txt
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Fail when Exam Engine browser E2E fails
+        if: steps.exam_browser.outcome == 'failure'
+        run: exit 1

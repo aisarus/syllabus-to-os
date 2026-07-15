@@ -28,9 +28,7 @@ const SCHEMA = `{
 
 function languageLabel(language?: string): string {
   return (
-    { ru: "Russian", en: "English", he: "Hebrew", ar: "Arabic" }[
-      language ?? "ru"
-    ] || "Russian"
+    { ru: "Russian", en: "English", he: "Hebrew", ar: "Arabic" }[language ?? "ru"] || "Russian"
   );
 }
 
@@ -101,9 +99,7 @@ function normalizeDraft(
 } {
   const object = (raw ?? {}) as Record<string, unknown>;
   const allowed = new Set((input.chunks ?? []).map((chunk) => chunk.id));
-  const existing = new Set(
-    (input.existingConceptTitles ?? []).map(normalizeKey).filter(Boolean),
-  );
+  const existing = new Set((input.existingConceptTitles ?? []).map(normalizeKey).filter(Boolean));
   const rejected = new Set<string>();
   const warnings = Array.isArray(object.warnings)
     ? object.warnings.filter((value): value is string => typeof value === "string")
@@ -130,9 +126,8 @@ function normalizeDraft(
             .filter(Boolean),
         ),
       ).slice(0, 8);
-      const requestedIds = (Array.isArray(candidate.sourceChunkIds)
-        ? candidate.sourceChunkIds
-        : []
+      const requestedIds = (
+        Array.isArray(candidate.sourceChunkIds) ? candidate.sourceChunkIds : []
       ).filter((value): value is string => typeof value === "string");
       const sourceChunkIds = Array.from(new Set(requestedIds.filter((id) => allowed.has(id))));
       requestedIds.filter((id) => !allowed.has(id)).forEach((id) => rejected.add(id));

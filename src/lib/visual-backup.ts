@@ -677,7 +677,8 @@ function parseManifest(text: string): FullVisualBackupManifest {
     paths.add(descriptor.path);
     descriptorsByPath.set(descriptor.path, descriptor);
   }
-  if (dataCount !== 1) throw new Error("Backup manifest must contain exactly one data.json payload.");
+  if (dataCount !== 1)
+    throw new Error("Backup manifest must contain exactly one data.json payload.");
 
   const materials = raw.materials as FullVisualBackupMaterialMapping[];
   const mappingIds = new Set<string>();

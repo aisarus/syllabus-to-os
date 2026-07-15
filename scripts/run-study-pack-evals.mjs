@@ -49,7 +49,12 @@ const validDraft = {
   questions: [
     {
       prompt: "Which description matches precision?",
-      options: ["Relevant among retrieved", "Retrieved among relevant", "All relevant", "All retrieved"],
+      options: [
+        "Relevant among retrieved",
+        "Retrieved among relevant",
+        "All relevant",
+        "All retrieved",
+      ],
       correctIndex: 0,
       explanation: "The source defines precision using retrieved items as the denominator.",
       sourceChunkIds: ["chunk-a"],

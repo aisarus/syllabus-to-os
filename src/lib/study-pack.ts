@@ -52,10 +52,7 @@ export function validateStudyPackDraft(draft: StudyPackDraft): string[] {
   return unique(failures);
 }
 
-export function buildStudyPackNoteContent(
-  draft: StudyPackDraft,
-  locale: StudyPackLocale,
-): string {
+export function buildStudyPackNoteContent(draft: StudyPackDraft, locale: StudyPackLocale): string {
   const ru = locale === "ru";
   const sections: string[] = [];
 
@@ -114,7 +111,9 @@ export function studyPackCopyText(draft: StudyPackDraft, locale: StudyPackLocale
         (question, index) =>
           `${index + 1}. ${question.prompt}\n${question.options
             .map((option, optionIndex) => `   ${optionIndex + 1}) ${option}`)
-            .join("\n")}\n   ${ru ? "Ответ" : "Answer"}: ${question.options[question.correctIndex] ?? ""}\n   ${question.explanation}`,
+            .join(
+              "\n",
+            )}\n   ${ru ? "Ответ" : "Answer"}: ${question.options[question.correctIndex] ?? ""}\n   ${question.explanation}`,
       )
       .join("\n\n"),
   ].join("\n\n");

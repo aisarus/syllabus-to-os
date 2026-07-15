@@ -29,7 +29,8 @@ export async function recognizeImageWithOCR(
   });
   const payload = (await response.json().catch(() => null)) as OCRResponse | null;
   if (!response.ok || !payload?.ok) {
-    const error = payload && !payload.ok ? payload.error : `OCR request failed (${response.status})`;
+    const error =
+      payload && !payload.ok ? payload.error : `OCR request failed (${response.status})`;
     const details = payload && !payload.ok ? payload.details : undefined;
     throw new Error(details ? `${error}: ${details}` : error);
   }

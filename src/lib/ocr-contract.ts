@@ -7,7 +7,13 @@ export const OCR_REGION_REVIEW_THRESHOLD = 0.78;
 
 export type OCRSourceStyle = "printed" | "handwritten" | "whiteboard" | "mixed";
 export type OCRRegionKind =
-  "heading" | "paragraph" | "list" | "math" | "table" | "diagram" | "unknown";
+  | "heading"
+  | "paragraph"
+  | "list"
+  | "math"
+  | "table"
+  | "diagram"
+  | "unknown";
 
 export interface OCRBoundingBox {
   x: number;

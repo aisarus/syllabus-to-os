@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, BookOpenCheck } from "lucide-react";
+import { LongMediaWorkspace } from "@/components/long-media-workspace";
 import { MaterialOutputHistory } from "@/components/material-output-history";
 import { MaterialWorkspace } from "@/components/material-workspace";
 import { MultiPageImageWorkspace } from "@/components/multi-page-image-workspace";
@@ -7,6 +8,7 @@ import { OCRReviewPanel } from "@/components/ocr-review-panel";
 import { StudyPackButton } from "@/components/study-pack-dialog";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
+import { isLongMediaMaterial } from "@/lib/long-media";
 import { isMultiPageImageMaterial } from "@/lib/multi-page-image-materials";
 import { getChunksByMaterial, useData } from "@/lib/store";
 
@@ -35,6 +37,7 @@ function MaterialDetail() {
   }
 
   const chunks = getChunksByMaterial(data, material.id);
+  const longMedia = isLongMediaMaterial(material);
 
   return (
     <>
@@ -45,9 +48,13 @@ function MaterialDetail() {
             {isRu ? "Учебный комплект по материалу" : "Guided Study Pack"}
           </div>
           <p className="mt-1 max-w-3xl text-xs leading-5 text-muted-foreground">
-            {isRu
-              ? "Lamdan соберёт из подтверждённых фрагментов готовое занятие: маршрут, конспект, термины, карточки и диагностический тест. Сначала ты проверишь единый черновик."
-              : "Lamdan turns approved chunks into one guided session: route, note, terms, flashcards and a diagnostic quiz. You review one combined draft before anything is saved."}
+            {longMedia && chunks.length === 0
+              ? isRu
+                ? "Сначала подтверди части расшифровки как source chunks. После этого Lamdan сможет собрать конспект, термины, карточки и диагностический тест."
+                : "Approve transcript blocks as source chunks first. Lamdan can then build a note, terms, flashcards and a diagnostic quiz."
+              : isRu
+                ? "Lamdan соберёт из подтверждённых фрагментов готовое занятие: маршрут, конспект, термины, карточки и диагностический тест. Сначала ты проверишь единый черновик."
+                : "Lamdan turns approved chunks into one guided session: route, note, terms, flashcards and a diagnostic quiz. You review one combined draft before anything is saved."}
           </p>
         </div>
         <div className="mt-3 shrink-0 md:mt-0 md:w-72">
@@ -61,7 +68,9 @@ function MaterialDetail() {
       </div>
 
       <div className="mx-auto max-w-[1440px]">
-        {isMultiPageImageMaterial(material) ? (
+        {longMedia ? (
+          <LongMediaWorkspace material={material} />
+        ) : isMultiPageImageMaterial(material) ? (
           <MultiPageImageWorkspace material={material} />
         ) : (
           <OCRReviewPanel material={material} />

@@ -31,10 +31,7 @@ export interface ConceptExtractionDraft {
   };
 }
 
-export type ConceptCandidateRejectionReason =
-  | "invalid"
-  | "duplicate_existing"
-  | "duplicate_batch";
+export type ConceptCandidateRejectionReason = "invalid" | "duplicate_existing" | "duplicate_batch";
 
 export interface ConceptCandidateAcceptancePlan {
   accepted: Array<{
@@ -207,7 +204,7 @@ export function extractStudyPackConceptCandidates(input: {
   const comparisonConcepts = [...input.existingConcepts];
   for (const note of input.notes) {
     if (!note.tags.includes("study-pack")) continue;
-    const sourceChunkIds = note.sourceChunkIds.filter((id) => allowed.has(id));
+    const sourceChunkIds = (note.sourceChunkIds ?? []).filter((id) => allowed.has(id));
     if (sourceChunkIds.length === 0) continue;
     const candidates = parseStudyPackKeyTerms(note.content).map((term) => ({
       title: term.term,

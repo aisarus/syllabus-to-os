@@ -176,7 +176,8 @@ function coreData() {
         sourceMode: "pasted_text",
         courseId: "crs_exam",
         tags: [],
-        rawText: "An independent court performs constitutional review. The legislature enacts statutes.",
+        rawText:
+          "An independent court performs constitutional review. The legislature enacts statutes.",
         processingStatus: "ready",
         wordCount: 10,
         charCount: 86,
@@ -312,7 +313,8 @@ async function main() {
     await page.clickText("Сдать экзамен");
     await page.waitForText("Замороженный результат экзамена");
 
-    await page.waitFor(`(() => {
+    await page.waitFor(
+      `(() => {
       const exams = JSON.parse(localStorage.getItem("lamdan.exam-engine.v1"));
       const core = JSON.parse(localStorage.getItem("lamdan.data.v1"));
       const details = JSON.parse(localStorage.getItem("lamdan.quiz-attempt-details.v1"));
@@ -327,7 +329,9 @@ async function main() {
         details.attempts[0].mode === "exam" &&
         details.attempts[0].answers.length === 2 &&
         concepts.evidenceEvents.filter((event) => event.sourceType === "quiz_question_answer").length === 2;
-    })()`, 30_000);
+    })()`,
+      30_000,
+    );
 
     await page.reload();
     await page.waitForText("Замороженный результат экзамена");
@@ -429,6 +433,6 @@ function sleep(milliseconds) {
 }
 
 await main().catch((error) => {
-  console.error(error instanceof Error ? error.stack ?? error.message : String(error));
+  console.error(error instanceof Error ? (error.stack ?? error.message) : String(error));
   process.exitCode = 1;
 });

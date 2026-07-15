@@ -1,9 +1,6 @@
 import { getDataSnapshot, store, uid, updateData, type MaterialChunk } from "./store";
 import { inspectWorkspacePersistence } from "./persistence-health";
-import {
-  replaceMaterialChunksWithStableIds,
-  type IncomingMaterialChunk,
-} from "./source-integrity";
+import { replaceMaterialChunksWithStableIds, type IncomingMaterialChunk } from "./source-integrity";
 
 let installed = false;
 
@@ -29,12 +26,7 @@ export function installStoreSafetyGuards(): void {
   ): MaterialChunk[] => {
     let created: MaterialChunk[] = [];
     updateData((data) => {
-      const result = replaceMaterialChunksWithStableIds(
-        data,
-        materialId,
-        chunks,
-        () => uid("chk"),
-      );
+      const result = replaceMaterialChunksWithStableIds(data, materialId, chunks, () => uid("chk"));
       created = result.chunks;
       return result.data;
     });

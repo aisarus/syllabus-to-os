@@ -305,7 +305,10 @@ async function main() {
       };
     })()`);
     assert(persisted.attempts === 1, "Question snapshots did not survive reload.");
-    assert(persisted.answer === "Verified answer", "Selected answer snapshot changed after reload.");
+    assert(
+      persisted.answer === "Verified answer",
+      "Selected answer snapshot changed after reload.",
+    );
     assert(
       persisted.recognition === 1,
       "Recognition evidence duplicated or disappeared after reload.",
@@ -391,6 +394,6 @@ function sleep(milliseconds) {
 }
 
 await main().catch((error) => {
-  console.error(error instanceof Error ? error.stack ?? error.message : String(error));
+  console.error(error instanceof Error ? (error.stack ?? error.message) : String(error));
   process.exitCode = 1;
 });

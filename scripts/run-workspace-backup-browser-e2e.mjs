@@ -65,7 +65,9 @@ class Page {
     });
     if (response.exceptionDetails) {
       throw new Error(
-        response.exceptionDetails.exception?.description ?? response.exceptionDetails.text ?? "Evaluation failed",
+        response.exceptionDetails.exception?.description ??
+          response.exceptionDetails.text ??
+          "Evaluation failed",
       );
     }
     return response.result?.value;
@@ -128,16 +130,69 @@ function coreData(label) {
   return {
     version: 1,
     programs: [],
-    courses: [{ id: `crs_${suffix}`, title: `Course ${label}`, status: "in_progress", order: 0, createdAt: now }],
+    courses: [
+      {
+        id: `crs_${suffix}`,
+        title: `Course ${label}`,
+        status: "in_progress",
+        order: 0,
+        createdAt: now,
+      },
+    ],
     topics: [],
     notes: [],
     flashcards: [],
-    quizzes: [{ id: `quiz_${suffix}`, title: `Quiz ${label}`, courseId: `crs_${suffix}`, createdAt: now }],
-    quizQuestions: [{ id: `qq_${suffix}`, quizId: `quiz_${suffix}`, prompt: `Question ${label}`, options: ["A", "B", "C", "D"], correctIndex: 0, sourceChunkIds: [`chk_${suffix}`] }],
-    quizAttempts: [{ id: `att_${suffix}`, quizId: `quiz_${suffix}`, score: 100, correctCount: 1, total: 1, takenAt: now }],
+    quizzes: [
+      { id: `quiz_${suffix}`, title: `Quiz ${label}`, courseId: `crs_${suffix}`, createdAt: now },
+    ],
+    quizQuestions: [
+      {
+        id: `qq_${suffix}`,
+        quizId: `quiz_${suffix}`,
+        prompt: `Question ${label}`,
+        options: ["A", "B", "C", "D"],
+        correctIndex: 0,
+        sourceChunkIds: [`chk_${suffix}`],
+      },
+    ],
+    quizAttempts: [
+      {
+        id: `att_${suffix}`,
+        quizId: `quiz_${suffix}`,
+        score: 100,
+        correctCount: 1,
+        total: 1,
+        takenAt: now,
+      },
+    ],
     assignments: [],
-    materials: [{ id: `mat_${suffix}`, title: `Source ${label}`, type: "lecture", sourceMode: "pasted_text", courseId: `crs_${suffix}`, tags: [], rawText: `Evidence ${label}`, processingStatus: "ready", wordCount: 2, charCount: 10, extractionMethod: "manual", sourceLanguage: "en", createdAt: now, updatedAt: now }],
-    materialChunks: [{ id: `chk_${suffix}`, materialId: `mat_${suffix}`, order: 0, text: `Evidence ${label}`, createdAt: now }],
+    materials: [
+      {
+        id: `mat_${suffix}`,
+        title: `Source ${label}`,
+        type: "lecture",
+        sourceMode: "pasted_text",
+        courseId: `crs_${suffix}`,
+        tags: [],
+        rawText: `Evidence ${label}`,
+        processingStatus: "ready",
+        wordCount: 2,
+        charCount: 10,
+        extractionMethod: "manual",
+        sourceLanguage: "en",
+        createdAt: now,
+        updatedAt: now,
+      },
+    ],
+    materialChunks: [
+      {
+        id: `chk_${suffix}`,
+        materialId: `mat_${suffix}`,
+        order: 0,
+        text: `Evidence ${label}`,
+        createdAt: now,
+      },
+    ],
     materialOutputs: [],
     presentationOutlines: [],
     calendarEvents: [],
@@ -150,8 +205,32 @@ function conceptData(label) {
   const suffix = label.toLowerCase();
   return {
     version: 1,
-    concepts: [{ id: `con_${suffix}`, courseId: `crs_${suffix}`, title: `Concept ${label}`, aliases: [], sourceChunkIds: [`chk_${suffix}`], flashcardIds: [], quizQuestionIds: [`qq_${suffix}`], createdAt: 1, updatedAt: 1 }],
-    evidenceEvents: [{ id: `cev_${suffix}`, conceptId: `con_${suffix}`, kind: "recognition", outcome: "success", sourceType: "quiz_question_answer", sourceId: `att_${suffix}`, attemptId: `att_${suffix}`, questionId: `qq_${suffix}`, occurredAt: 1 }],
+    concepts: [
+      {
+        id: `con_${suffix}`,
+        courseId: `crs_${suffix}`,
+        title: `Concept ${label}`,
+        aliases: [],
+        sourceChunkIds: [`chk_${suffix}`],
+        flashcardIds: [],
+        quizQuestionIds: [`qq_${suffix}`],
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    ],
+    evidenceEvents: [
+      {
+        id: `cev_${suffix}`,
+        conceptId: `con_${suffix}`,
+        kind: "recognition",
+        outcome: "success",
+        sourceType: "quiz_question_answer",
+        sourceId: `att_${suffix}`,
+        attemptId: `att_${suffix}`,
+        questionId: `qq_${suffix}`,
+        occurredAt: 1,
+      },
+    ],
   };
 }
 
@@ -159,7 +238,26 @@ function detailData(label) {
   const suffix = label.toLowerCase();
   return {
     version: 1,
-    attempts: [{ attemptId: `att_${suffix}`, quizId: `quiz_${suffix}`, mode: "trainer", createdAt: 1, answers: [{ questionId: `qq_${suffix}`, questionPrompt: `Question ${label}`, selectedIndex: 0, selectedOption: "A", correctIndex: 0, correctOption: "A", correct: true, sourceChunkIds: [`chk_${suffix}`] }] }],
+    attempts: [
+      {
+        attemptId: `att_${suffix}`,
+        quizId: `quiz_${suffix}`,
+        mode: "trainer",
+        createdAt: 1,
+        answers: [
+          {
+            questionId: `qq_${suffix}`,
+            questionPrompt: `Question ${label}`,
+            selectedIndex: 0,
+            selectedOption: "A",
+            correctIndex: 0,
+            correctOption: "A",
+            correct: true,
+            sourceChunkIds: [`chk_${suffix}`],
+          },
+        ],
+      },
+    ],
   };
 }
 
@@ -167,7 +265,28 @@ async function createLegacyZip(label) {
   const zip = new JSZip();
   const dataBytes = encoder.encode(JSON.stringify(coreData(label), null, 2));
   zip.file("data.json", dataBytes);
-  zip.file("manifest.json", JSON.stringify({ format: "lamdan-full-backup", version: 1, createdAt: new Date(0).toISOString(), appDataVersion: 1, files: [{ path: "data.json", kind: "data", size: dataBytes.byteLength, sha256: await sha256(dataBytes) }], materials: [] }, null, 2));
+  zip.file(
+    "manifest.json",
+    JSON.stringify(
+      {
+        format: "lamdan-full-backup",
+        version: 1,
+        createdAt: new Date(0).toISOString(),
+        appDataVersion: 1,
+        files: [
+          {
+            path: "data.json",
+            kind: "data",
+            size: dataBytes.byteLength,
+            sha256: await sha256(dataBytes),
+          },
+        ],
+        materials: [],
+      },
+      null,
+      2,
+    ),
+  );
   return new Uint8Array(await zip.generateAsync({ type: "uint8array" }));
 }
 
@@ -182,9 +301,37 @@ async function createWorkspaceZip(label, { tamper = false } = {}) {
   ];
   const zip = new JSZip();
   for (const file of files) {
-    zip.file(file.path, tamper && file.kind === "conceptEvidence" ? encoder.encode('{"version":1,"concepts":[],"evidenceEvents":[]}') : file.bytes);
+    zip.file(
+      file.path,
+      tamper && file.kind === "conceptEvidence"
+        ? encoder.encode('{"version":1,"concepts":[],"evidenceEvents":[]}')
+        : file.bytes,
+    );
   }
-  zip.file("workspace-manifest.json", JSON.stringify({ format: "lamdan-workspace-backup", version: 2, createdAt: new Date(0).toISOString(), legacyVisualFormat: "lamdan-full-backup", legacyVisualVersion: 1, conceptEvidenceVersion: 1, quizAttemptDetailsVersion: 1, files: await Promise.all(files.map(async (file) => ({ path: file.path, kind: file.kind, size: file.bytes.byteLength, sha256: await sha256(file.bytes) }))) }, null, 2));
+  zip.file(
+    "workspace-manifest.json",
+    JSON.stringify(
+      {
+        format: "lamdan-workspace-backup",
+        version: 2,
+        createdAt: new Date(0).toISOString(),
+        legacyVisualFormat: "lamdan-full-backup",
+        legacyVisualVersion: 1,
+        conceptEvidenceVersion: 1,
+        quizAttemptDetailsVersion: 1,
+        files: await Promise.all(
+          files.map(async (file) => ({
+            path: file.path,
+            kind: file.kind,
+            size: file.bytes.byteLength,
+            sha256: await sha256(file.bytes),
+          })),
+        ),
+      },
+      null,
+      2,
+    ),
+  );
   return new Uint8Array(await zip.generateAsync({ type: "uint8array" }));
 }
 
@@ -204,15 +351,43 @@ async function main() {
   let chrome;
   let cdp;
   try {
-    preview = spawn(npmCommand, ["run", "preview", "--", "--host", HOST, "--port", String(APP_PORT)], { cwd: process.cwd(), env: process.env, stdio: "ignore", detached: process.platform !== "win32" });
+    preview = spawn(
+      npmCommand,
+      ["run", "preview", "--", "--host", HOST, "--port", String(APP_PORT)],
+      {
+        cwd: process.cwd(),
+        env: process.env,
+        stdio: "ignore",
+        detached: process.platform !== "win32",
+      },
+    );
     await waitForHttp(`${BASE_URL}/app/dashboard`, 30_000);
-    chrome = spawn(findChrome(), ["--headless=new", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage", `--remote-debugging-address=${HOST}`, `--remote-debugging-port=${DEBUG_PORT}`, `--user-data-dir=${profileDir}`, "about:blank"], { stdio: "ignore", detached: process.platform !== "win32" });
+    chrome = spawn(
+      findChrome(),
+      [
+        "--headless=new",
+        "--disable-gpu",
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        `--remote-debugging-address=${HOST}`,
+        `--remote-debugging-port=${DEBUG_PORT}`,
+        `--user-data-dir=${profileDir}`,
+        "about:blank",
+      ],
+      { stdio: "ignore", detached: process.platform !== "win32" },
+    );
     const version = await waitForJson(`http://${HOST}:${DEBUG_PORT}/json/version`, 30_000);
     cdp = await Cdp.connect(version.webSocketDebuggerUrl);
-    const { targetId } = await cdp.send("Target.createTarget", { url: `${BASE_URL}/app/dashboard` });
+    const { targetId } = await cdp.send("Target.createTarget", {
+      url: `${BASE_URL}/app/dashboard`,
+    });
     const { sessionId } = await cdp.send("Target.attachToTarget", { targetId, flatten: true });
     const page = new Page(cdp, sessionId);
-    await Promise.all([page.send("Page.enable"), page.send("Runtime.enable"), page.send("DOM.enable")]);
+    await Promise.all([
+      page.send("Page.enable"),
+      page.send("Runtime.enable"),
+      page.send("DOM.enable"),
+    ]);
     await page.waitFor("document.readyState === 'complete'");
 
     await seedLocalStorage(page, "A");
@@ -231,7 +406,10 @@ async function main() {
     const beforeTamper = await readStorage(page);
     await page.setZipFile(tampered);
     await page.waitForText("checksum mismatch");
-    assert(JSON.stringify(await readStorage(page)) === JSON.stringify(beforeTamper), "Tampered archive changed local stores.");
+    assert(
+      JSON.stringify(await readStorage(page)) === JSON.stringify(beforeTamper),
+      "Tampered archive changed local stores.",
+    );
 
     await page.setZipFile(validC);
     await page.waitForText("Проверенная копия готова");
@@ -255,10 +433,16 @@ async function main() {
       if (window.__lamdanOriginalSetItem) Storage.prototype.setItem = window.__lamdanOriginalSetItem;
       return true;
     })()`);
-    assert(JSON.stringify(await readStorage(page)) === JSON.stringify(beforeTamper), "Apply failure did not roll back core, concepts and attempt details.");
+    assert(
+      JSON.stringify(await readStorage(page)) === JSON.stringify(beforeTamper),
+      "Apply failure did not roll back core, concepts and attempt details.",
+    );
     await page.reload();
     await page.waitForText("Workspace ZIP v2");
-    assert(await page.evaluate(storagePredicate("b")), "Rolled-back workspace B did not survive reload.");
+    assert(
+      await page.evaluate(storagePredicate("b")),
+      "Rolled-back workspace B did not survive reload.",
+    );
 
     console.log("Workspace backup v2 browser restore, tamper and rollback E2E passed.");
   } finally {
@@ -291,7 +475,9 @@ function storagePredicate(suffix) {
 }
 
 async function readStorage(page) {
-  return page.evaluate(`(() => ({ core: localStorage.getItem("lamdan.data.v1"), concepts: localStorage.getItem("lamdan.concept-evidence.v1"), details: localStorage.getItem("lamdan.quiz-attempt-details.v1") }))()`);
+  return page.evaluate(
+    `(() => ({ core: localStorage.getItem("lamdan.data.v1"), concepts: localStorage.getItem("lamdan.concept-evidence.v1"), details: localStorage.getItem("lamdan.quiz-attempt-details.v1") }))()`,
+  );
 }
 
 async function sha256(bytes) {
@@ -301,10 +487,20 @@ async function sha256(bytes) {
 }
 
 function findChrome() {
-  const candidates = [process.env.LAM_DAN_CHROME_PATH, process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH, process.env.CHROME_PATH, "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser"].filter(Boolean);
+  const candidates = [
+    process.env.LAM_DAN_CHROME_PATH,
+    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+    process.env.CHROME_PATH,
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+  ].filter(Boolean);
   for (const candidate of candidates) if (existsSync(candidate)) return candidate;
   for (const name of ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"]) {
-    const result = spawnSync(process.platform === "win32" ? "where" : "which", [name], { encoding: "utf8" });
+    const result = spawnSync(process.platform === "win32" ? "where" : "which", [name], {
+      encoding: "utf8",
+    });
     if (result.status === 0 && result.stdout.trim()) return result.stdout.trim().split(/\r?\n/)[0];
   }
   throw new Error("Chromium/Chrome was not found.");
@@ -353,6 +549,6 @@ function sleep(milliseconds) {
 }
 
 await main().catch((error) => {
-  console.error(error instanceof Error ? error.stack ?? error.message : String(error));
+  console.error(error instanceof Error ? (error.stack ?? error.message) : String(error));
   process.exitCode = 1;
 });

@@ -155,7 +155,10 @@ assert.ok(hebrew[0]?.titleRanges.length, "Hebrew title match should expose highl
 
 const ranked = searchWorkspace(data, "information retrieval");
 assert.equal(ranked[0]?.id, "note_exact", "Exact note title should outrank a body-only mention.");
-assert.ok(ranked.some((hit) => hit.id === "material_info"), "Body matches should remain searchable.");
+assert.ok(
+  ranked.some((hit) => hit.id === "material_info"),
+  "Body matches should remain searchable.",
+);
 
 const requiredTerms = searchWorkspace(data, "precision bronze");
 assert.equal(requiredTerms.length, 0, "All unquoted query terms must be present in one result.");
@@ -168,7 +171,10 @@ assert.equal(quoted[0]?.materialId, "material_info");
 const courseFiltered = searchWorkspace(data, "age", { courseId: "course_info" });
 assert.equal(courseFiltered.length, 0, "Course filtering must exclude another course's results.");
 const archaeology = searchWorkspace(data, "bronze age", { courseId: "course_arch" });
-assert.ok(archaeology.length >= 2, "Course filtering should retain matching source and quiz content.");
+assert.ok(
+  archaeology.length >= 2,
+  "Course filtering should retain matching source and quiz content.",
+);
 assert.ok(archaeology.every((hit) => hit.courseId === "course_arch"));
 
 const card = searchWorkspace(data, "retrieved items", { kinds: ["flashcard"] });
@@ -177,7 +183,10 @@ assert.equal(card[0]?.matchedField, "back");
 
 const ranges = findSearchRanges("מְבוֹא לְמֵידָע", ["מבוא"]);
 assert.ok(ranges.length > 0);
-assert.equal("מְבוֹא לְמֵידָע".slice(ranges[0].start, ranges[0].end).replace(/[\u0591-\u05c7]/gu, ""), "מבוא");
+assert.equal(
+  "מְבוֹא לְמֵידָע".slice(ranges[0].start, ranges[0].end).replace(/[\u0591-\u05c7]/gu, ""),
+  "מבוא",
+);
 
 const firstRun = searchWorkspace(data, "retrieval").map((hit) => `${hit.kind}:${hit.id}`);
 const secondRun = searchWorkspace(data, "retrieval").map((hit) => `${hit.kind}:${hit.id}`);

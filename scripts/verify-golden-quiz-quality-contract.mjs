@@ -2,19 +2,29 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [quality, review, route, detail, experience, manifest, runner, packageJson, checkScript, workflow] =
-  await Promise.all([
-    read("src/lib/golden-quiz-quality.ts"),
-    read("src/components/golden-quiz-quality-review.tsx"),
-    read("src/routes/app.quiz-quality_.$quizId.tsx"),
-    read("src/routes/app.quizzes_.$quizId.tsx"),
-    read("src/components/evidence-quiz-experience.tsx"),
-    read("evals/golden-quiz-manifest.json"),
-    read("scripts/run-golden-quiz-evals.mjs"),
-    read("package.json"),
-    read("scripts/check.mjs"),
-    read(".github/workflows/ci.yml"),
-  ]);
+const [
+  quality,
+  review,
+  route,
+  detail,
+  experience,
+  manifest,
+  runner,
+  packageJson,
+  checkScript,
+  workflow,
+] = await Promise.all([
+  read("src/lib/golden-quiz-quality.ts"),
+  read("src/components/golden-quiz-quality-review.tsx"),
+  read("src/routes/app.quiz-quality_.$quizId.tsx"),
+  read("src/routes/app.quizzes_.$quizId.tsx"),
+  read("src/components/evidence-quiz-experience.tsx"),
+  read("evals/golden-quiz-manifest.json"),
+  read("scripts/run-golden-quiz-evals.mjs"),
+  read("package.json"),
+  read("scripts/check.mjs"),
+  read(".github/workflows/ci.yml"),
+]);
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
@@ -60,7 +70,11 @@ for (const marker of [
   requireMarker(review, marker, `Golden quiz review screen is missing: ${marker}`);
 }
 
-requireMarker(route, 'createFileRoute("/app/quiz-quality_/$quizId")', "Quality review route is missing.");
+requireMarker(
+  route,
+  'createFileRoute("/app/quiz-quality_/$quizId")',
+  "Quality review route is missing.",
+);
 requireMarker(
   detail,
   "EvidenceQuizExperience",
@@ -111,8 +125,16 @@ requireMarker(
   "Canonical checks do not verify golden quiz quality.",
 );
 requireMarker(checkScript, '"eval:golden-quiz"', "Canonical checks do not run golden quiz evals.");
-requireMarker(workflow, "Verify golden quiz quality contract", "CI does not verify golden quiz quality.");
-requireMarker(workflow, "Run golden quiz quality fixtures", "CI does not run golden quiz fixtures.");
+requireMarker(
+  workflow,
+  "Verify golden quiz quality contract",
+  "CI does not verify golden quiz quality.",
+);
+requireMarker(
+  workflow,
+  "Run golden quiz quality fixtures",
+  "CI does not run golden quiz fixtures.",
+);
 
 if (failures.length > 0) {
   console.error("Golden quiz quality contract verification failed:\n");
@@ -120,4 +142,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Golden quiz category scoring, negative controls, manual review and candidate export contract passed.");
+console.log(
+  "Golden quiz category scoring, negative controls, manual review and candidate export contract passed.",
+);

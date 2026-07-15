@@ -10,7 +10,13 @@ export type CardStatus = "new" | "learning" | "mastered";
 export type Difficulty = "easy" | "medium" | "hard";
 
 export type MaterialType =
-  "syllabus" | "lecture" | "article" | "assignment" | "presentation" | "exam" | "other";
+  | "syllabus"
+  | "lecture"
+  | "article"
+  | "assignment"
+  | "presentation"
+  | "exam"
+  | "other";
 export type MaterialSourceMode = "uploaded_file" | "pasted_text" | "manual";
 export type MaterialProcessingStatus = "ready" | "unsupported" | "error" | "no_text" | "partial";
 export type MaterialExtractionMethod =
@@ -27,10 +33,20 @@ export type MaterialExtractionMethod =
   | "pdf";
 export type MaterialSourceLanguage = "ru" | "en" | "he" | "ar" | "mixed" | "unknown";
 export type MaterialOutputType =
-  "note" | "quiz" | "flashcards" | "outline" | "presentation_outline" | "task_list";
+  | "note"
+  | "quiz"
+  | "flashcards"
+  | "outline"
+  | "presentation_outline"
+  | "task_list";
 
 export type CalendarEventType =
-  "class" | "assignment" | "exam" | "study_session" | "personal" | "other";
+  | "class"
+  | "assignment"
+  | "exam"
+  | "study_session"
+  | "personal"
+  | "other";
 export type Recurrence = "none" | "weekly";
 
 export interface Program {

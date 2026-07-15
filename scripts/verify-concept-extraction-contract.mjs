@@ -143,10 +143,7 @@ for (const marker of [
 ]) {
   requireMarker(packageJson, marker, `package.json is missing: ${marker}`);
 }
-for (const marker of [
-  '"verify:concept-extraction-contract"',
-  '"eval:concept-extraction"',
-]) {
+for (const marker of ['"verify:concept-extraction-contract"', '"eval:concept-extraction"']) {
   requireMarker(checkScript, marker, `Canonical checks are missing: ${marker}`);
 }
 for (const marker of [
@@ -163,7 +160,11 @@ for (const [content, marker, file] of [
   [status, "Reviewed concept extraction", "STATUS.md"],
   [plans, "Reviewed concept extraction", "PLANS.md"],
 ]) {
-  requireMarker(content, marker, `${file} is missing reviewed concept extraction status: ${marker}`);
+  requireMarker(
+    content,
+    marker,
+    `${file} is missing reviewed concept extraction status: ${marker}`,
+  );
 }
 
 if (failures.length > 0) {

@@ -65,7 +65,10 @@ export function StudyPackEditor({
 
       <EditableSection title={isRu ? "Маршрут занятия" : "Study route"} count={draft.steps.length}>
         {draft.steps.map((step, index) => (
-          <div key={`${step.title}_${index}`} className="rounded-md border border-border bg-background p-3">
+          <div
+            key={`${step.title}_${index}`}
+            className="rounded-md border border-border bg-background p-3"
+          >
             <div className="grid gap-2 sm:grid-cols-[1fr_120px_82px_auto]">
               <Input
                 value={step.title}
@@ -113,7 +116,9 @@ export function StudyPackEditor({
               />
               <RemoveButton
                 label={isRu ? "Удалить шаг" : "Remove step"}
-                onClick={() => update({ steps: draft.steps.filter((_, itemIndex) => itemIndex !== index) })}
+                onClick={() =>
+                  update({ steps: draft.steps.filter((_, itemIndex) => itemIndex !== index) })
+                }
               />
             </div>
             <Textarea
@@ -144,7 +149,10 @@ export function StudyPackEditor({
         />
       </EditableSection>
 
-      <EditableSection title={isRu ? "Ключевые термины" : "Key terms"} count={draft.keyTerms.length}>
+      <EditableSection
+        title={isRu ? "Ключевые термины" : "Key terms"}
+        count={draft.keyTerms.length}
+      >
         {draft.keyTerms.map((term, index) => (
           <div key={`${term.term}_${index}`} className="grid gap-2 sm:grid-cols-[180px_1fr_auto]">
             <Input
@@ -181,7 +189,10 @@ export function StudyPackEditor({
 
       <EditableSection title={isRu ? "Карточки" : "Flashcards"} count={draft.cards.length}>
         {draft.cards.map((card, index) => (
-          <div key={`${card.front}_${index}`} className="grid gap-2 rounded-md border border-border bg-background p-3 sm:grid-cols-2">
+          <div
+            key={`${card.front}_${index}`}
+            className="grid gap-2 rounded-md border border-border bg-background p-3 sm:grid-cols-2"
+          >
             <Textarea
               dir="auto"
               className="min-h-24"
@@ -209,7 +220,9 @@ export function StudyPackEditor({
               />
               <RemoveButton
                 label={isRu ? "Удалить карточку" : "Remove card"}
-                onClick={() => update({ cards: draft.cards.filter((_, itemIndex) => itemIndex !== index) })}
+                onClick={() =>
+                  update({ cards: draft.cards.filter((_, itemIndex) => itemIndex !== index) })
+                }
               />
             </div>
           </div>
@@ -221,7 +234,10 @@ export function StudyPackEditor({
         count={draft.questions.length}
       >
         {draft.questions.map((question, index) => (
-          <div key={`${question.prompt}_${index}`} className="rounded-md border border-border bg-background p-3">
+          <div
+            key={`${question.prompt}_${index}`}
+            className="rounded-md border border-border bg-background p-3"
+          >
             <div className="flex gap-2">
               <Textarea
                 dir="auto"
@@ -238,7 +254,9 @@ export function StudyPackEditor({
               <RemoveButton
                 label={isRu ? "Удалить вопрос" : "Remove question"}
                 onClick={() =>
-                  update({ questions: draft.questions.filter((_, itemIndex) => itemIndex !== index) })
+                  update({
+                    questions: draft.questions.filter((_, itemIndex) => itemIndex !== index),
+                  })
                 }
               />
             </div>
@@ -354,7 +372,14 @@ function EditableSection({
 
 function RemoveButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <Button type="button" size="icon" variant="ghost" aria-label={label} title={label} onClick={onClick}>
+    <Button
+      type="button"
+      size="icon"
+      variant="ghost"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+    >
       <Trash2 className="h-4 w-4" />
     </Button>
   );

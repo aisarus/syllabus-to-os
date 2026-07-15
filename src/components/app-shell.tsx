@@ -15,6 +15,8 @@ import {
   ChevronRight,
   Leaf,
   Settings,
+  Mic2,
+  GraduationCap,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import "@/content-workspace.css";
@@ -41,9 +43,11 @@ const coreNav: ReadonlyArray<NavItem> = [
   { to: "/app/dashboard", labelKey: "dashboard", icon: Home },
   { to: "/app/courses", labelKey: "courses", icon: BookOpen },
   { to: "/app/materials", labelKey: "materials", icon: FolderOpen },
+  { to: "/app/lecture-media", labelKey: "lecture", icon: Mic2 },
   { to: "/app/notes", labelKey: "notes", icon: FileText },
   { to: "/app/flashcards", labelKey: "flashcards", icon: Layers3 },
   { to: "/app/quizzes", labelKey: "quizzes", icon: CircleHelp },
+  { to: "/app/exam-engine", labelKey: "exam", icon: GraduationCap },
 ];
 
 const utilityNav: ReadonlyArray<NavItem> = [
@@ -142,8 +146,8 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
         </Select>
         <div className="content-sidebar__note">
           {lang === "ru"
-            ? "Курсы, материалы, конспекты, карточки и тесты — без лишнего трекинга."
-            : "Courses, materials, notes, flashcards and quizzes — without tracking noise."}
+            ? "Курсы, материалы, лекции, конспекты, карточки, тесты и экзамены — без лишнего трекинга."
+            : "Courses, materials, lectures, notes, flashcards, quizzes and exams — without tracking noise."}
         </div>
       </div>
     </>
