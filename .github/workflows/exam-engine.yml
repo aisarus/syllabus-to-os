@@ -61,7 +61,22 @@ jobs:
         run: npm run typecheck
 
       - name: Lint
-        run: npm run lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint 2>&1 | tee exam-engine-lint-output.txt
+
+      - name: Upload Exam Engine lint diagnostics
+        if: steps.lint.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: exam-engine-lint-diagnostics
+          path: exam-engine-lint-output.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when Exam Engine lint fails
+        if: steps.lint.outcome == 'failure'
+        run: exit 1
 
       - name: Build
         run: npm run build
