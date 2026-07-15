@@ -16,6 +16,7 @@ This file records the active implementation plan. Product intent remains in `ROA
 
 ## Completed Academic Autopilot slices
 
+- `P1-010A Durable whole-lecture audio/video intake` — verified in PR #46; merge pending final documentation-head CI.
 - `P1-011 Study Command Center v1` — merged in PR #36.
 - `P1-012 Lecture-to-Study-Pack` — merged in PR #37.
 - `P1-013 Concept graph and evidence model v1` — merged in PR #38.
@@ -26,11 +27,7 @@ This file records the active implementation plan. Product intent remains in `ROA
 - `P1-013E Edited-batch concept collision guard` — merged in PR #44.
 - `P1-014A Frozen source-grounded Exam Engine v1` — merged in PR #45.
 
-## Active delivery — Whole-lecture media
-
-### P1-010A — Durable whole-lecture audio/video intake
-
-**Status:** implemented; validation pending.
+## Verified delivery — P1-010A whole-lecture media
 
 ### Product outcome
 
@@ -44,18 +41,20 @@ A user can upload one complete audio or video lecture, keep it locally across re
 4. Write the browser `File` sequentially in 8 MB IndexedDB chunks. ✓
 5. Check available browser quota and request persistent storage before the write. ✓
 6. Keep replacement uploads under a staging `uploadId` until every chunk succeeds. ✓
-7. Preserve the previous complete file after cancellation or write failure. ✓
-8. Record and verify SHA-256 for every stored chunk. ✓
-9. Reconstruct a local audio/video player only after explicit user action. ✓
-10. Import SRT, WebVTT or plain-text transcript drafts. ✓
-11. Create editable ten-minute timestamp blocks when no transcript is available. ✓
-12. Require explicit approval for each source segment. ✓
-13. Convert only approved non-empty segments into source-integrity-aware `MaterialChunk` records. ✓
-14. Add navigation, material-detail integration, orphan cleanup and Data-page storage boundary. ✓
-15. Add deterministic file/segment/import/apply evaluations. ✓
-16. Add a Chromium proof using a real 18 MB file written as three IndexedDB chunks. ✓
-17. Pass the complete repository and dedicated long-media CI. Pending.
-18. Merge only after every applicable gate passes. Pending.
+7. Publish the core material only after a durable manifest exists. ✓
+8. Preserve the previous complete file after cancellation, write failure or post-commit cleanup failure. ✓
+9. Record and verify SHA-256 for every stored chunk. ✓
+10. Reconstruct a local audio/video player only after explicit user action. ✓
+11. Import SRT, WebVTT or plain-text transcript drafts. ✓
+12. Create editable ten-minute timestamp blocks when no transcript is available. ✓
+13. Require explicit approval for each source segment. ✓
+14. Convert only approved non-empty segments into source-integrity-aware `MaterialChunk` records. ✓
+15. Add navigation, material-detail integration, guarded orphan cleanup and Data-page storage boundary. ✓
+16. Add deterministic file/segment/import/apply evaluations. ✓
+17. Repair the Cloudflare production preview path and async IndexedDB browser predicate. ✓
+18. Pass a real Chromium proof using an 18 MB file written as three IndexedDB chunks, SHA-checked, transcribed from SRT, applied as two source chunks and reloaded. ✓
+19. Pass complete repository CI and the dedicated Exam Engine regression on the same final head. ✓
+20. Merge after the final documentation-head rerun. Pending.
 
 ### Non-negotiable boundaries
 
@@ -68,20 +67,36 @@ A user can upload one complete audio or video lecture, keep it locally across re
 - Workspace ZIP v2 does not claim to contain the raw multi-gigabyte recording or editable transcript draft.
 - The user must keep the original recording separately until streaming backup exists.
 
-### P1-010B — Reviewed automatic transcription
+## Active next delivery — P1-010B reviewed automatic transcription
 
-**Status:** next implementation slice after P1-010A is verified.
+### Product outcome
 
-Planned boundaries:
+A user explicitly chooses to send a long recording for transcription, can see which provider receives it, can cancel and resume bounded transcription work, and reviews every returned timestamped block before it becomes a Lamdan source.
 
-1. Explicit user action and provider disclosure before any upload.
-2. Resumable jobs over bounded time ranges instead of one opaque request.
-3. Cancellation, retry and partial-success persistence.
-4. Timestamps, language and uncertainty retained in every returned block.
-5. AI output remains an editable draft.
-6. No transcript block becomes a source until human approval.
-7. Source-visible failure states for missing or unintelligible intervals.
-8. No hidden recording upload during ordinary local playback or storage.
+### Planned sequence
+
+1. Inspect the existing server/provider abstraction and official long-file APIs.
+2. Choose a provider path that does not silently proxy a multi-gigabyte recording through an unsuitable request body.
+3. Add an explicit consent screen naming provider, file, size and retention boundary before upload.
+4. Split transcription into bounded time ranges or resumable provider jobs.
+5. Persist local job state, provider file/job identifiers, completed ranges and retry state without storing secrets.
+6. Support cancellation, retry and partial-success recovery.
+7. Preserve timestamps, language, speaker labels when available and uncertainty/missing-audio intervals.
+8. Store provider output only as an editable transcript draft.
+9. Require human approval before any block becomes a source chunk.
+10. Keep existing approved transcript/source chunks unchanged after provider failure, cancellation or retry.
+11. Add deterministic job-state and source-integrity evaluations.
+12. Add browser proof for explicit consent, partial result, cancellation/resume, review and apply.
+13. Merge only after provider contract, types, lint, build and browser gates pass.
+
+### Non-negotiable boundaries
+
+- No hidden upload during local storage, playback, integrity checking or ordinary material navigation.
+- The exact external provider is shown before upload.
+- Cancelled or failed provider work cannot replace the current approved transcript.
+- Provider text remains untrusted draft content until explicit review.
+- Missing or unintelligible intervals remain visible instead of being filled from model memory.
+- Secrets and provider credentials remain server-side.
 
 ## Subsequent delivery
 
