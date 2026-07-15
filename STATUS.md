@@ -6,7 +6,7 @@ Last updated: 2026-07-15
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening and Exam Engine v1 are merged. Durable whole-lecture audio/video intake is the active implementation pass.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1 and durable whole-lecture media intake are implemented and verified.
 
 ## Completed task state
 
@@ -21,6 +21,7 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-003 Critical browser end-to-end coverage` — complete and verified; PR #33.
 - `P1-004 Add local-first global search v2` — complete and verified; PR #34.
 - `P1-005 Store persistence and source-integrity hardening` — complete and verified; PR #35.
+- `P1-010A Durable whole-lecture audio/video intake` — complete and verified; PR #46 ready to merge.
 - `P1-011 Study Command Center v1` — complete and verified; PR #36.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37.
 - `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38.
@@ -31,9 +32,7 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-013E Edited-batch concept collision guard` — complete and verified; PR #44.
 - `P1-014A Frozen source-grounded Exam Engine v1` — complete and verified; PR #45.
 
-## Current implementation pass — Durable whole-lecture audio/video intake
-
-**Status:** implemented on `agent/long-lecture-media`; final long-media verification and Exam Engine hydration regression fix are active.
+## Verified delivery — Durable whole-lecture audio/video intake
 
 Delivered:
 
@@ -46,7 +45,7 @@ Delivered:
 - active manifest changes only after every chunk is stored;
 - core material is published only after a durable media manifest exists;
 - cancellation/error cleanup while an older complete recording remains intact;
-- navigation failure cannot delete an already completed recording;
+- post-commit cleanup, optional metadata and navigation failures cannot delete a completed recording;
 - automatic orphan cleanup requires the same missing material to remain absent from fresh core snapshots for at least 15 seconds before deletion;
 - SHA-256 per media chunk and explicit integrity verification;
 - local audio/video player reconstructed only after an explicit user action;
@@ -58,16 +57,16 @@ Delivered:
 - orphan cleanup, local storage statistics and delete-recordings-only control;
 - explicit statement that raw multi-gigabyte media and editable transcript drafts are not yet in Workspace ZIP v2;
 - deterministic evaluation suite and a real 18 MB / three-chunk Chromium proof;
-- hardened browser proof validates core material and all three IndexedDB chunks before opening the detail route;
-- repository-wide Prettier baseline restored so canonical `eslint .` can detect semantic errors instead of stale formatting noise;
-- legacy `any` and empty compatibility-interface lint blockers replaced with typed equivalents;
-- final long-media browser runner and workflow pass the scoped Prettier and semantic lint check;
-- Exam Engine now reconciles its selected course after client hydration instead of remaining on an empty SSR-derived id.
+- production Chromium verifies upload, durable IndexedDB state, detail workspace, SHA checks, SRT import, two approved source chunks and reload;
+- async IndexedDB predicates in the browser harness are actually awaited instead of being coerced from a `Promise`;
+- Cloudflare-module production builds are exercised through the Wrangler Worker preview path;
+- Exam Engine now waits for hydrated core data and restores the latest submitted frozen result after reload;
+- repository-wide Prettier baseline and legacy semantic lint blockers were repaired while keeping canonical `eslint .` meaningful.
 
 Current boundaries:
 
-- choosing or storing a recording never sends it to external AI;
-- automatic transcription is not included in this first slice;
+- choosing, storing or playing a recording never sends it to external AI;
+- automatic transcription is not included in this slice;
 - playback after reload reconstructs a Blob and can require significant memory for very large video;
 - raw media and editable transcript drafts require a future streaming backup format;
 - the original audio/video file must be retained separately for now;
@@ -75,18 +74,15 @@ Current boundaries:
 
 ## Verification state
 
-Final rerun on the current head must pass:
+PR #46 passed on the same final head:
 
-- all repository contracts and deterministic evaluations;
+- complete repository contracts and deterministic evaluations;
 - long-media contract and deterministic evaluations;
-- TypeScript;
-- ESLint and formatting;
-- production build;
-- critical browser end-to-end and the other existing browser regression gates;
-- Exam Engine browser regression after SSR/client hydration;
-- long-media Chromium: 18 MB upload → three IndexedDB chunks → SHA verification → SRT import → two approved source chunks → reload.
-
-The branch must not merge until every applicable gate passes.
+- TypeScript, ESLint and formatting;
+- production build and committed TanStack route tree;
+- complete repository browser suite;
+- dedicated Exam Engine browser regression with shuffled frozen questions, score 100, two immutable snapshots, two concept recognition events and restored result after reload;
+- dedicated long-media Chromium: 18 MB upload → three IndexedDB chunks → SHA verification → SRT import → two approved source chunks → reload.
 
 ## Existing validation blockers
 
@@ -104,7 +100,7 @@ The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved 
 
 ## Next execution targets
 
-1. Verify and merge durable whole-lecture audio/video intake.
-2. Build reviewed, cancellable automatic transcription as a separate `P1-010B` slice with explicit provider disclosure.
+1. Merge durable whole-lecture audio/video intake.
+2. Build reviewed, cancellable automatic transcription as `P1-010B` with explicit provider disclosure and no hidden upload.
 3. Integrate Exam Engine and long-media metadata into the next complete streaming backup format.
 4. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
