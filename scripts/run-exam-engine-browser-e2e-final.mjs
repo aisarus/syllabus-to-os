@@ -44,14 +44,26 @@ const functionalSessionWait = `    try {
     }`;
 const decorativeResultWait =
   '    await page.waitForText("Замороженный результат экзамена");';
-const functionalResultWait = `    await page.waitFor(\`(() => {
-      const exams = JSON.parse(localStorage.getItem("lamdan.exam-engine.v1"));
-      const session = exams.sessions?.[0];
-      return session?.status === "submitted" &&
-        session.result?.score === 100 &&
-        session.result?.unansweredCount === 0 &&
-        document.body?.innerText.includes("100%");
-    })()\`);`;
+const functionalResultWait = `    try {
+      await page.waitFor(\`(() => {
+        const exams = JSON.parse(localStorage.getItem("lamdan.exam-engine.v1"));
+        const session = exams.sessions?.[0];
+        return session?.status === "submitted" &&
+          session.result?.score === 100 &&
+          session.result?.unansweredCount === 0 &&
+          document.body?.innerText.includes("100%");
+      })()\`);
+    } catch (error) {
+      const state = await page.evaluate(\`(() => ({
+        exams: localStorage.getItem("lamdan.exam-engine.v1"),
+        core: localStorage.getItem("lamdan.data.v1"),
+        details: localStorage.getItem("lamdan.quiz-attempt-details.v1"),
+        concepts: localStorage.getItem("lamdan.concept-evidence.v1"),
+        body: document.body?.innerText.slice(0, 5000),
+      }))()\`);
+      console.error("Exam Engine submitted-result diagnostics:", JSON.stringify(state, null, 2));
+      throw error;
+    }`;
 
 try {
   const source = await readFile(sourcePath, "utf8");
