@@ -23,9 +23,13 @@ const functionalSessionWait = `    try {
       await page.waitFor(\`(() => {
         const exams = JSON.parse(localStorage.getItem("lamdan.exam-engine.v1"));
         const session = exams.sessions?.[0];
+        const currentQuestion = session?.questions?.find(
+          (question) => question.questionId === session.currentQuestionId
+        );
         return session?.status === "active" &&
           session.questions?.length === 2 &&
-          document.body?.innerText.includes("constitutional review");
+          currentQuestion?.prompt &&
+          document.body?.innerText.includes(currentQuestion.prompt);
       })()\`);
     } catch (error) {
       const state = await page.evaluate(\`(() => {
