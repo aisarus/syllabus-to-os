@@ -1,0 +1,119 @@
+name: Patch long media two-phase commit
+
+on:
+  push:
+    branches:
+      - agent/long-lecture-media
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/long-lecture-media
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Apply two-phase publication
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          route = Path('src/routes/app.lecture-media.tsx')
+          text = route.read_text()
+          text = text.replace(
+              'import { store, useData } from "@/lib/store";',
+              'import { store, uid, updateData, useData, type Material } from "@/lib/store";',
+          )
+          old = '''    const durationPromise = readMediaDuration(file);
+              const material = store.createMaterial({
+                title: title.trim(),
+                type: "lecture",
+                sourceMode: "uploaded_file",
+                fileName: file.name,
+                mimeType: file.type || "application/octet-stream",
+                fileSize: file.size,
+                courseId: courseId || undefined,
+                tags: ["long-media"],
+                rawText: "",
+                processingStatus: "no_text",
+                processingMessage: isRu
+                  ? "Запись лекции сохраняется локально; расшифровка ещё не применена."
+                  : "Lecture recording is stored locally; no transcript has been applied yet.",
+                wordCount: 0,
+                charCount: 0,
+                extractionMethod: "manual",
+                sourceLanguage: "unknown",
+              });
+          '''
+          new = '''    const durationPromise = readMediaDuration(file);
+              const now = Date.now();
+              const material: Material = {
+                id: uid("mat"),
+                title: title.trim(),
+                type: "lecture",
+                sourceMode: "uploaded_file",
+                fileName: file.name,
+                mimeType: file.type || "application/octet-stream",
+                fileSize: file.size,
+                courseId: courseId || undefined,
+                tags: ["long-media"],
+                rawText: "",
+                processingStatus: "no_text",
+                processingMessage: isRu
+                  ? "Запись лекции сохраняется локально; расшифровка ещё не применена."
+                  : "Lecture recording is stored locally; no transcript has been applied yet.",
+                wordCount: 0,
+                charCount: 0,
+                extractionMethod: "manual",
+                sourceLanguage: "unknown",
+                createdAt: now,
+                updatedAt: now,
+              };
+          '''
+          if old not in text:
+              raise SystemExit('material creation block not found')
+          text = text.replace(old, new)
+          text = text.replace('''        await deleteLongMediaData(material.id).catch(() => undefined);
+                  store.deleteMaterial(material.id);
+                  abortRef.current = null;''', '''        await deleteLongMediaData(material.id).catch(() => undefined);
+                  abortRef.current = null;''')
+          anchor = '''    try {
+              const duration = await durationPromise;'''
+          replacement = '''    updateData((current) => ({
+              ...current,
+              materials: [material, ...current.materials.filter((item) => item.id !== material.id)],
+            }));
+
+            try {
+              const duration = await durationPromise;'''
+          if anchor not in text:
+              raise SystemExit('finalization anchor not found')
+          text = text.replace(anchor, replacement, 1)
+          route.write_text(text)
+
+          contract = Path('scripts/verify-long-media-contract.mjs')
+          c = contract.read_text()
+          c = c.replace('''  "deleteLongMediaData(material.id)",
+            "store.deleteMaterial(material.id)",
+            "onProgress: setProgress",''', '''  "deleteLongMediaData(material.id)",
+            'uid("mat")',
+            "updateData((current)",
+            "materials: [material",
+            "onProgress: setProgress",''')
+          contract.write_text(c)
+          PY
+          bunx prettier --write src/routes/app.lecture-media.tsx scripts/verify-long-media-contract.mjs
+          rm .github/workflows/patch-long-media-two-phase.yml
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/routes/app.lecture-media.tsx scripts/verify-long-media-contract.mjs .github/workflows/patch-long-media-two-phase.yml
+          git commit -m "fix: publish lecture material after media commit"
+          git push origin HEAD:agent/long-lecture-media
