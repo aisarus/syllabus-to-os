@@ -27,7 +27,7 @@ This file records the active implementation plan. Product intent remains in `ROA
 - `P1-013E Edited-batch concept collision guard` — merged in PR #44.
 - `P1-014A Frozen source-grounded Exam Engine v1` — merged in PR #45.
 
-## Verified delivery — P1-010A whole-lecture media
+## Verified delivery — P1-010A Whole-lecture media
 
 ### Product outcome
 
