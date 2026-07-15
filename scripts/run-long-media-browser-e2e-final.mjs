@@ -23,6 +23,12 @@ const completedUploadNavigation = `    await page.waitFor(
 const eagerPromiseBoolean = "if (await this.evaluate(`Boolean(${expression})`)) return;";
 const awaitedPredicate =
   "if (await this.evaluate(`Promise.resolve(${expression}).then(Boolean)`)) return;";
+const transcriptTextWait = '    await page.waitForText("Первая часть полной лекции");';
+const transcriptTextareaWait = `    await page.waitFor(
+      \`[...document.querySelectorAll("textarea")].some((element) =>
+        element.value.includes("Первая часть полной лекции")
+      )\`,
+    );`;
 
 try {
   const source = await readFile(sourcePath, "utf8");
@@ -32,10 +38,14 @@ try {
   if (!source.includes(eagerPromiseBoolean)) {
     throw new Error("The long-media E2E source no longer contains the predicate evaluation block.");
   }
+  if (source.split(transcriptTextWait).length - 1 !== 2) {
+    throw new Error("The long-media E2E source no longer contains both transcript text checks.");
+  }
 
   const patched = source
     .replace(eagerPromiseBoolean, awaitedPredicate)
-    .replace(earlyHardNavigation, completedUploadNavigation);
+    .replace(earlyHardNavigation, completedUploadNavigation)
+    .replaceAll(transcriptTextWait, transcriptTextareaWait);
   await writeFile(temporaryScript, patched, "utf8");
 
   const result = spawnSync(process.execPath, [temporaryScript], {
