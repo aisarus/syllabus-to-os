@@ -18,7 +18,7 @@ const completedUploadNavigation = `    await page.waitFor(
       \`location.pathname === "/app/materials/\${materialId}"\`,
       25_000,
     );
-    await page.waitForText("Длинная запись лекции", 45_000);`;
+    await page.waitForText("ДЛИННАЯ ЗАПИСЬ ЛЕКЦИИ", 45_000);`;
 
 const eagerPromiseBoolean = "if (await this.evaluate(`Boolean(${expression})`)) return;";
 const awaitedPredicate =
