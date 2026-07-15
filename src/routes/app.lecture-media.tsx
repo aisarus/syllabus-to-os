@@ -130,6 +130,7 @@ function LectureMediaPage() {
       sourceLanguage: "unknown",
     });
 
+    let uploadSucceeded = false;
     try {
       const manifest = await putLongMediaFile(material.id, file, {
         signal: controller.signal,
@@ -142,15 +143,12 @@ function LectureMediaPage() {
           ? "Запись сохранена локально. Создай или импортируй расшифровку и подтверди source chunks."
           : "Recording saved locally. Create or import a transcript and approve source chunks.",
       });
+      uploadSucceeded = true;
       toast.success(
         isRu
           ? `Лекция сохранена: ${manifest.chunkCount} локальных блоков`
           : `Lecture saved in ${manifest.chunkCount} local chunks`,
       );
-      await navigate({
-        to: "/app/materials/$materialId",
-        params: { materialId: material.id },
-      });
     } catch (error) {
       await deleteLongMediaData(material.id).catch(() => undefined);
       store.deleteMaterial(material.id);
@@ -167,6 +165,20 @@ function LectureMediaPage() {
       abortRef.current = null;
       setBusy(false);
       setProgress(null);
+    }
+
+    if (!uploadSucceeded) return;
+    try {
+      await navigate({
+        to: "/app/materials/$materialId",
+        params: { materialId: material.id },
+      });
+    } catch {
+      toast.warning(
+        isRu
+          ? "Лекция сохранена, но переход не открылся. Материал доступен в библиотеке."
+          : "The lecture is saved, but its page did not open. It remains available in Materials.",
+      );
     }
   };
 
