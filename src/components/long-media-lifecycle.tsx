@@ -5,7 +5,11 @@ import { getDataSnapshot, useData } from "@/lib/store";
 export function LongMediaLifecycle() {
   const data = useData();
   const materialRevision = useMemo(
-    () => data.materials.map((item) => item.id).sort().join("|"),
+    () =>
+      data.materials
+        .map((item) => item.id)
+        .sort()
+        .join("|"),
     [data.materials],
   );
 
