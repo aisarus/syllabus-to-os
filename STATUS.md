@@ -45,6 +45,8 @@ Delivered:
 - fresh staging `uploadId` for every new or replacement recording;
 - active manifest changes only after every chunk is stored;
 - cancellation/error cleanup while an older complete recording remains intact;
+- navigation failure cannot delete an already completed recording;
+- orphan cleanup re-reads the latest hydrated workspace at execution time instead of using a stale first-render snapshot;
 - SHA-256 per media chunk and explicit integrity verification;
 - local audio/video player reconstructed only after an explicit user action;
 - SRT, WebVTT and plain-text transcript import;
