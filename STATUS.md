@@ -1,6 +1,6 @@
 # Lamdan — Current execution status
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 ## Current milestone
 
@@ -55,6 +55,7 @@ Delivered:
 - orphan cleanup, local storage statistics and delete-recordings-only control;
 - explicit statement that raw multi-gigabyte media and editable transcript drafts are not yet in Workspace ZIP v2;
 - deterministic evaluation suite and a real 18 MB / three-chunk Chromium proof;
+- hardened browser proof validates core material and all three IndexedDB chunks before opening the detail route;
 - repository-wide Prettier baseline restored so canonical `eslint .` can detect semantic errors instead of stale formatting noise;
 - legacy `any` and empty compatibility-interface lint blockers replaced with typed equivalents;
 - final long-media browser runner and workflow pass the scoped Prettier and semantic lint check.
