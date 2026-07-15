@@ -46,7 +46,22 @@ jobs:
         run: npm run typecheck
 
       - name: Lint
-        run: npm run lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint 2>&1 | tee long-media-lint-output.txt
+
+      - name: Upload long media lint diagnostics
+        if: steps.lint.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: long-media-lint-diagnostics
+          path: long-media-lint-output.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when long media lint fails
+        if: steps.lint.outcome == 'failure'
+        run: exit 1
 
       - name: Build and verify generated route tree
         run: |
@@ -64,7 +79,7 @@ jobs:
         with:
           name: long-media-browser-diagnostics
           path: long-media-e2e-output.txt
-          if-no-files-found: error
+          if-no-files-found: ignore
           retention-days: 3
 
       - name: Fail when long media browser E2E fails
