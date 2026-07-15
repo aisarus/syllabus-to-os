@@ -1,0 +1,145 @@
+name: Patch long media navigation safety
+
+on:
+  push:
+    branches:
+      - agent/long-lecture-media
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/long-lecture-media
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Separate upload persistence from navigation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/routes/app.lecture-media.tsx')
+          text = path.read_text()
+          old = '''    try {
+      const manifest = await putLongMediaFile(material.id, file, {
+        signal: controller.signal,
+        onProgress: setProgress,
+      });
+      const duration = await durationPromise;
+      if (duration) await updateLongMediaDuration(material.id, duration);
+      store.updateMaterial(material.id, {
+        processingMessage: isRu
+          ? "Запись сохранена локально. Создай или импортируй расшифровку и подтверди source chunks."
+          : "Recording saved locally. Create or import a transcript and approve source chunks.",
+      });
+      toast.success(
+        isRu
+          ? `Лекция сохранена: ${manifest.chunkCount} локальных блоков`
+          : `Lecture saved in ${manifest.chunkCount} local chunks`,
+      );
+      await navigate({
+        to: "/app/materials/$materialId",
+        params: { materialId: material.id },
+      });
+    } catch (error) {
+      await deleteLongMediaData(material.id).catch(() => undefined);
+      store.deleteMaterial(material.id);
+      if (error instanceof DOMException && error.name === "AbortError") {
+        toast.info(
+          isRu
+            ? "Загрузка отменена. Неполная копия удалена."
+            : "Upload cancelled. The incomplete copy was removed.",
+        );
+      } else {
+        toast.error(error instanceof Error ? error.message : String(error));
+      }
+    } finally {
+      abortRef.current = null;
+      setBusy(false);
+      setProgress(null);
+    }
+'''
+          new = '''    let uploadSucceeded = false;
+    try {
+      const manifest = await putLongMediaFile(material.id, file, {
+        signal: controller.signal,
+        onProgress: setProgress,
+      });
+      const duration = await durationPromise;
+      if (duration) await updateLongMediaDuration(material.id, duration);
+      store.updateMaterial(material.id, {
+        processingMessage: isRu
+          ? "Запись сохранена локально. Создай или импортируй расшифровку и подтверди source chunks."
+          : "Recording saved locally. Create or import a transcript and approve source chunks.",
+      });
+      uploadSucceeded = true;
+      toast.success(
+        isRu
+          ? `Лекция сохранена: ${manifest.chunkCount} локальных блоков`
+          : `Lecture saved in ${manifest.chunkCount} local chunks`,
+      );
+    } catch (error) {
+      await deleteLongMediaData(material.id).catch(() => undefined);
+      store.deleteMaterial(material.id);
+      if (error instanceof DOMException && error.name === "AbortError") {
+        toast.info(
+          isRu
+            ? "Загрузка отменена. Неполная копия удалена."
+            : "Upload cancelled. The incomplete copy was removed.",
+        );
+      } else {
+        toast.error(error instanceof Error ? error.message : String(error));
+      }
+    } finally {
+      abortRef.current = null;
+      setBusy(false);
+      setProgress(null);
+    }
+
+    if (!uploadSucceeded) return;
+    try {
+      await navigate({
+        to: "/app/materials/$materialId",
+        params: { materialId: material.id },
+      });
+    } catch {
+      toast.warning(
+        isRu
+          ? "Лекция сохранена, но переход не открылся. Материал доступен в библиотеке."
+          : "The lecture is saved, but its page did not open. It remains available in Materials.",
+      );
+    }
+'''
+          if old not in text:
+              raise SystemExit('upload transaction block was not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          npx prettier --write src/routes/app.lecture-media.tsx
+      - name: Strengthen contract and commit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/verify-long-media-contract.mjs')
+          text = path.read_text()
+          marker = '  "onProgress: setProgress",\n'
+          insertion = '  "onProgress: setProgress",\n  "if (!uploadSucceeded) return",\n  "Лекция сохранена, но переход не открылся",\n'
+          if marker not in text:
+              raise SystemExit('contract insertion point was not found')
+          path.write_text(text.replace(marker, insertion, 1))
+          PY
+          npx prettier --write scripts/verify-long-media-contract.mjs
+          rm .github/workflows/patch-long-media-navigation.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/routes/app.lecture-media.tsx scripts/verify-long-media-contract.mjs .github/workflows/patch-long-media-navigation.yml
+          git commit -m "fix: never delete a saved lecture after navigation failure"
+          git push origin HEAD:agent/long-lecture-media
