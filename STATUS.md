@@ -33,7 +33,7 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source â
 
 ## Current implementation pass â€” Durable whole-lecture audio/video intake
 
-**Status:** implemented on `agent/long-lecture-media`; two-phase publication hardening and final verification are active.
+**Status:** implemented on `agent/long-lecture-media`; final two-phase verification rerun is active.
 
 Delivered:
 
