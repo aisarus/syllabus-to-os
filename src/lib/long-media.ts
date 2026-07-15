@@ -40,6 +40,9 @@ export interface TranscriptSegmentDraft {
   status: TranscriptSegmentStatus;
   speaker?: string;
   language?: string;
+  unclear?: boolean;
+  provider?: "google-gemini-files";
+  providerJobId?: string;
 }
 
 export interface LongMediaTranscriptDraft {
