@@ -33,7 +33,7 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source â
 
 ## Current implementation pass â€” Durable whole-lecture audio/video intake
 
-**Status:** implemented on `agent/long-lecture-media`; final verification rerun is active.
+**Status:** implemented on `agent/long-lecture-media`; two-phase publication hardening and final verification are active.
 
 Delivered:
 
@@ -44,6 +44,7 @@ Delivered:
 - browser quota check and best-effort persistent-storage request before upload;
 - fresh staging `uploadId` for every new or replacement recording;
 - active manifest changes only after every chunk is stored;
+- core material is published only after a durable media manifest exists;
 - cancellation/error cleanup while an older complete recording remains intact;
 - navigation failure cannot delete an already completed recording;
 - automatic orphan cleanup requires the same missing material to remain absent from fresh core snapshots for at least 15 seconds before deletion;
