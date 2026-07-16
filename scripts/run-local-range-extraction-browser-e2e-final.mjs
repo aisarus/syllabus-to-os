@@ -44,6 +44,14 @@ replaceRequired(
   "CDP response timeout cleanup",
 );
 
+replaceRequired(
+  `      target.click();
+      return true;`,
+  `      setTimeout(() => target.click(), 0);
+      return true;`,
+  "deferred click dispatch",
+);
+
 const stages = [
   [
     `    preview = spawn(`,
