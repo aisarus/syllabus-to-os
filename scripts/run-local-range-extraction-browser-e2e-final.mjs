@@ -144,10 +144,26 @@ const stages = [
   [
     `    await page.checkLabel("Я вижу провайдера");`,
     `    console.log("[local-range] HTTP range verified");
-    await page.checkLabel("Я вижу провайдера");
-    await page.waitFor(\`(() => [...document.querySelectorAll("button")].some((button) =>
-      !button.disabled && button.textContent?.includes("Отправить извлечённые clips")
-    ))()\`);
+    const consentChanged = await page.evaluate(\`(() => {
+      const panel = [...document.querySelectorAll("section")].find((section) =>
+        section.textContent?.includes("Локально извлечь clips из оригинала") &&
+        section.textContent?.includes("Отправить извлечённые clips")
+      );
+      const input = panel?.querySelector('label input[type="checkbox"]');
+      if (!(input instanceof HTMLInputElement)) return false;
+      if (!input.checked) input.click();
+      return true;
+    })()\`);
+    assert(consentChanged, "Could not select local clip provider consent.");
+    await page.waitFor(\`(() => {
+      const panel = [...document.querySelectorAll("section")].find((section) =>
+        section.textContent?.includes("Локально извлечь clips из оригинала") &&
+        section.textContent?.includes("Отправить извлечённые clips")
+      );
+      return [...(panel?.querySelectorAll("button") ?? [])].some((button) =>
+        !button.disabled && button.textContent?.includes("Отправить извлечённые clips")
+      );
+    })()\`);
     console.log("[local-range] provider action enabled");`,
     "provider consent",
   ],
