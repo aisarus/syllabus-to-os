@@ -36,8 +36,7 @@ const transcriptTextareaWait = `    await page.waitFor(
       )\`,
     );`;
 const transcriptHeadingWait = '    await page.waitForText("Расшифровка по таймкодам");';
-const renderedTranscriptHeadingWait =
-  '    await page.waitForText("РАСШИФРОВКА ПО ТАЙМКОДАМ");';
+const renderedTranscriptHeadingWait = '    await page.waitForText("РАСШИФРОВКА ПО ТАЙМКОДАМ");';
 
 try {
   const source = await readFile(sourcePath, "utf8");

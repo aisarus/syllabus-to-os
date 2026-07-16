@@ -455,17 +455,38 @@ async function main() {
     })()`);
 
     const beforeReload = await inspectProof(page);
-    assert(beforeReload.jobStatus === "draft_loaded", "Provider candidate was not marked draft_loaded.");
-    assert(beforeReload.transcriptStatuses.every((status) => status === "draft"), "Provider output was auto-approved.");
-    assert(beforeReload.sourceChunkCount === 0, "Provider draft created source chunks before explicit review.");
+    assert(
+      beforeReload.jobStatus === "draft_loaded",
+      "Provider candidate was not marked draft_loaded.",
+    );
+    assert(
+      beforeReload.transcriptStatuses.every((status) => status === "draft"),
+      "Provider output was auto-approved.",
+    );
+    assert(
+      beforeReload.sourceChunkCount === 0,
+      "Provider draft created source chunks before explicit review.",
+    );
 
     await page.reload();
     await page.waitForText("Проверяемая авторасшифровка");
     const afterReload = await inspectProof(page);
-    assert(afterReload.jobStatus === "draft_loaded", "Automatic transcription job did not survive reload.");
-    assert(afterReload.transcriptStatuses.length === 2, "Draft transcript segments disappeared after reload.");
-    assert(afterReload.transcriptStatuses.every((status) => status === "draft"), "Reload changed draft approval status.");
-    assert(afterReload.sourceChunkCount === 0, "Reload invented source chunks from an unapproved provider draft.");
+    assert(
+      afterReload.jobStatus === "draft_loaded",
+      "Automatic transcription job did not survive reload.",
+    );
+    assert(
+      afterReload.transcriptStatuses.length === 2,
+      "Draft transcript segments disappeared after reload.",
+    );
+    assert(
+      afterReload.transcriptStatuses.every((status) => status === "draft"),
+      "Reload changed draft approval status.",
+    );
+    assert(
+      afterReload.sourceChunkCount === 0,
+      "Reload invented source chunks from an unapproved provider draft.",
+    );
     assert(afterReload.attempt === 2, "Cancellation and retry history did not survive reload.");
     console.log("Reviewed automatic transcription browser E2E passed.");
   } finally {

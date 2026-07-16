@@ -36,7 +36,10 @@ const providerStatus = {
 
 {
   assert.equal(
-    validateAutomaticTranscriptionFile({ name: "lecture.mp3", size: MAX_AUTOMATIC_TRANSCRIPTION_BYTES }).ok,
+    validateAutomaticTranscriptionFile({
+      name: "lecture.mp3",
+      size: MAX_AUTOMATIC_TRANSCRIPTION_BYTES,
+    }).ok,
     true,
     "the bounded provider limit must accept an exactly 24 MB file",
   );
@@ -134,7 +137,11 @@ assert.ok(
   draft.segments.every((segment) => segment.status === "draft"),
   "provider output may never become approved source evidence automatically",
 );
-assert.equal(draft.createdAt, existing.createdAt, "the editable draft lineage should remain inspectable");
+assert.equal(
+  draft.createdAt,
+  existing.createdAt,
+  "the editable draft lineage should remain inspectable",
+);
 assert.deepEqual(
   existing,
   existingSnapshot,
@@ -162,6 +169,10 @@ const retry = beginAutomaticTranscriptionJob({
 });
 assert.equal(retry.attempt, 2, "retry count must survive failure and cancellation");
 assert.equal(retry.usedProviderCopy, true);
-assert.deepEqual(retry.resultSegments, [], "a retry must not pretend an older candidate is current");
+assert.deepEqual(
+  retry.resultSegments,
+  [],
+  "a retry must not pretend an older candidate is current",
+);
 
 console.log("Reviewed automatic transcription deterministic evaluations passed.");

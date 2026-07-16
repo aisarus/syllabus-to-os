@@ -84,7 +84,10 @@ export async function transcribeWithConfiguredProvider(input: {
     );
   }
   if (!ACCEPTED_EXTENSIONS.includes(extensionOf(input.file.name))) {
-    return failure(model, `Unsupported transcription file type: ${extensionOf(input.file.name) || "none"}`);
+    return failure(
+      model,
+      `Unsupported transcription file type: ${extensionOf(input.file.name) || "none"}`,
+    );
   }
 
   const form = new FormData();
@@ -116,16 +119,32 @@ export async function transcribeWithConfiguredProvider(input: {
     const parsed = safeParseJSON(rawText) as ProviderPayload | undefined;
     if (!response.ok) {
       const providerMessage =
-        typeof parsed?.error === "string" ? parsed.error : parsed?.error?.message || rawText.slice(0, 500);
-      return failure(model, `Transcription provider failed (${response.status}).`, providerMessage, requestId);
+        typeof parsed?.error === "string"
+          ? parsed.error
+          : parsed?.error?.message || rawText.slice(0, 500);
+      return failure(
+        model,
+        `Transcription provider failed (${response.status}).`,
+        providerMessage,
+        requestId,
+      );
     }
     if (!parsed || typeof parsed !== "object") {
-      return failure(model, "The transcription provider returned invalid JSON.", rawText.slice(0, 500), requestId);
+      return failure(
+        model,
+        "The transcription provider returned invalid JSON.",
+        rawText.slice(0, 500),
+        requestId,
+      );
     }
 
-    const durationSeconds = positiveNumber(parsed.duration) ?? positiveNumber(input.durationSeconds);
+    const durationSeconds =
+      positiveNumber(parsed.duration) ?? positiveNumber(input.durationSeconds);
     const warnings: string[] = [];
-    let segments = normalizeProviderSegments(parsed.segments ?? [], parsed.language ?? input.language);
+    let segments = normalizeProviderSegments(
+      parsed.segments ?? [],
+      parsed.language ?? input.language,
+    );
     if (segments.length === 0 && parsed.text?.trim()) {
       warnings.push(
         "The selected model returned text without timestamp segments; Lamdan created one full-range draft block.",
@@ -144,7 +163,12 @@ export async function transcribeWithConfiguredProvider(input: {
     }
     segments = normalizeAutomaticSegments(segments, durationSeconds);
     if (segments.length === 0) {
-      return failure(model, "The transcription provider returned no usable speech segments.", undefined, requestId);
+      return failure(
+        model,
+        "The transcription provider returned no usable speech segments.",
+        undefined,
+        requestId,
+      );
     }
     if (segments.some((segment) => segment.uncertain)) {
       warnings.push("Some provider segments are marked uncertain and require careful review.");

@@ -17,8 +17,7 @@ const functionalBlueprintWait = `    await page.waitFor(\`(() => {
       );
       return checkboxes.length === 2 && startButton && !startButton.disabled;
     })()\`);`;
-const decorativeSessionWait =
-  '    await page.waitForText("Замороженная экзаменационная сессия");';
+const decorativeSessionWait = '    await page.waitForText("Замороженная экзаменационная сессия");';
 const functionalSessionWait = `    try {
       await page.waitFor(\`(() => {
         const exams = JSON.parse(localStorage.getItem("lamdan.exam-engine.v1"));
@@ -46,8 +45,7 @@ const functionalSessionWait = `    try {
       console.error("Exam Engine session-start diagnostics:", JSON.stringify(state, null, 2));
       throw error;
     }`;
-const decorativeResultWait =
-  '    await page.waitForText("Замороженный результат экзамена");';
+const decorativeResultWait = '    await page.waitForText("Замороженный результат экзамена");';
 const functionalResultWait = `    try {
       await page.waitFor(\`(() => {
         const exams = JSON.parse(localStorage.getItem("lamdan.exam-engine.v1"));
@@ -75,7 +73,9 @@ try {
     throw new Error("The Exam Engine E2E source no longer contains the readiness counter check.");
   }
   if (!source.includes(decorativeSessionWait)) {
-    throw new Error("The Exam Engine E2E source no longer contains the active-session heading check.");
+    throw new Error(
+      "The Exam Engine E2E source no longer contains the active-session heading check.",
+    );
   }
   if (source.split(decorativeResultWait).length - 1 !== 2) {
     throw new Error("The Exam Engine E2E source no longer contains both result heading checks.");

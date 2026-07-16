@@ -132,10 +132,12 @@ export function AutomaticTranscriptionPanel({
     [resultSegments, manifest?.durationSeconds],
   );
   const uncertainCount = resultSegments.filter((segment) => segment.uncertain).length;
-  const models = providerStatus as (AutomaticTranscriptionProviderStatus & ProviderModels) | undefined;
+  const models = providerStatus as
+    | (AutomaticTranscriptionProviderStatus & ProviderModels)
+    | undefined;
   const selectedModel = requestSpeakerLabels
-    ? models?.speakerModel ?? providerStatus?.model
-    : models?.plainModel ?? providerStatus?.model;
+    ? (models?.speakerModel ?? providerStatus?.model)
+    : (models?.plainModel ?? providerStatus?.model);
 
   const chooseProviderCopy = (file: File | undefined) => {
     if (!file) return;
@@ -158,7 +160,8 @@ export function AutomaticTranscriptionPanel({
       );
     }
     const blob = await getLongMediaBlob(material.id);
-    if (!blob) throw new Error(isRu ? "Локальная запись не найдена." : "Local recording not found.");
+    if (!blob)
+      throw new Error(isRu ? "Локальная запись не найдена." : "Local recording not found.");
     return {
       file: new File([blob], manifest.fileName, { type: manifest.mimeType }),
       usedProviderCopy: false,
@@ -267,7 +270,8 @@ export function AutomaticTranscriptionPanel({
       if (controller.signal.aborted) {
         toast.info(isRu ? "Авторасшифровка отменена" : "Automatic transcription cancelled");
       } else {
-        const base = job ??
+        const base =
+          job ??
           (manifest && providerStatus && selectedFile
             ? beginAutomaticTranscriptionJob({
                 manifest,
@@ -360,7 +364,9 @@ export function AutomaticTranscriptionPanel({
             {isRu ? "Проверяемая авторасшифровка" : "Reviewed automatic transcription"}
           </div>
           <h2 className="mt-2 font-serif text-xl font-semibold">
-            {isRu ? "Сначала согласие и provider-result, потом редактор" : "Consent and provider result first, editor second"}
+            {isRu
+              ? "Сначала согласие и provider-result, потом редактор"
+              : "Consent and provider result first, editor second"}
           </h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             {isRu
@@ -399,7 +405,9 @@ export function AutomaticTranscriptionPanel({
                 onChange={(event) => setLanguage(event.target.value)}
                 disabled={busy}
               >
-                <option value="auto">{isRu ? "Определить автоматически" : "Detect automatically"}</option>
+                <option value="auto">
+                  {isRu ? "Определить автоматически" : "Detect automatically"}
+                </option>
                 <option value="he">עברית</option>
                 <option value="ru">Русский</option>
                 <option value="en">English</option>
@@ -433,7 +441,8 @@ export function AutomaticTranscriptionPanel({
               <div className="min-w-0 flex-1">
                 <strong className="block break-words">{selectedFile?.name ?? "—"}</strong>
                 <span className="mt-1 block text-xs text-muted-foreground">
-                  {selectedFile ? formatFileSize(selectedFile.size) : "—"} · {selectedFile?.type || "unknown MIME"}
+                  {selectedFile ? formatFileSize(selectedFile.size) : "—"} ·{" "}
+                  {selectedFile?.type || "unknown MIME"}
                 </span>
                 {providerCopy ? (
                   <span className="mt-1 block text-xs text-yellow-200">
@@ -450,7 +459,12 @@ export function AutomaticTranscriptionPanel({
                   </span>
                 ) : null}
               </div>
-              <Button variant="outline" size="sm" onClick={() => copyInputRef.current?.click()} disabled={busy}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyInputRef.current?.click()}
+                disabled={busy}
+              >
                 <CloudUpload className="me-1 h-4 w-4" />
                 {isRu ? "Другая копия" : "Different copy"}
               </Button>
@@ -520,7 +534,10 @@ export function AutomaticTranscriptionPanel({
                 <span>{Math.round(uploadProgress * 100)}%</span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-                <div className="h-full bg-primary transition-all" style={{ width: `${uploadProgress * 100}%` }} />
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${uploadProgress * 100}%` }}
+                />
               </div>
             </div>
           ) : null}
@@ -536,7 +553,11 @@ export function AutomaticTranscriptionPanel({
                 selectedValidation?.ok !== true
               }
             >
-              {busy ? <Loader2 className="me-1 h-4 w-4 animate-spin" /> : <CloudUpload className="me-1 h-4 w-4" />}
+              {busy ? (
+                <Loader2 className="me-1 h-4 w-4 animate-spin" />
+              ) : (
+                <CloudUpload className="me-1 h-4 w-4" />
+              )}
               {job?.status === "failed" || job?.status === "cancelled"
                 ? isRu
                   ? "Повторить запрос"
@@ -584,9 +605,12 @@ export function AutomaticTranscriptionPanel({
                   >
                     <div className="flex justify-between gap-2 text-[11px] text-muted-foreground">
                       <span>
-                        {formatMediaTime(segment.startSeconds)}–{formatMediaTime(segment.endSeconds)}
+                        {formatMediaTime(segment.startSeconds)}–
+                        {formatMediaTime(segment.endSeconds)}
                       </span>
-                      <span>{segment.speaker || (isRu ? "говорящий не указан" : "speaker unknown")}</span>
+                      <span>
+                        {segment.speaker || (isRu ? "говорящий не указан" : "speaker unknown")}
+                      </span>
                     </div>
                     <p className="mt-1 line-clamp-4 whitespace-pre-wrap">{segment.text}</p>
                     {segment.issues?.length ? (
@@ -601,7 +625,10 @@ export function AutomaticTranscriptionPanel({
                   {isRu ? "Непокрытые интервалы: " : "Uncovered intervals: "}
                   {gaps
                     .slice(0, 5)
-                    .map((gap) => `${formatMediaTime(gap.startSeconds)}–${formatMediaTime(gap.endSeconds)}`)
+                    .map(
+                      (gap) =>
+                        `${formatMediaTime(gap.startSeconds)}–${formatMediaTime(gap.endSeconds)}`,
+                    )
                     .join(", ")}
                 </div>
               ) : null}

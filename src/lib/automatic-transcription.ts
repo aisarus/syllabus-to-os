@@ -133,7 +133,10 @@ export function normalizeAutomaticSegments(
     .map((segment, index) => {
       const startSeconds = Math.max(0, Number(segment.startSeconds) || 0);
       const rawEnd = Number(segment.endSeconds);
-      const endSeconds = Math.max(startSeconds + 0.01, Number.isFinite(rawEnd) ? rawEnd : startSeconds + 1);
+      const endSeconds = Math.max(
+        startSeconds + 0.01,
+        Number.isFinite(rawEnd) ? rawEnd : startSeconds + 1,
+      );
       const boundedEnd = maxDuration ? Math.min(maxDuration, endSeconds) : endSeconds;
       return {
         ...segment,
@@ -143,11 +146,15 @@ export function normalizeAutomaticSegments(
         text: segment.text.trim(),
         speaker: segment.speaker?.trim() || undefined,
         language: segment.language?.trim() || undefined,
-        issues: Array.from(new Set((segment.issues ?? []).map((item) => item.trim()).filter(Boolean))),
+        issues: Array.from(
+          new Set((segment.issues ?? []).map((item) => item.trim()).filter(Boolean)),
+        ),
       };
     })
     .filter((segment) => segment.text && segment.endSeconds > segment.startSeconds)
-    .sort((left, right) => left.startSeconds - right.startSeconds || left.endSeconds - right.endSeconds);
+    .sort(
+      (left, right) => left.startSeconds - right.startSeconds || left.endSeconds - right.endSeconds,
+    );
 }
 
 export function findAutomaticTranscriptionGaps(
@@ -166,7 +173,8 @@ export function findAutomaticTranscriptionGaps(
     }
     cursor = Math.max(cursor, segment.endSeconds);
   }
-  if (duration - cursor >= minimumGapSeconds) gaps.push({ startSeconds: cursor, endSeconds: duration });
+  if (duration - cursor >= minimumGapSeconds)
+    gaps.push({ startSeconds: cursor, endSeconds: duration });
   return gaps;
 }
 
@@ -193,7 +201,8 @@ export function buildTranscriptDraftFromAutomaticJob(
     language: segment.language ?? job.language,
     status: "draft",
   }));
-  if (segments.length === 0) throw new Error("The provider returned no usable transcript segments.");
+  if (segments.length === 0)
+    throw new Error("The provider returned no usable transcript segments.");
   const now = Date.now();
   return {
     materialId: manifest.materialId,
@@ -281,7 +290,8 @@ export function requestAutomaticTranscription(input: {
     };
     xhr.onload = () => {
       input.signal?.removeEventListener("abort", abort);
-      const payload = (xhr.response ?? safeParseResponse(xhr.responseText)) as AutomaticTranscriptionResponse;
+      const payload = (xhr.response ??
+        safeParseResponse(xhr.responseText)) as AutomaticTranscriptionResponse;
       resolve(
         payload && typeof payload === "object"
           ? payload

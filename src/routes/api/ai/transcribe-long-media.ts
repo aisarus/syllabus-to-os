@@ -13,7 +13,10 @@ export const Route = createFileRoute("/api/ai/transcribe-long-media")({
         try {
           form = await request.formData();
         } catch {
-          return Response.json({ ok: false, error: "Invalid multipart form body." }, { status: 400 });
+          return Response.json(
+            { ok: false, error: "Invalid multipart form body." },
+            { status: 400 },
+          );
         }
 
         const file = form.get("file");
@@ -32,7 +35,10 @@ export const Route = createFileRoute("/api/ai/transcribe-long-media")({
             { status: 400 },
           );
         }
-        const validation = validateAutomaticTranscriptionFile(file, MAX_AUTOMATIC_TRANSCRIPTION_BYTES);
+        const validation = validateAutomaticTranscriptionFile(
+          file,
+          MAX_AUTOMATIC_TRANSCRIPTION_BYTES,
+        );
         if (!validation.ok) {
           return Response.json({ ok: false, error: validation.message }, { status: 413 });
         }

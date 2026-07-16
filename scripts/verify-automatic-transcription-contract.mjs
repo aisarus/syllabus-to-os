@@ -74,7 +74,8 @@ for (const marker of [
   requireMarker(jobStore, marker, `Automatic transcription local job store is missing: ${marker}`);
 }
 for (const forbidden of ["OPENAI_API_KEY", "Authorization", "Bearer "]) {
-  if (jobStore.includes(forbidden)) failures.push(`Local job store must not contain provider secrets: ${forbidden}`);
+  if (jobStore.includes(forbidden))
+    failures.push(`Local job store must not contain provider secrets: ${forbidden}`);
 }
 
 for (const marker of [
@@ -152,7 +153,11 @@ for (const marker of [
   "provider candidates",
   "automaticCandidateCount",
 ]) {
-  requireMarker(dataBoundary, marker, `Automatic transcription data controls are missing: ${marker}`);
+  requireMarker(
+    dataBoundary,
+    marker,
+    `Automatic transcription data controls are missing: ${marker}`,
+  );
 }
 
 for (const marker of [
@@ -168,7 +173,7 @@ for (const marker of [
   "explicit consent",
   "cancelled",
   "review_ready",
-  "status === \"draft\"",
+  'status === "draft"',
   "source chunks",
   "Reviewed automatic transcription browser E2E passed",
 ]) {
