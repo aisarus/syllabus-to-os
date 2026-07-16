@@ -29,7 +29,7 @@
     "eval:workspace-backup": "node --experimental-strip-types scripts/run-workspace-backup-evals.mjs",
     "eval:long-media": "node --experimental-strip-types scripts/run-long-media-evals.mjs",
     "eval:automatic-transcription": "node --experimental-strip-types scripts/run-automatic-transcription-evals.mjs",
-    "eval:resumable-transcription": "node --experimental-strip-types scripts/run-resumable-transcription-evals.mjs",
+    "eval:resumable-transcription": "bun scripts/run-resumable-transcription-evals.mjs",
     "e2e:critical": "node scripts/run-critical-browser-e2e-wrapper.mjs",
     "e2e:question-evidence": "node scripts/run-question-evidence-browser-e2e.mjs",
     "e2e:workspace-backup": "node scripts/run-workspace-backup-browser-e2e.mjs",
