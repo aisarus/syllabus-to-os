@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   CheckCircle2,
+  CloudUpload,
   FileAudio2,
   Loader2,
   PauseCircle,
@@ -13,13 +14,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
+import {
+  getAutomaticTranscriptionProviderStatus,
+  requestAutomaticTranscription,
+  type AutomaticTranscriptionProviderStatus,
+} from "@/lib/automatic-transcription";
 import { formatFileSize } from "@/lib/document-ingestion";
 import {
   estimateLocalRangeExtraction,
   extractLocalAudioRange,
   type LocalRangeExtractionProgress,
 } from "@/lib/local-range-extraction";
-import { dispatchLocalRangeClipReady } from "@/lib/local-range-extraction-events";
 import {
   deleteLocalRangeClip,
   getLocalRangeClipStats,
@@ -29,35 +34,59 @@ import {
   type LocalRangeClipRecord,
 } from "@/lib/local-range-extraction-store";
 import { formatMediaTime, type LongMediaManifest } from "@/lib/long-media";
-import { getLongMediaManifest } from "@/lib/long-media-store";
-import { inspectLongMediaStreamingCapability } from "@/lib/long-media-streaming";
-import type {
-  ResumableTranscriptionJob,
-  ResumableTranscriptionRange,
+import {
+  getLongMediaManifest,
+  getLongMediaTranscript,
+  putLongMediaTranscript,
+} from "@/lib/long-media-store";
+import {
+  attachResumableRangeFile,
+  beginResumableRangeAttempt,
+  buildTranscriptDraftFromResumableJob,
+  cancelResumableRangeAttempt,
+  completeResumableRangeAttempt,
+  markResumableDraftLoaded,
+  mergeResumableTranscriptionSegments,
+  updateResumableRangeProgress,
+  type ResumableTranscriptionJob,
+  type ResumableTranscriptionRange,
 } from "@/lib/resumable-transcription";
-import { getResumableTranscriptionJob } from "@/lib/resumable-transcription-store";
+import {
+  getResumableTranscriptionJob,
+  putResumableTranscriptionJob,
+} from "@/lib/resumable-transcription-store";
 import type { Material } from "@/lib/store";
 
 const REFRESH_INTERVAL_MS = 1_500;
 
-export function LocalRangeExtractionPanel({ material }: { material: Material }) {
+export function LocalRangeExtractionPanel({
+  material,
+  onQueueChanged,
+  onDraftApplied,
+}: {
+  material: Material;
+  onQueueChanged?: () => void;
+  onDraftApplied?: () => void;
+}) {
   const { lang } = useApp();
   const isRu = lang === "ru";
   const abortRef = useRef<AbortController | null>(null);
-  const dispatchedRef = useRef(new Map<string, number>());
   const [manifest, setManifest] = useState<LongMediaManifest>();
   const [job, setJob] = useState<ResumableTranscriptionJob>();
+  const [providerStatus, setProviderStatus] =
+    useState<AutomaticTranscriptionProviderStatus>();
   const [clips, setClips] = useState<LocalRangeClipRecord[]>([]);
   const [busyRangeId, setBusyRangeId] = useState<string | null>(null);
   const [progress, setProgress] = useState<LocalRangeExtractionProgress>();
+  const [providerConsent, setProviderConsent] = useState(false);
   const [loading, setLoading] = useState(true);
-  const capability = useMemo(() => inspectLongMediaStreamingCapability(), []);
 
   const refresh = useCallback(async () => {
-    const [nextManifest, nextJob, nextClips] = await Promise.all([
+    const [nextManifest, nextJob, nextClips, nextProvider] = await Promise.all([
       getLongMediaManifest(material.id),
       getResumableTranscriptionJob(material.id),
       listLocalRangeClips(material.id),
+      getAutomaticTranscriptionProviderStatus(),
     ]);
     const validClips: LocalRangeClipRecord[] = [];
     for (const clip of nextClips) {
@@ -66,21 +95,11 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
         continue;
       }
       validClips.push(clip);
-      const dispatchKey = `${clip.rangeId}:${clip.updatedAt}`;
-      if (dispatchedRef.current.get(clip.rangeId) !== clip.updatedAt) {
-        dispatchedRef.current.set(clip.rangeId, clip.updatedAt);
-        dispatchLocalRangeClipReady({
-          materialId: clip.materialId,
-          rangeId: clip.rangeId,
-          file: localRangeClipToFile(clip),
-          persisted: true,
-        });
-      }
-      if (dispatchKey.length === 0) throw new Error("Unreachable clip dispatch state.");
     }
     setManifest(nextManifest);
     setJob(nextJob);
     setClips(validClips);
+    setProviderStatus(nextProvider);
   }, [material.id]);
 
   useEffect(() => {
@@ -103,7 +122,16 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
     };
   }, [refresh]);
 
-  const clipByRangeId = useMemo(() => new Map(clips.map((clip) => [clip.rangeId, clip])), [clips]);
+  const clipByRangeId = useMemo(
+    () => new Map(clips.map((clip) => [clip.rangeId, clip])),
+    [clips],
+  );
+  const extractedCount = job?.ranges.filter((range) => clipByRangeId.has(range.id)).length ?? 0;
+  const mergedSegments = useMemo(
+    () => (job ? mergeResumableTranscriptionSegments(job) : []),
+    [job],
+  );
+
   const extract = async (range: ResumableTranscriptionRange) => {
     if (!manifest || !job || busyRangeId) return;
     const estimate = estimateLocalRangeExtraction(range.startSeconds, range.endSeconds);
@@ -117,6 +145,7 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
         : `Local extraction will take about ${Math.ceil(estimate.estimatedWallSeconds / 60)} real-time minutes and create roughly ${formatFileSize(estimate.estimatedBytes)}. The original is not uploaded. Start?`,
     );
     if (!confirmed) return;
+
     const controller = new AbortController();
     abortRef.current = controller;
     setBusyRangeId(range.id);
@@ -126,11 +155,17 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
       totalSeconds: estimate.durationSeconds,
       fraction: 0,
     });
+
     try {
-      const result = await extractLocalAudioRange(manifest, range.startSeconds, range.endSeconds, {
-        signal: controller.signal,
-        onProgress: setProgress,
-      });
+      const result = await extractLocalAudioRange(
+        manifest,
+        range.startSeconds,
+        range.endSeconds,
+        {
+          signal: controller.signal,
+          onProgress: setProgress,
+        },
+      );
       const latestManifest = await getLongMediaManifest(material.id);
       if (!latestManifest || latestManifest.uploadId !== manifest.uploadId) {
         throw new Error(
@@ -139,19 +174,35 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
             : "The lecture recording changed during extraction. The clip was not saved.",
         );
       }
+
       const record = await putLocalRangeClip(material.id, range.id, result);
-      setClips((current) => [record, ...current.filter((clip) => clip.rangeId !== range.id)]);
-      dispatchedRef.current.set(range.id, record.updatedAt);
-      dispatchLocalRangeClipReady({
-        materialId: material.id,
-        rangeId: range.id,
-        file: result.file,
-        persisted: true,
-      });
+      const latestJob = await getResumableTranscriptionJob(material.id);
+      if (!latestJob || latestJob.sourceUploadId !== manifest.uploadId) {
+        await deleteLocalRangeClip(material.id, range.id).catch(() => undefined);
+        throw new Error(
+          isRu
+            ? "Очередь диапазонов была удалена или заменена. Clip не прикреплён."
+            : "The range queue was removed or replaced. The clip was not attached.",
+        );
+      }
+      const attached = attachResumableRangeFile(
+        latestJob,
+        range.id,
+        result.file,
+        providerStatus?.maxBytes,
+      );
+      const savedJob = await putResumableTranscriptionJob(attached);
+      setJob(savedJob);
+      setClips((current) => [
+        record,
+        ...current.filter((clip) => clip.rangeId !== range.id),
+      ]);
+      setProviderConsent(false);
+      onQueueChanged?.();
       toast.success(
         isRu
-          ? `Clip готов: ${formatFileSize(record.size)}`
-          : `Local clip ready: ${formatFileSize(record.size)}`,
+          ? `Clip готов и прикреплён: ${formatFileSize(record.size)}`
+          : `Local clip ready and attached: ${formatFileSize(record.size)}`,
       );
     } catch (error) {
       if (
@@ -170,10 +221,152 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
     }
   };
 
+  const sendExtractedClips = async () => {
+    if (!job || !manifest || !providerStatus?.configured || !providerConsent) return;
+    if (job.status === "draft_loaded") {
+      toast.error(
+        isRu
+          ? "Этот результат уже загружен в редактор. Создай новую очередь для повторной обработки."
+          : "This result is already loaded. Create a new queue before processing again.",
+      );
+      return;
+    }
+
+    let current = job;
+    const queuedRanges = current.ranges.filter(
+      (range) => range.status !== "review_ready" && clipByRangeId.has(range.id),
+    );
+    if (queuedRanges.length === 0) {
+      toast.error(
+        isRu ? "Сначала извлеки хотя бы один clip." : "Extract at least one local clip first.",
+      );
+      return;
+    }
+
+    for (const queuedRange of queuedRanges) {
+      const clip = clipByRangeId.get(queuedRange.id);
+      if (!clip) continue;
+      const latestManifest = await getLongMediaManifest(material.id);
+      if (!latestManifest || latestManifest.uploadId !== current.sourceUploadId) {
+        toast.error(
+          isRu
+            ? "Запись лекции была заменена. Эта очередь больше не может применяться."
+            : "The lecture recording changed. This queue can no longer be applied.",
+        );
+        return;
+      }
+
+      const controller = new AbortController();
+      abortRef.current = controller;
+      setBusyRangeId(queuedRange.id);
+      try {
+        current = await putResumableTranscriptionJob(
+          beginResumableRangeAttempt(current, queuedRange.id),
+        );
+        setJob(current);
+        const range = current.ranges.find((item) => item.id === queuedRange.id);
+        if (!range) throw new Error("The selected transcription range no longer exists.");
+
+        const response = await requestAutomaticTranscription({
+          file: localRangeClipToFile(clip),
+          materialId: material.id,
+          sourceUploadId: current.sourceUploadId,
+          durationSeconds: range.endSeconds - range.startSeconds,
+          language: current.language,
+          requestSpeakerLabels: current.requestSpeakerLabels,
+          signal: controller.signal,
+          onUploadProgress: (fraction) => {
+            setJob((visible) =>
+              visible
+                ? updateResumableRangeProgress(visible, queuedRange.id, fraction)
+                : visible,
+            );
+          },
+        });
+
+        if (controller.signal.aborted) {
+          current = await putResumableTranscriptionJob(
+            cancelResumableRangeAttempt(
+              current,
+              queuedRange.id,
+              isRu ? "Диапазон отменён пользователем." : "Range cancelled by the user.",
+            ),
+          );
+          setJob(current);
+          break;
+        }
+
+        current = await putResumableTranscriptionJob(
+          completeResumableRangeAttempt(current, queuedRange.id, response),
+        );
+        setJob(current);
+      } catch (error) {
+        if (controller.signal.aborted) {
+          current = await putResumableTranscriptionJob(
+            cancelResumableRangeAttempt(
+              current,
+              queuedRange.id,
+              isRu ? "Диапазон отменён пользователем." : "Range cancelled by the user.",
+            ),
+          );
+          setJob(current);
+          break;
+        }
+        const message = error instanceof Error ? error.message : String(error);
+        current = await putResumableTranscriptionJob(
+          completeResumableRangeAttempt(current, queuedRange.id, {
+            ok: false,
+            error: message,
+          }),
+        );
+        setJob(current);
+        toast.error(message);
+      } finally {
+        abortRef.current = null;
+        setBusyRangeId(null);
+      }
+    }
+
+    setProviderConsent(false);
+    onQueueChanged?.();
+  };
+
+  const loadMergedDraft = async () => {
+    if (!job || !manifest || job.status === "draft_loaded") return;
+    try {
+      const existing = await getLongMediaTranscript(material.id);
+      const hasApproved = existing?.segments.some((segment) => segment.status === "approved");
+      if (
+        hasApproved &&
+        !window.confirm(
+          isRu
+            ? "В редакторе есть подтверждённые блоки. Merged draft заменит редактируемый черновик, но source chunks не изменятся до следующего Apply. Продолжить?"
+            : "The editor contains approved blocks. The merged draft replaces the editable transcript, while source chunks stay unchanged until Apply. Continue?",
+        )
+      ) {
+        return;
+      }
+      const draft = buildTranscriptDraftFromResumableJob(job, manifest, existing);
+      await putLongMediaTranscript(draft);
+      const saved = await putResumableTranscriptionJob(markResumableDraftLoaded(job));
+      setJob(saved);
+      onQueueChanged?.();
+      onDraftApplied?.();
+      toast.success(
+        isRu
+          ? "Merged draft загружен как неподтверждённый"
+          : "Merged draft loaded as unapproved transcript text",
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    }
+  };
+
   const removeClip = async (rangeId: string) => {
     await deleteLocalRangeClip(material.id, rangeId);
-    dispatchedRef.current.delete(rangeId);
     setClips((current) => current.filter((clip) => clip.rangeId !== rangeId));
+    setProviderConsent(false);
+    onQueueChanged?.();
   };
 
   if (loading) {
@@ -204,19 +397,10 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
           </p>
         </div>
         <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 text-xs leading-5 text-yellow-100 lg:max-w-sm">
-          {capability.supported ? (
-            <>
-              <ShieldCheck className="mb-2 h-4 w-4" />
-              {isRu
-                ? "Нарезка локальная и cancellable, но идёт с нормальной скоростью: 15 минут аудио ≈ 15 минут работы. Вкладка должна оставаться активной."
-                : "Extraction is local and cancellable, but runs at normal speed: 15 minutes of audio takes about 15 minutes. Keep the tab active."}
-            </>
-          ) : (
-            <>
-              <AlertTriangle className="mb-2 h-4 w-4" />
-              {capability.reasons.join(" ")}
-            </>
-          )}
+          <ShieldCheck className="mb-2 h-4 w-4" />
+          {isRu
+            ? "Нарезка локальная и cancellable, но идёт с нормальной скоростью: 15 минут аудио ≈ 15 минут работы. Вкладка должна оставаться активной."
+            : "Extraction is local and cancellable, but runs at normal speed: 15 minutes of audio takes about 15 minutes. Keep the tab active."}
         </div>
       </div>
 
@@ -244,15 +428,16 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
                       {clip.fileName} · {formatFileSize(clip.size)}
                     </p>
                   ) : null}
+                  {range.error ? (
+                    <p className="mt-1 text-xs text-red-300">{range.error}</p>
+                  ) : null}
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2">
                   <Button
                     size="sm"
                     variant={clip ? "outline" : "default"}
                     onClick={() => void extract(range)}
-                    disabled={
-                      !capability.supported || Boolean(busyRangeId) || job.status === "draft_loaded"
-                    }
+                    disabled={Boolean(busyRangeId) || job.status === "draft_loaded"}
                   >
                     {busy ? (
                       <Loader2 className="me-1 h-3.5 w-3.5 animate-spin" />
@@ -280,7 +465,11 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
                     </Button>
                   ) : null}
                   {clip && !busy ? (
-                    <Button size="icon" variant="ghost" onClick={() => void removeClip(range.id)}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => void removeClip(range.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   ) : null}
@@ -303,6 +492,75 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-5 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
+        <div className="flex items-start gap-3">
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <div className="min-w-0 flex-1">
+            <strong>{isRu ? "Явное согласие перед отправкой" : "Explicit upload consent"}</strong>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {providerStatus?.providerDisplayName ?? "OpenAI Audio Transcriptions"} ·{" "}
+              {providerStatus?.model ?? job.model}.{" "}
+              {isRu
+                ? "Будут отправлены только локально извлечённые clips, не оригинал пары."
+                : "Only locally extracted clips are uploaded, never the complete lecture recording."}
+            </p>
+            <label className="mt-3 flex items-start gap-2 text-xs">
+              <input
+                className="mt-0.5"
+                type="checkbox"
+                checked={providerConsent}
+                onChange={(event) => setProviderConsent(event.target.checked)}
+              />
+              <span>
+                {isRu
+                  ? `Я вижу провайдера, модель и ${extractedCount} извлечённых clips и разрешаю отправить их по одному.`
+                  : `I can see the provider, model and ${extractedCount} extracted clips and allow them to be uploaded one by one.`}
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {!providerStatus?.configured ? (
+        <p className="mt-3 flex items-center gap-2 text-xs text-yellow-200">
+          <AlertTriangle className="h-4 w-4" />
+          {providerStatus?.reason ??
+            (isRu
+              ? "Провайдер расшифровки не настроен."
+              : "The transcription provider is not configured.")}
+        </p>
+      ) : null}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button
+          onClick={() => void sendExtractedClips()}
+          disabled={
+            Boolean(busyRangeId) ||
+            !providerStatus?.configured ||
+            !providerConsent ||
+            extractedCount === 0 ||
+            job.status === "draft_loaded"
+          }
+        >
+          {busyRangeId ? (
+            <Loader2 className="me-1 h-4 w-4 animate-spin" />
+          ) : (
+            <CloudUpload className="me-1 h-4 w-4" />
+          )}
+          {isRu ? "Отправить извлечённые clips" : "Send extracted clips"}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => void loadMergedDraft()}
+          disabled={
+            mergedSegments.length === 0 || Boolean(busyRangeId) || job.status === "draft_loaded"
+          }
+        >
+          <CheckCircle2 className="me-1 h-4 w-4" />
+          {isRu ? "Загрузить merged draft" : "Load merged draft"}
+        </Button>
       </div>
     </section>
   );
