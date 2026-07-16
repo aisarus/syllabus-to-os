@@ -67,8 +67,16 @@ export interface ResumableTranscriptionJob {
   overlapSeconds: number;
   status: ResumableTranscriptionJobStatus;
   ranges: ResumableTranscriptionRange[];
+  revision: number;
   createdAt: number;
   updatedAt: number;
+}
+
+interface RangeSegmentCandidate {
+  rangeId: string;
+  rangeStartSeconds: number;
+  rangeEndSeconds: number;
+  segment: AutomaticTranscriptSegment;
 }
 
 export function planResumableTranscriptionRanges(
@@ -119,8 +127,10 @@ export function createResumableTranscriptionJob(input: {
       "The lecture duration is required before a resumable range queue can be created.",
     );
   }
-  const rangeSeconds = input.rangeSeconds ?? DEFAULT_RESUMABLE_RANGE_SECONDS;
-  const overlapSeconds = input.overlapSeconds ?? DEFAULT_RESUMABLE_OVERLAP_SECONDS;
+  const requestedRangeSeconds = input.rangeSeconds ?? DEFAULT_RESUMABLE_RANGE_SECONDS;
+  const requestedOverlapSeconds = input.overlapSeconds ?? DEFAULT_RESUMABLE_OVERLAP_SECONDS;
+  const rangeSeconds = Math.max(60, Math.min(30 * 60, Math.round(requestedRangeSeconds)));
+  const overlapSeconds = Math.max(0, Math.min(30, rangeSeconds / 4, requestedOverlapSeconds));
   const ranges = planResumableTranscriptionRanges(
     input.manifest.durationSeconds,
     rangeSeconds,
@@ -137,10 +147,11 @@ export function createResumableTranscriptionJob(input: {
     model: input.providerStatus.model ?? "unknown",
     language: input.language || undefined,
     requestSpeakerLabels: input.requestSpeakerLabels,
-    rangeSeconds: Math.max(60, Math.min(30 * 60, Math.round(rangeSeconds))),
-    overlapSeconds: Math.max(0, Math.min(30, overlapSeconds)),
+    rangeSeconds,
+    overlapSeconds,
     status: "planning",
     ranges,
+    revision: 0,
     createdAt: now,
     updatedAt: now,
   };
@@ -294,34 +305,50 @@ export function cancelResumableRangeAttempt(
 export function mergeResumableTranscriptionSegments(
   job: ResumableTranscriptionJob,
 ): AutomaticTranscriptSegment[] {
-  const candidates = job.ranges
+  const candidates: RangeSegmentCandidate[] = job.ranges
     .filter((range) => range.status === "review_ready")
-    .flatMap((range) => range.resultSegments)
-    .slice()
+    .flatMap((range) =>
+      range.resultSegments.map((segment) => ({
+        rangeId: range.id,
+        rangeStartSeconds: range.startSeconds,
+        rangeEndSeconds: range.endSeconds,
+        segment,
+      })),
+    )
     .sort(
-      (left, right) => left.startSeconds - right.startSeconds || left.endSeconds - right.endSeconds,
+      (left, right) =>
+        left.segment.startSeconds - right.segment.startSeconds ||
+        left.segment.endSeconds - right.segment.endSeconds,
     );
-  const merged: AutomaticTranscriptSegment[] = [];
+  const merged: RangeSegmentCandidate[] = [];
 
   for (const candidate of candidates) {
     const previous = merged.at(-1);
     if (previous && shouldMergeOverlap(previous, candidate, job.overlapSeconds)) {
       merged[merged.length - 1] = {
         ...previous,
-        startSeconds: Math.min(previous.startSeconds, candidate.startSeconds),
-        endSeconds: Math.max(previous.endSeconds, candidate.endSeconds),
-        text: chooseMoreCompleteText(previous.text, candidate.text),
-        speaker: previous.speaker ?? candidate.speaker,
-        language: previous.language ?? candidate.language,
-        uncertain: Boolean(previous.uncertain || candidate.uncertain),
-        issues: Array.from(new Set([...(previous.issues ?? []), ...(candidate.issues ?? [])])),
+        segment: {
+          ...previous.segment,
+          startSeconds: Math.min(previous.segment.startSeconds, candidate.segment.startSeconds),
+          endSeconds: Math.max(previous.segment.endSeconds, candidate.segment.endSeconds),
+          text: chooseMoreCompleteText(previous.segment.text, candidate.segment.text),
+          speaker: previous.segment.speaker ?? candidate.segment.speaker,
+          language: previous.segment.language ?? candidate.segment.language,
+          uncertain: Boolean(previous.segment.uncertain || candidate.segment.uncertain),
+          issues: Array.from(
+            new Set([...(previous.segment.issues ?? []), ...(candidate.segment.issues ?? [])]),
+          ),
+        },
       };
       continue;
     }
     merged.push(candidate);
   }
 
-  return normalizeAutomaticSegments(merged, job.durationSeconds);
+  return normalizeAutomaticSegments(
+    merged.map((candidate) => candidate.segment),
+    job.durationSeconds,
+  );
 }
 
 export function getResumableTranscriptionGaps(job: ResumableTranscriptionJob) {
@@ -372,6 +399,21 @@ export function unresolvedResumableRanges(job: ResumableTranscriptionJob) {
   return job.ranges.filter((range) => range.status !== "review_ready");
 }
 
+export function deriveResumableTranscriptionJobStatus(
+  ranges: ResumableTranscriptionRange[],
+  currentStatus?: ResumableTranscriptionJobStatus,
+): ResumableTranscriptionJobStatus {
+  if (currentStatus === "draft_loaded") return "draft_loaded";
+  const statuses = ranges.map((range) => range.status);
+  if (statuses.every((value) => value === "review_ready")) return "review_ready";
+  if (statuses.some((value) => value === "uploading" || value === "processing")) return "running";
+  if (statuses.some((value) => value === "ready")) return "ready";
+  if (statuses.some((value) => value === "review_ready")) return "partial_ready";
+  if (statuses.every((value) => value === "cancelled")) return "cancelled";
+  if (statuses.every((value) => value === "needs_file")) return "planning";
+  return "paused";
+}
+
 function updateRange(
   job: ResumableTranscriptionJob,
   rangeId: string,
@@ -388,27 +430,39 @@ function updateRange(
 }
 
 function finalizeJob(job: ResumableTranscriptionJob): ResumableTranscriptionJob {
-  if (job.status === "draft_loaded") return job;
-  const statuses = job.ranges.map((range) => range.status);
-  let status: ResumableTranscriptionJobStatus = "paused";
-  if (statuses.every((value) => value === "review_ready")) status = "review_ready";
-  else if (statuses.some((value) => value === "uploading" || value === "processing"))
-    status = "running";
-  else if (statuses.some((value) => value === "ready")) status = "ready";
-  else if (statuses.some((value) => value === "review_ready")) status = "partial_ready";
-  else if (statuses.every((value) => value === "cancelled")) status = "cancelled";
-  else if (statuses.every((value) => value === "needs_file")) status = "planning";
-  return { ...job, status, updatedAt: Date.now() };
+  return {
+    ...job,
+    status: deriveResumableTranscriptionJobStatus(job.ranges, job.status),
+    updatedAt: Date.now(),
+  };
 }
 
 function shouldMergeOverlap(
-  left: AutomaticTranscriptSegment,
-  right: AutomaticTranscriptSegment,
+  left: RangeSegmentCandidate,
+  right: RangeSegmentCandidate,
   overlapSeconds: number,
 ): boolean {
-  if (right.startSeconds > left.endSeconds + Math.max(1, overlapSeconds + 1)) return false;
-  const leftText = normalizeText(left.text);
-  const rightText = normalizeText(right.text);
+  if (left.rangeId === right.rangeId) return false;
+  const sharedStart = Math.max(left.rangeStartSeconds, right.rangeStartSeconds);
+  const sharedEnd = Math.min(left.rangeEndSeconds, right.rangeEndSeconds);
+  if (sharedEnd <= sharedStart) return false;
+  if (sharedEnd - sharedStart > overlapSeconds + 0.01) return false;
+  const tolerance = 1;
+  const leftTouchesSharedRange =
+    left.segment.endSeconds >= sharedStart - tolerance &&
+    left.segment.startSeconds <= sharedEnd + tolerance;
+  const rightTouchesSharedRange =
+    right.segment.endSeconds >= sharedStart - tolerance &&
+    right.segment.startSeconds <= sharedEnd + tolerance;
+  if (!leftTouchesSharedRange || !rightTouchesSharedRange) return false;
+  if (
+    right.segment.startSeconds >
+    left.segment.endSeconds + Math.max(tolerance, overlapSeconds + tolerance)
+  ) {
+    return false;
+  }
+  const leftText = normalizeText(left.segment.text);
+  const rightText = normalizeText(right.segment.text);
   if (!leftText || !rightText) return false;
   return leftText === rightText || leftText.includes(rightText) || rightText.includes(leftText);
 }
