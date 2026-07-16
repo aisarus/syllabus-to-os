@@ -10,6 +10,7 @@ const [
   lifecycle,
   dataBoundary,
   evals,
+  browserE2E,
   docs,
   packageJson,
   checkScript,
@@ -22,6 +23,7 @@ const [
   read("src/components/long-media-lifecycle.tsx"),
   read("src/components/long-media-data-boundary.tsx"),
   read("scripts/run-resumable-transcription-evals.mjs"),
+  read("scripts/run-resumable-transcription-browser-e2e.mjs"),
   read("docs/RESUMABLE_TRANSCRIPTION.md"),
   read("package.json"),
   read("scripts/check.mjs"),
@@ -120,6 +122,18 @@ for (const marker of [
 }
 
 for (const marker of [
+  "Resumable transcription browser E2E passed",
+  'window.__resumableAttempts = 0',
+  'job?.ranges?.[1]?.status === "failed"',
+  'job?.ranges?.[1]?.attempt === 2',
+  'transcript.segments.every((segment) => segment.status === "draft")',
+  "core.materialChunks.length === 0",
+  "await page.reload()",
+]) {
+  requireMarker(browserE2E, marker, `Resumable transcription browser proof is missing: ${marker}`);
+}
+
+for (const marker of [
   "Explicit provider boundary",
   "Resumable state",
   "Review and source integrity",
@@ -130,6 +144,7 @@ for (const marker of [
 
 for (const marker of [
   '"eval:resumable-transcription"',
+  '"e2e:resumable-transcription"',
   '"verify:resumable-transcription-contract"',
 ]) {
   requireMarker(packageJson, marker, `package.json is missing: ${marker}`);
@@ -143,6 +158,7 @@ for (const marker of [
 for (const marker of [
   "Verify resumable transcription contract",
   "Run resumable transcription evaluations",
+  "Run resumable transcription browser E2E",
   "npm run typecheck",
   "npm run lint",
   "npm run build",
