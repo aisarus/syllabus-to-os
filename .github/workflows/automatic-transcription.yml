@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   automatic-transcription:
@@ -22,9 +22,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
-          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -38,121 +35,6 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
-      - name: Patch canonical ledgers once
-        if: github.event_name == 'pull_request' && github.actor != 'github-actions[bot]'
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          tasks = Path('TASKS.md')
-          text = tasks.read_text()
-          old = '''## P1-010 — Audio transcription review-and-apply
-
-- **Status:** [ ]
-- **Priority:** P1 after M1 validation
-- **Size:** L
-- **Depends on:** P1-008
-
-### Non-negotiable boundaries
-
-- timestamped source sections;
-- no automatic trusted transcript;
-- cancellation, timeout and retry;
-- explicit language and speaker uncertainty;
-- outputs retain transcript-section references.
-'''
-          new = '''## P1-010 — Audio transcription review-and-apply
-
-- **Status:** [~]
-- **Priority:** active P1 delivery
-- **Size:** L
-- **Depends on:** P1-010A durable long-media intake
-- **Current PR:** #47
-
-### Delivered in P1-010A / PR #46
-
-- complete local audio/video storage in 8 MB IndexedDB chunks;
-- 4 GB local boundary, quota check, cancellation and SHA-256 verification;
-- local player, SRT/VTT/TXT import and editable timestamp blocks;
-- only approved non-empty transcript blocks become source chunks;
-- real 18 MB Chromium upload/apply/reload proof.
-
-### In verification in P1-010B / PR #47
-
-- optional server-side OpenAI Audio Transcriptions provider;
-- exact provider/model/file/size disclosure and explicit consent;
-- 24 MB provider-request boundary and separate compressed provider-copy option;
-- cancellation, retry, interrupted-tab recovery and persisted attempt count;
-- separate local provider candidate with timestamps, speaker labels and uncertainty warnings;
-- visible uncovered intervals instead of model-memory gap filling;
-- stale `sourceUploadId` rejection after recording replacement;
-- candidate loads into the editor only with `status: "draft"`;
-- current source chunks remain unchanged until manual review and Apply;
-- deterministic contract/evals and cancellation → retry → draft → reload Chromium proof.
-
-### Remaining P1-010C work
-
-- automatic local audio extraction/transcoding for originals above one provider request;
-- resumable multi-part provider jobs and partial-range recovery;
-- streaming backup for raw media, editable transcript drafts and provider candidates;
-- live licensed Hebrew/Russian lecture quality, latency and cost validation.
-
-### Non-negotiable boundaries
-
-- no hidden upload during storage, navigation, playback or integrity checking;
-- timestamped source sections;
-- no automatic trusted transcript;
-- cancellation, timeout and retry;
-- explicit language and speaker uncertainty;
-- missing intervals remain visible;
-- outputs retain transcript-section references.
-'''
-          if old in text:
-              tasks.write_text(text.replace(old, new, 1))
-          elif '**Current PR:** #47' not in text:
-              raise SystemExit('P1-010 task block not found')
-
-          ci = Path('.github/workflows/ci.yml')
-          ci_text = ci.read_text()
-          contract_anchor = '''      - name: Verify per-question evidence contract
-        run: npm run verify:per-question-evidence-contract
-'''
-          if 'Verify automatic transcription contract' not in ci_text:
-              if contract_anchor not in ci_text:
-                  raise SystemExit('CI contract anchor not found')
-              ci_text = ci_text.replace(
-                  contract_anchor,
-                  contract_anchor + '''      - name: Verify automatic transcription contract
-        run: npm run verify:automatic-transcription-contract
-''',
-                  1,
-              )
-          eval_anchor = '''      - name: Run workspace backup v2 evaluations
-        id: workspace_backup_eval
-        continue-on-error: true
-        run: npm run eval:workspace-backup 2>&1 | tee workspace-backup-eval-output.txt
-'''
-          if 'Run automatic transcription evaluations' not in ci_text:
-              if eval_anchor not in ci_text:
-                  raise SystemExit('CI eval anchor not found')
-              ci_text = ci_text.replace(
-                  eval_anchor,
-                  eval_anchor + '''      - name: Run automatic transcription evaluations
-        run: npm run eval:automatic-transcription
-''',
-                  1,
-              )
-          ci.write_text(ci_text)
-          PY
-          npx prettier --write TASKS.md .github/workflows/ci.yml
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add TASKS.md .github/workflows/ci.yml
-          if ! git diff --cached --quiet; then
-            git commit -m "docs: register reviewed automatic transcription"
-            git push origin HEAD:agent/automatic-long-media-transcription
-          fi
 
       - name: Verify automatic transcription contract
         id: contract
