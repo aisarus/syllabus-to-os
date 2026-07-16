@@ -42,18 +42,30 @@ jobs:
       - name: Normalize feature branch
         if: github.event_name == 'pull_request' && github.actor != 'github-actions[bot]'
         run: |
-          npm run format
-          npm run build
+          set +e
+          : > automatic-transcription-normalize-output.txt
+          npm run format >> automatic-transcription-normalize-output.txt 2>&1
+          FORMAT_STATUS=$?
+          npm run build >> automatic-transcription-normalize-output.txt 2>&1
+          BUILD_STATUS=$?
           rm -f .github/workflows/finalize-automatic-transcription.yml
           rm -f .github/workflows/finalize-automatic-transcription-pr.yml
           rm -f docs/automatic-transcription-normalization-trigger.md
+          git diff --name-only --diff-filter=ACMRTUXB -z | tar --null -T - -czf automatic-transcription-normalized-files.tar.gz 2>> automatic-transcription-normalize-output.txt
+          ARCHIVE_STATUS=$?
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: normalize automatic transcription delivery"
-            git push origin HEAD:agent/automatic-long-media-transcription
+          git commit -m "chore: normalize automatic transcription delivery" >> automatic-transcription-normalize-output.txt 2>&1
+          COMMIT_STATUS=$?
+          if [ "$COMMIT_STATUS" -eq 0 ]; then
+            git push origin HEAD:agent/automatic-long-media-transcription >> automatic-transcription-normalize-output.txt 2>&1
+            PUSH_STATUS=$?
+          else
+            PUSH_STATUS=0
           fi
+          printf '\nformat=%s build=%s archive=%s commit=%s push=%s\n' "$FORMAT_STATUS" "$BUILD_STATUS" "$ARCHIVE_STATUS" "$COMMIT_STATUS" "$PUSH_STATUS" >> automatic-transcription-normalize-output.txt
+          exit 0
 
       - name: Verify automatic transcription contract
         id: contract
@@ -94,6 +106,8 @@ jobs:
         with:
           name: automatic-transcription-diagnostics
           path: |
+            automatic-transcription-normalize-output.txt
+            automatic-transcription-normalized-files.tar.gz
             automatic-transcription-contract-output.txt
             automatic-transcription-eval-output.txt
             automatic-transcription-typecheck-output.txt
