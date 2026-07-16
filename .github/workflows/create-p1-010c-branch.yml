@@ -1,0 +1,11 @@
+name: Create P1-010C branch
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: git push origin HEAD:refs/heads/agent/resumable-long-transcription
