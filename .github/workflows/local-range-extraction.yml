@@ -75,7 +75,22 @@ jobs:
         run: exit 1
 
       - name: Typecheck
-        run: npm run typecheck
+        id: extraction_typecheck
+        continue-on-error: true
+        run: npm run typecheck > local-range-extraction-typecheck.txt 2>&1
+
+      - name: Upload extraction typecheck diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-range-extraction-typecheck-diagnostics
+          path: local-range-extraction-typecheck.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when extraction typecheck fails
+        if: steps.extraction_typecheck.outcome == 'failure'
+        run: exit 1
 
       - name: Lint
         id: extraction_lint
@@ -101,7 +116,7 @@ jobs:
       - name: Run local range extraction browser E2E
         id: extraction_browser
         continue-on-error: true
-        run: node scripts/run-local-range-extraction-browser-e2e.mjs > local-range-extraction-browser.txt 2>&1
+        run: timeout --signal=TERM --kill-after=10s 180s node scripts/run-local-range-extraction-browser-e2e.mjs > local-range-extraction-browser.txt 2>&1
 
       - name: Upload extraction browser diagnostics
         if: always()
