@@ -28,12 +28,14 @@
     "eval:visual-backup": "node --experimental-strip-types scripts/run-visual-backup-evals.mjs",
     "eval:workspace-backup": "node --experimental-strip-types scripts/run-workspace-backup-evals.mjs",
     "eval:long-media": "node --experimental-strip-types scripts/run-long-media-evals.mjs",
+    "eval:automatic-transcription": "node --experimental-strip-types scripts/run-automatic-transcription-evals.mjs",
     "e2e:critical": "node scripts/run-critical-browser-e2e-wrapper.mjs",
     "e2e:question-evidence": "node scripts/run-question-evidence-browser-e2e.mjs",
     "e2e:workspace-backup": "node scripts/run-workspace-backup-browser-e2e.mjs",
     "e2e:concept-extraction": "node scripts/run-concept-extraction-browser-e2e.mjs",
     "e2e:open-answer-evidence": "node scripts/run-open-answer-evidence-browser-e2e.mjs",
     "e2e:long-media": "node scripts/run-long-media-browser-e2e-final.mjs",
+    "e2e:automatic-transcription": "node scripts/run-automatic-transcription-browser-e2e.mjs",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
     "verify:syllabus-review-contract": "node scripts/verify-syllabus-review-contract.mjs",
@@ -61,6 +63,7 @@
     "verify:open-answer-evidence-contract": "node scripts/verify-open-answer-evidence-contract.mjs",
     "verify:per-question-evidence-contract": "node scripts/verify-per-question-evidence-contract.mjs",
     "verify:long-media-contract": "node scripts/verify-long-media-contract.mjs",
+    "verify:automatic-transcription-contract": "node scripts/verify-automatic-transcription-contract.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {
