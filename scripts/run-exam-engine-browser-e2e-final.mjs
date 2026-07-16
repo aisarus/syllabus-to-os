@@ -9,6 +9,11 @@ const sourcePath = join(scriptDirectory, "run-exam-engine-browser-e2e.mjs");
 const temporaryDirectory = await mkdtemp(join(tmpdir(), "lamdan-exam-engine-e2e-final-"));
 const temporaryScript = join(temporaryDirectory, "run-exam-engine-browser-e2e.mjs");
 
+const seedAnchor = `    await page.evaluate(\`(() => {
+      localStorage.clear();`;
+const appOriginSeed = `    await page.navigate("/app/dashboard");
+    await page.evaluate(\`(() => {
+      localStorage.clear();`;
 const decorativeCounterWait = '    await page.waitForText("2/2");';
 const functionalBlueprintWait = `    await page.waitFor(\`(() => {
       const checkboxes = [...document.querySelectorAll('input[type="checkbox"]')];
@@ -69,6 +74,9 @@ const functionalResultWait = `    try {
 
 try {
   const source = await readFile(sourcePath, "utf8");
+  if (!source.includes(seedAnchor)) {
+    throw new Error("The Exam Engine E2E source no longer contains the local seed anchor.");
+  }
   if (!source.includes(decorativeCounterWait)) {
     throw new Error("The Exam Engine E2E source no longer contains the readiness counter check.");
   }
@@ -82,6 +90,7 @@ try {
   }
 
   const patched = source
+    .replace(seedAnchor, appOriginSeed)
     .replace(decorativeCounterWait, functionalBlueprintWait)
     .replace(decorativeSessionWait, functionalSessionWait)
     .replaceAll(decorativeResultWait, functionalResultWait);
