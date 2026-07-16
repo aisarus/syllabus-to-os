@@ -250,8 +250,10 @@ function openExistingLongMediaDatabase(): Promise<IDBDatabase> {
       }
       resolve(db);
     };
-    request.onerror = () => reject(request.error ?? new Error("Could not open stored lecture chunks."));
-    request.onblocked = () => reject(new Error("Stored lecture chunks are blocked by another tab."));
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not open stored lecture chunks."));
+    request.onblocked = () =>
+      reject(new Error("Stored lecture chunks are blocked by another tab."));
   });
 }
 
@@ -264,8 +266,10 @@ function readChunk(
     const transaction = db.transaction(LONG_MEDIA_CHUNK_STORE, "readonly");
     const request = transaction.objectStore(LONG_MEDIA_CHUNK_STORE).get([uploadId, index]);
     request.onsuccess = () => resolve(request.result as LongMediaChunkRecord | undefined);
-    request.onerror = () => reject(request.error ?? new Error(`Could not read lecture chunk ${index}.`));
-    transaction.onabort = () => reject(transaction.error ?? new Error(`Lecture chunk ${index} read aborted.`));
+    request.onerror = () =>
+      reject(request.error ?? new Error(`Could not read lecture chunk ${index}.`));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error(`Lecture chunk ${index} read aborted.`));
   });
 }
 
