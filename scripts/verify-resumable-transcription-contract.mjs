@@ -50,6 +50,11 @@ for (const marker of [
   "buildTranscriptDraftFromResumableJob",
   'status: "draft"',
   "older lecture upload",
+  "revision: number",
+  "deriveResumableTranscriptionJobStatus",
+  "left.rangeId === right.rangeId",
+  "sharedStart",
+  "sharedEnd",
 ]) {
   requireMarker(model, marker, `Resumable transcription model is missing: ${marker}`);
 }
@@ -63,6 +68,10 @@ for (const marker of [
   "pruneResumableTranscriptionJobs",
   "clearResumableTranscriptionJobs",
   "request.onblocked",
+  "mergeResumableTranscriptionJobsForPersistence",
+  "choosePersistedRange",
+  "revision: Math.max",
+  'existing.status === "draft_loaded"',
 ]) {
   requireMarker(store, marker, `Resumable transcription storage is missing: ${marker}`);
 }
@@ -80,6 +89,8 @@ for (const marker of [
   "Загрузить объединённый draft",
   "buildTranscriptDraftFromResumableJob",
   "putLongMediaTranscript",
+  "controller.signal.aborted",
+  'job.status === "draft_loaded"',
 ]) {
   requireMarker(panel, marker, `Resumable transcription UI is missing: ${marker}`);
 }
@@ -106,6 +117,7 @@ for (const marker of [
   "listResumableTranscriptionJobs",
   "resumableQueueCount",
   "range queues",
+  "transcriptCount",
 ]) {
   requireMarker(dataBoundary, marker, `Resumable data boundary is missing: ${marker}`);
 }
@@ -116,6 +128,9 @@ for (const marker of [
   "unfinished ranges must remain visible as uncovered time",
   "tab recovery must preserve already completed range results",
   "one failed range must not erase successful range results",
+  "same-range repeated utterances must not be deduplicated",
+  "persisted overlap must match planner cap",
+  "draft_loaded must remain sticky across stale writes",
   "Resumable long-file transcription deterministic evaluations passed",
 ]) {
   requireMarker(evals, marker, `Resumable transcription evaluation is missing: ${marker}`);
@@ -159,6 +174,7 @@ for (const marker of [
   "Verify resumable transcription contract",
   "Run resumable transcription evaluations",
   "Run resumable transcription browser E2E",
+  "persist-credentials: false",
   "npm run typecheck",
   "npm run lint",
   "npm run build",
