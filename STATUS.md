@@ -81,6 +81,7 @@ Delivered on `agent/automatic-long-media-transcription` / PR #47:
 - consent is invalidated when the effective disclosed provider model changes;
 - provider timestamps are clamped to media duration and out-of-range segments are dropped;
 - blocked IndexedDB cleanup now fails fast in the browser proof;
+- canonical `TASKS.md` records P1-010A, P1-010B and the remaining P1-010C boundary;
 - deterministic contract/evaluation suite and Chromium cancellation → retry → candidate → draft → reload proof passed before the review-hardening pass; final rerun is active.
 
 Current boundaries:
