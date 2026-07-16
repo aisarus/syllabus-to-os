@@ -70,13 +70,25 @@ replaceRequired(
 );
 
 replaceRequired(
-  `      const db = await new Promise((resolve, reject) => {
-        const request = indexedDB.open("lamdan-range-extraction", 1);`,
-  `      const databases = await indexedDB.databases();
-      if (!databases.some((database) => database.name === "lamdan-range-extraction")) return false;
+  `    await page.waitFor(
+      \`(async () => {
       const db = await new Promise((resolve, reject) => {
-        const request = indexedDB.open("lamdan-range-extraction", 1);`,
-  "non-destructive clip database wait",
+        const request = indexedDB.open("lamdan-range-extraction", 1);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const clip = await new Promise((resolve, reject) => {
+        const request = db.transaction("clips", "readonly").objectStore("clips").get(["mat_extract", "range_extract"]);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      db.close();
+      return clip?.blob?.size > 0 && clip?.sourceUploadId === "upload_extract";
+    })()\`,
+      60_000,
+    );`,
+  `    await page.waitForText("Извлечь заново", 60_000);`,
+  "stable persisted clip UI wait",
 );
 
 const stages = [
