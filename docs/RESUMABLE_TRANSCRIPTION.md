@@ -51,7 +51,7 @@ A tab reload cannot recover an in-memory `File` object. Interrupted or merely se
 
 ## Verification plan
 
-The permanent gate covers the range contract, overlap/timestamp merge behavior, stale-upload rejection, interrupted-tab recovery, source-integrity boundaries, TypeScript, ESLint and the production build. Before merge, a Chromium scenario must also prove two sequential range requests, one isolated failure or cancellation, retry, merged draft-only loading and reload persistence without creating source chunks automatically.
+The permanent gate covers the range contract, overlap/timestamp merge behavior, stale-upload rejection, interrupted-tab recovery, source-integrity boundaries, TypeScript, ESLint and the production build. Its Chromium scenario exercises two sequential range requests, one isolated provider failure, retry, overlap merge, draft-only loading and reload persistence while asserting that no source chunks are created automatically.
 
 ## Current boundary
 
