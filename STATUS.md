@@ -100,7 +100,7 @@ PR #47 must pass on one final head:
 - browser proof for explicit consent, cancellation, retry, two timestamped provider segments, visible gap/uncertainty, draft-only loading and reload;
 - zero source chunks before manual approval/apply;
 - complete repository CI;
-- dedicated Exam Engine and long-media regressions.
+- dedicated critical browser end-to-end, Exam Engine and long-media regressions.
 
 ## Existing validation blockers
 
