@@ -531,7 +531,10 @@ async function main() {
     assert(beforeReload.jobStatus === "draft_loaded", "Range queue was not marked draft_loaded.");
     assert(beforeReload.completedRanges === 2, "Both completed ranges were not persisted.");
     assert(beforeReload.secondAttempt === 2, "Isolated retry history was not persisted.");
-    assert(beforeReload.transcriptStatuses.length === 3, "Overlap merge produced the wrong draft size.");
+    assert(
+      beforeReload.transcriptStatuses.length === 3,
+      "Overlap merge produced the wrong draft size.",
+    );
     assert(
       beforeReload.transcriptStatuses.every((status) => status === "draft"),
       "Merged range output was auto-approved.",
@@ -544,7 +547,10 @@ async function main() {
     assert(afterReload.jobStatus === "draft_loaded", "Range queue did not survive reload.");
     assert(afterReload.completedRanges === 2, "Completed range results disappeared after reload.");
     assert(afterReload.secondAttempt === 2, "Retry history disappeared after reload.");
-    assert(afterReload.transcriptStatuses.length === 3, "Merged transcript disappeared after reload.");
+    assert(
+      afterReload.transcriptStatuses.length === 3,
+      "Merged transcript disappeared after reload.",
+    );
     assert(
       afterReload.transcriptStatuses.every((status) => status === "draft"),
       "Reload changed range draft approval status.",

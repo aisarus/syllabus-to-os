@@ -123,9 +123,9 @@ for (const marker of [
 
 for (const marker of [
   "Resumable transcription browser E2E passed",
-  'window.__resumableAttempts = 0',
+  "window.__resumableAttempts = 0",
   'job?.ranges?.[1]?.status === "failed"',
-  'job?.ranges?.[1]?.attempt === 2',
+  "job?.ranges?.[1]?.attempt === 2",
   'transcript.segments.every((segment) => segment.status === "draft")',
   "core.materialChunks.length === 0",
   "await page.reload()",
