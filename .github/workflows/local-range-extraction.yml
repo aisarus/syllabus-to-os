@@ -39,7 +39,22 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Verify local range extraction contract
-        run: node scripts/verify-local-range-extraction-contract.mjs
+        id: extraction_contract
+        continue-on-error: true
+        run: node scripts/verify-local-range-extraction-contract.mjs > local-range-extraction-contract.txt 2>&1
+
+      - name: Upload extraction contract diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-range-extraction-contract-diagnostics
+          path: local-range-extraction-contract.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when extraction contract fails
+        if: steps.extraction_contract.outcome == 'failure'
+        run: exit 1
 
       - name: Run local range extraction evaluations
         id: extraction_evals
