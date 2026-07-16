@@ -78,7 +78,9 @@ function normalizeJob(job: ResumableTranscriptionJob): ResumableTranscriptionJob
     durationSeconds: Math.max(0, Number(job.durationSeconds) || 0),
     rangeSeconds: Math.max(60, Number(job.rangeSeconds) || 15 * 60),
     overlapSeconds: Math.max(0, Number(job.overlapSeconds) || 0),
-    ranges: Array.isArray(job.ranges) ? job.ranges.map((range, index) => normalizeRange(range, index)) : [],
+    ranges: Array.isArray(job.ranges)
+      ? job.ranges.map((range, index) => normalizeRange(range, index))
+      : [],
     createdAt: Number(job.createdAt) || Date.now(),
     updatedAt: Number(job.updatedAt) || Date.now(),
   };

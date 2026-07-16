@@ -116,9 +116,7 @@ export function LongMediaDataBoundary() {
           onClick={() => void clearMedia()}
           disabled={
             busy ||
-            (!stats?.mediaCount &&
-              !stats?.automaticCandidateCount &&
-              !stats?.resumableQueueCount)
+            (!stats?.mediaCount && !stats?.automaticCandidateCount && !stats?.resumableQueueCount)
           }
         >
           {busy ? (

@@ -83,7 +83,7 @@ for (const marker of [
 }
 
 for (const marker of [
-  'import { ResumableTranscriptionPanel }',
+  "import { ResumableTranscriptionPanel }",
   "<ResumableTranscriptionPanel",
   "onDraftApplied",
 ]) {

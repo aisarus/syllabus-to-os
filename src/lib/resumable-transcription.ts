@@ -1,4 +1,8 @@
-import type { LongMediaManifest, LongMediaTranscriptDraft, TranscriptSegmentDraft } from "./long-media";
+import type {
+  LongMediaManifest,
+  LongMediaTranscriptDraft,
+  TranscriptSegmentDraft,
+} from "./long-media";
 import {
   findAutomaticTranscriptionGaps,
   normalizeAutomaticSegments,
@@ -111,7 +115,9 @@ export function createResumableTranscriptionJob(input: {
   overlapSeconds?: number;
 }): ResumableTranscriptionJob {
   if (!input.manifest.durationSeconds || input.manifest.durationSeconds <= 0) {
-    throw new Error("The lecture duration is required before a resumable range queue can be created.");
+    throw new Error(
+      "The lecture duration is required before a resumable range queue can be created.",
+    );
   }
   const rangeSeconds = input.rangeSeconds ?? DEFAULT_RESUMABLE_RANGE_SECONDS;
   const overlapSeconds = input.overlapSeconds ?? DEFAULT_RESUMABLE_OVERLAP_SECONDS;
@@ -140,7 +146,9 @@ export function createResumableTranscriptionJob(input: {
   };
 }
 
-export function recoverInterruptedResumableJob(job: ResumableTranscriptionJob): ResumableTranscriptionJob {
+export function recoverInterruptedResumableJob(
+  job: ResumableTranscriptionJob,
+): ResumableTranscriptionJob {
   const now = Date.now();
   const ranges = job.ranges.map((range) => {
     if (!["ready", "uploading", "processing"].includes(range.status)) return range;
@@ -354,7 +362,9 @@ export function buildTranscriptDraftFromResumableJob(
   };
 }
 
-export function markResumableDraftLoaded(job: ResumableTranscriptionJob): ResumableTranscriptionJob {
+export function markResumableDraftLoaded(
+  job: ResumableTranscriptionJob,
+): ResumableTranscriptionJob {
   return { ...job, status: "draft_loaded", updatedAt: Date.now() };
 }
 
@@ -382,7 +392,8 @@ function finalizeJob(job: ResumableTranscriptionJob): ResumableTranscriptionJob 
   const statuses = job.ranges.map((range) => range.status);
   let status: ResumableTranscriptionJobStatus = "paused";
   if (statuses.every((value) => value === "review_ready")) status = "review_ready";
-  else if (statuses.some((value) => value === "uploading" || value === "processing")) status = "running";
+  else if (statuses.some((value) => value === "uploading" || value === "processing"))
+    status = "running";
   else if (statuses.some((value) => value === "ready")) status = "ready";
   else if (statuses.some((value) => value === "review_ready")) status = "partial_ready";
   else if (statuses.every((value) => value === "cancelled")) status = "cancelled";
