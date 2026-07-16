@@ -49,6 +49,10 @@ A tab reload cannot recover an in-memory `File` object. Interrupted or merely se
 - Existing applied source chunks remain unchanged until the ordinary transcript workspace is reviewed, approved and explicitly applied.
 - A queue tied to an older `sourceUploadId` cannot load into a replaced lecture.
 
+## Verification plan
+
+The permanent gate covers the range contract, overlap/timestamp merge behavior, stale-upload rejection, interrupted-tab recovery, source-integrity boundaries, TypeScript, ESLint and the production build. Before merge, a Chromium scenario must also prove two sequential range requests, one isolated failure or cancellation, retry, merged draft-only loading and reload persistence without creating source chunks automatically.
+
 ## Current boundary
 
 P1-010C1 expects the student to provide valid provider-ready clips matching the displayed ranges. Automatic local audio extraction/transcoding is P1-010C2. Streaming backup for raw media, editable transcript drafts, single-request candidates and resumable queues is also still pending.
