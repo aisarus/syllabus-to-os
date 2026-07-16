@@ -1,0 +1,37 @@
+name: Apply PR 47 task ledger
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.ref == 'agent/automatic-long-media-transcription' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/automatic-long-media-transcription
+          fetch-depth: 0
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Update task ledger
+        run: node scripts/apply-pr47-task-ledger.mjs
+      - name: Format task ledger
+        run: bunx prettier --write TASKS.md
+      - name: Remove one-shot task files
+        run: rm .github/workflows/apply-pr47-task-ledger.yml scripts/apply-pr47-task-ledger.mjs
+      - name: Commit task ledger
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs: register reviewed automatic transcription task"
+          git push origin HEAD:agent/automatic-long-media-transcription
