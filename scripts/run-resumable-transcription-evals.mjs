@@ -259,7 +259,11 @@ assert.throws(
   const loaded = { ...job, status: "draft_loaded", revision: 8 };
   const stale = { ...job, status: "review_ready", revision: 6 };
   const persisted = mergeResumableTranscriptionJobsForPersistence(loaded, stale, 7000);
-  assert.equal(persisted.status, "draft_loaded", "draft_loaded must remain sticky across stale writes");
+  assert.equal(
+    persisted.status,
+    "draft_loaded",
+    "draft_loaded must remain sticky across stale writes",
+  );
 }
 
 console.log("Resumable long-file transcription deterministic evaluations passed.");
