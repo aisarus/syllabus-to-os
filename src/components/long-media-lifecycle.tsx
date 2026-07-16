@@ -4,6 +4,10 @@ import {
   listAutomaticTranscriptionJobs,
 } from "@/lib/automatic-transcription-store";
 import { deleteLongMediaData, listLongMediaManifests } from "@/lib/long-media-store";
+import {
+  deleteResumableTranscriptionJob,
+  listResumableTranscriptionJobs,
+} from "@/lib/resumable-transcription-store";
 import { getDataSnapshot, useData } from "@/lib/store";
 
 const ORPHAN_CONFIRMATION_MS = 15_000;
@@ -25,14 +29,16 @@ export function LongMediaLifecycle() {
 
     const inspectOrphans = async () => {
       const validMaterialIds = new Set(getDataSnapshot().materials.map((item) => item.id));
-      const [manifests, jobs] = await Promise.all([
+      const [manifests, jobs, rangeJobs] = await Promise.all([
         listLongMediaManifests(),
         listAutomaticTranscriptionJobs(),
+        listResumableTranscriptionJobs(),
       ]);
       const now = Date.now();
       const manifestIds = new Set(manifests.map((manifest) => manifest.materialId));
       const jobIds = new Set(jobs.map((job) => job.materialId));
-      const visibleLocalIds = new Set([...manifestIds, ...jobIds]);
+      const rangeJobIds = new Set(rangeJobs.map((job) => job.materialId));
+      const visibleLocalIds = new Set([...manifestIds, ...jobIds, ...rangeJobIds]);
 
       for (const materialId of orphanSinceRef.current.keys()) {
         if (validMaterialIds.has(materialId) || !visibleLocalIds.has(materialId)) {
@@ -54,6 +60,7 @@ export function LongMediaLifecycle() {
         if (now - firstSeenAt < ORPHAN_CONFIRMATION_MS) continue;
         if (manifestIds.has(materialId)) await deleteLongMediaData(materialId);
         if (jobIds.has(materialId)) await deleteAutomaticTranscriptionJob(materialId);
+        if (rangeJobIds.has(materialId)) await deleteResumableTranscriptionJob(materialId);
         orphanSinceRef.current.delete(materialId);
       }
     };

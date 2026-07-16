@@ -17,6 +17,7 @@ This file records the active implementation plan. Product intent remains in `ROA
 ## Completed Academic Autopilot slices
 
 - `P1-010A Durable whole-lecture audio/video intake` — merged and verified in PR #46.
+- `P1-010B Reviewed automatic transcription v1` — merged and verified in PR #47.
 - `P1-011 Study Command Center v1` — merged in PR #36.
 - `P1-012 Lecture-to-Study-Pack` — merged in PR #37.
 - `P1-013 Concept graph and evidence model v1` — merged in PR #38.
@@ -46,84 +47,111 @@ A user can upload one complete audio or video lecture, keep it locally across re
 9. Record and verify SHA-256 for every stored chunk. ✓
 10. Reconstruct a local audio/video player only after explicit user action. ✓
 11. Import SRT, WebVTT or plain-text transcript drafts. ✓
-12. Create editable ten-minute timestamp blocks when no transcript is available. ✓
+12. Create editable timestamp blocks when no transcript is available. ✓
 13. Require explicit approval for each source segment. ✓
 14. Convert only approved non-empty segments into source-integrity-aware `MaterialChunk` records. ✓
 15. Add navigation, material-detail integration, guarded orphan cleanup and Data-page storage boundary. ✓
 16. Add deterministic file/segment/import/apply evaluations. ✓
-17. Repair the Cloudflare production preview path and async IndexedDB browser predicate. ✓
-18. Pass a real Chromium proof using an 18 MB file written as three IndexedDB chunks, SHA-checked, transcribed from SRT, applied as two source chunks and reloaded. ✓
-19. Pass complete repository CI and the dedicated Exam Engine regression on the same final head. ✓
+17. Repair the production preview path and async IndexedDB browser predicate. ✓
+18. Pass a Chromium proof using an 18 MB file written as three IndexedDB chunks, SHA-checked, transcribed from SRT, applied as two source chunks and reloaded. ✓
+19. Pass complete repository CI and dedicated regressions on the same final head. ✓
 20. Merge PR #46. ✓
 
-### Non-negotiable boundaries
-
-- Selecting, storing or playing a recording never uploads it to external AI.
-- Provider output may not become a trusted transcript automatically.
-- An incomplete staging upload cannot become the active lecture file.
-- Draft and empty transcript segments cannot become source chunks.
-- Replacing a recording invalidates its old editable transcript draft.
-- Very large playback may require substantial browser memory and is never auto-loaded.
-- Workspace ZIP v2 does not claim to contain the raw multi-gigabyte recording or editable transcript draft.
-- The user must keep the original recording separately until streaming backup exists.
-
-## Active delivery — P1-010B Reviewed automatic transcription v1
+## Verified delivery — P1-010B Reviewed automatic transcription v1
 
 ### Product outcome
 
 A user explicitly chooses to send one provider-ready recording copy for transcription, sees which provider/model/file receives it, can cancel and retry, inspects timestamp gaps and uncertain speaker-labelled segments, and loads the result only as an unapproved editable draft.
 
-### Implemented sequence on PR #47
+### Delivered sequence
 
-1. Inspect the existing server/provider abstraction and official audio-transcription boundary. ✓
-2. Keep the built-in local/manual workflow fully usable without an external transcription provider. ✓
-3. Add an optional OpenAI Audio Transcriptions server adapter with server-only `OPENAI_API_KEY`. ✓
-4. Cap one provider request at 24 MB and validate supported formats before upload. ✓
-5. Allow a separately selected compressed provider copy while keeping the large local original private. ✓
-6. Add an explicit consent surface naming provider, model, exact file and size. ✓
-7. Guarantee that navigation, playback, SHA checking and manual transcript work trigger no provider upload. ✓
-8. Persist local job status, attempt count, provider request id and returned candidate without secrets. ✓
-9. Support cancellation, retry and interrupted-tab recovery. ✓
-10. Reject a result tied to an older lecture `sourceUploadId`. ✓
-11. Preserve timestamps, language, speaker labels and provider uncertainty warnings. ✓
-12. Surface uncovered time ranges instead of filling missing speech from model memory. ✓
-13. Keep provider output outside the current transcript until a separate user action. ✓
-14. Load every provider segment into the editor with `status: "draft"`. ✓
-15. Keep already applied source chunks unchanged after failure, cancellation, retry or draft loading. ✓
-16. Include provider candidates in local data controls and guarded orphan cleanup. ✓
-17. Add deterministic job-state, stale-upload, gap and source-integrity evaluations. ✓
-18. Add browser proof for consent → cancel → retry → candidate → draft-only load → reload. In verification.
-19. Pass complete CI, Exam Engine and long-media regressions on one final head. Pending.
-20. Merge PR #47. Pending.
-
-### Current bounded scope
-
-This first provider slice deliberately does not pretend that a 4 GB original can be posted through a normal request body. The original may be stored locally up to 4 GB, but one automatic provider request is at most 24 MB. A larger lecture requires a user-created compressed complete-lecture copy.
+1. Keep the built-in local/manual workflow fully usable without an external provider. ✓
+2. Add an optional OpenAI Audio Transcriptions server adapter with server-only credentials. ✓
+3. Cap one provider request at 24 MB and validate supported formats before upload. ✓
+4. Allow a separately selected compressed provider copy while keeping the large local original private. ✓
+5. Add an explicit consent surface naming provider, model, exact file and size. ✓
+6. Guarantee that navigation, playback, SHA checking and manual transcript work trigger no upload. ✓
+7. Persist local job status, attempt count, provider request id and returned candidate without secrets. ✓
+8. Support cancellation, retry and interrupted-tab recovery. ✓
+9. Reject a result tied to an older lecture `sourceUploadId`. ✓
+10. Preserve timestamps, language, speaker labels and provider uncertainty warnings. ✓
+11. Surface uncovered ranges instead of filling missing speech from model memory. ✓
+12. Keep provider output outside the current transcript until a separate user action. ✓
+13. Load every provider segment with `status: "draft"`. ✓
+14. Keep applied source chunks unchanged after failure, cancellation, retry or draft loading. ✓
+15. Include provider candidates in local data controls and guarded orphan cleanup. ✓
+16. Add deterministic job-state, stale-upload, gap and source-integrity evaluations. ✓
+17. Pass browser proof for consent → cancel → retry → candidate → draft-only load → reload. ✓
+18. Pass complete CI and existing regressions on one final head. ✓
+19. Merge PR #47. ✓
 
 ### Non-negotiable boundaries
 
-- No hidden upload during local storage, playback, integrity checking or ordinary material navigation.
+- No hidden upload during local storage, playback, integrity checking or ordinary navigation.
 - The exact external provider, model, file and size are shown before upload.
-- Cancelled or failed provider work cannot replace the current transcript or source chunks.
-- Provider text remains an untrusted candidate until explicitly loaded into the editor.
+- Cancelled or failed work cannot replace the current transcript or source chunks.
+- Provider text remains untrusted until explicitly loaded into the editor.
 - Loaded provider blocks remain `draft` until individually reviewed and approved.
-- Missing or unintelligible intervals remain visible instead of being filled from model memory.
+- Missing intervals remain visible instead of being filled from model memory.
 - Secrets and provider credentials remain server-side.
 - A stale candidate from a replaced recording cannot be applied.
 - Workspace ZIP v2 does not claim to contain provider candidates.
 
-## P1-010C Subsequent long-file provider work
+## Active delivery — P1-010C1 Resumable provider-range queues
 
-1. Add local audio extraction/transcoding with explicit CPU/storage estimates.
-2. Split long audio on time boundaries without changing playback speed.
-3. Persist a resumable range/job queue for provider requests.
-4. Merge partial results while preserving uncovered/failed ranges.
-5. Add provider-aware retry/backoff and per-range cancellation.
-6. Add streaming backup/export for raw media, editable drafts and provider candidates.
-7. Validate real Hebrew/Russian lecture quality on licensed audio and record latency/cost.
+### Product outcome
+
+A student can divide a long lecture into exact overlapping ranges, upload provider-ready clips sequentially, preserve completed ranges when another range fails, retry only the failed range, and merge successful timestamped results into one unapproved draft.
+
+### Implemented sequence on PR #48
+
+1. Plan exact 15-minute ranges with a two-second overlap. ✓
+2. Persist one independent range state machine and attempt history in IndexedDB. ✓
+3. Require a separately selected provider-ready clip for every range sent in C1. ✓
+4. Display provider, model, selected file count and exact range boundaries before consent. ✓
+5. Upload selected ranges sequentially rather than as one all-or-nothing request. ✓
+6. Preserve successful range results when another range fails or is cancelled. ✓
+7. Support independent retry and current-range cancellation. ✓
+8. Offset provider timestamps from clip time into complete-lecture time. ✓
+9. Merge exact overlap duplicates without inventing uncovered speech. ✓
+10. Keep failed, cancelled and unselected ranges visible as gaps. ✓
+11. Reject queues tied to a replaced `sourceUploadId`. ✓
+12. Recover interrupted tabs while preserving completed results and requiring `File` reselection. ✓
+13. Load merged segments only as `draft`; create no source chunks automatically. ✓
+14. Include range queues in guarded orphan cleanup and Data-page deletion. ✓
+15. Add deterministic planning, overlap, failure, recovery and source-integrity evaluations. ✓
+16. Add Chromium proof for two clips → isolated failure → retry → overlap merge → draft → reload. ✓
+17. Pass the dedicated contract, eval, TypeScript, lint, build and browser workflow. ✓
+18. Pass complete repository CI and existing automatic-transcription, long-media and Exam Engine regressions. In verification.
+19. Merge PR #48. Pending.
+
+### C1 boundary
+
+C1 deliberately does not claim automatic extraction from the local multi-gigabyte original. The user selects provider-ready clips matching the exact displayed ranges. Browser `File` objects are not persisted; unfinished clips must be selected again after reload.
+
+### Non-negotiable boundaries
+
+- No original or range clip uploads without explicit consent.
+- A completed range cannot be erased by an unrelated failed range.
+- Provider timestamps must remain inside the displayed range and lecture duration.
+- Missing ranges remain visible.
+- Merged output remains an editable draft.
+- No provider range result becomes a source chunk automatically.
+
+## P1-010C2 Automatic local range extraction/transcoding
+
+1. Inspect browser media APIs and choose a bounded local extraction strategy.
+2. Show CPU, memory, temporary-storage and expected-output estimates before work begins.
+3. Extract audio without changing playback speed or lecture timing.
+4. Produce clips matching the exact persisted C1 range boundaries and overlap.
+5. Keep extraction local and cancellable.
+6. Verify clip duration, MIME type, size and range identity before provider consent.
+7. Avoid reading a multi-gigabyte original into one in-memory buffer.
+8. Add browser proof for extraction → range queue → provider mock → merged draft.
 
 ## Subsequent delivery
 
-1. Extend Exam Engine with profile, topic weights and bounded daily planning.
-2. Design a streaming backup/export path for raw long media and editable transcript drafts.
-3. Continue `P1-015`–`P1-019` only through source-visible and reviewable contracts.
+1. Add streaming backup/export for raw media, editable drafts, provider candidates and range queues.
+2. Validate real Hebrew/Russian lecture quality on licensed audio and record latency/cost.
+3. Extend Exam Engine with profile, topic weights and bounded daily planning.
+4. Continue `P1-015`–`P1-019` only through source-visible and reviewable contracts.

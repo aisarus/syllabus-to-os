@@ -6,7 +6,7 @@ Last updated: 2026-07-16
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1 and durable whole-lecture media intake are implemented and verified. Reviewed automatic transcription v1 is the active delivery pass.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1, durable whole-lecture media intake and reviewed automatic transcription v1 are implemented and verified. Resumable long-file transcription C1 is the active delivery pass.
 
 ## Completed task state
 
@@ -21,8 +21,9 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-003 Critical browser end-to-end coverage` — complete and verified; PR #33.
 - `P1-004 Add local-first global search v2` — complete and verified; PR #34.
 - `P1-005 Store persistence and source-integrity hardening` — complete and verified; PR #35.
-- `P1-010A Durable whole-lecture audio/video intake` — complete and verified; PR #46 merged.
-- `P1-010B Reviewed automatic transcription v1` — [~] implemented on PR #47; final hardened verification active.
+- `P1-010A Durable whole-lecture audio/video intake` — complete and verified; PR #46.
+- `P1-010B Reviewed automatic transcription v1` — complete and verified; PR #47.
+- `P1-010C1 Resumable provider-range queues` — [~] implemented on PR #48; final repository verification active.
 - `P1-011 Study Command Center v1` — complete and verified; PR #36.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37.
 - `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38.
@@ -33,9 +34,9 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-013E Edited-batch concept collision guard` — complete and verified; PR #44.
 - `P1-014A Frozen source-grounded Exam Engine v1` — complete and verified; PR #45.
 
-## Verified delivery — Durable whole-lecture audio/video intake
+## Verified delivery — Whole-lecture intake and reviewed automatic transcription
 
-Delivered:
+Delivered in PR #46 and PR #47:
 
 - separate `/app/lecture-media` route and primary navigation item;
 - audio/video selection by MIME or common extension;
@@ -46,66 +47,64 @@ Delivered:
 - active manifest changes only after every chunk is stored;
 - core material is published only after a durable media manifest exists;
 - cancellation/error cleanup while an older complete recording remains intact;
-- post-commit cleanup, optional metadata and navigation failures cannot delete a completed recording;
-- automatic orphan cleanup requires the same missing material to remain absent from fresh core snapshots for at least 15 seconds before deletion;
 - SHA-256 per media chunk and explicit integrity verification;
 - local audio/video player reconstructed only after an explicit user action;
 - SRT, WebVTT and plain-text transcript import;
-- editable ten-minute transcript blocks with timecodes and optional speaker labels;
-- `empty`, `draft` and `approved` transcript states;
+- editable transcript blocks with timecodes, speaker labels and explicit approval states;
 - only approved non-empty segments become normal Lamdan source chunks;
-- source-integrity-aware transcript apply and normal Study Pack compatibility;
-- orphan cleanup, local storage statistics and local-media delete control;
-- real Chromium proof: 18 MB → three IndexedDB chunks → SHA verification → SRT → two approved source chunks → reload.
-
-## Active implementation pass — Reviewed automatic transcription
-
-Delivered on `agent/automatic-long-media-transcription` / PR #47:
-
-- optional server-side OpenAI Audio Transcriptions provider;
-- server credentials only through `OPENAI_API_KEY`;
+- optional server-side OpenAI Audio Transcriptions provider with credentials kept server-side;
 - exact provider, model, file and size disclosure before upload;
-- upload disabled until explicit consent;
-- no hidden upload during navigation, local storage, playback, SHA verification or manual transcript work;
-- bounded 24 MB provider-ready request and explicit supported-format validation;
-- separate compressed provider-copy selection when the local original is too large or unsupported;
-- upload progress, cancellation, retry and persisted attempt count;
-- separate local IndexedDB candidate store with no secrets or request body;
-- stale result rejection after lecture replacement through `sourceUploadId`;
-- timestamp, language, speaker, uncertainty and uncovered-interval display;
-- candidate remains separate until an explicit “load into editor as draft” action;
-- every loaded provider segment starts as `draft`, never `approved`;
-- cancellation, failure, retry and draft loading do not alter existing applied source chunks;
-- Data-page cleanup and guarded orphan pruning for provider candidates;
-- consent/provider-copy state is reset when material changes;
-- consent is invalidated when the effective disclosed provider model changes;
-- provider timestamps are clamped to media duration and out-of-range segments are dropped;
-- blocked IndexedDB cleanup now fails fast in the browser proof;
-- canonical `TASKS.md` records P1-010A, P1-010B and the remaining P1-010C boundary;
-- deterministic contract/evaluation suite and Chromium cancellation → retry → candidate → draft → reload proof passed before the review-hardening pass; final rerun is active.
+- explicit consent, upload progress, cancellation, retry and persisted attempt count;
+- bounded 24 MB provider-ready request and separate compressed provider-copy option;
+- separate local candidate store with timestamps, language, speakers, uncertainty and visible uncovered intervals;
+- stale result rejection through `sourceUploadId`;
+- candidate loads into the editor only with `status: "draft"`;
+- zero source-chunk changes until manual review and Apply;
+- real Chromium proofs for 18 MB local storage/apply/reload and cancellation → retry → candidate → draft → reload.
 
-Current boundaries:
+## Active implementation pass — P1-010C1 resumable provider-range queues
 
-- this is a bounded provider-upload v1, not automatic transcoding of an arbitrary 4 GB original;
-- one provider request is capped at 24 MB;
-- larger originals require a user-supplied compressed complete-lecture copy;
-- resumable multi-part provider jobs remain a later slice;
-- provider output is untrusted until manually reviewed and approved;
-- missing or unintelligible intervals remain visible instead of being filled from model memory;
-- Workspace ZIP v2 does not yet contain raw media, editable transcript drafts or provider candidates;
-- live provider quality remains unverified without a configured deployment and licensed real lecture audio.
+Delivered on `agent/resumable-long-transcription` / PR #48:
+
+- exact 15-minute range planning with a two-second overlap;
+- one persisted status machine per range: `needs_file`, `ready`, `uploading`, `processing`, `review_ready`, `cancelled` or `failed`;
+- separate provider-ready clip selection per displayed lecture range;
+- explicit consent naming provider, model and selected file count;
+- sequential uploads so one failure cannot destroy another completed range;
+- independent retry/cancellation and persisted attempt/request history;
+- clip-relative timestamps offset into the complete lecture timeline;
+- exact overlap duplicates merged without filling uncovered speech from model memory;
+- failed, cancelled and unselected ranges remain visible as gaps;
+- completed results persist in a separate IndexedDB queue;
+- interrupted/selected files return to `needs_file` after reload because browser `File` objects are intentionally not persisted;
+- stale queue rejection after the recording is replaced;
+- merged results load only as an unapproved transcript draft;
+- ordinary manual review and Apply remain the only route to source chunks;
+- guarded orphan cleanup and Data-page deletion for range queues;
+- deterministic evaluation coverage for range planning, overlap merge, partial failure, stale upload and interrupted-tab recovery;
+- Chromium proof: two range files → first success → isolated second failure → retry → overlap merge → three draft segments → reload, with zero source chunks throughout.
+
+Current C1 boundary:
+
+- Lamdan does not yet extract or transcode provider-ready clips automatically from the local multi-gigabyte original;
+- the student selects a clip matching each exact displayed range;
+- a browser reload cannot recreate selected `File` objects, so unfinished clips must be selected again;
+- provider output remains untrusted until review and approval;
+- raw media, editable transcript drafts, single-request candidates and resumable queues are not yet in Workspace ZIP v2;
+- live quality, latency and cost remain unverified without a configured provider and licensed representative lecture audio.
 
 ## Verification state
 
-PR #47 must pass on one final head:
+PR #48 dedicated verification is green for:
 
-- automatic-transcription contract and deterministic evaluations;
+- permanent resumable-transcription contract;
+- deterministic range/merge/recovery evaluations;
 - TypeScript, ESLint and formatting;
-- production build and committed TanStack route tree;
-- browser proof for explicit consent, cancellation, retry, two timestamped provider segments, visible gap/uncertainty, draft-only loading and reload;
-- zero source chunks before manual approval/apply;
-- complete repository CI;
-- dedicated critical browser end-to-end, Exam Engine and long-media regressions.
+- production build;
+- Chromium partial-failure/retry/draft/reload proof;
+- zero automatic source chunks.
+
+The PR still requires one final common head with complete repository CI and the existing automatic-transcription, long-media and Exam Engine regression workflows green before merge. The final matrix also runs the critical browser end-to-end gate before merge.
 
 ## Existing validation blockers
 
@@ -121,14 +120,14 @@ Live golden quiz quality cannot be approved without a complete legally usable He
 
 The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved until the complete script passes.
 
-### P1-010B live provider quality
+### P1-010 live provider quality
 
-The deterministic/provider-mock pipeline can verify consent, persistence, cancellation and source integrity. Real transcription quality, latency and provider error handling still require a deployment with `OPENAI_API_KEY` and licensed representative lecture audio.
+The deterministic/provider-mock pipeline can verify consent, persistence, cancellation, partial recovery and source integrity. Real transcription quality, latency, cost and provider error handling still require a deployment with provider credentials and licensed representative Hebrew/Russian lecture audio.
 
 ## Next execution targets
 
-1. Verify and merge reviewed automatic transcription v1 in PR #47.
-2. Add automatic local transcoding or resumable multi-part jobs for originals above the one-request provider limit.
-3. Integrate long-media drafts/candidates into a streaming backup format.
+1. Verify and merge resumable provider-range queues in PR #48.
+2. Build `P1-010C2`: automatic local extraction/transcoding of exact range clips from the stored original.
+3. Integrate raw media, editable drafts, provider candidates and range queues into a streaming backup format.
 4. Extend Exam Engine with exam profiles, topic weights and bounded daily planning.
 5. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.

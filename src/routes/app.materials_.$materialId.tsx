@@ -7,6 +7,7 @@ import { MaterialOutputHistory } from "@/components/material-output-history";
 import { MaterialWorkspace } from "@/components/material-workspace";
 import { MultiPageImageWorkspace } from "@/components/multi-page-image-workspace";
 import { OCRReviewPanel } from "@/components/ocr-review-panel";
+import { ResumableTranscriptionPanel } from "@/components/resumable-transcription-panel";
 import { StudyPackButton } from "@/components/study-pack-dialog";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
@@ -73,6 +74,11 @@ function MaterialDetail() {
       <div className="mx-auto max-w-[1440px]">
         {longMedia ? (
           <>
+            <ResumableTranscriptionPanel
+              key={`ranges:${material.id}`}
+              material={material}
+              onDraftApplied={() => setTranscriptRevision((current) => current + 1)}
+            />
             <AutomaticTranscriptionPanel
               key={material.id}
               material={material}

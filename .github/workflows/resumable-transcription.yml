@@ -1,0 +1,102 @@
+name: Resumable Transcription
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: resumable-transcription-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  resumable-transcription:
+    name: Contract, eval, types, lint, build and browser proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify resumable transcription contract
+        run: npm run verify:resumable-transcription-contract
+
+      - name: Run resumable transcription evaluations
+        id: resumable_evals
+        continue-on-error: true
+        run: npm run eval:resumable-transcription > resumable-transcription-evals.txt 2>&1
+
+      - name: Upload resumable transcription evaluation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resumable-transcription-eval-diagnostics
+          path: resumable-transcription-evals.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when resumable transcription evaluations fail
+        if: steps.resumable_evals.outcome == 'failure'
+        run: exit 1
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        id: resumable_lint
+        continue-on-error: true
+        run: npm run lint > resumable-transcription-lint.txt 2>&1
+
+      - name: Upload resumable transcription lint diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resumable-transcription-lint-diagnostics
+          path: resumable-transcription-lint.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when resumable transcription lint fails
+        if: steps.resumable_lint.outcome == 'failure'
+        run: exit 1
+
+      - name: Build
+        run: npm run build
+
+      - name: Run resumable transcription browser E2E
+        id: resumable_browser
+        continue-on-error: true
+        run: npm run e2e:resumable-transcription > resumable-transcription-browser.txt 2>&1
+
+      - name: Upload resumable transcription browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resumable-transcription-browser-diagnostics
+          path: resumable-transcription-browser.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when resumable transcription browser E2E fails
+        if: steps.resumable_browser.outcome == 'failure'
+        run: exit 1
