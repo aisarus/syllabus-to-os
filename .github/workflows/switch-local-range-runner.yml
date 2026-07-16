@@ -1,0 +1,48 @@
+name: Switch Local Range Runner
+
+on:
+  push:
+    branches:
+      - agent/local-range-extraction
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  switch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/local-range-extraction
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Switch panel to direct-WAV facade
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/components/local-range-extraction-panel.tsx')
+          text = path.read_text()
+          old = 'from "@/lib/local-range-extraction";'
+          new = 'from "@/lib/local-range-extraction-runner";'
+          if old not in text:
+              raise SystemExit('Local range extraction import marker not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          npx prettier --write src/components/local-range-extraction-panel.tsx src/lib/local-range-extraction-runner.ts
+
+      - name: Commit switch and remove workflow
+        run: |
+          rm .github/workflows/switch-local-range-runner.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: use direct PCM WAV range extraction"
+          git push origin HEAD:agent/local-range-extraction
