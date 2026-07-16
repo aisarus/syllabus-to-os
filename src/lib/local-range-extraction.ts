@@ -8,6 +8,8 @@ import {
 export const DEFAULT_RANGE_AUDIO_BITS_PER_SECOND = 64_000;
 export const RANGE_CAPTURE_TOLERANCE_SECONDS = 1.5;
 export const MAX_LOCAL_CAPTURE_SECONDS = 30 * 60;
+const MEDIA_OPERATION_TIMEOUT_MS = 15_000;
+const RECORDER_FINALIZATION_GRACE_MS = 5_000;
 
 export type LocalRangeExtractionPhase = "preparing" | "seeking" | "capturing" | "finalizing";
 
@@ -109,14 +111,23 @@ export async function extractLocalAudioRange(
   element.playsInline = true;
   element.defaultPlaybackRate = 1;
   element.playbackRate = 1;
-  element.src = buildLongMediaStreamUrl(manifest);
   element.crossOrigin = "anonymous";
+  element.disableRemotePlayback = true;
+  element.style.display = "none";
+  element.src = buildLongMediaStreamUrl(manifest);
+  document.body.append(element);
+
   const AudioContextConstructor = window.AudioContext ?? window.webkitAudioContext;
   if (!AudioContextConstructor) throw new Error("Web Audio is unavailable in this browser.");
   const audioContext = new AudioContextConstructor();
   const source = audioContext.createMediaElementSource(element);
   const destination = audioContext.createMediaStreamDestination();
+  const silentGain = audioContext.createGain();
+  silentGain.gain.value = 0;
   source.connect(destination);
+  source.connect(silentGain);
+  silentGain.connect(audioContext.destination);
+
   const recorder = new MediaRecorder(destination.stream, {
     mimeType: estimate.mimeType,
     audioBitsPerSecond,
@@ -125,17 +136,25 @@ export async function extractLocalAudioRange(
   let captureStartedAt = 0;
   let captureStoppedAt = 0;
   let pollTimer: number | undefined;
+  let captureTimeout: number | undefined;
   let settled = false;
 
   const cleanup = async () => {
     if (pollTimer !== undefined) window.clearInterval(pollTimer);
+    if (captureTimeout !== undefined) window.clearTimeout(captureTimeout);
     options.signal?.removeEventListener("abort", onAbort);
     element.pause();
     element.removeAttribute("src");
     element.load();
+    element.remove();
     source.disconnect();
+    silentGain.disconnect();
     destination.stream.getTracks().forEach((track) => track.stop());
-    await audioContext.close().catch(() => undefined);
+    await withTimeout(
+      audioContext.close(),
+      3_000,
+      "Timed out closing the local audio context.",
+    ).catch(() => undefined);
   };
 
   const stopRecorder = () => {
@@ -162,7 +181,11 @@ export async function extractLocalAudioRange(
       fraction: 0,
     });
     await seekMediaElement(element, startSeconds, options.signal);
-    await audioContext.resume();
+    await withTimeout(
+      audioContext.resume(),
+      MEDIA_OPERATION_TIMEOUT_MS,
+      "Timed out starting the local audio clock.",
+    );
     throwIfAborted(options.signal);
 
     const stopped = new Promise<void>((resolve, reject) => {
@@ -175,7 +198,20 @@ export async function extractLocalAudioRange(
     options.signal?.addEventListener("abort", onAbort, { once: true });
     recorder.start(1_000);
     captureStartedAt = performance.now();
-    await element.play();
+    await withTimeout(
+      element.play(),
+      MEDIA_OPERATION_TIMEOUT_MS,
+      "Timed out starting local media playback.",
+    );
+
+    captureTimeout = window.setTimeout(
+      () => {
+        captureStoppedAt = performance.now();
+        element.pause();
+        stopRecorder();
+      },
+      Math.ceil(estimate.durationSeconds * 1_000) + RECORDER_FINALIZATION_GRACE_MS,
+    );
 
     pollTimer = window.setInterval(() => {
       const capturedSeconds = Math.max(
@@ -195,7 +231,11 @@ export async function extractLocalAudioRange(
       }
     }, 50);
 
-    await stopped;
+    await withTimeout(
+      stopped,
+      Math.ceil(estimate.durationSeconds * 1_000) + RECORDER_FINALIZATION_GRACE_MS + 2_000,
+      "Timed out finalizing the local range capture.",
+    );
     settled = true;
     throwIfAborted(options.signal);
     captureStoppedAt ||= performance.now();
@@ -240,8 +280,9 @@ export async function extractLocalAudioRange(
     };
   } catch (error) {
     if (!settled) stopRecorder();
-    if (options.signal?.aborted)
+    if (options.signal?.aborted) {
       throw new DOMException("Local range extraction cancelled.", "AbortError");
+    }
     throw error;
   } finally {
     await cleanup();
@@ -344,6 +385,22 @@ async function measureBlobDuration(blob: Blob): Promise<number | undefined> {
     element.removeAttribute("src");
     URL.revokeObjectURL(url);
   }
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timeout);
+        reject(error);
+      },
+    );
+  });
 }
 
 function throwIfAborted(signal?: AbortSignal): void {
