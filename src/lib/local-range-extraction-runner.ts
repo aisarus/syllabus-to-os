@@ -1,4 +1,4 @@
-import type { LongMediaManifest } from "./long-media";
+import type { LongMediaChunkRecord, LongMediaManifest } from "./long-media";
 import {
   extractLocalAudioRange as extractRealtimeLocalAudioRange,
   estimateLocalRangeExtraction,
@@ -6,7 +6,7 @@ import {
   type LocalRangeExtractionProgress,
   type LocalRangeExtractionResult,
 } from "./local-range-extraction";
-import { buildLongMediaStreamUrl, ensureLongMediaStreamWorker } from "./long-media-streaming";
+import { ensureLongMediaStreamWorker } from "./long-media-streaming";
 
 export {
   estimateLocalRangeExtraction,
@@ -16,6 +16,9 @@ export {
 };
 
 const WAV_HEADER_PROBE_BYTES = 64 * 1024;
+const LONG_MEDIA_DB_NAME = "lamdan-long-media";
+const LONG_MEDIA_DB_VERSION = 1;
+const LONG_MEDIA_CHUNK_STORE = "chunks";
 
 interface PcmWavHeader {
   channels: number;
@@ -107,8 +110,9 @@ async function tryExtractPcmWavRange(
   if (!Number.isFinite(startSeconds) || !Number.isFinite(endSeconds) || startSeconds < 0) {
     throw new Error("The extraction range is invalid.");
   }
-  if (endSeconds <= startSeconds)
+  if (endSeconds <= startSeconds) {
     throw new Error("The extraction range must have a positive duration.");
+  }
   if (manifest.durationSeconds && endSeconds > manifest.durationSeconds + 0.05) {
     throw new Error("The extraction range extends beyond the current lecture duration.");
   }
@@ -121,15 +125,8 @@ async function tryExtractPcmWavRange(
   });
 
   await ensureLongMediaStreamWorker();
-  const streamUrl = buildLongMediaStreamUrl(manifest);
-  const headerResponse = await fetch(streamUrl, {
-    headers: { Range: `bytes=0-${WAV_HEADER_PROBE_BYTES - 1}` },
-    signal: options.signal,
-  });
-  if (headerResponse.status !== 206 && !headerResponse.ok) {
-    throw new Error(`The local WAV header request failed with HTTP ${headerResponse.status}.`);
-  }
-  const headerBytes = new Uint8Array(await headerResponse.arrayBuffer());
+  const probeEnd = Math.min(manifest.size, WAV_HEADER_PROBE_BYTES);
+  const headerBytes = await readStoredMediaRange(manifest, 0, probeEnd, options.signal);
   const header = parsePcmWavHeader(headerBytes);
   if (!header) return null;
 
@@ -146,16 +143,12 @@ async function tryExtractPcmWavRange(
     totalSeconds: endSeconds - startSeconds,
     fraction: 0,
   });
-  const pcmResponse = await fetch(streamUrl, {
-    headers: { Range: `bytes=${firstByte}-${lastByteExclusive - 1}` },
-    signal: options.signal,
-  });
-  if (pcmResponse.status !== 206) {
-    throw new Error(
-      `The exact WAV range request returned HTTP ${pcmResponse.status} instead of 206.`,
-    );
-  }
-  const pcmBytes = new Uint8Array(await pcmResponse.arrayBuffer());
+  const pcmBytes = await readStoredMediaRange(
+    manifest,
+    firstByte,
+    lastByteExclusive,
+    options.signal,
+  );
   const expectedBytes = lastByteExclusive - firstByte;
   if (pcmBytes.byteLength !== expectedBytes) {
     throw new Error(
@@ -191,6 +184,89 @@ async function tryExtractPcmWavRange(
     measuredBlobDurationSeconds: capturedDurationSeconds,
     sourceUploadId: manifest.uploadId,
   };
+}
+
+async function readStoredMediaRange(
+  manifest: LongMediaManifest,
+  startByte: number,
+  endByteExclusive: number,
+  signal?: AbortSignal,
+): Promise<Uint8Array> {
+  if (
+    !Number.isInteger(startByte) ||
+    !Number.isInteger(endByteExclusive) ||
+    startByte < 0 ||
+    endByteExclusive <= startByte ||
+    endByteExclusive > manifest.size
+  ) {
+    throw new Error("The requested local media byte range is invalid.");
+  }
+  throwIfAborted(signal);
+  const db = await openExistingLongMediaDatabase();
+  try {
+    const result = new Uint8Array(endByteExclusive - startByte);
+    const firstChunkIndex = Math.floor(startByte / manifest.chunkSize);
+    const lastChunkIndex = Math.floor((endByteExclusive - 1) / manifest.chunkSize);
+    let writeOffset = 0;
+
+    for (let index = firstChunkIndex; index <= lastChunkIndex; index += 1) {
+      throwIfAborted(signal);
+      const chunk = await readChunk(db, manifest.uploadId, index);
+      if (!chunk || chunk.materialId !== manifest.materialId) {
+        throw new Error(`Stored lecture chunk ${index} is missing or belongs to another material.`);
+      }
+      const chunkStartByte = index * manifest.chunkSize;
+      const localStart = Math.max(0, startByte - chunkStartByte);
+      const localEnd = Math.min(chunk.blob.size, endByteExclusive - chunkStartByte);
+      if (localEnd <= localStart) continue;
+      const bytes = new Uint8Array(await chunk.blob.slice(localStart, localEnd).arrayBuffer());
+      result.set(bytes, writeOffset);
+      writeOffset += bytes.byteLength;
+    }
+
+    if (writeOffset !== result.byteLength) {
+      throw new Error(
+        `Stored lecture chunks produced ${writeOffset} bytes instead of ${result.byteLength}.`,
+      );
+    }
+    return result;
+  } finally {
+    db.close();
+  }
+}
+
+function openExistingLongMediaDatabase(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(LONG_MEDIA_DB_NAME, LONG_MEDIA_DB_VERSION);
+    request.onupgradeneeded = () => {
+      request.transaction?.abort();
+    };
+    request.onsuccess = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(LONG_MEDIA_CHUNK_STORE)) {
+        db.close();
+        reject(new Error("The stored lecture chunk database is unavailable."));
+        return;
+      }
+      resolve(db);
+    };
+    request.onerror = () => reject(request.error ?? new Error("Could not open stored lecture chunks."));
+    request.onblocked = () => reject(new Error("Stored lecture chunks are blocked by another tab."));
+  });
+}
+
+function readChunk(
+  db: IDBDatabase,
+  uploadId: string,
+  index: number,
+): Promise<LongMediaChunkRecord | undefined> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(LONG_MEDIA_CHUNK_STORE, "readonly");
+    const request = transaction.objectStore(LONG_MEDIA_CHUNK_STORE).get([uploadId, index]);
+    request.onsuccess = () => resolve(request.result as LongMediaChunkRecord | undefined);
+    request.onerror = () => reject(request.error ?? new Error(`Could not read lecture chunk ${index}.`));
+    transaction.onabort = () => reject(transaction.error ?? new Error(`Lecture chunk ${index} read aborted.`));
+  });
 }
 
 function buildPcmWavHeader(source: PcmWavHeader, dataSize: number): Uint8Array {
