@@ -1,0 +1,124 @@
+name: One-shot sync resumable branch
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Remove this workflow from main first
+        run: |
+          rm .github/workflows/sync-resumable-with-main.yml
+          git add .github/workflows/sync-resumable-with-main.yml
+          git commit -m "chore: remove one-shot resumable sync workflow"
+          git push origin HEAD:main
+      - name: Merge clean main into feature branch
+        run: |
+          git fetch origin main agent/resumable-long-transcription
+          git checkout -B agent/resumable-long-transcription origin/agent/resumable-long-transcription
+          git merge --no-edit origin/main
+      - name: Update P1-010 task block
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("TASKS.md")
+          text = path.read_text()
+          start = text.index("## P1-010 — Audio transcription review-and-apply")
+          end = text.index("\n---\n\n# Academic Autopilot sequence", start)
+          replacement = '''## P1-010 — Audio transcription review-and-apply
+
+- **Status:** [~]
+- **Priority:** active P1 delivery
+- **Size:** L
+- **Depends on:** durable long-media intake
+- **Current PR:** #48 (`P1-010C1`)
+
+### Delivered in P1-010A / PR #46
+
+- complete local audio/video storage in 8 MB IndexedDB chunks;
+- 4 GB local boundary, quota check, cancellation and SHA-256 verification;
+- local player, SRT/VTT/TXT import and editable timestamp blocks;
+- only approved non-empty transcript blocks become source chunks;
+- real 18 MB Chromium upload/apply/reload proof.
+
+### Delivered in P1-010B / PR #47
+
+- optional server-side OpenAI Audio Transcriptions provider;
+- exact provider/model/file/size disclosure and explicit consent;
+- 24 MB provider-request boundary and separate compressed provider-copy option;
+- cancellation, retry, interrupted-tab recovery and persisted attempt count;
+- separate local provider candidate with timestamps, speaker labels and uncertainty warnings;
+- visible uncovered intervals instead of model-memory gap filling;
+- stale source-upload rejection after recording replacement;
+- candidate loads into the editor only with `status: "draft"`;
+- current source chunks remain unchanged until manual review and Apply;
+- contract/evals and cancellation → retry → draft → reload Chromium proof.
+
+### Active P1-010C1 / PR #48 — resumable provider-range queues
+
+- [x] plan exact 15-minute ranges with a two-second overlap;
+- [x] persist per-range status, attempt, request id, warnings and timestamped results;
+- [x] require a provider-ready clip matching each displayed range;
+- [x] show provider, model and selected file count before explicit consent;
+- [x] upload selected ranges sequentially;
+- [x] preserve completed ranges when another range fails or is cancelled;
+- [x] retry only failed ranges and retain attempt history;
+- [x] offset clip timestamps into the complete lecture timeline;
+- [x] merge exact overlap duplicates without inventing speech;
+- [x] keep failed, cancelled and unselected intervals visible;
+- [x] reject queues tied to a replaced `sourceUploadId`;
+- [x] recover interrupted tabs while preserving completed results;
+- [x] load merged results only as unapproved transcript drafts;
+- [x] create zero source chunks before ordinary review and Apply;
+- [x] deterministic contract/evaluation suite;
+- [x] Chromium proof: two clips → isolated failure → retry → overlap merge → draft → reload;
+- [~] complete final repository regression matrix and merge PR #48.
+
+### Next P1-010C2 — automatic local extraction/transcoding
+
+- [ ] estimate CPU, memory and temporary storage before extraction;
+- [ ] extract exact range clips locally without changing playback speed or timing;
+- [ ] avoid loading a multi-gigabyte original into one in-memory buffer;
+- [ ] keep extraction cancellable and verify output duration/MIME/size;
+- [ ] connect verified clips to the existing C1 queue;
+- [ ] add extraction → provider mock → merged draft Chromium proof.
+
+### Remaining later work
+
+- streaming backup for raw media, editable transcript drafts and provider/range candidates;
+- live licensed Hebrew/Russian lecture quality, latency and cost validation.
+
+### Non-negotiable boundaries
+
+- no hidden upload during storage, navigation, playback or integrity checking;
+- timestamped source sections;
+- no automatic trusted transcript;
+- cancellation, timeout and retry;
+- explicit language and speaker uncertainty;
+- missing intervals remain visible;
+- outputs retain transcript-section references;
+- no range result becomes a source chunk automatically.
+'''
+          path.write_text(text[:start] + replacement + text[end:])
+          PY
+          git add TASKS.md
+          git commit -m "docs: update P1-010 resumable transcription tasks"
+      - name: Push synced feature branch
+        run: git push origin HEAD:agent/resumable-long-transcription
