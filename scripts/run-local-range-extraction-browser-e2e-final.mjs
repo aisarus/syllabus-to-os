@@ -130,7 +130,8 @@ const stages = [
   ],
   [
     `    await page.clickText("Извлечь локально");`,
-    `    await page.clickText("Извлечь локально");
+    `    await page.evaluate("window.confirm = () => true");
+    await page.clickText("Извлечь локально");
     console.log("[local-range] extraction clicked");`,
     "extraction click",
   ],
