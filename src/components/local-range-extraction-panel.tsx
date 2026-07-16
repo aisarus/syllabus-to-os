@@ -506,7 +506,7 @@ export function LocalRangeExtractionPanel({
       {!providerStatus?.configured ? (
         <p className="mt-3 flex items-center gap-2 text-xs text-yellow-200">
           <AlertTriangle className="h-4 w-4" />
-          {providerStatus?.reason ??
+          {providerStatus?.error ??
             (isRu
               ? "Провайдер расшифровки не настроен."
               : "The transcription provider is not configured.")}
