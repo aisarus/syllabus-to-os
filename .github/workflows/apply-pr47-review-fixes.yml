@@ -1,0 +1,45 @@
+name: Apply PR 47 review fixes
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.ref == 'agent/automatic-long-media-transcription' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/automatic-long-media-transcription
+          fetch-depth: 0
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Apply review fixes
+        run: node scripts/apply-pr47-review-fixes.mjs
+      - name: Format changed files
+        run: |
+          bunx prettier --write \
+            src/components/automatic-transcription-panel.tsx \
+            'src/routes/app.materials_.$materialId.tsx' \
+            src/lib/automatic-transcription.ts \
+            src/lib/server/automatic-transcription-provider.ts \
+            scripts/run-automatic-transcription-browser-e2e.mjs \
+            scripts/run-automatic-transcription-evals.mjs \
+            scripts/verify-automatic-transcription-contract.mjs
+      - name: Remove one-shot patch files
+        run: rm .github/workflows/apply-pr47-review-fixes.yml scripts/apply-pr47-review-fixes.mjs
+      - name: Commit review fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: harden automatic transcription consent and bounds"
+          git push origin HEAD:agent/automatic-long-media-transcription
