@@ -116,7 +116,9 @@ jobs:
       - name: Run local range extraction browser E2E
         id: extraction_browser
         continue-on-error: true
-        run: timeout --signal=TERM --kill-after=10s 180s node scripts/run-local-range-extraction-browser-e2e-final.mjs > local-range-extraction-browser.txt 2>&1
+        run: |
+          # Base scenario: scripts/run-local-range-extraction-browser-e2e.mjs
+          timeout --signal=TERM --kill-after=10s 180s node scripts/run-local-range-extraction-browser-e2e-final.mjs > local-range-extraction-browser.txt 2>&1
 
       - name: Upload extraction browser diagnostics
         if: always()
