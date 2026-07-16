@@ -8,6 +8,16 @@ The generated clip is persisted locally, attached to the existing revision-safe 
 
 **Implementation state:** integrated on PR #49; a normal connector head is running all final contracts, regressions and the real Chromium proof.
 
+## Extraction strategies
+
+Lamdan chooses the safest local strategy supported by the stored recording:
+
+- uncompressed PCM WAV recordings use a fast exact-byte path: Lamdan reads the WAV header, calculates frame-aligned offsets, requests only the selected PCM bytes and writes a new valid WAV clip;
+- WebM, M4A, MP4 and video recordings use the bounded real-time browser path through a media element, Web Audio and MediaRecorder;
+- both paths read through the same IndexedDB-backed HTTP Range Service Worker;
+- neither path reconstructs the complete multi-gigabyte recording as one JavaScript Blob;
+- the real-time fallback uses playback rate `1`, a zero-gain audio sink and explicit timeouts for audio-clock start, playback, recorder finalization and cleanup.
+
 ## IndexedDB streaming
 
 The browser registers a same-origin Service Worker at `/long-media-stream-worker.js`.
@@ -26,22 +36,22 @@ For requests under `/__lamdan_media__/<materialId>?uploadId=<uploadId>` the work
 
 ## Exact real-time capture
 
-For one persisted C1 range Lamdan:
+For a compressed-audio or video C1 range Lamdan:
 
 1. verifies Service Worker, Web Audio and MediaRecorder capabilities;
 2. shows expected wall time and approximate output size;
 3. asks for an explicit local-extraction confirmation;
-4. creates an audio/video element using the IndexedDB range-stream URL;
+4. creates a hidden audio/video element using the IndexedDB range-stream URL;
 5. loads metadata and rejects a stale or shorter recording;
 6. seeks to the exact range start;
-7. routes the media element into a `MediaStreamAudioDestinationNode` without connecting it to speakers;
+7. routes the media element into a `MediaStreamAudioDestinationNode` and a zero-gain output sink;
 8. records the audio track through MediaRecorder at playback rate `1`;
-9. stops at the exact range end;
+9. stops at the exact range end or a bounded finalization timeout;
 10. rejects empty, prematurely stopped or clearly wrong-duration output;
 11. persists the generated clip in `lamdan-range-extraction`;
 12. attaches the clip metadata to the same C1 range queue.
 
-Extraction is intentionally real-time. A 15-minute range takes roughly 15 minutes. The tab must remain active; background throttling or device sleep can invalidate the capture.
+Real-time fallback is intentionally real-time. A 15-minute compressed range takes roughly 15 minutes. The tab must remain active; background throttling or device sleep can invalidate the capture. PCM WAV extraction is normally much faster because it does not play the recording.
 
 ## Provider handoff
 
@@ -70,20 +80,21 @@ Generated clips live in a separate IndexedDB database and survive reloads. They 
 
 ## Capability boundary
 
-Local extraction is unavailable when the browser lacks a secure context, Service Workers, Web Audio, MediaRecorder or a supported audio output MIME. The UI shows the capability blocker instead of creating a fake or byte-sliced media file.
+Local extraction is unavailable when the required browser capabilities or source codec are missing. The UI shows the capability blocker instead of creating a fake or arbitrary byte-sliced media file.
 
-This first C2 slice targets browsers that can decode the stored lecture codec and record `audio/webm`, `audio/ogg` or `audio/mp4`. Codec compatibility must be verified by the browser during metadata load and capture.
+The direct strategy currently accepts standard PCM RIFF/WAVE files. Other WAV encodings fall back to the browser capture path when supported. The real-time strategy targets browsers that can decode the stored lecture codec and record `audio/webm`, `audio/ogg` or `audio/mp4`.
 
 ## Verification plan
 
 Before merge the permanent gate must prove:
 
 - HTTP Range parsing and 416 behavior;
+- PCM WAV header parsing and frame-aligned byte selection;
 - exact wall-time and output-size estimates;
 - TypeScript, ESLint, formatting and production build;
 - a real Chromium WAV fixture stored as IndexedDB chunks;
-- Service Worker `206` playback without complete-Blob reconstruction;
-- exact local capture and persisted generated clip;
+- Service Worker `206` reads without complete-Blob reconstruction;
+- exact local WAV creation and persisted generated clip;
 - provider mock handoff through the existing range queue;
 - draft-only merge and reload persistence;
 - zero automatic source chunks;
