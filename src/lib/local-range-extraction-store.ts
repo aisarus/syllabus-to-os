@@ -146,7 +146,8 @@ function readRecord<T>(db: IDBDatabase, key: IDBValidKey): Promise<T | undefined
     const transaction = db.transaction(CLIP_STORE, "readonly");
     const request = transaction.objectStore(CLIP_STORE).get(key);
     request.onsuccess = () => resolve(request.result as T | undefined);
-    request.onerror = () => reject(request.error ?? new Error("Could not read a local range clip."));
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not read a local range clip."));
   });
 }
 

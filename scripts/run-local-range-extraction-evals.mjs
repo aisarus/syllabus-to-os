@@ -67,7 +67,7 @@ assert.ok(listeners.has("message"), "the worker must allow immediate client clai
   assert.equal(estimate.estimatedWallSeconds, 15 * 60);
   assert.equal(
     estimate.estimatedBytes,
-    Math.ceil(((15 * 60) * DEFAULT_RANGE_AUDIO_BITS_PER_SECOND) / 8),
+    Math.ceil((15 * 60 * DEFAULT_RANGE_AUDIO_BITS_PER_SECOND) / 8),
   );
 }
 

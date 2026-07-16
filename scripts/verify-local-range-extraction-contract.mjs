@@ -37,8 +37,8 @@ for (const marker of [
   'STREAM_PREFIX = "/__lamdan_media__/"',
   'request.headers.get("range")',
   "parseRangeHeader",
-  'status: partial ? 206 : 200',
-  'status: 416',
+  "status: partial ? 206 : 200",
+  "status: 416",
   '"Content-Range"',
   '"Accept-Ranges"',
   "createRangeStream",
@@ -53,7 +53,7 @@ for (const marker of [
 for (const marker of [
   "inspectLongMediaStreamingCapability",
   'navigator.serviceWorker.register(STREAM_WORKER_URL, { scope: "/" })',
-  'LAM_DAN_CLAIM_CLIENTS',
+  "LAM_DAN_CLAIM_CLIENTS",
   "buildLongMediaStreamUrl",
   'url.searchParams.set("uploadId", manifest.uploadId)',
   "window.isSecureContext",
@@ -112,7 +112,7 @@ for (const marker of [
 }
 
 for (const marker of [
-  'import { LocalRangeExtractionPanel }',
+  "import { LocalRangeExtractionPanel }",
   "<LocalRangeExtractionPanel",
   "rangeQueueRevision",
   "onQueueChanged={refreshRangeQueue}",

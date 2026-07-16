@@ -103,10 +103,7 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
     };
   }, [refresh]);
 
-  const clipByRangeId = useMemo(
-    () => new Map(clips.map((clip) => [clip.rangeId, clip])),
-    [clips],
-  );
+  const clipByRangeId = useMemo(() => new Map(clips.map((clip) => [clip.rangeId, clip])), [clips]);
   const extract = async (range: ResumableTranscriptionRange) => {
     if (!manifest || !job || busyRangeId) return;
     const estimate = estimateLocalRangeExtraction(range.startSeconds, range.endSeconds);
@@ -130,15 +127,10 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
       fraction: 0,
     });
     try {
-      const result = await extractLocalAudioRange(
-        manifest,
-        range.startSeconds,
-        range.endSeconds,
-        {
-          signal: controller.signal,
-          onProgress: setProgress,
-        },
-      );
+      const result = await extractLocalAudioRange(manifest, range.startSeconds, range.endSeconds, {
+        signal: controller.signal,
+        onProgress: setProgress,
+      });
       const latestManifest = await getLongMediaManifest(material.id);
       if (!latestManifest || latestManifest.uploadId !== manifest.uploadId) {
         throw new Error(
@@ -162,7 +154,10 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
           : `Local clip ready: ${formatFileSize(record.size)}`,
       );
     } catch (error) {
-      if (controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError")) {
+      if (
+        controller.signal.aborted ||
+        (error instanceof DOMException && error.name === "AbortError")
+      ) {
         toast.info(isRu ? "Локальная нарезка отменена." : "Local extraction cancelled.");
       } else {
         toast.error(error instanceof Error ? error.message : String(error));
@@ -197,7 +192,9 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
           <div className="flex items-center gap-2">
             <Scissors className="h-5 w-5 text-primary" />
             <h2 className="font-serif text-xl font-semibold">
-              {isRu ? "Локально извлечь clips из оригинала" : "Extract local clips from the original"}
+              {isRu
+                ? "Локально извлечь clips из оригинала"
+                : "Extract local clips from the original"}
             </h2>
           </div>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -237,7 +234,8 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
                   </strong>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {isRu ? "Время работы" : "Wall time"}: ~
-                    {Math.ceil(estimate.estimatedWallSeconds / 60)} min · {isRu ? "ожидаемый размер" : "estimated size"}: ~
+                    {Math.ceil(estimate.estimatedWallSeconds / 60)} min ·{" "}
+                    {isRu ? "ожидаемый размер" : "estimated size"}: ~
                     {formatFileSize(estimate.estimatedBytes)}
                   </p>
                   {clip ? (
@@ -252,7 +250,9 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
                     size="sm"
                     variant={clip ? "outline" : "default"}
                     onClick={() => void extract(range)}
-                    disabled={!capability.supported || Boolean(busyRangeId) || job.status === "draft_loaded"}
+                    disabled={
+                      !capability.supported || Boolean(busyRangeId) || job.status === "draft_loaded"
+                    }
                   >
                     {busy ? (
                       <Loader2 className="me-1 h-3.5 w-3.5 animate-spin" />
@@ -270,7 +270,11 @@ export function LocalRangeExtractionPanel({ material }: { material: Material }) 
                         : "Extract locally"}
                   </Button>
                   {busy ? (
-                    <Button size="sm" variant="destructive" onClick={() => abortRef.current?.abort()}>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => abortRef.current?.abort()}
+                    >
                       <PauseCircle className="me-1 h-3.5 w-3.5" />
                       {isRu ? "Отмена" : "Cancel"}
                     </Button>

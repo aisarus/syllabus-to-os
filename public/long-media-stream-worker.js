@@ -110,7 +110,8 @@ function createRangeStream(db, manifest, start, end) {
         const chunkStart = index * manifest.chunkSize;
         const localStart = offset - chunkStart;
         const localEnd = Math.min(record.blob.size, end - chunkStart + 1);
-        if (localEnd <= localStart) throw new Error(`Lecture chunk ${index} does not cover the range.`);
+        if (localEnd <= localStart)
+          throw new Error(`Lecture chunk ${index} does not cover the range.`);
         const bytes = new Uint8Array(await record.blob.slice(localStart, localEnd).arrayBuffer());
         offset += bytes.byteLength;
         controller.enqueue(bytes);
@@ -131,7 +132,8 @@ function openDatabase() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error("Could not open lecture-media storage."));
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not open lecture-media storage."));
     request.onblocked = () => reject(new Error("Lecture-media storage is blocked by another tab."));
   });
 }
@@ -141,6 +143,7 @@ function readRecord(db, storeName, key) {
     const transaction = db.transaction(storeName, "readonly");
     const request = transaction.objectStore(storeName).get(key);
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error("Could not read lecture-media storage."));
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not read lecture-media storage."));
   });
 }

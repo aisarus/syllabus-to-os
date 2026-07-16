@@ -45,7 +45,8 @@ export function inspectLongMediaStreamingCapability(): LongMediaStreamingCapabil
 
 export async function ensureLongMediaStreamWorker(): Promise<ServiceWorkerRegistration> {
   const capability = inspectLongMediaStreamingCapability();
-  if (!capability.serviceWorker) throw new Error("Service Workers are unavailable in this browser.");
+  if (!capability.serviceWorker)
+    throw new Error("Service Workers are unavailable in this browser.");
   const registration = await navigator.serviceWorker.register(STREAM_WORKER_URL, { scope: "/" });
   await navigator.serviceWorker.ready;
   if (!navigator.serviceWorker.controller) {
@@ -53,7 +54,9 @@ export async function ensureLongMediaStreamWorker(): Promise<ServiceWorkerRegist
     await waitForController();
   }
   if (!navigator.serviceWorker.controller) {
-    throw new Error("The local media stream worker is installed, but this tab must be reloaded once.");
+    throw new Error(
+      "The local media stream worker is installed, but this tab must be reloaded once.",
+    );
   }
   return registration;
 }

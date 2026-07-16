@@ -54,7 +54,8 @@ export function estimateLocalRangeExtraction(
   const durationSeconds = Math.max(0, endSeconds - startSeconds);
   const mimeType = chooseRangeRecorderMimeType();
   const reasons = [...capability.reasons];
-  if (!mimeType) reasons.push("This browser exposes MediaRecorder but no supported audio output format.");
+  if (!mimeType)
+    reasons.push("This browser exposes MediaRecorder but no supported audio output format.");
   if (!Number.isFinite(startSeconds) || !Number.isFinite(endSeconds) || startSeconds < 0) {
     reasons.push("The extraction range is invalid.");
   }
@@ -175,7 +176,10 @@ export async function extractLocalAudioRange(
     await element.play();
 
     pollTimer = window.setInterval(() => {
-      const capturedSeconds = Math.max(0, Math.min(estimate.durationSeconds, element.currentTime - startSeconds));
+      const capturedSeconds = Math.max(
+        0,
+        Math.min(estimate.durationSeconds, element.currentTime - startSeconds),
+      );
       options.onProgress?.({
         phase: "capturing",
         capturedSeconds,
@@ -208,7 +212,8 @@ export async function extractLocalAudioRange(
     const measuredBlobDurationSeconds = await measureBlobDuration(blob).catch(() => undefined);
     if (
       measuredBlobDurationSeconds !== undefined &&
-      Math.abs(measuredBlobDurationSeconds - estimate.durationSeconds) > RANGE_CAPTURE_TOLERANCE_SECONDS
+      Math.abs(measuredBlobDurationSeconds - estimate.durationSeconds) >
+        RANGE_CAPTURE_TOLERANCE_SECONDS
     ) {
       throw new Error(
         `The extracted clip duration (${measuredBlobDurationSeconds.toFixed(2)}s) does not match the requested range (${estimate.durationSeconds.toFixed(2)}s).`,
@@ -233,7 +238,8 @@ export async function extractLocalAudioRange(
     };
   } catch (error) {
     if (!settled) stopRecorder();
-    if (options.signal?.aborted) throw new DOMException("Local range extraction cancelled.", "AbortError");
+    if (options.signal?.aborted)
+      throw new DOMException("Local range extraction cancelled.", "AbortError");
     throw error;
   } finally {
     await cleanup();
@@ -256,10 +262,15 @@ export function chooseRangeRecorderMimeType(): string | null {
 function waitForMediaReady(element: HTMLMediaElement, signal?: AbortSignal): Promise<void> {
   if (element.readyState >= HTMLMediaElement.HAVE_METADATA) return Promise.resolve();
   return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => finish(new Error("Timed out loading local media metadata.")), 15_000);
+    const timeout = window.setTimeout(
+      () => finish(new Error("Timed out loading local media metadata.")),
+      15_000,
+    );
     const onLoaded = () => finish();
-    const onError = () => finish(new Error(element.error?.message || "The local media stream could not be decoded."));
-    const onAbort = () => finish(new DOMException("Local range extraction cancelled.", "AbortError"));
+    const onError = () =>
+      finish(new Error(element.error?.message || "The local media stream could not be decoded."));
+    const onAbort = () =>
+      finish(new DOMException("Local range extraction cancelled.", "AbortError"));
     const finish = (error?: Error | DOMException) => {
       window.clearTimeout(timeout);
       element.removeEventListener("loadedmetadata", onLoaded);
@@ -275,13 +286,22 @@ function waitForMediaReady(element: HTMLMediaElement, signal?: AbortSignal): Pro
   });
 }
 
-function seekMediaElement(element: HTMLMediaElement, time: number, signal?: AbortSignal): Promise<void> {
+function seekMediaElement(
+  element: HTMLMediaElement,
+  time: number,
+  signal?: AbortSignal,
+): Promise<void> {
   if (Math.abs(element.currentTime - time) < 0.05) return Promise.resolve();
   return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => finish(new Error("Timed out seeking the local recording.")), 10_000);
+    const timeout = window.setTimeout(
+      () => finish(new Error("Timed out seeking the local recording.")),
+      10_000,
+    );
     const onSeeked = () => finish();
-    const onError = () => finish(new Error(element.error?.message || "The local recording could not seek."));
-    const onAbort = () => finish(new DOMException("Local range extraction cancelled.", "AbortError"));
+    const onError = () =>
+      finish(new Error(element.error?.message || "The local recording could not seek."));
+    const onAbort = () =>
+      finish(new DOMException("Local range extraction cancelled.", "AbortError"));
     const finish = (error?: Error | DOMException) => {
       window.clearTimeout(timeout);
       element.removeEventListener("seeked", onSeeked);
@@ -302,7 +322,10 @@ async function measureBlobDuration(blob: Blob): Promise<number | undefined> {
   const url = URL.createObjectURL(blob);
   try {
     await new Promise<void>((resolve, reject) => {
-      const timeout = window.setTimeout(() => reject(new Error("Timed out reading clip duration.")), 5_000);
+      const timeout = window.setTimeout(
+        () => reject(new Error("Timed out reading clip duration.")),
+        5_000,
+      );
       element.onloadedmetadata = () => {
         window.clearTimeout(timeout);
         resolve();

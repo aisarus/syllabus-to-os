@@ -20,8 +20,8 @@ export function isLocalRangeClipReadyEvent(
   const detail = event.detail as Partial<LocalRangeClipReadyDetail> | undefined;
   return Boolean(
     detail &&
-      typeof detail.materialId === "string" &&
-      typeof detail.rangeId === "string" &&
-      detail.file instanceof File,
+    typeof detail.materialId === "string" &&
+    typeof detail.rangeId === "string" &&
+    detail.file instanceof File,
   );
 }

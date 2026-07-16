@@ -427,7 +427,8 @@ async function main() {
     await page.waitForText("Локально извлечь clips из оригинала");
     await page.clickText("Извлечь локально");
 
-    await page.waitFor(`(async () => {
+    await page.waitFor(
+      `(async () => {
       const db = await new Promise((resolve, reject) => {
         const request = indexedDB.open("lamdan-range-extraction", 1);
         request.onsuccess = () => resolve(request.result);
@@ -440,7 +441,9 @@ async function main() {
       });
       db.close();
       return clip?.blob?.size > 0 && clip?.sourceUploadId === "upload_extract";
-    })()`, 60_000);
+    })()`,
+      60_000,
+    );
 
     const rangeResponse = await page.evaluate(`(async () => {
       const response = await fetch("/__lamdan_media__/mat_extract?uploadId=upload_extract", {
@@ -501,16 +504,31 @@ async function main() {
 
     const beforeReload = await inspectProof(page);
     assert(beforeReload.clipSize > 0, "The generated local clip was not persisted.");
-    assert(beforeReload.jobStatus === "draft_loaded", "The range queue was not marked draft_loaded.");
+    assert(
+      beforeReload.jobStatus === "draft_loaded",
+      "The range queue was not marked draft_loaded.",
+    );
     assert(beforeReload.requestCount === 1, "The extracted clip was not sent exactly once.");
-    assert(beforeReload.sourceChunkCount === 0, "Local extraction created source chunks automatically.");
+    assert(
+      beforeReload.sourceChunkCount === 0,
+      "Local extraction created source chunks automatically.",
+    );
 
     await page.reload();
     await page.waitForText("Локально извлечь clips из оригинала");
     const afterReload = await inspectProof(page);
-    assert(afterReload.clipSize === beforeReload.clipSize, "The generated clip disappeared after reload.");
-    assert(afterReload.jobStatus === "draft_loaded", "The loaded queue state disappeared after reload.");
-    assert(afterReload.transcriptStatus === "draft", "Reload changed the transcript approval state.");
+    assert(
+      afterReload.clipSize === beforeReload.clipSize,
+      "The generated clip disappeared after reload.",
+    );
+    assert(
+      afterReload.jobStatus === "draft_loaded",
+      "The loaded queue state disappeared after reload.",
+    );
+    assert(
+      afterReload.transcriptStatus === "draft",
+      "Reload changed the transcript approval state.",
+    );
     assert(afterReload.sourceChunkCount === 0, "Reload invented source chunks.");
     console.log("Local exact-range extraction browser E2E passed.");
   } finally {
