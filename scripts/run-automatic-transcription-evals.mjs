@@ -88,6 +88,30 @@ assert.deepEqual(
   "duplicate provider quality warnings must be collapsed",
 );
 
+const durationBounded = normalizeAutomaticSegments(
+  [
+    {
+      id: "near-end",
+      startSeconds: 119.999,
+      endSeconds: 130,
+      text: "brief final fragment",
+    },
+    {
+      id: "outside",
+      startSeconds: 120,
+      endSeconds: 125,
+      text: "must be dropped",
+    },
+  ],
+  120,
+);
+assert.equal(durationBounded.length, 1, "segments starting at the media end must be dropped");
+assert.equal(
+  durationBounded[0].endSeconds,
+  120,
+  "normalized timestamps must never exceed the media duration",
+);
+
 const gaps = findAutomaticTranscriptionGaps(normalized, 120, 8);
 assert.deepEqual(
   gaps,

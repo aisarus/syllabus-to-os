@@ -80,7 +80,7 @@ export async function transcribeWithConfiguredProvider(input: {
   if (input.file.size <= 0 || input.file.size > MAX_AUTOMATIC_TRANSCRIPTION_BYTES) {
     return failure(
       model,
-      `Provider-ready media must be smaller than ${Math.floor(MAX_AUTOMATIC_TRANSCRIPTION_BYTES / 1024 / 1024) + 1} MB.`,
+      `Provider-ready media must be ${Math.floor(MAX_AUTOMATIC_TRANSCRIPTION_BYTES / 1024 / 1024)} MB or smaller.`,
     );
   }
   if (!ACCEPTED_EXTENSIONS.includes(extensionOf(input.file.name))) {

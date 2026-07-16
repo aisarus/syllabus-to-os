@@ -131,7 +131,8 @@ export function normalizeAutomaticSegments(
     Number.isFinite(durationSeconds) && (durationSeconds ?? 0) > 0 ? durationSeconds : undefined;
   return segments
     .map((segment, index) => {
-      const startSeconds = Math.max(0, Number(segment.startSeconds) || 0);
+      const rawStart = Math.max(0, Number(segment.startSeconds) || 0);
+      const startSeconds = maxDuration ? Math.min(maxDuration, rawStart) : rawStart;
       const rawEnd = Number(segment.endSeconds);
       const endSeconds = Math.max(
         startSeconds + 0.01,
@@ -142,7 +143,7 @@ export function normalizeAutomaticSegments(
         ...segment,
         id: segment.id || `auto_${index}_${Math.round(startSeconds * 1000)}`,
         startSeconds,
-        endSeconds: Math.max(startSeconds + 0.01, boundedEnd),
+        endSeconds: boundedEnd,
         text: segment.text.trim(),
         speaker: segment.speaker?.trim() || undefined,
         language: segment.language?.trim() || undefined,
@@ -151,7 +152,12 @@ export function normalizeAutomaticSegments(
         ),
       };
     })
-    .filter((segment) => segment.text && segment.endSeconds > segment.startSeconds)
+    .filter(
+      (segment) =>
+        segment.text &&
+        segment.endSeconds > segment.startSeconds &&
+        (!maxDuration || segment.startSeconds < maxDuration),
+    )
     .sort(
       (left, right) => left.startSeconds - right.startSeconds || left.endSeconds - right.endSeconds,
     );

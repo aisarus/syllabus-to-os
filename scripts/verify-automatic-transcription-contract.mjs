@@ -59,6 +59,8 @@ for (const marker of [
   "requestAutomaticTranscription",
   "XMLHttpRequest",
   'body.set("file"',
+  "segment.startSeconds < maxDuration",
+  "endSeconds: boundedEnd",
 ]) {
   requireMarker(model, marker, `Automatic transcription model/client is missing: ${marker}`);
 }
@@ -88,6 +90,7 @@ for (const marker of [
   "normalizeProviderSegments",
   "Low average token confidence",
   "no usable speech segments",
+  "MB or smaller",
 ]) {
   requireMarker(provider, marker, `Server transcription provider is missing: ${marker}`);
 }
@@ -124,6 +127,8 @@ for (const marker of [
   "putAutomaticTranscriptionJob",
   "putLongMediaTranscript",
   "window.confirm",
+  "setProviderCopy(null)",
+  "if (nextModel !== selectedModel) setConsent(false)",
 ]) {
   requireMarker(panel, marker, `Automatic transcription review UI is missing: ${marker}`);
 }
@@ -138,6 +143,7 @@ for (const marker of [
   "onDraftApplied",
   "transcriptRevision",
   "<LongMediaWorkspace",
+  "key={material.id}",
 ]) {
   requireMarker(materialRoute, marker, `Long-media detail integration is missing: ${marker}`);
 }
@@ -163,6 +169,7 @@ for (const marker of [
 for (const marker of [
   "the bounded provider limit must accept",
   "missing or unintelligible intervals must remain visible",
+  "normalized timestamps must never exceed the media duration",
   "provider output may never become approved source evidence automatically",
   "provider output from a replaced recording must be rejected",
   "Reviewed automatic transcription deterministic evaluations passed",
@@ -176,6 +183,8 @@ for (const marker of [
   'status === "draft"',
   "source chunks",
   "Reviewed automatic transcription browser E2E passed",
+  "lamdan-long-media deletion was blocked",
+  "lamdan-automatic-transcription deletion was blocked",
 ]) {
   requireMarker(browser, marker, `Automatic transcription browser proof is missing: ${marker}`);
 }

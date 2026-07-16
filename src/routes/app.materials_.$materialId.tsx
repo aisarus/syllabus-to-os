@@ -74,6 +74,7 @@ function MaterialDetail() {
         {longMedia ? (
           <>
             <AutomaticTranscriptionPanel
+              key={material.id}
               material={material}
               onDraftApplied={() => setTranscriptRevision((current) => current + 1)}
             />

@@ -338,13 +338,15 @@ async function main() {
         const request = indexedDB.deleteDatabase("lamdan-long-media");
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
-        request.onblocked = () => resolve();
+        request.onblocked = () =>
+          reject(new Error("lamdan-long-media deletion was blocked"));
       });
       await new Promise((resolve, reject) => {
         const request = indexedDB.deleteDatabase("lamdan-automatic-transcription");
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
-        request.onblocked = () => resolve();
+        request.onblocked = () =>
+          reject(new Error("lamdan-automatic-transcription deletion was blocked"));
       });
 
       const db = await new Promise((resolve, reject) => {

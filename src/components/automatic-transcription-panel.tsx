@@ -69,6 +69,12 @@ export function AutomaticTranscriptionPanel({
 
   useEffect(() => {
     let cancelled = false;
+    setManifest(undefined);
+    setProviderStatus(undefined);
+    setJob(undefined);
+    setProviderCopy(null);
+    setConsent(false);
+    setUploadProgress(0);
     setLoading(true);
     void Promise.all([
       getLongMediaManifest(material.id),
@@ -419,7 +425,14 @@ export function AutomaticTranscriptionPanel({
                 className="mt-1"
                 type="checkbox"
                 checked={requestSpeakerLabels}
-                onChange={(event) => setRequestSpeakerLabels(event.target.checked)}
+                onChange={(event) => {
+                  const nextRequestSpeakerLabels = event.target.checked;
+                  const nextModel = nextRequestSpeakerLabels
+                    ? (models?.speakerModel ?? providerStatus?.model)
+                    : (models?.plainModel ?? providerStatus?.model);
+                  if (nextModel !== selectedModel) setConsent(false);
+                  setRequestSpeakerLabels(nextRequestSpeakerLabels);
+                }}
                 disabled={busy}
               />
               <span>
