@@ -69,6 +69,16 @@ replaceRequired(
   "wait timeout diagnostics",
 );
 
+replaceRequired(
+  `      const db = await new Promise((resolve, reject) => {
+        const request = indexedDB.open("lamdan-range-extraction", 1);`,
+  `      const databases = await indexedDB.databases();
+      if (!databases.some((database) => database.name === "lamdan-range-extraction")) return false;
+      const db = await new Promise((resolve, reject) => {
+        const request = indexedDB.open("lamdan-range-extraction", 1);`,
+  "non-destructive clip database wait",
+);
+
 const stages = [
   [
     `    preview = spawn(`,
