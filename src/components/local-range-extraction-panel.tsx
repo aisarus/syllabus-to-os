@@ -73,8 +73,7 @@ export function LocalRangeExtractionPanel({
   const abortRef = useRef<AbortController | null>(null);
   const [manifest, setManifest] = useState<LongMediaManifest>();
   const [job, setJob] = useState<ResumableTranscriptionJob>();
-  const [providerStatus, setProviderStatus] =
-    useState<AutomaticTranscriptionProviderStatus>();
+  const [providerStatus, setProviderStatus] = useState<AutomaticTranscriptionProviderStatus>();
   const [clips, setClips] = useState<LocalRangeClipRecord[]>([]);
   const [busyRangeId, setBusyRangeId] = useState<string | null>(null);
   const [progress, setProgress] = useState<LocalRangeExtractionProgress>();
@@ -122,10 +121,7 @@ export function LocalRangeExtractionPanel({
     };
   }, [refresh]);
 
-  const clipByRangeId = useMemo(
-    () => new Map(clips.map((clip) => [clip.rangeId, clip])),
-    [clips],
-  );
+  const clipByRangeId = useMemo(() => new Map(clips.map((clip) => [clip.rangeId, clip])), [clips]);
   const extractedCount = job?.ranges.filter((range) => clipByRangeId.has(range.id)).length ?? 0;
   const mergedSegments = useMemo(
     () => (job ? mergeResumableTranscriptionSegments(job) : []),
@@ -157,15 +153,10 @@ export function LocalRangeExtractionPanel({
     });
 
     try {
-      const result = await extractLocalAudioRange(
-        manifest,
-        range.startSeconds,
-        range.endSeconds,
-        {
-          signal: controller.signal,
-          onProgress: setProgress,
-        },
-      );
+      const result = await extractLocalAudioRange(manifest, range.startSeconds, range.endSeconds, {
+        signal: controller.signal,
+        onProgress: setProgress,
+      });
       const latestManifest = await getLongMediaManifest(material.id);
       if (!latestManifest || latestManifest.uploadId !== manifest.uploadId) {
         throw new Error(
@@ -193,10 +184,7 @@ export function LocalRangeExtractionPanel({
       );
       const savedJob = await putResumableTranscriptionJob(attached);
       setJob(savedJob);
-      setClips((current) => [
-        record,
-        ...current.filter((clip) => clip.rangeId !== range.id),
-      ]);
+      setClips((current) => [record, ...current.filter((clip) => clip.rangeId !== range.id)]);
       setProviderConsent(false);
       onQueueChanged?.();
       toast.success(
@@ -277,9 +265,7 @@ export function LocalRangeExtractionPanel({
           signal: controller.signal,
           onUploadProgress: (fraction) => {
             setJob((visible) =>
-              visible
-                ? updateResumableRangeProgress(visible, queuedRange.id, fraction)
-                : visible,
+              visible ? updateResumableRangeProgress(visible, queuedRange.id, fraction) : visible,
             );
           },
         });
@@ -428,9 +414,7 @@ export function LocalRangeExtractionPanel({
                       {clip.fileName} · {formatFileSize(clip.size)}
                     </p>
                   ) : null}
-                  {range.error ? (
-                    <p className="mt-1 text-xs text-red-300">{range.error}</p>
-                  ) : null}
+                  {range.error ? <p className="mt-1 text-xs text-red-300">{range.error}</p> : null}
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2">
                   <Button
@@ -465,11 +449,7 @@ export function LocalRangeExtractionPanel({
                     </Button>
                   ) : null}
                   {clip && !busy ? (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => void removeClip(range.id)}
-                    >
+                    <Button size="icon" variant="ghost" onClick={() => void removeClip(range.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   ) : null}
@@ -500,7 +480,7 @@ export function LocalRangeExtractionPanel({
           <div className="min-w-0 flex-1">
             <strong>{isRu ? "Явное согласие перед отправкой" : "Explicit upload consent"}</strong>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              {providerStatus?.providerDisplayName ?? "OpenAI Audio Transcriptions"} ·{" "}
+              {providerStatus?.displayName ?? "OpenAI Audio Transcriptions"} ·{" "}
               {providerStatus?.model ?? job.model}.{" "}
               {isRu
                 ? "Будут отправлены только локально извлечённые clips, не оригинал пары."

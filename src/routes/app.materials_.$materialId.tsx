@@ -95,10 +95,7 @@ function MaterialDetail() {
               material={material}
               onDraftApplied={() => setTranscriptRevision((current) => current + 1)}
             />
-            <LongMediaWorkspace
-              key={`${material.id}:${transcriptRevision}`}
-              material={material}
-            />
+            <LongMediaWorkspace key={`${material.id}:${transcriptRevision}`} material={material} />
           </>
         ) : isMultiPageImageMaterial(material) ? (
           <MultiPageImageWorkspace material={material} />

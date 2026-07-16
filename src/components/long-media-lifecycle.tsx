@@ -44,12 +44,7 @@ export function LongMediaLifecycle() {
       const jobIds = new Set(jobs.map((job) => job.materialId));
       const rangeJobIds = new Set(rangeJobs.map((job) => job.materialId));
       const localClipIds = new Set(localClips.map((clip) => clip.materialId));
-      const visibleLocalIds = new Set([
-        ...manifestIds,
-        ...jobIds,
-        ...rangeJobIds,
-        ...localClipIds,
-      ]);
+      const visibleLocalIds = new Set([...manifestIds, ...jobIds, ...rangeJobIds, ...localClipIds]);
 
       for (const materialId of orphanSinceRef.current.keys()) {
         if (validMaterialIds.has(materialId) || !visibleLocalIds.has(materialId)) {

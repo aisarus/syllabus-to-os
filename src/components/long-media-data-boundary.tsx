@@ -9,10 +9,7 @@ import {
   listAutomaticTranscriptionJobs,
 } from "@/lib/automatic-transcription-store";
 import { formatFileSize } from "@/lib/document-ingestion";
-import {
-  clearLocalRangeClips,
-  getLocalRangeClipStats,
-} from "@/lib/local-range-extraction-store";
+import { clearLocalRangeClips, getLocalRangeClipStats } from "@/lib/local-range-extraction-store";
 import {
   clearAllLongMediaData,
   getLongMediaStorageStats,

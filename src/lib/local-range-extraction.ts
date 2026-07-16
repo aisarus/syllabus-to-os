@@ -107,6 +107,8 @@ export async function extractLocalAudioRange(
   const element = document.createElement(manifest.kind === "video" ? "video" : "audio");
   element.preload = "auto";
   element.playsInline = true;
+  element.defaultPlaybackRate = 1;
+  element.playbackRate = 1;
   element.src = buildLongMediaStreamUrl(manifest);
   element.crossOrigin = "anonymous";
   const AudioContextConstructor = window.AudioContext ?? window.webkitAudioContext;
