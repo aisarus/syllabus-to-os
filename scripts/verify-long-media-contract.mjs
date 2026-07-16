@@ -136,14 +136,22 @@ for (const marker of [
   "Workspace ZIP v2 пока не включает сырой многогигабайтный файл",
   "getLongMediaStorageStats",
   "clearAllLongMediaData",
-  "Удалить только записи",
+  "clearAutomaticTranscriptionJobs",
+  "automaticCandidateCount",
+  "Удалить локальный media-слой",
 ]) {
   requireMarker(dataBoundary, marker, `Long-media data boundary is missing: ${marker}`);
 }
 for (const marker of ["<LongMediaLifecycle />", "<LongMediaDataBoundary />"]) {
   requireMarker(appRoute, marker, `App lifecycle wiring is missing: ${marker}`);
 }
-for (const marker of ["isLongMediaMaterial", "<LongMediaWorkspace material={material} />"]) {
+for (const marker of [
+  "isLongMediaMaterial",
+  "AutomaticTranscriptionPanel",
+  "onDraftApplied",
+  "<LongMediaWorkspace",
+  "material={material}",
+]) {
   requireMarker(materialRoute, marker, `Material detail wiring is missing: ${marker}`);
 }
 for (const marker of [

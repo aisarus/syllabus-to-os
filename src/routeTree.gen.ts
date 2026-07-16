@@ -38,6 +38,8 @@ import { Route as AppNotesNoteIdRouteImport } from './routes/app.notes.$noteId'
 import { Route as AppMaterialsMaterialIdRouteImport } from './routes/app.materials_.$materialId'
 import { Route as AppCoursesCourseIdRouteImport } from './routes/app.courses_.$courseId'
 import { Route as ApiAiTranslateTextRouteImport } from './routes/api/ai/translate-text'
+import { Route as ApiAiTranscriptionStatusRouteImport } from './routes/api/ai/transcription-status'
+import { Route as ApiAiTranscribeLongMediaRouteImport } from './routes/api/ai/transcribe-long-media'
 import { Route as ApiAiStatusRouteImport } from './routes/api/ai/status'
 import { Route as ApiAiSimplifyTextRouteImport } from './routes/api/ai/simplify-text'
 import { Route as ApiAiReviewOpenAnswerRouteImport } from './routes/api/ai/review-open-answer'
@@ -198,6 +200,18 @@ const ApiAiTranslateTextRoute = ApiAiTranslateTextRouteImport.update({
   path: '/api/ai/translate-text',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiTranscriptionStatusRoute =
+  ApiAiTranscriptionStatusRouteImport.update({
+    id: '/api/ai/transcription-status',
+    path: '/api/ai/transcription-status',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAiTranscribeLongMediaRoute =
+  ApiAiTranscribeLongMediaRouteImport.update({
+    id: '/api/ai/transcribe-long-media',
+    path: '/api/ai/transcribe-long-media',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAiStatusRoute = ApiAiStatusRouteImport.update({
   id: '/api/ai/status',
   path: '/api/ai/status',
@@ -303,6 +317,8 @@ export interface FileRoutesByFullPath {
   '/api/ai/review-open-answer': typeof ApiAiReviewOpenAnswerRoute
   '/api/ai/simplify-text': typeof ApiAiSimplifyTextRoute
   '/api/ai/status': typeof ApiAiStatusRoute
+  '/api/ai/transcribe-long-media': typeof ApiAiTranscribeLongMediaRoute
+  '/api/ai/transcription-status': typeof ApiAiTranscriptionStatusRoute
   '/api/ai/translate-text': typeof ApiAiTranslateTextRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
   '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
@@ -346,6 +362,8 @@ export interface FileRoutesByTo {
   '/api/ai/review-open-answer': typeof ApiAiReviewOpenAnswerRoute
   '/api/ai/simplify-text': typeof ApiAiSimplifyTextRoute
   '/api/ai/status': typeof ApiAiStatusRoute
+  '/api/ai/transcribe-long-media': typeof ApiAiTranscribeLongMediaRoute
+  '/api/ai/transcription-status': typeof ApiAiTranscriptionStatusRoute
   '/api/ai/translate-text': typeof ApiAiTranslateTextRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdRoute
   '/app/materials/$materialId': typeof AppMaterialsMaterialIdRoute
@@ -391,6 +409,8 @@ export interface FileRoutesById {
   '/api/ai/review-open-answer': typeof ApiAiReviewOpenAnswerRoute
   '/api/ai/simplify-text': typeof ApiAiSimplifyTextRoute
   '/api/ai/status': typeof ApiAiStatusRoute
+  '/api/ai/transcribe-long-media': typeof ApiAiTranscribeLongMediaRoute
+  '/api/ai/transcription-status': typeof ApiAiTranscriptionStatusRoute
   '/api/ai/translate-text': typeof ApiAiTranslateTextRoute
   '/app/courses_/$courseId': typeof AppCoursesCourseIdRoute
   '/app/materials_/$materialId': typeof AppMaterialsMaterialIdRoute
@@ -437,6 +457,8 @@ export interface FileRouteTypes {
     | '/api/ai/review-open-answer'
     | '/api/ai/simplify-text'
     | '/api/ai/status'
+    | '/api/ai/transcribe-long-media'
+    | '/api/ai/transcription-status'
     | '/api/ai/translate-text'
     | '/app/courses/$courseId'
     | '/app/materials/$materialId'
@@ -480,6 +502,8 @@ export interface FileRouteTypes {
     | '/api/ai/review-open-answer'
     | '/api/ai/simplify-text'
     | '/api/ai/status'
+    | '/api/ai/transcribe-long-media'
+    | '/api/ai/transcription-status'
     | '/api/ai/translate-text'
     | '/app/courses/$courseId'
     | '/app/materials/$materialId'
@@ -524,6 +548,8 @@ export interface FileRouteTypes {
     | '/api/ai/review-open-answer'
     | '/api/ai/simplify-text'
     | '/api/ai/status'
+    | '/api/ai/transcribe-long-media'
+    | '/api/ai/transcription-status'
     | '/api/ai/translate-text'
     | '/app/courses_/$courseId'
     | '/app/materials_/$materialId'
@@ -549,6 +575,8 @@ export interface RootRouteChildren {
   ApiAiReviewOpenAnswerRoute: typeof ApiAiReviewOpenAnswerRoute
   ApiAiSimplifyTextRoute: typeof ApiAiSimplifyTextRoute
   ApiAiStatusRoute: typeof ApiAiStatusRoute
+  ApiAiTranscribeLongMediaRoute: typeof ApiAiTranscribeLongMediaRoute
+  ApiAiTranscriptionStatusRoute: typeof ApiAiTranscriptionStatusRoute
   ApiAiTranslateTextRoute: typeof ApiAiTranslateTextRoute
 }
 
@@ -757,6 +785,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiTranslateTextRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/transcription-status': {
+      id: '/api/ai/transcription-status'
+      path: '/api/ai/transcription-status'
+      fullPath: '/api/ai/transcription-status'
+      preLoaderRoute: typeof ApiAiTranscriptionStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/transcribe-long-media': {
+      id: '/api/ai/transcribe-long-media'
+      path: '/api/ai/transcribe-long-media'
+      fullPath: '/api/ai/transcribe-long-media'
+      preLoaderRoute: typeof ApiAiTranscribeLongMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ai/status': {
       id: '/api/ai/status'
       path: '/api/ai/status'
@@ -937,6 +979,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAiReviewOpenAnswerRoute: ApiAiReviewOpenAnswerRoute,
   ApiAiSimplifyTextRoute: ApiAiSimplifyTextRoute,
   ApiAiStatusRoute: ApiAiStatusRoute,
+  ApiAiTranscribeLongMediaRoute: ApiAiTranscribeLongMediaRoute,
+  ApiAiTranscriptionStatusRoute: ApiAiTranscriptionStatusRoute,
   ApiAiTranslateTextRoute: ApiAiTranslateTextRoute,
 }
 export const routeTree = rootRouteImport

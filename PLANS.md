@@ -16,7 +16,7 @@ This file records the active implementation plan. Product intent remains in `ROA
 
 ## Completed Academic Autopilot slices
 
-- `P1-010A Durable whole-lecture audio/video intake` — verified in PR #46; merge pending final documentation-head CI.
+- `P1-010A Durable whole-lecture audio/video intake` — merged and verified in PR #46.
 - `P1-011 Study Command Center v1` — merged in PR #36.
 - `P1-012 Lecture-to-Study-Pack` — merged in PR #37.
 - `P1-013 Concept graph and evidence model v1` — merged in PR #38.
@@ -54,7 +54,7 @@ A user can upload one complete audio or video lecture, keep it locally across re
 17. Repair the Cloudflare production preview path and async IndexedDB browser predicate. ✓
 18. Pass a real Chromium proof using an 18 MB file written as three IndexedDB chunks, SHA-checked, transcribed from SRT, applied as two source chunks and reloaded. ✓
 19. Pass complete repository CI and the dedicated Exam Engine regression on the same final head. ✓
-20. Merge after the final documentation-head rerun. Pending.
+20. Merge PR #46. ✓
 
 ### Non-negotiable boundaries
 
@@ -67,36 +67,60 @@ A user can upload one complete audio or video lecture, keep it locally across re
 - Workspace ZIP v2 does not claim to contain the raw multi-gigabyte recording or editable transcript draft.
 - The user must keep the original recording separately until streaming backup exists.
 
-## Active next delivery — P1-010B reviewed automatic transcription
+## Active delivery — P1-010B Reviewed automatic transcription v1
 
 ### Product outcome
 
-A user explicitly chooses to send a long recording for transcription, can see which provider receives it, can cancel and resume bounded transcription work, and reviews every returned timestamped block before it becomes a Lamdan source.
+A user explicitly chooses to send one provider-ready recording copy for transcription, sees which provider/model/file receives it, can cancel and retry, inspects timestamp gaps and uncertain speaker-labelled segments, and loads the result only as an unapproved editable draft.
 
-### Planned sequence
+### Implemented sequence on PR #47
 
-1. Inspect the existing server/provider abstraction and official long-file APIs.
-2. Choose a provider path that does not silently proxy a multi-gigabyte recording through an unsuitable request body.
-3. Add an explicit consent screen naming provider, file, size and retention boundary before upload.
-4. Split transcription into bounded time ranges or resumable provider jobs.
-5. Persist local job state, provider file/job identifiers, completed ranges and retry state without storing secrets.
-6. Support cancellation, retry and partial-success recovery.
-7. Preserve timestamps, language, speaker labels when available and uncertainty/missing-audio intervals.
-8. Store provider output only as an editable transcript draft.
-9. Require human approval before any block becomes a source chunk.
-10. Keep existing approved transcript/source chunks unchanged after provider failure, cancellation or retry.
-11. Add deterministic job-state and source-integrity evaluations.
-12. Add browser proof for explicit consent, partial result, cancellation/resume, review and apply.
-13. Merge only after provider contract, types, lint, build and browser gates pass.
+1. Inspect the existing server/provider abstraction and official audio-transcription boundary. ✓
+2. Keep the built-in local/manual workflow fully usable without an external transcription provider. ✓
+3. Add an optional OpenAI Audio Transcriptions server adapter with server-only `OPENAI_API_KEY`. ✓
+4. Cap one provider request at 24 MB and validate supported formats before upload. ✓
+5. Allow a separately selected compressed provider copy while keeping the large local original private. ✓
+6. Add an explicit consent surface naming provider, model, exact file and size. ✓
+7. Guarantee that navigation, playback, SHA checking and manual transcript work trigger no provider upload. ✓
+8. Persist local job status, attempt count, provider request id and returned candidate without secrets. ✓
+9. Support cancellation, retry and interrupted-tab recovery. ✓
+10. Reject a result tied to an older lecture `sourceUploadId`. ✓
+11. Preserve timestamps, language, speaker labels and provider uncertainty warnings. ✓
+12. Surface uncovered time ranges instead of filling missing speech from model memory. ✓
+13. Keep provider output outside the current transcript until a separate user action. ✓
+14. Load every provider segment into the editor with `status: "draft"`. ✓
+15. Keep already applied source chunks unchanged after failure, cancellation, retry or draft loading. ✓
+16. Include provider candidates in local data controls and guarded orphan cleanup. ✓
+17. Add deterministic job-state, stale-upload, gap and source-integrity evaluations. ✓
+18. Add browser proof for consent → cancel → retry → candidate → draft-only load → reload. In verification.
+19. Pass complete CI, Exam Engine and long-media regressions on one final head. Pending.
+20. Merge PR #47. Pending.
+
+### Current bounded scope
+
+This first provider slice deliberately does not pretend that a 4 GB original can be posted through a normal request body. The original may be stored locally up to 4 GB, but one automatic provider request is at most 24 MB. A larger lecture requires a user-created compressed complete-lecture copy.
 
 ### Non-negotiable boundaries
 
 - No hidden upload during local storage, playback, integrity checking or ordinary material navigation.
-- The exact external provider is shown before upload.
-- Cancelled or failed provider work cannot replace the current approved transcript.
-- Provider text remains untrusted draft content until explicit review.
+- The exact external provider, model, file and size are shown before upload.
+- Cancelled or failed provider work cannot replace the current transcript or source chunks.
+- Provider text remains an untrusted candidate until explicitly loaded into the editor.
+- Loaded provider blocks remain `draft` until individually reviewed and approved.
 - Missing or unintelligible intervals remain visible instead of being filled from model memory.
 - Secrets and provider credentials remain server-side.
+- A stale candidate from a replaced recording cannot be applied.
+- Workspace ZIP v2 does not claim to contain provider candidates.
+
+## P1-010C Subsequent long-file provider work
+
+1. Add local audio extraction/transcoding with explicit CPU/storage estimates.
+2. Split long audio on time boundaries without changing playback speed.
+3. Persist a resumable range/job queue for provider requests.
+4. Merge partial results while preserving uncovered/failed ranges.
+5. Add provider-aware retry/backoff and per-range cancellation.
+6. Add streaming backup/export for raw media, editable drafts and provider candidates.
+7. Validate real Hebrew/Russian lecture quality on licensed audio and record latency/cost.
 
 ## Subsequent delivery
 

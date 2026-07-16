@@ -1,0 +1,89 @@
+name: Automatic Transcription
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: automatic-transcription-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  automatic-transcription:
+    name: Contract, eval, build and browser proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify automatic transcription contract
+        id: contract
+        continue-on-error: true
+        run: npm run verify:automatic-transcription-contract 2>&1 | tee automatic-transcription-contract-output.txt
+
+      - name: Run automatic transcription evaluations
+        id: evals
+        continue-on-error: true
+        run: npm run eval:automatic-transcription 2>&1 | tee automatic-transcription-eval-output.txt
+
+      - name: Typecheck
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck 2>&1 | tee automatic-transcription-typecheck-output.txt
+
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint 2>&1 | tee automatic-transcription-lint-output.txt
+
+      - name: Build and verify generated route tree
+        id: build
+        continue-on-error: true
+        run: |
+          npm run build 2>&1 | tee automatic-transcription-build-output.txt
+          git diff --exit-code -- src/routeTree.gen.ts
+
+      - name: Run automatic transcription browser E2E
+        id: browser
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        run: npm run e2e:automatic-transcription 2>&1 | tee automatic-transcription-browser-output.txt
+
+      - name: Upload automatic transcription diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automatic-transcription-diagnostics
+          path: |
+            automatic-transcription-contract-output.txt
+            automatic-transcription-eval-output.txt
+            automatic-transcription-typecheck-output.txt
+            automatic-transcription-lint-output.txt
+            automatic-transcription-build-output.txt
+            automatic-transcription-browser-output.txt
+          if-no-files-found: ignore
+          retention-days: 5
+
+      - name: Fail when automatic transcription gates fail
+        if: steps.contract.outcome == 'failure' || steps.evals.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.build.outcome == 'failure' || steps.browser.outcome == 'failure'
+        run: exit 1

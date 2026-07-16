@@ -136,7 +136,11 @@ for (const marker of [
   "Сохранить и начать",
   "spawnSync",
 ]) {
-  requireMarker(browserRunner, marker, `Functional Exam Engine browser runner is missing: ${marker}`);
+  requireMarker(
+    browserRunner,
+    marker,
+    `Functional Exam Engine browser runner is missing: ${marker}`,
+  );
 }
 
 for (const marker of [

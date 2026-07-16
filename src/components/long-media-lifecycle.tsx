@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useRef } from "react";
+import {
+  deleteAutomaticTranscriptionJob,
+  listAutomaticTranscriptionJobs,
+} from "@/lib/automatic-transcription-store";
 import { deleteLongMediaData, listLongMediaManifests } from "@/lib/long-media-store";
 import { getDataSnapshot, useData } from "@/lib/store";
 
@@ -21,30 +25,36 @@ export function LongMediaLifecycle() {
 
     const inspectOrphans = async () => {
       const validMaterialIds = new Set(getDataSnapshot().materials.map((item) => item.id));
-      const manifests = await listLongMediaManifests();
+      const [manifests, jobs] = await Promise.all([
+        listLongMediaManifests(),
+        listAutomaticTranscriptionJobs(),
+      ]);
       const now = Date.now();
-      const visibleManifestIds = new Set(manifests.map((manifest) => manifest.materialId));
+      const manifestIds = new Set(manifests.map((manifest) => manifest.materialId));
+      const jobIds = new Set(jobs.map((job) => job.materialId));
+      const visibleLocalIds = new Set([...manifestIds, ...jobIds]);
 
       for (const materialId of orphanSinceRef.current.keys()) {
-        if (validMaterialIds.has(materialId) || !visibleManifestIds.has(materialId)) {
+        if (validMaterialIds.has(materialId) || !visibleLocalIds.has(materialId)) {
           orphanSinceRef.current.delete(materialId);
         }
       }
 
-      for (const manifest of manifests) {
+      for (const materialId of visibleLocalIds) {
         if (cancelled) return;
-        if (validMaterialIds.has(manifest.materialId)) {
-          orphanSinceRef.current.delete(manifest.materialId);
+        if (validMaterialIds.has(materialId)) {
+          orphanSinceRef.current.delete(materialId);
           continue;
         }
-        const firstSeenAt = orphanSinceRef.current.get(manifest.materialId);
+        const firstSeenAt = orphanSinceRef.current.get(materialId);
         if (!firstSeenAt) {
-          orphanSinceRef.current.set(manifest.materialId, now);
+          orphanSinceRef.current.set(materialId, now);
           continue;
         }
         if (now - firstSeenAt < ORPHAN_CONFIRMATION_MS) continue;
-        await deleteLongMediaData(manifest.materialId);
-        orphanSinceRef.current.delete(manifest.materialId);
+        if (manifestIds.has(materialId)) await deleteLongMediaData(materialId);
+        if (jobIds.has(materialId)) await deleteAutomaticTranscriptionJob(materialId);
+        orphanSinceRef.current.delete(materialId);
       }
     };
 

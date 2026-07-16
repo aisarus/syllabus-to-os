@@ -57,7 +57,8 @@ export function ExamEngineRestoredResult({
                   <div className="min-w-0">
                     <strong className="block">{question.prompt}</strong>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Выбрано: {selectedIndex === undefined ? "без ответа" : question.options[selectedIndex]}
+                      Выбрано:{" "}
+                      {selectedIndex === undefined ? "без ответа" : question.options[selectedIndex]}
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Правильный ответ: {question.options[question.correctIndex]}
@@ -70,8 +71,7 @@ export function ExamEngineRestoredResult({
         </div>
 
         <Button className="mt-5" variant="outline" onClick={onExit}>
-          <RotateCcw className="me-1 h-4 w-4" />
-          К blueprints
+          <RotateCcw className="me-1 h-4 w-4" />К blueprints
         </Button>
       </section>
     </div>
