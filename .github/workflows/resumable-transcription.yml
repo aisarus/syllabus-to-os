@@ -40,7 +40,22 @@ jobs:
         run: npm run verify:resumable-transcription-contract
 
       - name: Run resumable transcription evaluations
-        run: npm run eval:resumable-transcription
+        id: resumable_evals
+        continue-on-error: true
+        run: npm run eval:resumable-transcription > resumable-transcription-evals.txt 2>&1
+
+      - name: Upload resumable transcription evaluation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resumable-transcription-eval-diagnostics
+          path: resumable-transcription-evals.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when resumable transcription evaluations fail
+        if: steps.resumable_evals.outcome == 'failure'
+        run: exit 1
 
       - name: Typecheck
         run: npm run typecheck
