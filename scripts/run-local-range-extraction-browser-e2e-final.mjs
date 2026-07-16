@@ -52,6 +52,23 @@ replaceRequired(
   "deferred click dispatch",
 );
 
+replaceRequired(
+  `    throw new Error(\`Timed out waiting for: \${expression}\`);`,
+  `    let diagnostics;
+    try {
+      diagnostics = await this.evaluate(\`(() => ({
+        url: location.href,
+        body: document.body?.innerText?.slice(-5000) ?? "",
+        serviceWorkerController: Boolean(navigator.serviceWorker?.controller),
+        core: localStorage.getItem("lamdan.data.v1"),
+      }))()\`);
+    } catch (diagnosticError) {
+      diagnostics = { diagnosticError: diagnosticError instanceof Error ? diagnosticError.message : String(diagnosticError) };
+    }
+    throw new Error(\`Timed out waiting for: \${expression}\\nDiagnostics: \${JSON.stringify(diagnostics)}\`);`,
+  "wait timeout diagnostics",
+);
+
 const stages = [
   [
     `    preview = spawn(`,
