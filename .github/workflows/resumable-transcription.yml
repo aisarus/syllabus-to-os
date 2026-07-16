@@ -15,9 +15,9 @@ permissions:
 
 jobs:
   resumable-transcription:
-    name: Contract, eval, types, lint and build
+    name: Contract, eval, types, lint, build and browser proof
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Check out repository
@@ -80,3 +80,21 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Run resumable transcription browser E2E
+        id: resumable_browser
+        continue-on-error: true
+        run: npm run e2e:resumable-transcription > resumable-transcription-browser.txt 2>&1
+
+      - name: Upload resumable transcription browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resumable-transcription-browser-diagnostics
+          path: resumable-transcription-browser.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when resumable transcription browser E2E fails
+        if: steps.resumable_browser.outcome == 'failure'
+        run: exit 1
