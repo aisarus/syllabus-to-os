@@ -12,6 +12,7 @@ import {
   unresolvedResumableRanges,
   updateResumableRangeProgress,
 } from "../src/lib/resumable-transcription.ts";
+import { mergeResumableTranscriptionJobsForPersistence } from "../src/lib/resumable-transcription-store.ts";
 
 const manifest = {
   materialId: "mat_long",
@@ -64,6 +65,7 @@ let job = createResumableTranscriptionJob({
 });
 assert.equal(job.status, "planning");
 assert.equal(job.ranges.length, 5);
+assert.equal(job.revision, 0);
 
 job = attachResumableRangeFile(
   job,
@@ -189,6 +191,75 @@ assert.throws(
     2,
     "one failed range must not erase successful range results",
   );
+}
+
+{
+  const bounded = createResumableTranscriptionJob({
+    manifest: { ...manifest, durationSeconds: 180 },
+    providerStatus,
+    requestSpeakerLabels: false,
+    rangeSeconds: 60,
+    overlapSeconds: 30,
+  });
+  assert.equal(bounded.rangeSeconds, 60);
+  assert.equal(bounded.overlapSeconds, 15, "persisted overlap must match planner cap");
+  assert.equal(bounded.ranges[1].startSeconds, 45);
+}
+
+{
+  let repeated = createResumableTranscriptionJob({
+    manifest: { ...manifest, durationSeconds: 60 },
+    providerStatus,
+    requestSpeakerLabels: false,
+    rangeSeconds: 60,
+    overlapSeconds: 0,
+  });
+  repeated = attachResumableRangeFile(
+    repeated,
+    repeated.ranges[0].id,
+    { name: "repeat.mp3", size: 1000, type: "audio/mpeg" },
+    providerStatus.maxBytes,
+  );
+  repeated = beginResumableRangeAttempt(repeated, repeated.ranges[0].id);
+  repeated = completeResumableRangeAttempt(repeated, repeated.ranges[0].id, {
+    ok: true,
+    segments: [
+      { id: "yes_1", startSeconds: 1, endSeconds: 2, text: "yes" },
+      { id: "yes_2", startSeconds: 2.1, endSeconds: 3, text: "yes" },
+    ],
+  });
+  assert.equal(
+    mergeResumableTranscriptionSegments(repeated).length,
+    2,
+    "same-range repeated utterances must not be deduplicated",
+  );
+}
+
+{
+  const existing = {
+    ...job,
+    revision: 4,
+    ranges: job.ranges.map((range, index) =>
+      index === 0 ? { ...range, status: "review_ready", attempt: 1, updatedAt: 5000 } : range,
+    ),
+  };
+  const stale = {
+    ...job,
+    revision: 2,
+    ranges: job.ranges.map((range, index) =>
+      index === 0 ? { ...range, status: "uploading", attempt: 1, updatedAt: 4000 } : range,
+    ),
+  };
+  const persisted = mergeResumableTranscriptionJobsForPersistence(existing, stale, 6000);
+  assert.equal(persisted.ranges[0].status, "review_ready");
+  assert.equal(persisted.revision, 5);
+}
+
+{
+  const loaded = { ...job, status: "draft_loaded", revision: 8 };
+  const stale = { ...job, status: "review_ready", revision: 6 };
+  const persisted = mergeResumableTranscriptionJobsForPersistence(loaded, stale, 7000);
+  assert.equal(persisted.status, "draft_loaded", "draft_loaded must remain sticky across stale writes");
 }
 
 console.log("Resumable long-file transcription deterministic evaluations passed.");
