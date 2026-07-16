@@ -412,16 +412,26 @@ export function ResumableTranscriptionPanel({
             <Metric label={isRu ? "Диапазоны" : "Ranges"} value={job.ranges.length} />
             <Metric label={isRu ? "Готово" : "Complete"} value={completedCount} />
             <Metric label={isRu ? "Ошибки" : "Failed"} value={failedCount} />
-            <Metric label={isRu ? "Draft-фрагменты" : "Draft segments"} value={mergedSegments.length} />
+            <Metric
+              label={isRu ? "Draft-фрагменты" : "Draft segments"}
+              value={mergedSegments.length}
+            />
           </div>
 
           <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
             <div className="flex items-start gap-3">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
-                <strong>{isRu ? "Явное согласие на отдельные clips" : "Explicit consent for separate clips"}</strong>
+                <strong>
+                  {isRu
+                    ? "Явное согласие на отдельные clips"
+                    : "Explicit consent for separate clips"}
+                </strong>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  {job.providerDisplayName} · {job.model}. {isRu ? "Будут отправлены только выбранные ниже файлы, не локальный оригинал целиком." : "Only files selected below are sent, never the complete local original."}
+                  {job.providerDisplayName} · {job.model}.{" "}
+                  {isRu
+                    ? "Будут отправлены только выбранные ниже файлы, не локальный оригинал целиком."
+                    : "Only files selected below are sent, never the complete local original."}
                 </p>
                 <label className="mt-3 flex items-start gap-2 text-xs">
                   <input
@@ -482,15 +492,17 @@ export function ResumableTranscriptionPanel({
               variant="outline"
               onClick={() => void loadMergedDraft()}
               disabled={
-                mergedSegments.length === 0 ||
-                Boolean(busyRangeId) ||
-                job.status === "draft_loaded"
+                mergedSegments.length === 0 || Boolean(busyRangeId) || job.status === "draft_loaded"
               }
             >
               <CheckCircle2 className="me-1 h-4 w-4" />
               {isRu ? "Загрузить объединённый draft" : "Load merged draft"}
             </Button>
-            <Button variant="ghost" onClick={() => void discardQueue()} disabled={Boolean(busyRangeId)}>
+            <Button
+              variant="ghost"
+              onClick={() => void discardQueue()}
+              disabled={Boolean(busyRangeId)}
+            >
               <Trash2 className="me-1 h-4 w-4" />
               {isRu ? "Удалить очередь" : "Delete queue"}
             </Button>
@@ -502,7 +514,10 @@ export function ResumableTranscriptionPanel({
               <p className="mt-1 leading-5">
                 {coverageGaps
                   .slice(0, 8)
-                  .map((gap) => `${formatMediaTime(gap.startSeconds)}–${formatMediaTime(gap.endSeconds)}`)
+                  .map(
+                    (gap) =>
+                      `${formatMediaTime(gap.startSeconds)}–${formatMediaTime(gap.endSeconds)}`,
+                  )
                   .join(" · ")}
               </p>
             </div>
