@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, BookOpenCheck } from "lucide-react";
+import { useState } from "react";
+import { AutomaticTranscriptionPanel } from "@/components/automatic-transcription-panel";
 import { LongMediaWorkspace } from "@/components/long-media-workspace";
 import { MaterialOutputHistory } from "@/components/material-output-history";
 import { MaterialWorkspace } from "@/components/material-workspace";
@@ -21,6 +23,7 @@ function MaterialDetail() {
   const { t, lang } = useApp();
   const data = useData();
   const navigate = useNavigate();
+  const [transcriptRevision, setTranscriptRevision] = useState(0);
   const material = data.materials.find((item) => item.id === materialId);
   const isRu = lang === "ru";
 
@@ -69,7 +72,16 @@ function MaterialDetail() {
 
       <div className="mx-auto max-w-[1440px]">
         {longMedia ? (
-          <LongMediaWorkspace material={material} />
+          <>
+            <AutomaticTranscriptionPanel
+              material={material}
+              onDraftApplied={() => setTranscriptRevision((current) => current + 1)}
+            />
+            <LongMediaWorkspace
+              key={`${material.id}:${transcriptRevision}`}
+              material={material}
+            />
+          </>
         ) : isMultiPageImageMaterial(material) ? (
           <MultiPageImageWorkspace material={material} />
         ) : (
