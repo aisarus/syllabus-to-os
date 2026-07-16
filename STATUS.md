@@ -22,7 +22,7 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-004 Add local-first global search v2` — complete and verified; PR #34.
 - `P1-005 Store persistence and source-integrity hardening` — complete and verified; PR #35.
 - `P1-010A Durable whole-lecture audio/video intake` — complete and verified; PR #46 merged.
-- `P1-010B Reviewed automatic transcription v1` — [~] implemented on PR #47; verification active.
+- `P1-010B Reviewed automatic transcription v1` — [~] implemented on PR #47; final hardened verification active.
 - `P1-011 Study Command Center v1` — complete and verified; PR #36.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37.
 - `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38.
@@ -77,7 +77,11 @@ Delivered on `agent/automatic-long-media-transcription` / PR #47:
 - every loaded provider segment starts as `draft`, never `approved`;
 - cancellation, failure, retry and draft loading do not alter existing applied source chunks;
 - Data-page cleanup and guarded orphan pruning for provider candidates;
-- deterministic contract/evaluation suite and a Chromium cancellation → retry → candidate → draft → reload proof are being wired.
+- consent/provider-copy state is reset when material changes;
+- consent is invalidated when the effective disclosed provider model changes;
+- provider timestamps are clamped to media duration and out-of-range segments are dropped;
+- blocked IndexedDB cleanup now fails fast in the browser proof;
+- deterministic contract/evaluation suite and Chromium cancellation → retry → candidate → draft → reload proof passed before the review-hardening pass; final rerun is active.
 
 Current boundaries:
 
@@ -125,5 +129,5 @@ The deterministic/provider-mock pipeline can verify consent, persistence, cancel
 1. Verify and merge reviewed automatic transcription v1 in PR #47.
 2. Add automatic local transcoding or resumable multi-part jobs for originals above the one-request provider limit.
 3. Integrate long-media drafts/candidates into a streaming backup format.
-4. Extend Exam Engine with exam profiles, topic weights and bounded study planning.
+4. Extend Exam Engine with exam profiles, topic weights and bounded daily planning.
 5. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
