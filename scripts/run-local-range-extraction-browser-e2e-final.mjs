@@ -146,7 +146,7 @@ const stages = [
     `    console.log("[local-range] HTTP range verified");
     await page.checkLabel("Я вижу провайдера");
     await page.waitFor(\`(() => [...document.querySelectorAll("button")].some((button) =>
-      !button.disabled && button.textContent?.replace(/\\s+/g, " ").includes("Отправить извлечённые clips")
+      !button.disabled && button.textContent?.includes("Отправить извлечённые clips")
     ))()\`);
     console.log("[local-range] provider action enabled");`,
     "provider consent",
