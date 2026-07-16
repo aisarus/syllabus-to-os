@@ -4,6 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
+import {
+  clearAutomaticTranscriptionJobs,
+  listAutomaticTranscriptionJobs,
+} from "@/lib/automatic-transcription-store";
 import { formatFileSize } from "@/lib/document-ingestion";
 import {
   clearAllLongMediaData,
@@ -11,16 +15,24 @@ import {
   type LongMediaStorageStats,
 } from "@/lib/long-media-store";
 
+interface LongMediaBoundaryStats extends LongMediaStorageStats {
+  automaticCandidateCount: number;
+}
+
 export function LongMediaDataBoundary() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { lang } = useApp();
   const isRu = lang === "ru";
-  const [stats, setStats] = useState<LongMediaStorageStats | null>(null);
+  const [stats, setStats] = useState<LongMediaBoundaryStats | null>(null);
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
-      setStats(await getLongMediaStorageStats());
+      const [mediaStats, automaticJobs] = await Promise.all([
+        getLongMediaStorageStats(),
+        listAutomaticTranscriptionJobs(),
+      ]);
+      setStats({ ...mediaStats, automaticCandidateCount: automaticJobs.length });
     } catch {
       setStats(null);
     }
@@ -36,17 +48,21 @@ export function LongMediaDataBoundary() {
     if (
       !confirm(
         isRu
-          ? "Удалить все локальные аудио/видеофайлы и черновики их расшифровок? Core-материалы и уже применённые source chunks останутся."
-          : "Delete every local audio/video file and transcript draft? Core materials and already applied source chunks will remain.",
+          ? "Удалить все локальные аудио/видеофайлы, черновики расшифровок и automatic-transcription candidates? Core-материалы и уже применённые source chunks останутся."
+          : "Delete every local audio/video file, transcript draft and automatic-transcription candidate? Core materials and already applied source chunks will remain.",
       )
     ) {
       return;
     }
     setBusy(true);
     try {
-      await clearAllLongMediaData();
+      await Promise.all([clearAllLongMediaData(), clearAutomaticTranscriptionJobs()]);
       await refresh();
-      toast.success(isRu ? "Локальные записи лекций удалены" : "Local lecture recordings deleted");
+      toast.success(
+        isRu
+          ? "Локальные записи и transcription candidates удалены"
+          : "Local recordings and transcription candidates deleted",
+      );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : String(error));
     } finally {
@@ -62,18 +78,18 @@ export function LongMediaDataBoundary() {
           <div>
             <h2 className="text-sm font-semibold text-orange-100">
               {isRu
-                ? "Длинные аудио/видеозаписи — отдельный локальный слой"
-                : "Long audio/video recordings are a separate local layer"}
+                ? "Длинные записи и provider-candidates — отдельный локальный слой"
+                : "Long recordings and provider candidates are a separate local layer"}
             </h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {isRu
-                ? "Workspace ZIP v2 пока не включает сырой многогигабайтный файл и редактируемый transcript draft. В ZIP входят core-метаданные материала и уже применённые source chunks. Храни оригинальную запись отдельно."
-                : "Workspace ZIP v2 does not yet contain the raw multi-gigabyte file or editable transcript draft. It does contain core material metadata and already applied source chunks. Keep the original recording separately."}
+                ? "Workspace ZIP v2 пока не включает сырой многогигабайтный файл, редактируемый transcript draft или automatic-transcription candidate. В ZIP входят core-метаданные материала и уже применённые source chunks. Храни оригинальную запись отдельно."
+                : "Workspace ZIP v2 does not yet contain the raw multi-gigabyte file, editable transcript draft or automatic-transcription candidate. It does contain core material metadata and already applied source chunks. Keep the original recording separately."}
             </p>
             <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-foreground">
               <HardDrive className="h-3.5 w-3.5" />
               {stats
-                ? `${stats.mediaCount} ${isRu ? "записей" : "recordings"} · ${stats.transcriptCount} transcript drafts · ${formatFileSize(stats.totalBytes)}`
+                ? `${stats.mediaCount} ${isRu ? "записей" : "recordings"} · ${stats.transcriptCount} transcript drafts · ${stats.automaticCandidateCount} provider candidates · ${formatFileSize(stats.totalBytes)}`
                 : isRu
                   ? "Статистика long-media IndexedDB недоступна"
                   : "Long-media IndexedDB statistics are unavailable"}
@@ -84,14 +100,14 @@ export function LongMediaDataBoundary() {
           size="sm"
           variant="outline"
           onClick={() => void clearMedia()}
-          disabled={busy || !stats?.mediaCount}
+          disabled={busy || (!stats?.mediaCount && !stats?.automaticCandidateCount)}
         >
           {busy ? (
             <Loader2 className="me-1 h-4 w-4 animate-spin" />
           ) : (
             <Trash2 className="me-1 h-4 w-4" />
           )}
-          {isRu ? "Удалить только записи" : "Delete recordings only"}
+          {isRu ? "Удалить локальный media-слой" : "Delete local media layer"}
         </Button>
       </div>
     </section>
