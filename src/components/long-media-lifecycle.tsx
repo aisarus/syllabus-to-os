@@ -3,6 +3,10 @@ import {
   deleteAutomaticTranscriptionJob,
   listAutomaticTranscriptionJobs,
 } from "@/lib/automatic-transcription-store";
+import {
+  deleteLocalRangeClipsForMaterial,
+  listLocalRangeClips,
+} from "@/lib/local-range-extraction-store";
 import { deleteLongMediaData, listLongMediaManifests } from "@/lib/long-media-store";
 import {
   deleteResumableTranscriptionJob,
@@ -29,16 +33,18 @@ export function LongMediaLifecycle() {
 
     const inspectOrphans = async () => {
       const validMaterialIds = new Set(getDataSnapshot().materials.map((item) => item.id));
-      const [manifests, jobs, rangeJobs] = await Promise.all([
+      const [manifests, jobs, rangeJobs, localClips] = await Promise.all([
         listLongMediaManifests(),
         listAutomaticTranscriptionJobs(),
         listResumableTranscriptionJobs(),
+        listLocalRangeClips(),
       ]);
       const now = Date.now();
       const manifestIds = new Set(manifests.map((manifest) => manifest.materialId));
       const jobIds = new Set(jobs.map((job) => job.materialId));
       const rangeJobIds = new Set(rangeJobs.map((job) => job.materialId));
-      const visibleLocalIds = new Set([...manifestIds, ...jobIds, ...rangeJobIds]);
+      const localClipIds = new Set(localClips.map((clip) => clip.materialId));
+      const visibleLocalIds = new Set([...manifestIds, ...jobIds, ...rangeJobIds, ...localClipIds]);
 
       for (const materialId of orphanSinceRef.current.keys()) {
         if (validMaterialIds.has(materialId) || !visibleLocalIds.has(materialId)) {
@@ -61,6 +67,7 @@ export function LongMediaLifecycle() {
         if (manifestIds.has(materialId)) await deleteLongMediaData(materialId);
         if (jobIds.has(materialId)) await deleteAutomaticTranscriptionJob(materialId);
         if (rangeJobIds.has(materialId)) await deleteResumableTranscriptionJob(materialId);
+        if (localClipIds.has(materialId)) await deleteLocalRangeClipsForMaterial(materialId);
         orphanSinceRef.current.delete(materialId);
       }
     };

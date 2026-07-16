@@ -6,7 +6,7 @@ Last updated: 2026-07-16
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1, durable whole-lecture media intake and reviewed automatic transcription v1 are implemented and verified. Resumable long-file transcription C1 is the active delivery pass.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1, durable whole-lecture media intake, reviewed automatic transcription, resumable range queues and local exact-range extraction are implemented and verified.
 
 ## Completed task state
 
@@ -23,7 +23,8 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-005 Store persistence and source-integrity hardening` — complete and verified; PR #35.
 - `P1-010A Durable whole-lecture audio/video intake` — complete and verified; PR #46.
 - `P1-010B Reviewed automatic transcription v1` — complete and verified; PR #47.
-- `P1-010C1 Resumable provider-range queues` — [~] implemented on PR #48; final repository verification active.
+- `P1-010C1 Resumable provider-range queues` — complete and verified; PR #48.
+- `P1-010C2 Local exact-range extraction` — complete and verified on PR #49; final documentation head under revalidation.
 - `P1-011 Study Command Center v1` — complete and verified; PR #36.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37.
 - `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38.
@@ -34,9 +35,9 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-013E Edited-batch concept collision guard` — complete and verified; PR #44.
 - `P1-014A Frozen source-grounded Exam Engine v1` — complete and verified; PR #45.
 
-## Verified delivery — Whole-lecture intake and reviewed automatic transcription
+## Verified delivery — Whole-lecture processing stack
 
-Delivered in PR #46 and PR #47:
+Delivered in PR #46 through PR #49:
 
 - separate `/app/lecture-media` route and primary navigation item;
 - audio/video selection by MIME or common extension;
@@ -60,51 +61,48 @@ Delivered in PR #46 and PR #47:
 - stale result rejection through `sourceUploadId`;
 - candidate loads into the editor only with `status: "draft"`;
 - zero source-chunk changes until manual review and Apply;
-- real Chromium proofs for 18 MB local storage/apply/reload and cancellation → retry → candidate → draft → reload.
+- exact 15-minute resumable range queues with two-second overlap;
+- independent range failure, cancellation and retry without erasing completed ranges;
+- exact overlap merge without inventing uncovered speech;
+- local exact-range clips persisted in a separate IndexedDB store;
+- PCM WAV fast path that reads only the required frame-aligned bytes from existing 8 MB chunks;
+- bounded real-time MediaRecorder fallback for supported compressed audio and video;
+- explicit local-extraction consent and provider consent as separate actions;
+- generated clips attached to the existing revision-safe range queue;
+- local clips included in guarded orphan cleanup and Data-page deletion;
+- provider output remains an unapproved merged draft after reload;
+- raw media, editable drafts, provider candidates, range queues and extracted clips remain outside Workspace ZIP v2.
 
-## Active implementation pass — P1-010C1 resumable provider-range queues
+## P1-010C2 verification state
 
-Delivered on `agent/resumable-long-transcription` / PR #48:
+PR #49 passed on the same final product head:
 
-- exact 15-minute range planning with a two-second overlap;
-- one persisted status machine per range: `needs_file`, `ready`, `uploading`, `processing`, `review_ready`, `cancelled` or `failed`;
-- separate provider-ready clip selection per displayed lecture range;
-- explicit consent naming provider, model and selected file count;
-- sequential uploads so one failure cannot destroy another completed range;
-- independent retry/cancellation and persisted attempt/request history;
-- clip-relative timestamps offset into the complete lecture timeline;
-- exact overlap duplicates merged without filling uncovered speech from model memory;
-- failed, cancelled and unselected ranges remain visible as gaps;
-- completed results persist in a separate IndexedDB queue;
-- interrupted/selected files return to `needs_file` after reload because browser `File` objects are intentionally not persisted;
-- stale queue rejection after the recording is replaced;
-- merged results load only as an unapproved transcript draft;
-- ordinary manual review and Apply remain the only route to source chunks;
-- guarded orphan cleanup and Data-page deletion for range queues;
-- deterministic evaluation coverage for range planning, overlap merge, partial failure, stale upload and interrupted-tab recovery;
-- Chromium proof: two range files → first success → isolated second failure → retry → overlap merge → three draft segments → reload, with zero source chunks throughout.
+- permanent local-range extraction contract;
+- deterministic HTTP Range, invalid-range and extraction-estimate evaluations;
+- TypeScript, ESLint, formatting and production build;
+- complete repository CI and all existing critical browser end-to-end gates;
+- Automatic Transcription regression;
+- Resumable Transcription regression;
+- Long Lecture Media regression;
+- Exam Engine regression;
+- real Chromium WAV fixture stored in IndexedDB;
+- exact PCM frame extraction into a new valid local WAV clip;
+- separate Service Worker `206` Range verification;
+- persisted clip and reload-safe local queue attachment;
+- provider mock upload after explicit local-panel consent;
+- merged provider result loaded only as an unapproved draft;
+- zero automatic source chunks before manual review and Apply.
 
-Current C1 boundary:
+The final documentation-only commit must repeat the matrix before merge.
 
-- Lamdan does not yet extract or transcode provider-ready clips automatically from the local multi-gigabyte original;
-- the student selects a clip matching each exact displayed range;
-- a browser reload cannot recreate selected `File` objects, so unfinished clips must be selected again;
-- provider output remains untrusted until review and approval;
-- raw media, editable transcript drafts, single-request candidates and resumable queues are not yet in Workspace ZIP v2;
-- live quality, latency and cost remain unverified without a configured provider and licensed representative lecture audio.
+## Current boundaries
 
-## Verification state
-
-PR #48 dedicated verification is green for:
-
-- permanent resumable-transcription contract;
-- deterministic range/merge/recovery evaluations;
-- TypeScript, ESLint and formatting;
-- production build;
-- Chromium partial-failure/retry/draft/reload proof;
-- zero automatic source chunks.
-
-The PR still requires one final common head with complete repository CI and the existing automatic-transcription, long-media and Exam Engine regression workflows green before merge. The final matrix also runs the critical browser end-to-end gate before merge.
+- PCM RIFF/WAVE has a fast exact-byte extraction path.
+- Compressed audio and video use a bounded real-time fallback and depend on browser codec support.
+- Local clips and raw recordings are not yet included in Workspace ZIP v2.
+- No original recording or generated clip is uploaded without explicit consent.
+- Provider output remains untrusted until ordinary transcript review and Apply.
+- Live quality, latency and cost remain unverified without a configured provider and licensed representative Hebrew/Russian lecture audio.
 
 ## Existing validation blockers
 
@@ -126,8 +124,8 @@ The deterministic/provider-mock pipeline can verify consent, persistence, cancel
 
 ## Next execution targets
 
-1. Verify and merge resumable provider-range queues in PR #48.
-2. Build `P1-010C2`: automatic local extraction/transcoding of exact range clips from the stored original.
-3. Integrate raw media, editable drafts, provider candidates and range queues into a streaming backup format.
+1. Merge PR #49 after the final documentation head repeats all six workflows.
+2. Add streaming backup/export for raw media, editable drafts, provider candidates, range queues and extracted clips.
+3. Validate real Hebrew/Russian lecture transcription quality on licensed audio and record latency/cost.
 4. Extend Exam Engine with exam profiles, topic weights and bounded daily planning.
 5. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
