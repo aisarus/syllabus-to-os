@@ -1,0 +1,52 @@
+name: Resumable Transcription
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: resumable-transcription-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  resumable-transcription:
+    name: Contract, eval, types, lint and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify resumable transcription contract
+        run: npm run verify:resumable-transcription-contract
+
+      - name: Run resumable transcription evaluations
+        run: npm run eval:resumable-transcription
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
