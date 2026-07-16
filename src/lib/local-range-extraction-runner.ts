@@ -165,7 +165,9 @@ async function tryExtractPcmWavRange(
   throwIfAborted(options.signal);
 
   const outputHeader = buildPcmWavHeader(header, pcmBytes.byteLength);
-  const blob = new Blob([outputHeader, pcmBytes], { type: "audio/wav" });
+  const blob = new Blob([toArrayBuffer(outputHeader), toArrayBuffer(pcmBytes)], {
+    type: "audio/wav",
+  });
   const capturedDurationSeconds = (endFrame - startFrame) / header.sampleRate;
   options.onProgress?.({
     phase: "finalizing",
@@ -233,6 +235,10 @@ function writeAscii(bytes: Uint8Array, offset: number, value: string): void {
   for (let index = 0; index < value.length; index += 1) {
     bytes[offset + index] = value.charCodeAt(index);
   }
+}
+
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
 }
 
 function throwIfAborted(signal?: AbortSignal): void {
