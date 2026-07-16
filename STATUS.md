@@ -104,7 +104,7 @@ PR #48 dedicated verification is green for:
 - Chromium partial-failure/retry/draft/reload proof;
 - zero automatic source chunks.
 
-The PR still requires one final common head with complete repository CI and the existing automatic-transcription, long-media and Exam Engine regression workflows green before merge.
+The PR still requires one final common head with complete repository CI and the existing automatic-transcription, long-media and Exam Engine regression workflows green before merge. The final matrix also runs the critical browser end-to-end gate before merge.
 
 ## Existing validation blockers
 
