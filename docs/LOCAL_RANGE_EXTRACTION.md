@@ -6,7 +6,7 @@ A student can turn an exact C1 lecture range into a provider-ready audio clip wi
 
 The generated clip is persisted locally, attached to the existing revision-safe range queue and may be sent through the existing explicit-consent transcription provider flow. Provider text still loads only as an unapproved transcript draft.
 
-**Implementation state:** feature-complete on PR #49 and under final contract, regression and Chromium validation.
+**Implementation state:** integrated on PR #49; the formatted final head is running contract, regression and real Chromium validation.
 
 ## IndexedDB streaming
 
