@@ -24,7 +24,7 @@ import {
   estimateLocalRangeExtraction,
   extractLocalAudioRange,
   type LocalRangeExtractionProgress,
-} from "@/lib/local-range-extraction";
+} from "@/lib/local-range-extraction-runner";
 import {
   deleteLocalRangeClip,
   getLocalRangeClipStats,

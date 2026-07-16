@@ -107,7 +107,8 @@ async function tryExtractPcmWavRange(
   if (!Number.isFinite(startSeconds) || !Number.isFinite(endSeconds) || startSeconds < 0) {
     throw new Error("The extraction range is invalid.");
   }
-  if (endSeconds <= startSeconds) throw new Error("The extraction range must have a positive duration.");
+  if (endSeconds <= startSeconds)
+    throw new Error("The extraction range must have a positive duration.");
   if (manifest.durationSeconds && endSeconds > manifest.durationSeconds + 0.05) {
     throw new Error("The extraction range extends beyond the current lecture duration.");
   }
@@ -150,7 +151,9 @@ async function tryExtractPcmWavRange(
     signal: options.signal,
   });
   if (pcmResponse.status !== 206) {
-    throw new Error(`The exact WAV range request returned HTTP ${pcmResponse.status} instead of 206.`);
+    throw new Error(
+      `The exact WAV range request returned HTTP ${pcmResponse.status} instead of 206.`,
+    );
   }
   const pcmBytes = new Uint8Array(await pcmResponse.arrayBuffer());
   const expectedBytes = lastByteExclusive - firstByte;
