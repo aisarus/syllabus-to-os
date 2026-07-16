@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, BookOpenCheck } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { AutomaticTranscriptionPanel } from "@/components/automatic-transcription-panel";
+import { LocalRangeExtractionPanel } from "@/components/local-range-extraction-panel";
 import { LongMediaWorkspace } from "@/components/long-media-workspace";
 import { MaterialOutputHistory } from "@/components/material-output-history";
 import { MaterialWorkspace } from "@/components/material-workspace";
@@ -25,14 +26,18 @@ function MaterialDetail() {
   const data = useData();
   const navigate = useNavigate();
   const [transcriptRevision, setTranscriptRevision] = useState(0);
+  const [rangeQueueRevision, setRangeQueueRevision] = useState(0);
   const material = data.materials.find((item) => item.id === materialId);
   const isRu = lang === "ru";
+  const refreshRangeQueue = useCallback(() => {
+    setRangeQueueRevision((current) => current + 1);
+  }, []);
 
   if (!material) {
     return (
       <div className="mx-auto max-w-6xl">
         <Button variant="ghost" onClick={() => navigate({ to: "/app/materials" })}>
-          <ArrowLeft className="h-4 w-4 me-1" />
+          <ArrowLeft className="me-1 h-4 w-4" />
           {t.back}
         </Button>
         <p className="mt-4 text-muted-foreground">{t.empty}</p>
@@ -75,8 +80,14 @@ function MaterialDetail() {
         {longMedia ? (
           <>
             <ResumableTranscriptionPanel
-              key={`ranges:${material.id}`}
+              key={`ranges:${material.id}:${rangeQueueRevision}`}
               material={material}
+              onDraftApplied={() => setTranscriptRevision((current) => current + 1)}
+            />
+            <LocalRangeExtractionPanel
+              key={`local-ranges:${material.id}:${rangeQueueRevision}`}
+              material={material}
+              onQueueChanged={refreshRangeQueue}
               onDraftApplied={() => setTranscriptRevision((current) => current + 1)}
             />
             <AutomaticTranscriptionPanel
@@ -84,7 +95,10 @@ function MaterialDetail() {
               material={material}
               onDraftApplied={() => setTranscriptRevision((current) => current + 1)}
             />
-            <LongMediaWorkspace key={`${material.id}:${transcriptRevision}`} material={material} />
+            <LongMediaWorkspace
+              key={`${material.id}:${transcriptRevision}`}
+              material={material}
+            />
           </>
         ) : isMultiPageImageMaterial(material) ? (
           <MultiPageImageWorkspace material={material} />
