@@ -1,0 +1,79 @@
+name: Harden lecture backup save picker
+
+on:
+  push:
+    branches:
+      - agent/p1-010c3-streaming-lecture-backup-20260717
+
+permissions:
+  contents: write
+
+jobs:
+  harden-picker:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/p1-010c3-streaming-lecture-backup-20260717
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Preserve Window receiver and harden browser mock
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const backupPath = 'src/lib/lecture-backup.ts';
+          let backup = fs.readFileSync(backupPath, 'utf8');
+          const beforePicker = `  const picker =\n    typeof window !== "undefined" ? (window as SavePickerWindow).showSaveFilePicker : null;\n  if (!picker) {`;
+          const afterPicker = `  const pickerWindow = typeof window !== "undefined" ? (window as SavePickerWindow) : null;\n  if (!pickerWindow?.showSaveFilePicker) {`;
+          if (backup.includes(beforePicker)) backup = backup.replace(beforePicker, afterPicker);
+          else if (!backup.includes('const pickerWindow =')) throw new Error('Missing picker receiver anchor');
+          const beforeCall = `  const handle = await picker({`;
+          const afterCall = `  const handle = await pickerWindow.showSaveFilePicker({`;
+          if (backup.includes(beforeCall)) backup = backup.replace(beforeCall, afterCall);
+          else if (!backup.includes(afterCall)) throw new Error('Missing picker call anchor');
+          fs.writeFileSync(backupPath, backup);
+
+          const e2ePath = 'scripts/run-lecture-backup-browser-e2e.mjs';
+          let e2e = fs.readFileSync(e2ePath, 'utf8');
+          const beforeMock = `  window.showSaveFilePicker = async () => ({\n    async createWritable() {`;
+          const afterMock = `  window.showSaveFilePicker = async function () {\n    if (this !== window) throw new Error("Save picker lost the Window receiver.");\n    return {\n      async createWritable() {`;
+          if (e2e.includes(beforeMock)) e2e = e2e.replace(beforeMock, afterMock);
+          else if (!e2e.includes('Save picker lost the Window receiver.')) throw new Error('Missing picker mock anchor');
+          const beforeClose = `    }\n  });\n})();`;
+          const afterClose = `      }\n    };\n  };\n})();`;
+          if (e2e.includes(beforeClose)) e2e = e2e.replace(beforeClose, afterClose);
+          else if (!e2e.includes('    };\n  };\n})();')) throw new Error('Missing picker mock close anchor');
+          fs.writeFileSync(e2ePath, e2e);
+          NODE
+
+      - name: Format and validate focused change
+        run: |
+          npx prettier --write src/lib/lecture-backup.ts scripts/run-lecture-backup-browser-e2e.mjs
+          npm run verify:lecture-backup-contract
+          npm run eval:lecture-backup
+          npm run typecheck
+          npm run lint
+          npm run build
+          npm run e2e:lecture-backup
+
+      - name: Commit verified source changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/lib/lecture-backup.ts scripts/run-lecture-backup-browser-e2e.mjs
+          git commit -m "fix: preserve native save picker receiver"
+          git push origin HEAD:agent/p1-010c3-streaming-lecture-backup-20260717
