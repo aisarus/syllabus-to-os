@@ -1,5 +1,9 @@
 # Local range extraction — P1-010C2
 
+## Delivery status
+
+Implemented on PR #52 after the merged P1-010C1 range-queue foundation in PR #48. Completion is gated on the dedicated contract, deterministic eval, TypeScript, lint, production build, local-extraction Chromium proof and the existing resumable-transcription Chromium regression.
+
 ## Product outcome
 
 Lamdan can create an exact provider-ready audio clip for one persisted resumable-transcription range directly from the locally stored lecture. The original recording remains local. The generated clip is stored in IndexedDB, survives reload, and is uploaded only after the user gives explicit consent in the existing provider disclosure surface.
