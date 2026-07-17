@@ -13,7 +13,7 @@ const existing = {
   courseId: "crs_1",
   title: "Separation of powers",
   description: "Existing",
-  aliases: ["הפרדת רשויות"],
+  aliases: ["הפרדת רשויות", "Разделение властей"],
   sourceChunkIds: ["chk_1"],
   flashcardIds: [],
   quizQuestionIds: [],
@@ -116,10 +116,16 @@ const existing = {
     existingConcepts: [existing],
     idPrefix: "eval",
   });
-  assert.equal(reviews.length, 2);
+  assert.equal(reviews.length, 3);
   assert.equal(reviews[0].selected, false);
   assert.equal(reviews[0].duplicateOf, "con_existing");
   assert.equal(reviews[1].selected, true);
+  assert.equal(reviews[2].selected, false);
+  assert.equal(
+    reviews[2].duplicateOf,
+    reviews[1].id,
+    "duplicate draft concepts stay visible for review but cannot be selected by default",
+  );
 }
 
 {
