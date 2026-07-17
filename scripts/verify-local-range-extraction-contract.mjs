@@ -11,7 +11,8 @@ for (const required of [
   "createMediaStreamDestination",
   "playbackRate = 1",
   "getLongMediaBlob",
-  "sourceUploadId",
+  "latestBefore.uploadId !== input.manifest.uploadId",
+  "latestAfter.uploadId !== input.manifest.uploadId",
   "validateExtractedRangeClip",
   "Local extraction cancelled",
 ]) {
