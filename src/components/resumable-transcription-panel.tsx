@@ -2,7 +2,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   CloudUpload,
+  Cpu,
   FileAudio2,
+  HardDrive,
   Loader2,
   PauseCircle,
   RotateCcw,
@@ -21,6 +23,11 @@ import {
   type AutomaticTranscriptionProviderStatus,
 } from "@/lib/automatic-transcription";
 import { formatFileSize } from "@/lib/document-ingestion";
+import {
+  estimateLocalRangeExtraction,
+  extractLongMediaRangeLocally,
+  getLocalRangeExtractionCapability,
+} from "@/lib/local-range-extraction";
 import { formatMediaTime, type LongMediaManifest } from "@/lib/long-media";
 import {
   getLongMediaManifest,
@@ -43,9 +50,13 @@ import {
   type ResumableTranscriptionRange,
 } from "@/lib/resumable-transcription";
 import {
+  deleteResumableRangeClip,
   deleteResumableTranscriptionJob,
   getResumableTranscriptionJob,
+  listResumableRangeClips,
+  putResumableRangeClip,
   putResumableTranscriptionJob,
+  resumableRangeClipToFile,
 } from "@/lib/resumable-transcription-store";
 import type { Material } from "@/lib/store";
 
@@ -66,6 +77,10 @@ export function ResumableTranscriptionPanel({
   const inputRef = useRef<HTMLInputElement>(null);
   const pendingRangeIdRef = useRef<string | null>(null);
   const abortRef = useRef<{ rangeId: string; controller: AbortController } | null>(null);
+  const extractionAbortRef = useRef<{
+    rangeId: string;
+    controller: AbortController;
+  } | null>(null);
   const [manifest, setManifest] = useState<LongMediaManifest>();
   const [providerStatus, setProviderStatus] = useState<AutomaticTranscriptionProviderStatus>();
   const [job, setJob] = useState<ResumableTranscriptionJob>();
@@ -75,6 +90,10 @@ export function ResumableTranscriptionPanel({
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busyRangeId, setBusyRangeId] = useState<string | null>(null);
+  const [extractingRangeId, setExtractingRangeId] = useState<string | null>(null);
+  const [extractionProgress, setExtractionProgress] = useState<Record<string, number>>({});
+
+  const extractionCapability = useMemo(() => getLocalRangeExtractionCapability(), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,12 +103,14 @@ export function ResumableTranscriptionPanel({
     setJob(undefined);
     setRangeFiles({});
     setConsent(false);
+    setExtractionProgress({});
     void Promise.all([
       getLongMediaManifest(material.id),
       getAutomaticTranscriptionProviderStatus(),
       getResumableTranscriptionJob(material.id),
+      listResumableRangeClips(material.id),
     ])
-      .then(async ([nextManifest, nextProvider, nextJob]) => {
+      .then(async ([nextManifest, nextProvider, nextJob, storedClips]) => {
         if (cancelled) return;
         setManifest(nextManifest);
         setProviderStatus(nextProvider);
@@ -98,12 +119,36 @@ export function ResumableTranscriptionPanel({
           setJob(undefined);
           return;
         }
-        if (nextJob) {
-          const recovered = recoverInterruptedResumableJob(nextJob);
-          const changed = JSON.stringify(recovered) !== JSON.stringify(nextJob);
-          const stored = changed ? await putResumableTranscriptionJob(recovered) : nextJob;
-          setJob(stored);
+        if (!nextJob) return;
+
+        let recovered = recoverInterruptedResumableJob(nextJob);
+        const restoredFiles: Record<string, File> = {};
+        if (nextManifest) {
+          for (const clip of storedClips) {
+            if (clip.sourceUploadId !== nextManifest.uploadId) continue;
+            const range = recovered.ranges.find((item) => item.id === clip.rangeId);
+            if (!range) continue;
+            const file = resumableRangeClipToFile(clip);
+            restoredFiles[clip.rangeId] = file;
+            if (range.status !== "review_ready") {
+              try {
+                recovered = attachResumableRangeFile(
+                  recovered,
+                  clip.rangeId,
+                  file,
+                  nextProvider.maxBytes,
+                );
+              } catch {
+                await deleteResumableRangeClip(material.id, clip.rangeId).catch(() => undefined);
+                delete restoredFiles[clip.rangeId];
+              }
+            }
+          }
         }
+        const changed = JSON.stringify(recovered) !== JSON.stringify(nextJob);
+        const stored = changed ? await putResumableTranscriptionJob(recovered) : nextJob;
+        setRangeFiles(restoredFiles);
+        setJob(stored);
       })
       .catch((error) => toast.error(error instanceof Error ? error.message : String(error)))
       .finally(() => {
@@ -112,6 +157,7 @@ export function ResumableTranscriptionPanel({
     return () => {
       cancelled = true;
       abortRef.current?.controller.abort();
+      extractionAbortRef.current?.controller.abort();
     };
   }, [material.id]);
 
@@ -131,6 +177,11 @@ export function ResumableTranscriptionPanel({
     job?.ranges.filter((range) => range.status === "failed" || range.status === "cancelled")
       .length ?? 0;
   const selectedCount = job?.ranges.filter((range) => Boolean(rangeFiles[range.id])).length ?? 0;
+  const representativeEstimate = useMemo(() => {
+    if (!job || !manifest || job.ranges.length === 0) return undefined;
+    return estimateLocalRangeExtraction(manifest, job.ranges[0]);
+  }, [job, manifest]);
+  const anyBusy = Boolean(busyRangeId || extractingRangeId);
 
   const createQueue = async () => {
     if (!manifest || !providerStatus) return;
@@ -172,6 +223,7 @@ export function ResumableTranscriptionPanel({
       return;
     }
     try {
+      await deleteResumableRangeClip(material.id, rangeId).catch(() => undefined);
       const updated = attachResumableRangeFile(job, rangeId, file, providerStatus?.maxBytes);
       const saved = await putResumableTranscriptionJob(updated);
       setJob(saved);
@@ -182,8 +234,67 @@ export function ResumableTranscriptionPanel({
     }
   };
 
+  const extractRangeLocally = async (rangeId: string) => {
+    if (!job || !manifest || anyBusy) return;
+    const range = job.ranges.find((item) => item.id === rangeId);
+    if (!range) return;
+    const controller = new AbortController();
+    extractionAbortRef.current = { rangeId, controller };
+    setExtractingRangeId(rangeId);
+    setExtractionProgress((current) => ({ ...current, [rangeId]: 0 }));
+    try {
+      const result = await extractLongMediaRangeLocally({
+        manifest,
+        range,
+        maxOutputBytes: providerStatus?.maxBytes,
+        signal: controller.signal,
+        onProgress: ({ fraction }) =>
+          setExtractionProgress((current) => ({ ...current, [rangeId]: fraction })),
+      });
+      await putResumableRangeClip({
+        materialId: material.id,
+        sourceUploadId: manifest.uploadId,
+        rangeId,
+        startSeconds: result.startSeconds,
+        endSeconds: result.endSeconds,
+        durationSeconds: result.durationSeconds,
+        fileName: result.file.name,
+        mimeType: result.mimeType,
+        size: result.file.size,
+        blob: result.file,
+        createdAt: result.createdAt,
+        updatedAt: result.createdAt,
+      });
+      const latestJob = (await getResumableTranscriptionJob(material.id)) ?? job;
+      const updated = attachResumableRangeFile(
+        latestJob,
+        rangeId,
+        result.file,
+        providerStatus?.maxBytes,
+      );
+      const saved = await putResumableTranscriptionJob(updated);
+      setJob(saved);
+      setRangeFiles((current) => ({ ...current, [rangeId]: result.file }));
+      setConsent(false);
+      toast.success(
+        isRu
+          ? "Точный локальный audio clip создан и сохранён в браузере"
+          : "Exact local audio clip created and stored in the browser",
+      );
+    } catch (error) {
+      if (controller.signal.aborted) {
+        toast.message(isRu ? "Локальная нарезка отменена" : "Local extraction cancelled");
+      } else {
+        toast.error(error instanceof Error ? error.message : String(error));
+      }
+    } finally {
+      extractionAbortRef.current = null;
+      setExtractingRangeId(null);
+    }
+  };
+
   const startSelectedRanges = async () => {
-    if (!job || !manifest || !providerStatus?.configured || !consent) return;
+    if (!job || !manifest || !providerStatus?.configured || !consent || extractingRangeId) return;
     if (job.status === "draft_loaded") {
       toast.error(
         isRu
@@ -199,8 +310,8 @@ export function ResumableTranscriptionPanel({
     if (queuedRanges.length === 0) {
       toast.error(
         isRu
-          ? "Выбери хотя бы один provider-ready clip."
-          : "Select at least one provider-ready range clip.",
+          ? "Выбери или создай хотя бы один provider-ready clip."
+          : "Select or create at least one provider-ready range clip.",
       );
       return;
     }
@@ -284,9 +395,8 @@ export function ResumableTranscriptionPanel({
     }
   };
 
-  const cancelCurrentRange = () => {
-    abortRef.current?.controller.abort();
-  };
+  const cancelCurrentRange = () => abortRef.current?.controller.abort();
+  const cancelLocalExtraction = () => extractionAbortRef.current?.controller.abort();
 
   const loadMergedDraft = async () => {
     if (!job || !manifest || job.status === "draft_loaded") return;
@@ -320,10 +430,12 @@ export function ResumableTranscriptionPanel({
 
   const discardQueue = async () => {
     if (busyRangeId) cancelCurrentRange();
+    if (extractingRangeId) cancelLocalExtraction();
     await deleteResumableTranscriptionJob(material.id);
     setJob(undefined);
     setRangeFiles({});
     setConsent(false);
+    setExtractionProgress({});
   };
 
   if (loading) {
@@ -348,15 +460,17 @@ export function ResumableTranscriptionPanel({
           </div>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             {isRu
-              ? "Для длинной пары создай очередь 15-минутных диапазонов и выбери отдельный provider-ready clip для каждого нужного диапазона. Каждый clip отправляется отдельно только после согласия; удачные части сохраняются, а ошибки остаются видимыми и повторяются независимо."
-              : "For a long lecture, create a queue of 15-minute ranges and select a provider-ready clip for each needed range. Every clip is uploaded separately only after consent; successful ranges persist while failed ranges remain visible and retry independently."}
+              ? "Lamdan может создать точный audio clip для каждого диапазона прямо из локального оригинала, сохранить его в IndexedDB и затем отправить провайдеру только после отдельного согласия."
+              : "Lamdan can create an exact audio clip for each range from the local original, keep it in IndexedDB, and upload only that clip after separate consent."}
           </p>
         </div>
-        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 text-xs leading-5 text-yellow-100 lg:max-w-sm">
-          <AlertTriangle className="mb-2 h-4 w-4" />
-          {isRu
-            ? "Граница C1: Lamdan пока не извлекает и не перекодирует эти clips из 4-ГБ оригинала автоматически. Времена диапазонов заданы точно, но корректный clip выбираешь ты. Автоматический локальный transcoding — следующий срез."
-            : "C1 boundary: Lamdan does not yet extract or transcode these clips from the 4 GB original automatically. Range times are exact, but you select the matching clip. Automatic local transcoding is the next slice."}
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs leading-5 lg:max-w-sm">
+          <HardDrive className="mb-2 h-4 w-4 text-primary" />
+          {extractionCapability.supported
+            ? isRu
+              ? "Локальная нарезка идёт в реальном времени, не меняет скорость лекции и не загружает оригинал. Вкладку нужно держать открытой до завершения диапазона."
+              : "Local extraction runs in real time, preserves lecture speed, and never uploads the original. Keep this tab open until the range finishes."
+            : extractionCapability.reason}
         </div>
       </div>
 
@@ -418,20 +532,35 @@ export function ResumableTranscriptionPanel({
             />
           </div>
 
+          {representativeEstimate ? (
+            <div className="mt-4 grid gap-3 rounded-lg border border-border bg-background p-4 text-xs sm:grid-cols-3">
+              <EstimateItem
+                label={isRu ? "Время на один обычный диапазон" : "Typical range time"}
+                value={`≈ ${formatMediaTime(representativeEstimate.processingSeconds)}`}
+              />
+              <EstimateItem
+                label={isRu ? "Ожидаемый clip" : "Expected clip"}
+                value={`≈ ${formatFileSize(representativeEstimate.expectedOutputBytes)}`}
+              />
+              <EstimateItem
+                label={isRu ? "Рабочая память" : "Working memory"}
+                value={`≈ ${formatFileSize(representativeEstimate.workingMemoryBytes)}`}
+              />
+            </div>
+          ) : null}
+
           <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
             <div className="flex items-start gap-3">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
                 <strong>
-                  {isRu
-                    ? "Явное согласие на отдельные clips"
-                    : "Explicit consent for separate clips"}
+                  {isRu ? "Явное согласие на отправку clips" : "Explicit consent to upload clips"}
                 </strong>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
                   {job.providerDisplayName} · {job.model}.{" "}
                   {isRu
-                    ? "Будут отправлены только выбранные ниже файлы, не локальный оригинал целиком."
-                    : "Only files selected below are sent, never the complete local original."}
+                    ? "Будут отправлены только выбранные или локально созданные ниже clips, не оригинал целиком."
+                    : "Only clips selected or created below are sent, never the complete original."}
                 </p>
                 <label className="mt-3 flex items-start gap-2 text-xs">
                   <input
@@ -442,8 +571,8 @@ export function ResumableTranscriptionPanel({
                   />
                   <span>
                     {isRu
-                      ? `Я вижу провайдера, модель и ${selectedCount} выбранных файлов и разрешаю отправить их по одному.`
-                      : `I can see the provider, model and ${selectedCount} selected files and allow them to be uploaded one by one.`}
+                      ? `Я вижу провайдера, модель и ${selectedCount} подготовленных файлов и разрешаю отправить их по одному.`
+                      : `I can see the provider, model and ${selectedCount} prepared files and allow them to be uploaded one by one.`}
                   </span>
                 </label>
               </div>
@@ -458,8 +587,15 @@ export function ResumableTranscriptionPanel({
                 file={rangeFiles[range.id]}
                 isRu={isRu}
                 busy={busyRangeId === range.id}
+                extracting={extractingRangeId === range.id}
+                locked={anyBusy && busyRangeId !== range.id && extractingRangeId !== range.id}
+                extractionProgress={extractionProgress[range.id] ?? 0}
+                canExtract={extractionCapability.supported}
+                estimate={estimateLocalRangeExtraction(manifest, range)}
                 onChoose={() => requestFileForRange(range.id)}
-                onCancel={cancelCurrentRange}
+                onExtract={() => void extractRangeLocally(range.id)}
+                onCancelUpload={cancelCurrentRange}
+                onCancelExtraction={cancelLocalExtraction}
               />
             ))}
           </div>
@@ -468,7 +604,7 @@ export function ResumableTranscriptionPanel({
             <Button
               onClick={() => void startSelectedRanges()}
               disabled={
-                Boolean(busyRangeId) ||
+                anyBusy ||
                 !providerStatus?.configured ||
                 !consent ||
                 selectedCount === 0 ||
@@ -480,7 +616,7 @@ export function ResumableTranscriptionPanel({
               ) : (
                 <CloudUpload className="me-1 h-4 w-4" />
               )}
-              {isRu ? "Запустить выбранные диапазоны" : "Run selected ranges"}
+              {isRu ? "Запустить подготовленные диапазоны" : "Run prepared ranges"}
             </Button>
             {busyRangeId ? (
               <Button variant="destructive" onClick={cancelCurrentRange}>
@@ -488,21 +624,21 @@ export function ResumableTranscriptionPanel({
                 {isRu ? "Остановить текущий" : "Stop current range"}
               </Button>
             ) : null}
+            {extractingRangeId ? (
+              <Button variant="destructive" onClick={cancelLocalExtraction}>
+                <PauseCircle className="me-1 h-4 w-4" />
+                {isRu ? "Остановить нарезку" : "Stop extraction"}
+              </Button>
+            ) : null}
             <Button
               variant="outline"
               onClick={() => void loadMergedDraft()}
-              disabled={
-                mergedSegments.length === 0 || Boolean(busyRangeId) || job.status === "draft_loaded"
-              }
+              disabled={mergedSegments.length === 0 || anyBusy || job.status === "draft_loaded"}
             >
               <CheckCircle2 className="me-1 h-4 w-4" />
               {isRu ? "Загрузить объединённый draft" : "Load merged draft"}
             </Button>
-            <Button
-              variant="ghost"
-              onClick={() => void discardQueue()}
-              disabled={Boolean(busyRangeId)}
-            >
+            <Button variant="ghost" onClick={() => void discardQueue()} disabled={anyBusy}>
               <Trash2 className="me-1 h-4 w-4" />
               {isRu ? "Удалить очередь" : "Delete queue"}
             </Button>
@@ -533,16 +669,31 @@ function RangeRow({
   file,
   isRu,
   busy,
+  extracting,
+  locked,
+  extractionProgress,
+  canExtract,
+  estimate,
   onChoose,
-  onCancel,
+  onExtract,
+  onCancelUpload,
+  onCancelExtraction,
 }: {
   range: ResumableTranscriptionRange;
   file?: File;
   isRu: boolean;
   busy: boolean;
+  extracting: boolean;
+  locked: boolean;
+  extractionProgress: number;
+  canExtract: boolean;
+  estimate: ReturnType<typeof estimateLocalRangeExtraction>;
   onChoose: () => void;
-  onCancel: () => void;
+  onExtract: () => void;
+  onCancelUpload: () => void;
+  onCancelExtraction: () => void;
 }) {
+  const progress = extracting ? extractionProgress : range.uploadProgress;
   return (
     <div className="rounded-lg border border-border bg-background p-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -562,10 +713,13 @@ function RangeRow({
             {file
               ? `${file.name} · ${formatFileSize(file.size)}`
               : range.selectedFileName
-                ? `${range.selectedFileName} · ${range.selectedFileSize ? formatFileSize(range.selectedFileSize) : "—"} · ${isRu ? "выбери файл снова после reload" : "select the file again after reload"}`
+                ? `${range.selectedFileName} · ${range.selectedFileSize ? formatFileSize(range.selectedFileSize) : "—"} · ${isRu ? "нужен файл снова" : "file must be selected again"}`
                 : isRu
-                  ? "Clip ещё не выбран"
-                  : "No clip selected"}
+                  ? "Clip ещё не подготовлен"
+                  : "No clip prepared"}
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {isRu ? "Локально" : "Local"}: ≈ {formatMediaTime(estimate.processingSeconds)} · {formatFileSize(estimate.expectedOutputBytes)}
           </p>
           {range.resultSegments.length > 0 ? (
             <p className="mt-1 text-xs text-emerald-300">
@@ -577,8 +731,8 @@ function RangeRow({
             <p className="mt-1 text-xs text-yellow-200">{range.warnings.join(" · ")}</p>
           ) : null}
         </div>
-        <div className="flex shrink-0 gap-2">
-          <Button size="sm" variant="outline" onClick={onChoose} disabled={busy}>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={onChoose} disabled={busy || extracting || locked}>
             {range.status === "failed" || range.status === "cancelled" ? (
               <RotateCcw className="me-1 h-3.5 w-3.5" />
             ) : (
@@ -586,19 +740,39 @@ function RangeRow({
             )}
             {isRu ? "Выбрать clip" : "Choose clip"}
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onExtract}
+            disabled={!canExtract || busy || extracting || locked || range.status === "review_ready"}
+          >
+            <Cpu className="me-1 h-3.5 w-3.5" />
+            {isRu ? "Создать локально" : "Create locally"}
+          </Button>
           {busy ? (
-            <Button size="sm" variant="destructive" onClick={onCancel}>
+            <Button size="sm" variant="destructive" onClick={onCancelUpload}>
+              {isRu ? "Отмена" : "Cancel"}
+            </Button>
+          ) : null}
+          {extracting ? (
+            <Button size="sm" variant="destructive" onClick={onCancelExtraction}>
               {isRu ? "Отмена" : "Cancel"}
             </Button>
           ) : null}
         </div>
       </div>
-      {busy ? (
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full bg-primary transition-all"
-            style={{ width: `${Math.round(range.uploadProgress * 100)}%` }}
-          />
+      {busy || extracting ? (
+        <div className="mt-3">
+          <div className="mb-1 flex justify-between text-[10px] text-muted-foreground">
+            <span>{extracting ? (isRu ? "Локальная нарезка" : "Local extraction") : isRu ? "Загрузка" : "Upload"}</span>
+            <span>{Math.round(progress * 100)}%</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full bg-primary transition-all"
+              style={{ width: `${Math.round(progress * 100)}%` }}
+            />
+          </div>
         </div>
       ) : null}
     </div>
@@ -610,6 +784,15 @@ function Metric({ label, value }: { label: string; value: number }) {
     <div className="rounded-lg border border-border bg-background p-3 text-center">
       <strong className="block font-mono text-lg">{value}</strong>
       <span className="text-[11px] text-muted-foreground">{label}</span>
+    </div>
+  );
+}
+
+function EstimateItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <span className="block text-muted-foreground">{label}</span>
+      <strong className="mt-1 block font-mono text-sm">{value}</strong>
     </div>
   );
 }
