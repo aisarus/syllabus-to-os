@@ -19,12 +19,8 @@ export function wordErrorRate(reference, candidate, language = "unknown") {
 }
 
 export function characterErrorRate(reference, candidate, language = "unknown") {
-  const expected = [
-    ...normalizeTranscript(reference, language).replace(/\s+/gu, ""),
-  ];
-  const actual = [
-    ...normalizeTranscript(candidate, language).replace(/\s+/gu, ""),
-  ];
+  const expected = [...normalizeTranscript(reference, language).replace(/\s+/gu, "")];
+  const actual = [...normalizeTranscript(candidate, language).replace(/\s+/gu, "")];
   if (expected.length === 0) return actual.length === 0 ? 0 : 1;
   return levenshtein(expected, actual) / expected.length;
 }
@@ -61,26 +57,14 @@ export function timestampCoverage(segments, durationSeconds) {
 
 export function timestampViolations(segments, durationSeconds) {
   const issues = [];
-  for (const [index, segment] of (Array.isArray(segments)
-    ? segments
-    : []
-  ).entries()) {
+  for (const [index, segment] of (Array.isArray(segments) ? segments : []).entries()) {
     const start = Number(segment?.startSeconds);
     const end = Number(segment?.endSeconds);
-    if (
-      !Number.isFinite(start) ||
-      !Number.isFinite(end) ||
-      start < 0 ||
-      end <= start
-    ) {
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end <= start) {
       issues.push(`segment ${index + 1} has invalid timestamps`);
       continue;
     }
-    if (
-      Number.isFinite(durationSeconds) &&
-      durationSeconds > 0 &&
-      end > durationSeconds + 0.25
-    ) {
+    if (Number.isFinite(durationSeconds) && durationSeconds > 0 && end > durationSeconds + 0.25) {
       issues.push(`segment ${index + 1} ends after the declared duration`);
     }
   }
@@ -92,19 +76,13 @@ export function speakerLabelCoverage(segments) {
     String(segment?.text ?? "").trim(),
   );
   if (spoken.length === 0) return 0;
-  return (
-    spoken.filter((segment) => String(segment?.speaker ?? "").trim()).length /
-    spoken.length
-  );
+  return spoken.filter((segment) => String(segment?.speaker ?? "").trim()).length / spoken.length;
 }
 
 export function uncertainSegmentRatio(segments) {
   const values = Array.isArray(segments) ? segments : [];
   if (values.length === 0) return 0;
-  return (
-    values.filter((segment) => segment?.uncertain === true).length /
-    values.length
-  );
+  return values.filter((segment) => segment?.uncertain === true).length / values.length;
 }
 
 export function evaluateLectureCandidate({
@@ -167,17 +145,12 @@ export function evaluateLectureCandidate({
   if (metrics.timestampViolations.length > 0) {
     failures.push(...metrics.timestampViolations);
   }
-  if (metrics.candidateCharacters === 0)
-    failures.push("provider returned no transcript text");
+  if (metrics.candidateCharacters === 0) failures.push("provider returned no transcript text");
   return { candidate, metrics, failures, passed: failures.length === 0 };
 }
 
 export function estimateCost(durationSeconds, usdPerAudioMinute) {
-  if (
-    usdPerAudioMinute === null ||
-    usdPerAudioMinute === undefined ||
-    usdPerAudioMinute === ""
-  )
+  if (usdPerAudioMinute === null || usdPerAudioMinute === undefined || usdPerAudioMinute === "")
     return null;
   const rate = Number(usdPerAudioMinute);
   if (!Number.isFinite(rate) || rate < 0) return null;
@@ -188,15 +161,13 @@ export function estimateCost(durationSeconds, usdPerAudioMinute) {
 function compareMaximum(failures, label, actual, maximum) {
   const threshold = Number(maximum);
   if (!Number.isFinite(threshold) || actual === null) return;
-  if (actual > threshold)
-    failures.push(`${label} ${format(actual)} exceeds ${format(threshold)}`);
+  if (actual > threshold) failures.push(`${label} ${format(actual)} exceeds ${format(threshold)}`);
 }
 
 function compareMinimum(failures, label, actual, minimum) {
   const threshold = Number(minimum);
   if (!Number.isFinite(threshold)) return;
-  if (actual < threshold)
-    failures.push(`${label} ${format(actual)} is below ${format(threshold)}`);
+  if (actual < threshold) failures.push(`${label} ${format(actual)} is below ${format(threshold)}`);
 }
 
 function tokens(value) {
@@ -204,10 +175,7 @@ function tokens(value) {
 }
 
 function levenshtein(left, right) {
-  const previous = Array.from(
-    { length: right.length + 1 },
-    (_, index) => index,
-  );
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
   const current = new Array(right.length + 1);
   for (let row = 1; row <= left.length; row += 1) {
     current[0] = row;
@@ -218,8 +186,7 @@ function levenshtein(left, right) {
         previous[column - 1] + (left[row - 1] === right[column - 1] ? 0 : 1),
       );
     }
-    for (let column = 0; column <= right.length; column += 1)
-      previous[column] = current[column];
+    for (let column = 0; column <= right.length; column += 1) previous[column] = current[column];
   }
   return previous[right.length];
 }

@@ -33,7 +33,11 @@ for (const marker of [
 assert(evaluations.includes("שָׁלוֹם"));
 assert(evaluations.includes("русская лекция"));
 assert(docs.includes("existing explicit-consent UI"));
-assert(docs.includes("Passing synthetic metric tests proves the evaluator, not real transcription quality"));
+assert(
+  docs.includes(
+    "Passing synthetic metric tests proves the evaluator, not real transcription quality",
+  ),
+);
 assert(gitignore.includes("private-lecture-assets/"));
 assert(gitignore.includes("private-eval-reports/"));
 assert.equal(example.version, 1);

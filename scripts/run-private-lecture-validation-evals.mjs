@@ -27,22 +27,14 @@ assert.equal(
   ),
   0.8,
 );
-assert.deepEqual(
-  timestampViolations([{ startSeconds: 5, endSeconds: 4 }], 10),
-  ["segment 1 has invalid timestamps"],
-);
+assert.deepEqual(timestampViolations([{ startSeconds: 5, endSeconds: 4 }], 10), [
+  "segment 1 has invalid timestamps",
+]);
 assert.equal(
-  speakerLabelCoverage([
-    { text: "a", speaker: "S1" },
-    { text: "b" },
-    { text: "" },
-  ]),
+  speakerLabelCoverage([{ text: "a", speaker: "S1" }, { text: "b" }, { text: "" }]),
   0.5,
 );
-assert.equal(
-  uncertainSegmentRatio([{ uncertain: true }, { uncertain: false }]),
-  0.5,
-);
+assert.equal(uncertainSegmentRatio([{ uncertain: true }, { uncertain: false }]), 0.5);
 assert.equal(estimateCost(120, 0.01), 0.02);
 assert.equal(estimateCost(120, null), null);
 

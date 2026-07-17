@@ -1,10 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
-import {
-  estimateCost,
-  evaluateLectureCandidate,
-} from "./private-lecture-validation-metrics.mjs";
+import { estimateCost, evaluateLectureCandidate } from "./private-lecture-validation-metrics.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 if (args.help) {
@@ -12,9 +9,7 @@ if (args.help) {
   process.exit(0);
 }
 
-const manifestPath = resolve(
-  String(args.manifest || "private-lecture-assets/manifest.json"),
-);
+const manifestPath = resolve(String(args.manifest || "private-lecture-assets/manifest.json"));
 const reportDir = resolve(String(args["report-dir"] || "private-eval-reports"));
 const requiredLanguages = String(args["require-languages"] || "")
   .split(",")
@@ -31,9 +26,7 @@ const fixtures = selectFixtures(manifest.fixtures, args.fixture);
 const presentLanguages = new Set(fixtures.map((fixture) => fixture.language));
 for (const language of requiredLanguages) {
   if (!presentLanguages.has(language)) {
-    throw new Error(
-      `Required language is absent from selected fixtures: ${language}`,
-    );
+    throw new Error(`Required language is absent from selected fixtures: ${language}`);
   }
 }
 
@@ -47,8 +40,7 @@ for (const fixture of fixtures) {
     ["reference transcript", referencePath],
     ["provider candidate", candidatePath],
   ]) {
-    if (!existsSync(path))
-      throw new Error(`${fixture.id}: ${kind} is missing: ${path}`);
+    if (!existsSync(path)) throw new Error(`${fixture.id}: ${kind} is missing: ${path}`);
   }
   const [mediaStats, reference, candidate] = await Promise.all([
     stat(mediaPath),
@@ -65,9 +57,7 @@ for (const fixture of fixtures) {
     requestSpeakerLabels: fixture.requestSpeakerLabels === true,
     thresholds: fixture.thresholds,
   });
-  const costRate = numberOrNull(
-    candidate.usdPerAudioMinute ?? manifest.usdPerAudioMinute,
-  );
+  const costRate = numberOrNull(candidate.usdPerAudioMinute ?? manifest.usdPerAudioMinute);
   const result = {
     id: fixture.id,
     language: fixture.language,
@@ -81,9 +71,7 @@ for (const fixture of fixtures) {
     provider: stringOrNull(candidate.provider),
     model: stringOrNull(candidate.model),
     requestId: stringOrNull(candidate.requestId),
-    providerWarnings: Array.isArray(candidate.warnings)
-      ? candidate.warnings.map(String)
-      : [],
+    providerWarnings: Array.isArray(candidate.warnings) ? candidate.warnings.map(String) : [],
     estimatedCostUsd: estimateCost(fixture.durationSeconds, costRate),
     candidateGeneratedAt: stringOrNull(candidate.generatedAt),
   };
@@ -118,29 +106,16 @@ function validateManifest(value) {
     !Array.isArray(value.fixtures) ||
     value.fixtures.length === 0
   ) {
-    throw new Error(
-      "Private lecture manifest must be version 1 with at least one fixture.",
-    );
+    throw new Error("Private lecture manifest must be version 1 with at least one fixture.");
   }
   const ids = new Set();
   for (const fixture of value.fixtures) {
-    for (const field of [
-      "id",
-      "file",
-      "referenceFile",
-      "candidateFile",
-      "language",
-    ]) {
-      if (!String(fixture?.[field] || "").trim())
-        throw new Error(`Fixture is missing ${field}.`);
+    for (const field of ["id", "file", "referenceFile", "candidateFile", "language"]) {
+      if (!String(fixture?.[field] || "").trim()) throw new Error(`Fixture is missing ${field}.`);
     }
-    if (ids.has(fixture.id))
-      throw new Error(`Duplicate fixture id: ${fixture.id}`);
+    if (ids.has(fixture.id)) throw new Error(`Duplicate fixture id: ${fixture.id}`);
     ids.add(fixture.id);
-    if (
-      !Number.isFinite(fixture.durationSeconds) ||
-      fixture.durationSeconds <= 0
-    ) {
+    if (!Number.isFinite(fixture.durationSeconds) || fixture.durationSeconds <= 0) {
       throw new Error(`${fixture.id}: durationSeconds must be positive.`);
     }
     if (!fixture.thresholds || typeof fixture.thresholds !== "object") {
@@ -155,9 +130,7 @@ function validateCandidate(fixture, candidate) {
     candidate.format !== "lamdan-private-lecture-candidate" ||
     candidate.version !== 1
   ) {
-    throw new Error(
-      `${fixture.id}: candidate must use lamdan-private-lecture-candidate v1.`,
-    );
+    throw new Error(`${fixture.id}: candidate must use lamdan-private-lecture-candidate v1.`);
   }
   if (!Array.isArray(candidate.segments) || candidate.segments.length === 0) {
     throw new Error(`${fixture.id}: candidate has no segments.`);
@@ -176,28 +149,21 @@ function selectFixtures(fixtures, value) {
       .filter(Boolean),
   );
   const selected = fixtures.filter((fixture) => requested.has(fixture.id));
-  const missing = [...requested].filter(
-    (id) => !selected.some((fixture) => fixture.id === id),
-  );
-  if (missing.length)
-    throw new Error(`Unknown fixture ids: ${missing.join(", ")}`);
+  const missing = [...requested].filter((id) => !selected.some((fixture) => fixture.id === id));
+  if (missing.length) throw new Error(`Unknown fixture ids: ${missing.join(", ")}`);
   return selected;
 }
 
 function summarize(values) {
   const passedCount = values.filter((result) => result.passed).length;
-  const costs = values
-    .map((result) => result.estimatedCostUsd)
-    .filter(Number.isFinite);
+  const costs = values.map((result) => result.estimatedCostUsd).filter(Number.isFinite);
   return {
     passed: values.length > 0 && passedCount === values.length,
     total: values.length,
     passedCount,
     failedCount: values.length - passedCount,
     totalEstimatedCostUsd:
-      costs.length === values.length
-        ? costs.reduce((sum, value) => sum + value, 0)
-        : null,
+      costs.length === values.length ? costs.reduce((sum, value) => sum + value, 0) : null,
   };
 }
 
