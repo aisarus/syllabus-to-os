@@ -55,7 +55,7 @@ jobs:
           }
           NODE
 
-      - name: Format and validate focused slice
+      - name: Format focused slice
         run: |
           npx prettier --write \
             src/lib/lecture-backup.ts \
@@ -70,11 +70,21 @@ jobs:
             package.json \
             docs/STREAMING_LECTURE_BACKUP.md \
             .github/workflows/lecture-backup.yml
-          npm run verify:lecture-backup-contract
-          npm run eval:lecture-backup
-          npm run typecheck
-          npm run lint
-          npm run build
+
+      - name: Verify contract
+        run: npm run verify:lecture-backup-contract
+
+      - name: Run deterministic eval
+        run: npm run eval:lecture-backup
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
 
       - name: Commit store accessors and remove helper
         run: |
