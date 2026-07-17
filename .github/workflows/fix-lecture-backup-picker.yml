@@ -7,7 +7,7 @@ on:
       - agent/p1-010c3-streaming-lecture-backup-20260717
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   harden-picker:
@@ -18,7 +18,7 @@ jobs:
         with:
           ref: agent/p1-010c3-streaming-lecture-backup-20260717
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
@@ -80,27 +80,14 @@ jobs:
         run: npm run build
 
       - name: Run Chromium proof
-        id: picker_browser
-        continue-on-error: true
-        run: npm run e2e:lecture-backup > picker-browser.txt 2>&1
+        run: npm run e2e:lecture-backup
 
-      - name: Upload Chromium diagnostics
-        if: always()
+      - name: Upload verified source files
         uses: actions/upload-artifact@v4
         with:
-          name: picker-browser-diagnostics
-          path: picker-browser.txt
+          name: verified-picker-source
+          path: |
+            src/lib/lecture-backup.ts
+            scripts/run-lecture-backup-browser-e2e.mjs
           if-no-files-found: error
           retention-days: 3
-
-      - name: Fail when Chromium proof fails
-        if: steps.picker_browser.outcome == 'failure'
-        run: exit 1
-
-      - name: Commit verified source changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/lib/lecture-backup.ts scripts/run-lecture-backup-browser-e2e.mjs
-          git commit -m "fix: preserve native save picker receiver"
-          git push origin HEAD:agent/p1-010c3-streaming-lecture-backup-20260717
