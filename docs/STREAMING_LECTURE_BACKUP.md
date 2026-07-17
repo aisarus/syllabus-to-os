@@ -1,5 +1,7 @@
 # Streaming lecture backup — P1-010C3
 
+**Status:** active implementation on PR #53.
+
 ## Product outcome
 
 A student can export one complete long-media material directly to a user-selected file without first assembling the multi-gigabyte recording in JavaScript memory. The bundle includes the core material record, local media manifest, raw IndexedDB chunks, editable transcript draft, automatic provider candidate, resumable range queue and locally extracted range clips.
