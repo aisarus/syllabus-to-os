@@ -31,48 +31,19 @@ The old stacked PRs #55 and #56 were closed as superseded after clean PRs #57 an
 
 ## Lecture-media capability
 
-The merged lecture path now supports:
-
-- local complete audio/video storage in sequential IndexedDB chunks;
-- quota checks, cancellation, replacement staging and SHA-256 verification;
-- reviewed SRT/VTT/TXT transcript drafts;
-- explicit provider consent and bounded provider-ready requests;
-- cancellation, retry and stale-source rejection;
-- resumable overlapping range queues;
-- local range extraction with manual fallback;
-- draft-only merge with visible gaps;
-- streaming `.lamdan-lecture` export;
-- verified duplicate restore with full rollback;
-- offline Hebrew/Russian WER/CER, timestamp, speaker, uncertainty, latency and cost evaluation.
+The merged lecture path now supports local complete media storage, reviewed transcript drafts, explicit provider consent, resumable ranges, local extraction, streaming export, verified duplicate restore and offline Hebrew/Russian quality evaluation.
 
 No provider candidate becomes trusted text or a source chunk automatically.
 
 ## Exam capability
 
-The merged Exam Engine now supports:
-
-- source-linked frozen multiple-choice sessions;
-- immutable prompts, options, answers and source ids after start;
-- deadline and partial-answer persistence;
-- per-question evidence only for actual answers;
-- raw submitted score without an unsupported grade forecast;
-- a separate exam-planning profile with date, weekdays, daily/session limits and topic weights;
-- deterministic weighted allocation over at most the final 180 days;
-- planning persistence that does not rewrite frozen sessions;
-- original frozen-exam and combined planning → exam → reload Chromium proofs.
+The merged Exam Engine now supports frozen source-linked sessions, immutable questions after start, deadline and partial-answer persistence, per-question evidence for actual answers, raw submitted scores and a separate bounded exam-planning profile.
 
 ## Verification state
 
-The final heads for PRs #54, #57 and #58 passed:
+The final heads for PRs #54, #57 and #58 passed permanent contracts, deterministic evaluations, TypeScript, ESLint, production builds, dedicated Chromium proofs, complete repository CI and all lecture/transcription/Exam Engine regressions.
 
-- permanent contracts and deterministic evaluations;
-- TypeScript and ESLint;
-- production builds;
-- dedicated Chromium proofs;
-- complete 111-step repository CI;
-- long-media, automatic transcription, resumable transcription, extraction, backup, restore and Exam Engine regressions.
-
-Intermittent hosted-runner/CDP failures were rerun only after static gates and diagnostic evidence showed no product regression. Permanent planning-browser diagnostics now upload on future failures.
+The critical browser end-to-end target remains mandatory for material, OCR, flashcard, quiz and full-backup flows. Intermittent hosted-runner/CDP failures are rerun only after static gates and diagnostics show no product regression.
 
 ## Existing external blockers
 
