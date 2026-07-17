@@ -182,8 +182,13 @@ async function captureLocalAudioRange(input: {
     if (media.playbackRate !== 1) {
       throw new Error("Local range extraction must begin at normal playback speed.");
     }
+    // `loadedmetadata` only proves that the container header was parsed. Chromium can
+    // expose captureStream() at that point while its decoded audio track has not been
+    // attached yet, particularly for a freshly-created Blob URL. Wait until the media
+    // is actually playable before asking the stream for its audio track.
+    await waitForMediaCanPlay(media, input.signal);
     stream = captureMediaStream(media);
-    const audioTracks = stream.getAudioTracks();
+    const audioTracks = await waitForCapturedAudioTracks(stream, input.signal);
     if (audioTracks.length === 0) {
       throw new Error(
         "The local media has no capturable audio track. Choose a clip manually instead.",
@@ -302,10 +307,7 @@ async function readMediaDuration(blob: Blob, signal?: AbortSignal): Promise<numb
   audio.src = url;
   try {
     await waitForMediaMetadata(audio, signal);
-    if (!Number.isFinite(audio.duration) || audio.duration <= 0) {
-      throw new Error("The local recording has no readable duration metadata.");
-    }
-    return audio.duration;
+    return await waitForFiniteMediaDuration(audio, signal);
   } finally {
     audio.removeAttribute("src");
     audio.load();
@@ -334,6 +336,99 @@ function waitForMediaMetadata(media: HTMLMediaElement, signal?: AbortSignal): Pr
   );
 }
 
+function waitForMediaCanPlay(media: HTMLMediaElement, signal?: AbortSignal): Promise<void> {
+  if (media.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) return Promise.resolve();
+  return waitForMediaEvent(
+    media,
+    "canplay",
+    signal,
+    "The local source could not prepare a playable audio track.",
+  );
+}
+
+function waitForCapturedAudioTracks(
+  stream: MediaStream,
+  signal?: AbortSignal,
+): Promise<MediaStreamTrack[]> {
+  const existing = stream.getAudioTracks();
+  if (existing.length > 0) return Promise.resolve(existing);
+  return new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      cleanup();
+      reject(
+        new Error("The local media has no capturable audio track. Choose a clip manually instead."),
+      );
+    }, 1_500);
+    const cleanup = () => {
+      window.clearTimeout(timeoutId);
+      stream.removeEventListener("addtrack", onTrack);
+      signal?.removeEventListener("abort", onAbort);
+    };
+    const onTrack = () => {
+      const tracks = stream.getAudioTracks();
+      if (tracks.length === 0) return;
+      cleanup();
+      resolve(tracks);
+    };
+    const onAbort = () => {
+      cleanup();
+      reject(createAbortError());
+    };
+    stream.addEventListener("addtrack", onTrack);
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+function waitForFiniteMediaDuration(
+  media: HTMLMediaElement,
+  signal?: AbortSignal,
+): Promise<number> {
+  const readableDuration = (): number | undefined => {
+    if (Number.isFinite(media.duration) && media.duration > 0) return media.duration;
+    if (media.seekable.length <= 0) return undefined;
+    const start = media.seekable.start(0);
+    const end = media.seekable.end(media.seekable.length - 1);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return undefined;
+    return end - start;
+  };
+  const initial = readableDuration();
+  if (initial !== undefined) return Promise.resolve(initial);
+  return new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("The local recording has no readable duration metadata."));
+    }, 3_000);
+    const cleanup = () => {
+      window.clearTimeout(timeoutId);
+      for (const event of ["durationchange", "canplay", "loadeddata", "progress"]) {
+        media.removeEventListener(event, onPotentialDuration);
+      }
+      media.removeEventListener("error", onError);
+      signal?.removeEventListener("abort", onAbort);
+    };
+    const onPotentialDuration = () => {
+      const duration = readableDuration();
+      if (duration === undefined) return;
+      cleanup();
+      resolve(duration);
+    };
+    const onError = () => {
+      cleanup();
+      reject(new Error("The local recording duration could not be decoded."));
+    };
+    const onAbort = () => {
+      cleanup();
+      reject(createAbortError());
+    };
+    for (const event of ["durationchange", "canplay", "loadeddata", "progress"]) {
+      media.addEventListener(event, onPotentialDuration);
+    }
+    media.addEventListener("error", onError, { once: true });
+    signal?.addEventListener("abort", onAbort, { once: true });
+    onPotentialDuration();
+  });
+}
+
 function waitForSeek(
   media: HTMLMediaElement,
   expectedSeconds: number,
@@ -350,7 +445,7 @@ function waitForSeek(
 
 function waitForMediaEvent(
   media: HTMLMediaElement,
-  successEvent: "loadedmetadata" | "seeked",
+  successEvent: "loadedmetadata" | "seeked" | "canplay",
   signal: AbortSignal | undefined,
   failureMessage: string,
 ): Promise<void> {

@@ -24,7 +24,7 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-010A Durable whole-lecture audio/video intake` — complete and verified; PR #46.
 - `P1-010B Reviewed automatic transcription v1` — complete and verified; PR #47.
 - `P1-010C1 Resumable provider-range queues` — complete and verified; PR #48.
-- `P1-010C2 Local range extraction/transcoding` — [~] implementation complete locally; deterministic checks pass and the dedicated Chromium workflow is pending remote confirmation.
+- `P1-010C2 Local range extraction/transcoding` — [~] implementation complete locally; deterministic checks pass. The first dedicated Chromium run stopped before local-clip promotion; a focused decoder/track-readiness fix is awaiting remote confirmation.
 - `P1-011 Study Command Center v1` — complete and verified; PR #36.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37.
 - `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38.
@@ -107,6 +107,12 @@ Implemented in the current branch, pending dedicated Chromium CI:
 - deterministic capability/estimate/promotion/recovery evaluations, contract and a real two-second WAV Chromium scenario wired into a dedicated workflow.
 
 The current environment has no usable local Chromium proof. Do not mark this task verified until the new GitHub Actions browser workflow is green.
+
+### Remote browser evidence
+
+- PR #51's first `Local Range Extraction` run passed its contract, deterministic evaluations, typecheck, lint and production build, while the two-second Chromium capture timed out before creating a ready clip.
+- The follow-up keeps the manual C1 path intact, waits for decoder/audio-track readiness, accepts a finite seekable duration when MediaRecorder WebM has no finite container duration, and records concise IndexedDB/UI diagnostics if the browser proof still fails.
+- `npm run check` passes locally after the follow-up. The dedicated remote browser workflow remains the only release gate for C2.
 
 ## Verification state
 
