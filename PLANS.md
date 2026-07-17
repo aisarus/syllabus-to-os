@@ -19,6 +19,7 @@ This file records the active implementation plan. Product intent remains in `ROA
 - `P1-010A Durable whole-lecture audio/video intake` — merged and verified in PR #46.
 - `P1-010B Reviewed automatic transcription v1` — merged and verified in PR #47.
 - `P1-010C1 Resumable provider-range queues` — merged and verified in PR #48.
+- `P1-010C2 Automatic local range extraction/transcoding` — merged and verified in PR #52.
 - `P1-011 Study Command Center v1` — merged in PR #36.
 - `P1-012 Lecture-to-Study-Pack` — merged in PR #37.
 - `P1-013 Concept graph and evidence model v1` — merged in PR #38.
@@ -139,7 +140,7 @@ C1 deliberately did not claim automatic extraction from the local multi-gigabyte
 - Merged output remains an editable draft.
 - No provider range result becomes a source chunk automatically.
 
-## Active delivery — P1-010C2 Automatic local range extraction/transcoding (PR #52)
+## Verified delivery — P1-010C2 Automatic local range extraction/transcoding
 
 1. Inspect browser media APIs and choose a bounded local extraction strategy. ✓
 2. Show CPU, memory, temporary-storage and expected-output estimates before work begins. ✓
@@ -153,12 +154,32 @@ C1 deliberately did not claim automatic extraction from the local multi-gigabyte
 10. Reject or time out pending Chrome DevTools commands in the browser proof. ✓
 11. Localize unsupported-extraction reasons in RU/EN UI. ✓
 12. Preserve manual provider-ready clip selection as a fallback. ✓
-13. Pass dedicated C2 checks plus the separate C1 resumable regression on the final human-authored head. In verification.
-14. Merge PR #52. Pending.
+13. Pass dedicated C2 checks plus the separate C1 resumable regression on the final human-authored head. ✓
+14. Merge PR #52. ✓
+
+## Active delivery — P1-010C3 Streaming lecture backup (PR #53)
+
+### Product outcome
+
+A student can export one complete long-media material directly to a user-selected file without reconstructing the multi-gigabyte recording as one JavaScript Blob or ArrayBuffer.
+
+1. Define a deterministic framed `.lamdan-lecture` v1 format with a fixed signature. ✓
+2. Include the core material, media manifest, raw chunks, editable transcript, provider candidate, resumable queue and local range clips. ✓
+3. Fetch and hash one existing IndexedDB payload at a time. ✓
+4. Write directly through the native Save File picker with no JSZip or giant-Blob fallback. ✓
+5. Store exact byte size and SHA-256 for every payload. ✓
+6. Re-read and re-hash each prepared payload before writing. ✓
+7. Abort the writable stream on cancellation, hash drift or source replacement. ✓
+8. Add an incremental inspector for framing, order, checksums and trailing bytes. ✓
+9. Expose RU/EN planning, size metrics, progress and cancellation in material detail. ✓
+10. Add deterministic manifest and corruption evaluations. ✓
+11. Add Chromium proof for three raw chunks plus all companion record kinds and bounded writes. In verification.
+12. Pass full CI and existing long-media, extraction, transcription and Exam Engine regressions. In verification.
+13. Merge PR #53. Pending.
 
 ## Subsequent delivery
 
-1. Add streaming backup/export for raw media, editable drafts, provider candidates and range queues.
+1. Add staged streaming restore/import for `.lamdan-lecture` bundles as P1-010C4.
 2. Validate real Hebrew/Russian lecture quality on licensed audio and record latency/cost.
 3. Extend Exam Engine with profile, topic weights and bounded daily planning.
 4. Continue `P1-015`–`P1-019` only through source-visible and reviewable contracts.
