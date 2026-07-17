@@ -519,7 +519,10 @@ async function main() {
       assert(proof.kinds.includes(kind), `Bundle is missing ${kind}.`);
     }
     assert(proof.manifestRecordCount === proof.kinds.length, "Manifest record count drifted.");
-    assert(proof.writeCount > proof.kinds.length * 2, "Bundle was not written as framed streaming parts.");
+    assert(
+      proof.writeCount > proof.kinds.length * 2,
+      "Bundle was not written as framed streaming parts.",
+    );
     assert(proof.maxWrite <= 65536, "A write exceeded the bounded source chunk size.");
     assert(!proof.aborted, "Successful bundle was unexpectedly aborted.");
     assert(proof.trailingOffset === proof.size, "Bundle parser did not consume the complete file.");

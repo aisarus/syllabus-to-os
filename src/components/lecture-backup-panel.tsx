@@ -85,9 +85,7 @@ export function LectureBackupPanel({ material }: { material: Material }) {
         onProgress: setProgress,
       });
       toast.success(
-        isRu
-          ? "Полный lecture bundle записан на диск"
-          : "Complete lecture bundle saved to disk",
+        isRu ? "Полный lecture bundle записан на диск" : "Complete lecture bundle saved to disk",
       );
     } catch (error) {
       if (controller.signal.aborted) {
@@ -138,16 +136,31 @@ export function LectureBackupPanel({ material }: { material: Material }) {
 
       {plan ? (
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Metric label={isRu ? "Raw media" : "Raw media"} value={formatFileSize(plan.manifest.rawMediaBytes)} />
-          <Metric label={isRu ? "Записей" : "Records"} value={String(plan.manifest.records.length)} />
-          <Metric label={isRu ? "Media chunks" : "Media chunks"} value={String(plan.mediaChunkCount)} />
-          <Metric label={isRu ? "Локальные clips" : "Local clips"} value={String(plan.localClipCount)} />
+          <Metric
+            label={isRu ? "Raw media" : "Raw media"}
+            value={formatFileSize(plan.manifest.rawMediaBytes)}
+          />
+          <Metric
+            label={isRu ? "Записей" : "Records"}
+            value={String(plan.manifest.records.length)}
+          />
+          <Metric
+            label={isRu ? "Media chunks" : "Media chunks"}
+            value={String(plan.mediaChunkCount)}
+          />
+          <Metric
+            label={isRu ? "Локальные clips" : "Local clips"}
+            value={String(plan.localClipCount)}
+          />
         </div>
       ) : null}
 
       {plan ? (
         <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
-          <Flag enabled={plan.includesTranscriptDraft} label={isRu ? "editable draft" : "editable draft"} />
+          <Flag
+            enabled={plan.includesTranscriptDraft}
+            label={isRu ? "editable draft" : "editable draft"}
+          />
           <Flag enabled={plan.includesAutomaticCandidate} label="provider candidate" />
           <Flag enabled={plan.includesResumableQueue} label="resumable queue" />
           <span className="rounded-full border border-border px-2 py-1">
@@ -175,7 +188,8 @@ export function LectureBackupPanel({ material }: { material: Material }) {
             <div className="h-full bg-primary transition-all" style={{ width: `${percent}%` }} />
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">
-            {progress.completedRecords}/{progress.totalRecords} · {formatFileSize(progress.processedBytes)}
+            {progress.completedRecords}/{progress.totalRecords} ·{" "}
+            {formatFileSize(progress.processedBytes)}
           </p>
         </div>
       ) : null}

@@ -185,6 +185,15 @@ export async function putResumableRangeClip(
   return normalized;
 }
 
+export async function getResumableRangeClip(
+  materialId: string,
+  rangeId: string,
+): Promise<ResumableRangeClipRecord | undefined> {
+  if (!materialId || !rangeId) return undefined;
+  const db = await openDatabase();
+  return readRecord<ResumableRangeClipRecord>(db, CLIP_STORE, [materialId, rangeId]);
+}
+
 export async function listResumableRangeClips(
   materialId: string,
 ): Promise<ResumableRangeClipRecord[]> {

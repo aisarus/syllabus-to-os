@@ -142,7 +142,8 @@ export async function prepareLectureBackupPlan(
     getAutomaticTranscriptionJob(materialId),
     getResumableTranscriptionJob(materialId),
   ]);
-  if (!mediaManifest) throw new Error("No locally stored lecture recording exists for this material.");
+  if (!mediaManifest)
+    throw new Error("No locally stored lecture recording exists for this material.");
   assertSourceIdentity(mediaManifest, transcript, automaticJob, resumableJob);
 
   const possibleClipCount = resumableJob?.ranges.length ?? 0;
@@ -274,7 +275,8 @@ export async function saveLectureBackupPlan(
     onProgress?: (progress: LectureBackupProgress) => void;
   } = {},
 ): Promise<void> {
-  const picker = typeof window !== "undefined" ? (window as SavePickerWindow).showSaveFilePicker : null;
+  const picker =
+    typeof window !== "undefined" ? (window as SavePickerWindow).showSaveFilePicker : null;
   if (!picker) {
     throw new Error(
       "Streaming lecture export requires a browser with the native Save File picker.",
@@ -344,11 +346,12 @@ export async function exportLectureBackupPlanToWritable(
         prepared.data instanceof Blob
           ? await sha256Blob(prepared.data)
           : await sha256Bytes(prepared.data);
-      if (actualHash !== descriptor.sha256 || prepared.data.size !== undefined && prepared.data.size !== descriptor.size) {
-        throw new Error(`Lecture backup source changed for record ${descriptor.id}. Prepare it again.`);
-      }
-      if (prepared.data instanceof Uint8Array && prepared.data.byteLength !== descriptor.size) {
-        throw new Error(`Lecture backup source changed for record ${descriptor.id}. Prepare it again.`);
+      const actualSize =
+        prepared.data instanceof Blob ? prepared.data.size : prepared.data.byteLength;
+      if (actualHash !== descriptor.sha256 || actualSize !== descriptor.size) {
+        throw new Error(
+          `Lecture backup source changed for record ${descriptor.id}. Prepare it again.`,
+        );
       }
       processedBytes += await writeRecord(writable, descriptor, prepared.data);
       completedRecords += 1;
@@ -416,7 +419,8 @@ export async function inspectLectureBackupBlob(
       currentKind: expected.kind,
     });
   }
-  if (offset !== blob.size) throw new Error("The lecture backup contains unexpected trailing data.");
+  if (offset !== blob.size)
+    throw new Error("The lecture backup contains unexpected trailing data.");
   return { manifest, verifiedRecords, bytes: blob.size };
 }
 
@@ -436,7 +440,8 @@ export function validateLectureBackupManifest(manifest: LectureBackupManifest): 
   let manifestCount = 0;
   let materialCount = 0;
   for (const record of manifest.records) {
-    if (!record.id || ids.has(record.id)) throw new Error("Lecture backup record ids must be unique.");
+    if (!record.id || ids.has(record.id))
+      throw new Error("Lecture backup record ids must be unique.");
     ids.add(record.id);
     if (!Number.isSafeInteger(record.size) || record.size < 0) {
       throw new Error(`Invalid lecture backup size for ${record.id}.`);
@@ -547,7 +552,8 @@ async function readRecord(
   signal?: AbortSignal,
 ): Promise<{ header: RecordHeader; payload: Blob; nextOffset: number }> {
   throwIfAborted(signal);
-  if (offset + FRAME_PREFIX_BYTES > blob.size) throw new Error("The lecture backup frame is truncated.");
+  if (offset + FRAME_PREFIX_BYTES > blob.size)
+    throw new Error("The lecture backup frame is truncated.");
   const prefix = await blob.slice(offset, offset + FRAME_PREFIX_BYTES).arrayBuffer();
   const headerLength = new DataView(prefix).getUint32(0, false);
   if (headerLength <= 0 || headerLength > MAX_LECTURE_BACKUP_HEADER_BYTES) {
@@ -665,7 +671,10 @@ async function requiredMediaChunk(
 }
 
 function safeBackupName(fileName: string, materialId: string): string {
-  const base = fileName.replace(/\.[^.]+$/, "").replace(/[^a-z0-9а-яёא-ת_-]+/gi, "-").slice(0, 80);
+  const base = fileName
+    .replace(/\.[^.]+$/, "")
+    .replace(/[^a-z0-9а-яёא-ת_-]+/gi, "-")
+    .slice(0, 80);
   return `${base || materialId}-${new Date().toISOString().slice(0, 10)}${LECTURE_BACKUP_EXTENSION}`;
 }
 
@@ -682,7 +691,9 @@ async function sha256Bytes(bytes: Uint8Array): Promise<string> {
 }
 
 function bytesToHex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer), (value) => value.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(buffer), (value) => value.toString(16).padStart(2, "0")).join(
+    "",
+  );
 }
 
 function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
@@ -690,7 +701,9 @@ function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
 }
 
 function equalBytes(left: Uint8Array, right: Uint8Array): boolean {
-  return left.byteLength === right.byteLength && left.every((value, index) => value === right[index]);
+  return (
+    left.byteLength === right.byteLength && left.every((value, index) => value === right[index])
+  );
 }
 
 function throwIfAborted(signal?: AbortSignal): void {
