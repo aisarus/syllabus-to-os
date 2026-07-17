@@ -17,84 +17,48 @@ jobs:
   exam-engine:
     name: Contract, eval, build and browser proof
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+    timeout-minutes: 25
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
       - name: Verify Exam Engine contract
-        id: exam_contract
-        continue-on-error: true
-        run: node scripts/verify-exam-engine-contract.mjs > exam-engine-contract-output.txt 2>&1
-
-      - name: Upload Exam Engine contract diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: exam-engine-contract-diagnostics
-          path: exam-engine-contract-output.txt
-          if-no-files-found: error
-          retention-days: 3
-
-      - name: Fail when Exam Engine contract fails
-        if: steps.exam_contract.outcome == 'failure'
-        run: exit 1
-
+        run: node scripts/verify-exam-engine-contract.mjs
       - name: Run Exam Engine evaluations
         run: node --experimental-strip-types scripts/run-exam-engine-evals.mjs
-
+      - name: Verify exam planning contract
+        run: npm run verify:exam-planning-contract
+      - name: Run exam planning evaluations
+        run: npm run eval:exam-planning
       - name: Typecheck
         run: npm run typecheck
-
       - name: Lint
-        id: lint
-        continue-on-error: true
-        run: npm run lint 2>&1 | tee exam-engine-lint-output.txt
-
-      - name: Upload Exam Engine lint diagnostics
-        if: steps.lint.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: exam-engine-lint-diagnostics
-          path: exam-engine-lint-output.txt
-          if-no-files-found: error
-          retention-days: 3
-
-      - name: Fail when Exam Engine lint fails
-        if: steps.lint.outcome == 'failure'
-        run: exit 1
-
+        run: npm run lint
       - name: Build
         run: npm run build
-
       - name: Run Exam Engine browser E2E
-        id: exam_browser
+        run: node scripts/run-exam-engine-browser-e2e-final.mjs
+      - name: Run exam planning browser proof
+        id: planning_browser
         continue-on-error: true
-        run: node scripts/run-exam-engine-browser-e2e-final.mjs > exam-engine-browser-output.txt 2>&1
-
-      - name: Upload Exam Engine browser diagnostics
-        if: always()
+        run: npm run e2e:exam-planning 2>&1 | tee exam-planning-browser-output.txt
+      - name: Upload exam planning browser diagnostics
+        if: steps.planning_browser.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: exam-engine-browser-diagnostics
-          path: exam-engine-browser-output.txt
-          if-no-files-found: ignore
+          name: exam-planning-browser-diagnostics
+          path: exam-planning-browser-output.txt
+          if-no-files-found: error
           retention-days: 3
-
-      - name: Fail when Exam Engine browser E2E fails
-        if: steps.exam_browser.outcome == 'failure'
+      - name: Fail when exam planning browser proof fails
+        if: steps.planning_browser.outcome == 'failure'
         run: exit 1
