@@ -1,0 +1,61 @@
+name: Local Range Extraction
+
+on:
+  push:
+    branches:
+      - main
+      - agent/p1-010c2-extraction-20260717
+  pull_request:
+
+concurrency:
+  group: local-range-extraction-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  local-range-extraction:
+    name: Contract, eval, types, lint, build and browser proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify local extraction contract
+        run: npm run verify:local-range-extraction-contract
+
+      - name: Run local extraction evaluations
+        run: npm run eval:local-range-extraction
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Run local extraction Chromium proof
+        run: npm run e2e:local-range-extraction
+
+      - name: Run existing resumable transcription Chromium regression
+        run: npm run e2e:resumable-transcription
