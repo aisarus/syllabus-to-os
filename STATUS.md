@@ -25,6 +25,7 @@ The old stacked PRs #55 and #56 were closed as superseded after clean PRs #57 an
 - `P1-011 Study Command Center` — complete and verified.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified.
 - `P1-013A` through `P1-013E` — complete and verified.
+- `Workspace backup v2` — complete and verified in PR #41.
 - `P1-014A Frozen Exam Engine` — complete and verified.
 - `P1-014B Bounded exam planning` — complete and verified.
 
