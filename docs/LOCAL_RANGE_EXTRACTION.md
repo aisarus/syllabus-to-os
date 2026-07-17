@@ -14,12 +14,12 @@ For a persisted lecture range, Lamdan can explicitly create an audio/WebM provid
 4. A new hidden media element seeks to the persisted range boundary and must remain at playback rate `1`.
 5. Only the captured audio track is recorded. Recorder events are saved incrementally in the dedicated `lamdan-local-range-extraction` IndexedDB database under a staging clip id.
 6. Cancellation or failure deletes that staging clip and cannot replace a previously ready range.
-7. Before promotion, the clip must match the exact material/upload/range identity, have readable duration within tolerance, use `audio/webm`, fit the provider byte limit and pass the normal provider-file validation.
+7. Before promotion, the clip must match the exact material/upload/range identity, have duration evidence within tolerance, use `audio/webm`, fit the provider byte limit and pass the normal provider-file validation. Lamdan prefers parsed WebM duration; if Chromium leaves no finite value after a local metadata probe, it may use only the independently observed 1× source-playback span—not the requested range itself.
 8. Only then does Lamdan mark the C1 range `ready`. No consent is recorded and no upload occurs during extraction.
 
 ## Honest browser boundary
 
-`captureStream` and recorder support vary by browser and media codec. An unavailable capture API, missing audio track, imprecise seek, changed playback rate, source ending early, recorder failure, unknown duration or size/MIME/timing mismatch are explicit failures. The manual C1 **Choose clip** action stays available in all of those cases.
+`captureStream` and recorder support vary by browser and media codec. An unavailable capture API, missing audio track, imprecise seek, changed playback rate, source ending early, recorder failure, absent duration evidence or size/MIME/timing mismatch are explicit failures. The manual C1 **Choose clip** action stays available in all of those cases.
 
 The failure is kept on the exact range row, not only in a transient notification. A failed replacement never removes a previously ready clip.
 

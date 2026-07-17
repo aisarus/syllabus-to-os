@@ -6,6 +6,7 @@ import {
   detectLocalRangeExtractionCapability,
   estimateLocalRangeExtraction,
   normalizeLocalRangeExtractionMimeType,
+  selectLocalRangeExtractionDurationEvidence,
   validateLocalRangeExtractionPromotion,
   type LocalRangeExtractionEstimate,
   type LocalRangeExtractionProvenance,
@@ -107,7 +108,13 @@ export async function extractLocalRangeFromStoredMedia(
     notify("validating", captured.byteSize);
     const recordedBlob = await getLocalRangeExtractionBlob(stage.id, { includeStaging: true });
     if (!recordedBlob) throw new Error("The local recording disappeared before validation.");
-    const actualDurationSeconds = await readMediaDuration(recordedBlob, input.signal);
+    const actualDurationSeconds = selectLocalRangeExtractionDurationEvidence({
+      containerDurationSeconds: await readMediaDuration(recordedBlob, input.signal),
+      capturedDurationSeconds: captured.durationSeconds,
+    });
+    if (actualDurationSeconds === undefined) {
+      throw new Error("The local recording has no verifiable duration evidence.");
+    }
     const actualMimeType =
       normalizeLocalRangeExtractionMimeType(captured.mimeType) ?? stage.mimeType;
     const candidateFile = new File([recordedBlob], stage.fileName, {
@@ -151,7 +158,7 @@ async function captureLocalAudioRange(input: {
   mimeType: string;
   signal?: AbortSignal;
   onChunk: (chunk: Blob) => Promise<void>;
-}): Promise<{ byteSize: number; mimeType: string }> {
+}): Promise<{ byteSize: number; mimeType: string; durationSeconds: number }> {
   throwIfAborted(input.signal);
   const media = document.createElement(input.kind === "video" ? "video" : "audio");
   const sourceUrl = URL.createObjectURL(input.sourceBlob);
@@ -219,7 +226,7 @@ function recordUntilRangeEnd(input: {
   endSeconds: number;
   signal?: AbortSignal;
   onChunk: (chunk: Blob) => Promise<void>;
-}): Promise<{ byteSize: number; mimeType: string }> {
+}): Promise<{ byteSize: number; mimeType: string; durationSeconds: number }> {
   return new Promise((resolve, reject) => {
     let settled = false;
     let intervalId: number | undefined;
@@ -227,6 +234,14 @@ function recordUntilRangeEnd(input: {
     let appendChain = Promise.resolve();
     let failure: Error | undefined;
     let byteSize = 0;
+    const startMediaTime = input.media.currentTime;
+    let furthestMediaTime = startMediaTime;
+
+    const observeMediaTime = () => {
+      if (Number.isFinite(input.media.currentTime)) {
+        furthestMediaTime = Math.max(furthestMediaTime, input.media.currentTime);
+      }
+    };
 
     const cleanup = () => {
       if (intervalId !== undefined) window.clearInterval(intervalId);
@@ -242,9 +257,22 @@ function recordUntilRangeEnd(input: {
         reject(failure);
         return;
       }
-      resolve({ byteSize, mimeType: input.recorder.mimeType });
+      observeMediaTime();
+      if (furthestMediaTime < input.endSeconds - LOCAL_RANGE_EXTRACTION_SEEK_TOLERANCE_SECONDS) {
+        reject(new Error("The local recorder stopped before the requested range completed."));
+        return;
+      }
+      resolve({
+        byteSize,
+        mimeType: input.recorder.mimeType,
+        durationSeconds: Math.max(
+          0,
+          Math.min(input.endSeconds, furthestMediaTime) - startMediaTime,
+        ),
+      });
     };
     const stop = () => {
+      observeMediaTime();
       input.media.pause();
       if (input.recorder.state !== "inactive") input.recorder.stop();
       else complete();
@@ -256,6 +284,7 @@ function recordUntilRangeEnd(input: {
     };
     const onAbort = () => fail(createAbortError());
     const onMediaEnded = () => {
+      observeMediaTime();
       if (
         input.media.currentTime >=
         input.endSeconds - LOCAL_RANGE_EXTRACTION_SEEK_TOLERANCE_SECONDS
@@ -282,6 +311,7 @@ function recordUntilRangeEnd(input: {
       throwIfAborted(input.signal);
       input.recorder.start(1000);
       intervalId = window.setInterval(() => {
+        observeMediaTime();
         if (input.media.playbackRate !== 1) {
           fail(new Error("Playback speed changed during local range extraction."));
           return;
@@ -299,7 +329,7 @@ function recordUntilRangeEnd(input: {
   });
 }
 
-async function readMediaDuration(blob: Blob, signal?: AbortSignal): Promise<number> {
+async function readMediaDuration(blob: Blob, signal?: AbortSignal): Promise<number | undefined> {
   throwIfAborted(signal);
   const audio = document.createElement("audio");
   const url = URL.createObjectURL(blob);
@@ -382,7 +412,7 @@ function waitForCapturedAudioTracks(
 function waitForFiniteMediaDuration(
   media: HTMLMediaElement,
   signal?: AbortSignal,
-): Promise<number> {
+): Promise<number | undefined> {
   const readableDuration = (): number | undefined => {
     if (Number.isFinite(media.duration) && media.duration > 0) return media.duration;
     if (media.seekable.length <= 0) return undefined;
@@ -396,11 +426,18 @@ function waitForFiniteMediaDuration(
   return new Promise((resolve, reject) => {
     const timeoutId = window.setTimeout(() => {
       cleanup();
-      reject(new Error("The local recording has no readable duration metadata."));
+      resolve(undefined);
     }, 3_000);
     const cleanup = () => {
       window.clearTimeout(timeoutId);
-      for (const event of ["durationchange", "canplay", "loadeddata", "progress"]) {
+      for (const event of [
+        "durationchange",
+        "canplay",
+        "loadeddata",
+        "progress",
+        "seeked",
+        "timeupdate",
+      ]) {
         media.removeEventListener(event, onPotentialDuration);
       }
       media.removeEventListener("error", onError);
@@ -420,11 +457,29 @@ function waitForFiniteMediaDuration(
       cleanup();
       reject(createAbortError());
     };
-    for (const event of ["durationchange", "canplay", "loadeddata", "progress"]) {
+    for (const event of [
+      "durationchange",
+      "canplay",
+      "loadeddata",
+      "progress",
+      "seeked",
+      "timeupdate",
+    ]) {
       media.addEventListener(event, onPotentialDuration);
     }
     media.addEventListener("error", onError, { once: true });
     signal?.addEventListener("abort", onAbort, { once: true });
+    // Chromium may expose a valid MediaRecorder WebM with `duration === Infinity`
+    // until the decoded element is asked to seek past its end. This probes only the
+    // temporary local Blob and still returns undefined if the container cannot
+    // produce a finite duration, so the caller never substitutes the requested span.
+    if (!Number.isFinite(media.duration)) {
+      try {
+        media.currentTime = Number.MAX_SAFE_INTEGER;
+      } catch {
+        // The capture-clock fallback remains available only after metadata decoded.
+      }
+    }
     onPotentialDuration();
   });
 }

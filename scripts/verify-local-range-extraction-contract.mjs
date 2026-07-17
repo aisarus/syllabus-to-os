@@ -49,6 +49,7 @@ for (const marker of [
   "LOCAL_RANGE_EXTRACTION_SEEK_TOLERANCE_SECONDS",
   "detectLocalRangeExtractionCapability",
   "estimateLocalRangeExtraction",
+  "selectLocalRangeExtractionDurationEvidence",
   "validateLocalRangeExtractionPromotion",
   "sameLocalRangeExtractionIdentity",
   "audio/webm;codecs=opus",
@@ -67,6 +68,8 @@ for (const marker of [
   "deleteLocalRangeExtractionClip(stage.id)",
   "assertLocalStorageCapacity",
   "readMediaDuration",
+  "capturedDurationSeconds",
+  "The local recording has no verifiable duration evidence",
   "The browser could not seek to the exact persisted range boundary",
 ]) {
   requireMarker(browser, marker, `Local range browser runtime is missing: ${marker}`);
@@ -142,6 +145,7 @@ for (const marker of [
   "a conservative oversize estimate must be rejected",
   "a clip from another persisted range identity must be rejected",
   "a capture timing mismatch must stay visible",
+  "a missing WebM container duration may use only measured source capture time",
   "a local capture failure must remain visible on its range",
   "an interrupted upload may recover to ready",
   "Local range extraction deterministic evaluations passed",

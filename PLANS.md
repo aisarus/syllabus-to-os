@@ -155,7 +155,7 @@ C1 deliberately does not claim automatic extraction from the local multi-gigabyt
 
 Steps 1–7 are implemented in the current branch: the browser path is capability-gated, local-only, staged, cancellable and validated before it reaches the existing C1 queue. A two-second WAV Chromium scenario is wired for step 8; it is pending remote CI because this workspace has no usable local Chrome/Chromium executable.
 
-The first remote browser run reached the real capture path but did not promote a ready clip. The focused follow-up waits for a decodable audio track and treats a finite seekable media interval as the actual duration when a recorder-produced WebM exposes an infinite container duration. Its rerun remains required before step 8 can be checked off.
+The first remote browser run reached the real capture path but did not promote a ready clip. The focused follow-up waits for a decodable audio track, probes a recorder-produced WebM that exposes an infinite container duration, and otherwise uses only the independently observed 1× source-capture clock before the usual duration validation. Its rerun remains required before step 8 can be checked off.
 
 ## Subsequent delivery
 

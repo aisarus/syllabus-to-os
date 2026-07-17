@@ -4,6 +4,7 @@ import {
   createLocalRangeExtractionFileName,
   detectLocalRangeExtractionCapability,
   estimateLocalRangeExtraction,
+  selectLocalRangeExtractionDurationEvidence,
   validateLocalRangeExtractionPromotion,
 } from "../src/lib/local-range-extraction.ts";
 import {
@@ -82,6 +83,27 @@ const provenance = {
     "a conservative oversize estimate must be rejected before the recorder starts",
   );
 }
+
+assert.equal(
+  selectLocalRangeExtractionDurationEvidence({
+    capturedDurationSeconds: 15 * 60 - 0.2,
+  }),
+  15 * 60 - 0.2,
+  "a missing WebM container duration may use only measured source capture time",
+);
+assert.equal(
+  selectLocalRangeExtractionDurationEvidence({
+    containerDurationSeconds: 15 * 60,
+    capturedDurationSeconds: 15 * 60 - 0.2,
+  }),
+  15 * 60,
+  "finite container metadata must stay the preferred duration evidence",
+);
+assert.equal(
+  selectLocalRangeExtractionDurationEvidence({}),
+  undefined,
+  "the requested duration must never be fabricated when both duration signals are absent",
+);
 
 assert.equal(
   validateLocalRangeExtractionPromotion({

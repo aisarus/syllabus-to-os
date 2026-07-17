@@ -161,6 +161,28 @@ export function estimateLocalRangeExtraction(input: {
   };
 }
 
+/**
+ * Prefer duration from the finished container, but never substitute the requested
+ * range itself when a recorder-produced WebM omits that metadata. In that narrow
+ * browser case, the caller may use the independently observed source-playback
+ * span from the 1× capture session instead.
+ */
+export function selectLocalRangeExtractionDurationEvidence(input: {
+  containerDurationSeconds?: number;
+  capturedDurationSeconds?: number;
+}): number | undefined {
+  if (
+    Number.isFinite(input.containerDurationSeconds) &&
+    (input.containerDurationSeconds ?? 0) > 0
+  ) {
+    return input.containerDurationSeconds;
+  }
+  if (Number.isFinite(input.capturedDurationSeconds) && (input.capturedDurationSeconds ?? 0) > 0) {
+    return input.capturedDurationSeconds;
+  }
+  return undefined;
+}
+
 export function createLocalRangeExtractionFileName(
   sourceFileName: string,
   identity: Pick<LocalRangeExtractionIdentity, "startSeconds" | "endSeconds">,

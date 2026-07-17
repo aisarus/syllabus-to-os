@@ -229,7 +229,7 @@ npm run eval:ocr:live -- \
 - local capture is explicit, capability-gated and records only an audio/WebM provider copy at 1×;
 - recorder chunks persist under a staging clip id before promotion; cancellation/failure deletes staging output;
 - size, temporary-storage and wall-time estimates are shown before extraction; actual wall/main-thread metrics remain visible when available;
-- exact range identity, seek, actual duration, MIME and provider-size validation run before C1 attachment;
+- exact range identity, seek, parsed-WebM or independently observed source-capture duration, MIME and provider-size validation run before C1 attachment;
 - extracted clips restore after reload and Data/orphan cleanup removes them with the range queue or material;
 - deterministic contract/evals pass locally; the dedicated Chromium workflow remains the release gate.
 
