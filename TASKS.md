@@ -1,387 +1,254 @@
-# Lamdan — P0 Implementation Tasks and Academic Autopilot Backlog
+# Lamdan — implementation tasks and Academic Autopilot backlog
 
-This is the canonical executable task ledger for Lamdan. Product intent lives in `ROADMAP.md`; active delivery plans live in `PLANS.md`; operational evidence and blockers live in `STATUS.md`.
+This is the canonical executable task ledger. Product intent lives in `ROADMAP.md`; the active slice lives in `PLANS.md`; operational evidence and blockers live in `STATUS.md`.
 
 ## Status legend
 
 - `[ ]` not started
-- `[~]` in progress or implemented but not fully verified
+- `[~]` active or partially delivered
 - `[x]` complete and verified
 - `[!]` blocked by external input or environment
 
 ## Global definition of done
 
-Every completed task must satisfy applicable requirements:
+A completed task must satisfy every applicable requirement:
 
 - real store data, no fallback demo content;
-- browser reload does not silently lose approved work;
-- AI, OCR and transcript outputs remain editable drafts until explicit save/apply;
-- `materialId` and `sourceChunkIds` relationships remain valid;
+- reload does not silently lose approved work;
+- AI, OCR and transcript output remains editable until explicit save/apply;
+- material, page, region and source-chunk relationships remain valid;
 - RU/EN chrome and mixed Hebrew/RTL content remain usable;
 - desktop and mobile layouts remain operable;
-- recommendations expose the evidence used to create them;
-- progress or readiness never derives from file views alone;
+- recommendations expose their evidence;
+- progress/readiness never derives from file views alone;
 - `npm run check` passes;
-- browser-critical behavior receives E2E coverage when deterministic proof is insufficient;
-- documentation names manual/private-data validation honestly.
+- browser-critical behavior has a permanent Chromium proof;
+- manual or external validation is named honestly.
 
 ---
 
-# Completed core sequence
+# Completed foundation
 
-| Task                                                    | Status | Result                                                                                         |
-| ------------------------------------------------------- | -----: | ---------------------------------------------------------------------------------------------- |
-| P0-001 Add continuous integration                       |    [x] | Contracts, evals, typecheck, lint and build run in CI.                                         |
-| P0-002 Audit and normalize active routes                |    [x] | Content-first shell and route inventory are stable.                                            |
-| P0-003 Remove tracking-first flows                      |    [x] | Timers, streaks and fake progress are outside primary navigation.                              |
-| P0-004 Shared material intake                           |    [x] | Dashboard and Materials use one intake pipeline.                                               |
-| P0-005 Multi-file upload queue                          |    [x] | Independent progress, retry and failure states.                                                |
-| P0-006 Duplicate detection                              |    [x] | Exact and likely duplicate handling.                                                           |
-| P0-007 Intake review and correction                     |    [x] | Metadata and extraction are reviewed before persistence.                                       |
-| P0-008 Material Workspace                               |    [x] | Source inspection, selection and actions.                                                      |
-| P0-009 Chunk editing                                    |    [x] | Split, merge, reorder and delete.                                                              |
-| P0-010 Material output history                          |    [x] | Saved outputs remain linked to sources.                                                        |
-| P0-011 Selected-source AI                               |    [x] | Material selection passes directly into generation.                                            |
-| P0-012 Editable AI draft review                         |    [x] | Notes, cards and quizzes are editable before save.                                             |
-| P0-013 Trust and citation layer                         |    [x] | Unknown source ids are rejected and unsupported claims warned.                                 |
-| P0-014 Syllabus review                                  |    [x] | Explicit correction and duplicate-safe confirmation.                                           |
-| P0-015 Course Workspace v1                              |    [x] | Persistent course structure and linked content.                                                |
-| P0-016 Reliable Notes editor                            |    [x] | Markdown editing, autosave state and source comparison.                                        |
-| P0-017 Flashcard Studio v1                              |    [x] | Bulk curation and two-sided review.                                                            |
-| P0-018 Quiz Studio v1                                   |    [x] | Validation, editing, practice and exam modes.                                                  |
-| P0-019 Core UI honesty audit                            |    [x] | Fake/dead controls removed or explained.                                                       |
-| P0-020 Deterministic evaluation fixtures                |    [x] | Syllabus, grounding, multilingual and OCR baselines.                                           |
-| P0-021 Durable image intake and OCR review              |    [x] | Original images, editable OCR drafts and explicit apply.                                       |
-| P0-022A Image preprocessing                             |    [x] | Non-destructive crop, rotation, deskew and contrast workflow.                                  |
-| P0-022B OCR region overlay                              |    [x] | Source-bound boxes and synchronized text/image selection.                                      |
-| P0-022C Full visual backup                              |    [x] | Checksummed ZIP restore with rollback.                                                         |
-| P0-023 Quizlet cards and golden quizzes                 |    [x] | Two-sided study and grounded bilingual quiz format.                                            |
-| P1-001 Multi-page image materials                       |    [x] | Per-page OCR, reorder, partial success and backup.                                             |
-| P1-002 Golden quiz quality evaluation                   |    [x] | Category scoring, negative controls and manual review.                                         |
-| P1-003 Critical browser E2E                             |    [x] | Real Chromium flows for materials, OCR, cards, quizzes and backup.                             |
-| P1-004 Add local-first global search v2                 |    [x] | Ranked multilingual search with URL state and deterministic evals.                             |
-| P1-005 Store persistence and source-integrity hardening |    [x] | Failed local writes are visible/exportable; OCR replacement preserves or repairs source links. |
-
-> Historical note: `P0-021` is reserved for durable OCR. The one-course pilot is `P1-008`.
+| Task | Status | Result |
+| --- | ---: | --- |
+| P0-001 Continuous integration | [x] | Contracts, evals, typecheck, lint, build and browser gates. |
+| P0-002 Route normalization | [x] | Stable content-first route inventory. |
+| P0-003 Remove tracking-first flows | [x] | No streak/timer vanity workflow in primary navigation. |
+| P0-004 Shared material intake | [x] | Dashboard and Materials use one pipeline. |
+| P0-005 Multi-file queue | [x] | Independent progress, retry and failure. |
+| P0-006 Duplicate detection | [x] | Exact and likely-duplicate review. |
+| P0-007 Intake review | [x] | Metadata/extraction correction before persistence. |
+| P0-008 Material Workspace | [x] | Source inspection, selection and actions. |
+| P0-009 Chunk editing | [x] | Split, merge, reorder and delete. |
+| P0-010 Output history | [x] | Saved outputs retain source relationships. |
+| P0-011 Selected-source AI | [x] | Selection passes directly into generation. |
+| P0-012 Editable AI review | [x] | Notes, cards and quizzes reviewed before save. |
+| P0-013 Trust/citation layer | [x] | Unknown source ids rejected; unsupported claims visible. |
+| P0-014 Syllabus review | [x] | Explicit correction and duplicate-safe confirmation. |
+| P0-015 Course Workspace | [x] | Persistent course structure and linked content. |
+| P0-016 Notes editor | [x] | Markdown editing, autosave and source comparison. |
+| P0-017 Flashcard Studio | [x] | Bulk curation and two-sided review. |
+| P0-018 Quiz Studio | [x] | Validation, editing and practice/exam modes. |
+| P0-019 UI honesty audit | [x] | Dead or misleading controls removed/explained. |
+| P0-020 Evaluation fixtures | [x] | Syllabus, grounding, multilingual and OCR baselines. |
+| P0-021 Durable image/OCR intake | [x] | Original image, draft review and explicit apply. |
+| P0-022A Image preprocessing | [x] | Non-destructive crop, rotation, deskew and contrast. |
+| P0-022B OCR region overlay | [x] | Source-bound boxes and synchronized selection. |
+| P0-022C Visual backup/restore | [x] | Checksummed restore with rollback. |
+| P0-023 Cards and golden quizzes | [x] | Grounded bilingual study formats. |
+| P1-001 Multi-page image materials | [x] | Page order, partial OCR and backup. |
+| P1-002 Golden quiz evaluator | [x] | Category scoring and negative controls. |
+| P1-003 Critical browser E2E | [x] | Materials, OCR, cards, quizzes and restore. |
+| P1-004 Global search v2 | [x] | Ranked multilingual local search. |
+| P1-005 Store/source hardening | [x] | Visible write failures and relationship repair. |
 
 ---
 
-# Validation gates
+# External validation gates
 
-## P1-006 — Live OCR validation on a private real-photo pack
+## P1-006 — Live OCR validation
 
 - **Status:** [!]
-- **Priority:** P0 validation blocker
-- **Size:** M
-- **Depends on:** P0-021, P0-022A/B, P1-001, P1-005
-- **Blocked by:** four private/licensed source images and a running Lamdan deployment with the multimodal provider
+- **Blocked by:** four legally usable representative images and a configured reachable deployment.
 
-### Required pack
+Acceptance:
 
-- printed Hebrew academic page;
-- handwritten Hebrew notes;
-- mixed RTL/LTR photographed mathematics;
-- deliberately unreadable/blurred image.
-
-### Execution
-
-```bash
-npm run eval:ocr:live -- \
-  --base-url https://YOUR-LAMDAN-PREVIEW \
-  --asset-dir ./private-ocr-assets
-```
-
-### Acceptance criteria
-
-- every fixture has an external candidate;
-- CER, WER, critical-token, math-expression and line-order thresholds pass;
+- printed Hebrew, handwriting, mixed RTL/LTR mathematics and unreadable input;
+- CER/WER, critical tokens, math and line-order thresholds;
 - handwriting requests review;
-- unreadable input abstains without invented text;
-- failure categories and model/prompt version are recorded;
-- no private photo is committed.
+- unreadable input abstains;
+- no validation image is committed.
 
----
-
-## P1-007 — Live golden quiz validation from a complete Hebrew source pack
+## P1-007 — Live Hebrew golden-quiz validation
 
 - **Status:** [!]
-- **Priority:** P0 validation blocker
-- **Size:** M
-- **Depends on:** P1-002, P1-005
-- **Blocked by:** one complete legally usable Hebrew course source pack
+- **Blocked by:** one complete legally usable Hebrew course source pack.
 
-### Acceptance criteria
+Acceptance:
 
-- generation uses explicitly selected source chunks;
-- exactly four unique options and one correct answer per question;
-- terminology, dates, numbers, rationales and translations are grounded;
-- manual review records approve/reject/needs-edit decisions;
-- one approved candidate enters the regression set;
-- rejected generations remain failure examples.
+- explicitly selected source chunks;
+- four unique options and one correct answer;
+- grounded terms, dates, numbers, rationale and translation;
+- recorded approve/reject/edit decisions;
+- one approved candidate becomes a regression fixture.
 
----
-
-## P1-008 — One-course closed personal pilot
+## P1-008 — One-course closed pilot
 
 - **Status:** [!]
-- **Priority:** P0 milestone gate
-- **Size:** L
-- **Depends on:** P1-006, P1-007
-- **Blocked by:** live OCR and live quiz validation
+- **Depends on:** P1-006 and P1-007.
 
-### Script
+Acceptance:
 
-1. Start from an empty local workspace.
-2. Import and review a real syllabus.
-3. Add a representative digital and photographed course pack.
-4. Review extraction and OCR.
-5. Generate, edit and save a note, cards and quiz.
-6. Reload and continue.
-7. Search a concept and open its source.
-8. Re-run OCR and reorder pages without breaking citations.
-9. Export, clear and restore a full ZIP.
-10. Record friction and failures in `PILOT.md`.
-
-### Acceptance criteria
-
-- no approved content is lost;
-- no visible saved state contradicts persistence;
-- every sourced output opens a valid source chunk;
-- workflow completes on desktop and mobile width;
-- critical findings are fixed or explicitly block M1.
+- empty workspace → syllabus → mixed source pack → review → note/cards/quiz;
+- reload and continue;
+- search opens the correct source;
+- OCR rerun/page reorder preserves citations;
+- export, clear and restore succeeds;
+- desktop and mobile-width completion;
+- no approved content or source relationship is lost.
 
 ---
+
+# Active delivery
 
 ## P1-009 — Deep multi-page browser coverage
 
-- **Status:** [ ]
-- **Priority:** P1
-- **Size:** M
-- **Depends on:** P1-001, P1-003, P1-005
+- **Status:** [~]
+- **Priority:** active P1
+- **Depends on:** P1-001, P1-003 and P1-005
 
-### Scope
+Scope:
 
 - page reorder with stable citations;
-- one failed OCR page while other pages succeed;
+- one failed OCR page while successful siblings remain usable;
 - page replacement and re-review;
-- page-level ZIP restore;
-- dangling-reference assertion after every flow.
+- page-level visual export/restore;
+- reload between destructive transitions;
+- dangling material/page/region/source-chunk assertion after every flow.
+
+Acceptance:
+
+- reorder never moves a citation to another page;
+- one failed page never invalidates successful siblings;
+- replacement repairs stale relationships;
+- restore publishes only verified complete state;
+- unreadable content remains failed or review-required;
+- permanent contract, Chromium workflow and full CI pass.
 
 ---
 
-## P1-010 — Audio transcription review-and-apply
+# Delivered lecture-media sequence
 
-- **Status:** [~]
-- **Priority:** active P1 delivery
-- **Size:** L
-- **Depends on:** P1-010A durable long-media intake
-- **Current PR:** #47
+## P1-010 — Audio transcription review and apply
 
-### Delivered in P1-010A / PR #46
+- **Implementation status:** [x]
+- **Live provider-quality evidence:** [!]
 
-- complete local audio/video storage in 8 MB IndexedDB chunks;
-- 4 GB local boundary, quota check, cancellation and SHA-256 verification;
-- local player, SRT/VTT/TXT import and editable timestamp blocks;
-- only approved non-empty transcript blocks become source chunks;
-- real 18 MB Chromium upload/apply/reload proof.
+Delivered:
 
-### Delivered in P1-010B / PR #47
+- `P1-010A` complete local audio/video storage, quota checks, cancellation and per-chunk SHA-256 — PR #46;
+- `P1-010B` explicit provider consent, bounded request, retry, stale-source rejection and draft-only candidate — PR #47;
+- `P1-010C1` resumable overlapping range queues and partial recovery — PR #48;
+- `P1-010C2` local range extraction/transcoding with manual fallback — PR #52;
+- `P1-010C3` streaming `.lamdan-lecture` export — PR #53;
+- `P1-010C4` verified duplicate restore with complete rollback — PR #54;
+- `P1-010C5` offline Hebrew/Russian quality evaluator — PR #57.
 
-- optional server-side OpenAI Audio Transcriptions provider;
-- exact provider/model/file/size disclosure and explicit consent;
-- 24 MB provider-request boundary and separate compressed provider-copy option;
-- cancellation, retry, interrupted-tab recovery and persisted attempt count;
-- separate local provider candidate with timestamps, speaker labels and uncertainty warnings;
-- visible uncovered intervals instead of model-memory gap filling;
-- stale source-upload rejection after recording replacement;
-- candidate loads into the editor only with `status: "draft"`;
-- current source chunks remain unchanged until manual review and Apply;
-- consent resets across material/model changes;
-- provider timestamps remain inside media duration;
-- contract/evals and cancellation → retry → draft → reload Chromium proof.
-
-### Remaining P1-010C work
-
-- automatic local audio extraction/transcoding for originals above one provider request;
-- resumable multi-part provider jobs and partial-range recovery;
-- streaming backup for raw media, editable transcript drafts and provider candidates;
-- live licensed Hebrew/Russian lecture quality, latency and cost validation.
-
-### Non-negotiable boundaries
+Non-negotiable boundaries:
 
 - no hidden upload during storage, navigation, playback or integrity checking;
-- timestamped source sections;
-- no automatic trusted transcript;
-- cancellation, timeout and retry;
-- explicit language and speaker uncertainty;
+- exact provider/model/file disclosure before upload;
 - missing intervals remain visible;
-- outputs retain transcript-section references.
+- provider output remains untrusted draft data;
+- no automatic source chunks;
+- cancelled/failed work cannot replace approved content;
+- stale recording identities are rejected.
+
+Live-quality gate:
+
+- requires legally usable Hebrew/Russian recordings;
+- exact human reference transcripts;
+- reviewed candidates produced by the deployment under evaluation;
+- records WER/CER, timestamp/speaker coverage, uncertainty, latency, real-time factor and cost.
 
 ---
 
-# Academic Autopilot sequence
+# Delivered Academic Autopilot foundation
 
-## P1-011 — Study Command Center v1
+## P1-011 — Study Command Center
 
 - **Status:** [x]
-- **Priority:** immediate
-- **Size:** M
-- **Depends on:** existing assignments, calendar, flashcards, quizzes, materials and courses
+- **PR:** #36
 
-### Goal
-
-Make the dashboard answer “What should I do now?” from real stored evidence.
-
-### Delivered
-
-- pure deterministic priority engine;
-- overdue/upcoming assignment actions;
-- exam actions and missing-simulation risk;
-- due-card review action;
-- weak latest-quiz repair action;
-- source-review backlog and ready-source-without-output action;
-- empty-workspace fallback;
-- 20/45/90 minute bounded plans;
-- quick wins, risks and honest counters;
-- direct links to useful workspaces;
-- RU/EN copy and responsive Academic Content Workspace styling;
-- deterministic eval and permanent contract;
-- full CI and critical Chromium E2E in PR #36.
-
-### Acceptance criteria
-
-- overdue assignments outrank optional generation;
-- an exam within seven days without a quiz attempt creates a risk;
-- due cards use real `dueAt` values;
-- non-ready sources are visible;
-- empty data produces a real intake action;
-- study plans never exceed the selected budget;
-- no mastery or readiness is invented;
-- mobile dashboard remains usable;
-- CI passes.
-
----
+Deterministic evidence-backed next actions, bounded 20/45/90-minute plans, visible risks and direct workspace links.
 
 ## P1-012 — Lecture-to-Study-Pack
 
 - **Status:** [x]
-- **Priority:** P1
-- **Size:** L
-- **Depends on:** P1-008, P1-011, grounded generation
+- **PR:** #37
 
-### Goal
+Source-linked orientation, note, concepts, difficult points, cards, questions and ordered steps in one editable atomic save flow.
 
-One selected lecture/source bundle becomes a coherent guided learning sequence.
+## P1-013 — Concept graph and evidence
 
-### Delivered
+- **Status:** [x] for the planned v1 sequence
+- **PRs:** #38, #39, #41, #42, #43 and #44
 
-- orientation summary;
-- structured note;
-- concepts and definitions;
-- difficult points and explicit unclear areas;
-- source-linked cards and diagnostic questions;
-- ordered learning steps with time estimates;
-- editable combined draft before save;
-- atomic save into note, cards and quiz entities;
-- full CI and critical Chromium E2E in PR #37.
+Delivered:
 
-### Acceptance criteria
+- concept/source/card/question relationships;
+- recognition, recall, explanation and application evidence;
+- inspectable/removable history;
+- forgetting risk and honest knowledge-map states;
+- per-question quiz evidence;
+- reviewed concept extraction;
+- open-answer mistake repair;
+- full workspace backup integration;
+- edited-batch collision guard.
 
-- every item cites approved source chunks;
-- duplicate items are removed;
-- the pack is editable before save;
-- one click opens the first learning step;
-- partial AI failure does not discard successful sections.
+Boundary:
 
----
-
-## P1-013 — Concept graph and evidence model
-
-- **Status:** [~]
-- **Priority:** P1
-- **Size:** XL
-- **Depends on:** P1-012
-
-### Goal
-
-Represent evidence for recognition, recall, explanation and application without fake mastery.
-
-### Verified v1 delivered in PR #38
-
-- separate local-first concept/evidence store without rewriting `lamdan.data.v1`;
-- explicit concept relationships to course, topic, approved chunks, cards and quiz questions;
-- linked flashcard recall evidence;
-- aggregate quiz attempts retained only as neutral context;
-- manual explanation/application events treated as secondary evidence;
-- mistake taxonomy;
-- recency and forgetting risk;
-- `unseen`, `covered`, `fragile`, `weak` and `strong` knowledge-map states;
-- strong state requires four successes, two non-manual successes, two days and two evidence kinds;
-- targeted source/card/quiz repair actions;
-- migration, reconciliation and course-level JSON export/import;
-- inspectable and removable evidence history;
-- full CI and critical Chromium E2E.
-
-### Remaining scope
-
-- reviewed concept extraction from sources and Study Packs;
-- per-question quiz evidence instead of aggregate-only context;
-- open-answer and oral evidence;
-- integration into the full visual ZIP backup.
-
-### Acceptance criteria
-
-- file views never increase concept state;
-- one lucky answer cannot mark mastery;
-- repeated manual self-rating alone cannot mark strong evidence;
-- evidence is inspectable and removable;
-- migration preserves all v1 data;
-- deleting or unlinking a source/practice relationship repairs concept evidence safely.
-
----
+- file views never increase evidence;
+- one lucky answer cannot mark strong state;
+- manual self-rating alone cannot mark strong evidence;
+- relationship deletion/replacement reconciles evidence safely.
 
 ## P1-014 — Exam Engine
 
-- **Status:** [ ]
-- **Priority:** P1
-- **Size:** XL
-- **Depends on:** P1-012, P1-013
+- **Status:** [~]
 
-### Goal
+Delivered:
 
-Build an adaptive exam plan from date, format, coverage, evidence and available time.
+- `P1-014A` frozen source-grounded multiple-choice sessions — PR #45;
+- immutable questions/options/answers/source ids after start;
+- deadline, partial-answer and reload persistence;
+- per-question evidence only for actual answers;
+- raw score without unsupported grade prediction;
+- `P1-014B` separate bounded exam-planning profile — PR #58;
+- exam date, weekdays, daily/session limits and topic weights;
+- deterministic final-180-day allocation;
+- original and combined planning/exam Chromium proofs.
 
-### Scope
+Remaining optional expansion:
 
-- exam profile and topic weights;
-- calm/week-before/tomorrow/emergency modes;
-- closed/open/oral/Hebrew formats;
-- readiness dimensions;
-- bounded daily plan;
-- realistic simulation;
-- error repair and re-planning;
-- transparent score range only when evidence supports it.
-
-### Acceptance criteria
-
-- readiness dimensions show their evidence and uncertainty;
-- the plan fits declared time capacity;
-- simulation uses the configured format;
-- wrong answers create targeted actions;
-- emergency mode prioritizes expected score gain, not content volume.
+- open-answer/oral simulation formats;
+- calm/week-before/tomorrow/emergency presentation modes;
+- evidence-visible readiness dimensions;
+- targeted re-planning after simulation mistakes;
+- score ranges only when evidence and uncertainty support them.
 
 ---
+
+# Next product slices
 
 ## P1-015 — Assignment Copilot
 
 - **Status:** [ ]
-- **Priority:** P1
-- **Size:** L
-- **Depends on:** grounded sources and assignment/calendar entities
+- **Priority:** next after P1-009
 
-### Scope
+Scope:
 
-- requirement and rubric extraction;
+- editable requirement/rubric extraction;
 - deadline, format and mandatory-source detection;
 - stage breakdown;
 - thesis/outline/evidence workspace;
@@ -390,100 +257,44 @@ Build an adaptive exam plan from date, format, coverage, evidence and available 
 - citation and unsupported-claim checks;
 - final submission checklist.
 
-### Acceptance criteria
+Acceptance:
 
-- extracted requirements remain editable;
-- every critique points to the task, rubric or source;
+- every critique points to the assignment, rubric or source;
 - generated text is distinguishable from user writing;
-- Lamdan does not claim a requirement is complete without evidence.
-
----
+- no requirement is marked complete without evidence.
 
 ## P1-016 — Lecture Mode
 
 - **Status:** [ ]
-- **Priority:** P1 after P1-010
-- **Size:** L
-- **Depends on:** audio transcription, multi-page visual sources, Study Pack
 
-### Scope
-
-- recording where permitted;
-- quick notes and timestamp markers;
-- board-photo capture;
-- important/unclear/exam-likely markers;
-- post-lecture source alignment;
-- repeated-emphasis detection;
-- Study Pack handoff.
-
----
+Recording where permitted, quick timestamped notes, board photos, important/unclear markers, post-lecture alignment and Study Pack handoff.
 
 ## P1-017 — Ask My Course
 
 - **Status:** [ ]
-- **Priority:** P1
-- **Size:** L
-- **Depends on:** global search, course memory, grounded AI
 
-### Scope
+Selected-course retrieval, source-cited answers, theory comparison, source location, answer checking and Socratic guidance.
 
-- selected-course retrieval;
-- source-cited answers;
-- compare definitions and theories;
-- “where did I study this?”;
-- answer checking against selected sources;
-- Socratic guidance without revealing the answer;
-- lecturer-question suggestions.
-
----
-
-## P1-018 — Intelligent calendar and workload forecast
+## P1-018 — Calendar and workload forecast
 
 - **Status:** [ ]
-- **Priority:** P1/P2
-- **Size:** L
-- **Depends on:** assignments, exams, Study Command Center outcomes
 
-### Scope
+Confirmed deadlines, task stages, evidence-based duration estimates, overloaded-week detection, preparation debt and capacity constraints.
 
-- confirmed deadline extraction;
-- task stage generation;
-- realistic duration estimates from completed evidence;
-- overloaded-week detection;
-- preparation-debt warning;
-- capacity and recovery constraints;
-- confirmed Google Calendar export later.
-
----
-
-## P1-019 — Personal explanation and accessibility layer
+## P1-019 — Explanation and accessibility profile
 
 - **Status:** [ ]
-- **Priority:** P1/P2
-- **Size:** M
-- **Depends on:** Study Pack and Ask My Course
 
-### Scope
-
-- preferred explanation language and structure;
-- Hebrew-level control;
-- preserve original terminology;
-- visual-load and session-length preferences;
-- editable explanation profile;
-- export and deletion;
-- no hidden sensitive inference.
+Explanation language/structure, Hebrew level, preserved terminology, visual-load/session preferences, editable exportable profile and no hidden sensitive inference.
 
 ---
 
 # Current execution order
 
-1. Persist per-question quiz evidence and reviewed mistake data under `P1-013`.
-2. Add reviewed concept extraction from sources and Study Packs under `P1-013`.
-3. Integrate concept/evidence data into the full visual ZIP backup.
-4. Supply and run the private OCR pack (`P1-006`).
-5. Run and review one real Hebrew golden quiz (`P1-007`).
-6. Execute the complete one-course pilot (`P1-008`).
-7. Deepen multi-page E2E (`P1-009`).
-8. Build Exam Engine (`P1-014`).
-9. Add Assignment Copilot (`P1-015`).
-10. Add audio, Lecture Mode, Ask My Course, workload forecast and personal explanation (`P1-010`, `P1-016`–`P1-019`).
+1. Merge `P1-009` deep multi-page browser coverage.
+2. Build `P1-015 Assignment Copilot`.
+3. Build `P1-016 Lecture Mode`.
+4. Build `P1-017 Ask My Course`.
+5. Build `P1-018 workload forecast`.
+6. Build `P1-019 explanation/accessibility profile`.
+7. Run P1-006, P1-007, P1-008 and live lecture-quality gates when their required external inputs are supplied.
