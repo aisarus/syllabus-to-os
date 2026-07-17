@@ -9,6 +9,12 @@ const temporaryScript = join(temporaryDirectory, "run-restore-proof.mjs");
 
 try {
   const source = await readFile(sourcePath, "utf8");
+  const previousSetup = `    await page.waitFor("document.readyState === 'complete'");
+
+    await page.evaluate(\`(async () => {`;
+  const restoreSetup = `    await page.navigate("/app/dashboard");
+
+    await page.evaluate(\`(async () => {`;
   const previousEnding = `    await page.reload();
     await page.waitForText("Потоковая копия лекции");
     const unchanged = await page.evaluate(\`(() => {
@@ -156,12 +162,16 @@ try {
     await page.waitForText("Streaming lecture fixture (restored)");
     console.log("Staged lecture restore Chromium E2E passed.");`;
 
+  if (!source.includes(previousSetup)) {
+    throw new Error("Could not locate the lecture backup fixture setup.");
+  }
   if (!source.includes(previousEnding)) {
     throw new Error("Could not locate the lecture backup proof ending.");
   }
   const compatible = source
     .replace("const APP_PORT = 4187;", "const APP_PORT = 4188;")
     .replace("const DEBUG_PORT = 9347;", "const DEBUG_PORT = 9348;")
+    .replace(previousSetup, restoreSetup)
     .replace(previousEnding, restoreEnding);
   await writeFile(temporaryScript, compatible);
   const result = spawnSync(process.execPath, [temporaryScript], {
