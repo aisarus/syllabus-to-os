@@ -719,7 +719,8 @@ function RangeRow({
                   : "No clip prepared"}
           </p>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            {isRu ? "Локально" : "Local"}: ≈ {formatMediaTime(estimate.processingSeconds)} · {formatFileSize(estimate.expectedOutputBytes)}
+            {isRu ? "Локально" : "Local"}: ≈ {formatMediaTime(estimate.processingSeconds)} ·{" "}
+            {formatFileSize(estimate.expectedOutputBytes)}
           </p>
           {range.resultSegments.length > 0 ? (
             <p className="mt-1 text-xs text-emerald-300">
@@ -732,7 +733,12 @@ function RangeRow({
           ) : null}
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={onChoose} disabled={busy || extracting || locked}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onChoose}
+            disabled={busy || extracting || locked}
+          >
             {range.status === "failed" || range.status === "cancelled" ? (
               <RotateCcw className="me-1 h-3.5 w-3.5" />
             ) : (
@@ -744,7 +750,9 @@ function RangeRow({
             size="sm"
             variant="outline"
             onClick={onExtract}
-            disabled={!canExtract || busy || extracting || locked || range.status === "review_ready"}
+            disabled={
+              !canExtract || busy || extracting || locked || range.status === "review_ready"
+            }
           >
             <Cpu className="me-1 h-3.5 w-3.5" />
             {isRu ? "Создать локально" : "Create locally"}
@@ -764,7 +772,15 @@ function RangeRow({
       {busy || extracting ? (
         <div className="mt-3">
           <div className="mb-1 flex justify-between text-[10px] text-muted-foreground">
-            <span>{extracting ? (isRu ? "Локальная нарезка" : "Local extraction") : isRu ? "Загрузка" : "Upload"}</span>
+            <span>
+              {extracting
+                ? isRu
+                  ? "Локальная нарезка"
+                  : "Local extraction"
+                : isRu
+                  ? "Загрузка"
+                  : "Upload"}
+            </span>
             <span>{Math.round(progress * 100)}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-muted">

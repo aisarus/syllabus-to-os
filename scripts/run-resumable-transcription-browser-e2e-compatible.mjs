@@ -10,7 +10,10 @@ const temporaryScript = join(temporaryDirectory, "run-compatible.mjs");
 try {
   const source = await readFile(sourcePath, "utf8");
   const compatible = source
-    .replaceAll('indexedDB.open("lamdan-resumable-transcription", 1)', 'indexedDB.open("lamdan-resumable-transcription")')
+    .replaceAll(
+      'indexedDB.open("lamdan-resumable-transcription", 1)',
+      'indexedDB.open("lamdan-resumable-transcription")',
+    )
     .replaceAll("indexedDB.open(name, 1)", "indexedDB.open(name)")
     .replaceAll("Запустить выбранные диапазоны", "Запустить подготовленные диапазоны");
   await writeFile(temporaryScript, compatible);

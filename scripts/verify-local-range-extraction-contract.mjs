@@ -23,7 +23,7 @@ assert(
   !extraction.includes("sourceBlob.arrayBuffer"),
   "Local extraction must not decode the complete multi-gigabyte source into one ArrayBuffer.",
 );
-assert(store.includes('const DATABASE_VERSION = 2'));
+assert(store.includes("const DATABASE_VERSION = 2"));
 assert(store.includes('const CLIP_STORE = "local-clips"'));
 assert(store.includes("putResumableRangeClip"));
 assert(store.includes("resumableRangeClipToFile"));

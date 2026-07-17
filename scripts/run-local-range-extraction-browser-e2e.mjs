@@ -401,7 +401,8 @@ async function main() {
     await page.waitForText("0:00–0:03");
     await page.clickText("Создать локально");
 
-    await page.waitFor(`(async () => {
+    await page.waitFor(
+      `(async () => {
       const db = await openDb("lamdan-resumable-transcription");
       if (!db.objectStoreNames.contains("local-clips")) { db.close(); return false; }
       const clips = await getAll(db, "local-clips");
@@ -425,12 +426,17 @@ async function main() {
           request.onerror = () => reject(request.error);
         });
       }
-    })()`, 40_000);
+    })()`,
+      40_000,
+    );
 
     const beforeReload = await inspectProof(page);
     assert(beforeReload.clipCount === 1, "The extracted range clip was not persisted.");
     assert(beforeReload.clipSize > 0, "The extracted range clip is empty.");
-    assert(beforeReload.rangeStatus === "ready", "The extracted clip was not attached to its range.");
+    assert(
+      beforeReload.rangeStatus === "ready",
+      "The extracted clip was not attached to its range.",
+    );
     assert(beforeReload.sourceChunkCount === 0, "Local extraction created source chunks.");
 
     await page.reload();
@@ -479,8 +485,14 @@ async function main() {
     const finalProof = await inspectProof(page);
     assert(finalProof.jobStatus === "draft_loaded", "The provider result was not loaded as draft.");
     assert(finalProof.transcriptStatuses.length === 1, "The merged local range draft is missing.");
-    assert(finalProof.transcriptStatuses[0] === "draft", "The local range result was auto-approved.");
-    assert(finalProof.sourceChunkCount === 0, "The local range flow created source chunks automatically.");
+    assert(
+      finalProof.transcriptStatuses[0] === "draft",
+      "The local range result was auto-approved.",
+    );
+    assert(
+      finalProof.sourceChunkCount === 0,
+      "The local range flow created source chunks automatically.",
+    );
     console.log("Local range extraction browser E2E passed.");
   } finally {
     cdp?.close();

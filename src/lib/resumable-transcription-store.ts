@@ -198,10 +198,7 @@ export async function listResumableRangeClips(
   });
 }
 
-export async function deleteResumableRangeClip(
-  materialId: string,
-  rangeId: string,
-): Promise<void> {
+export async function deleteResumableRangeClip(materialId: string, rangeId: string): Promise<void> {
   const db = await openDatabase();
   await deleteRecord(db, CLIP_STORE, [materialId, rangeId]);
 }
@@ -355,11 +352,7 @@ function readRecord<T>(
   });
 }
 
-function deleteRecord(
-  db: IDBDatabase,
-  storeName: string,
-  key: IDBValidKey,
-): Promise<void> {
+function deleteRecord(db: IDBDatabase, storeName: string, key: IDBValidKey): Promise<void> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(storeName, "readwrite");
     transaction.objectStore(storeName).delete(key);

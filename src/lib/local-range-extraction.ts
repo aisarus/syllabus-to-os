@@ -107,11 +107,7 @@ export function validateLocalRangeExtractionRequest(input: {
   ) {
     throw new Error("The requested range is outside the stored lecture duration.");
   }
-  const estimate = estimateLocalRangeExtraction(
-    manifest,
-    range,
-    input.audioBitsPerSecond,
-  );
+  const estimate = estimateLocalRangeExtraction(manifest, range, input.audioBitsPerSecond);
   if (input.maxOutputBytes && estimate.expectedOutputBytes > input.maxOutputBytes) {
     throw new Error(
       "This range is expected to exceed the provider file-size boundary. Use a shorter range.",
@@ -295,16 +291,21 @@ function waitForMediaEvent(
   timeoutMs: number,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => finish(new Error("Timed out while reading local media.")), timeoutMs);
+    const timeout = window.setTimeout(
+      () => finish(new Error("Timed out while reading local media.")),
+      timeoutMs,
+    );
     const onSuccess = () => finish();
-    const onError = () => finish(new Error(media.error?.message ?? "The local media could not be decoded."));
+    const onError = () =>
+      finish(new Error(media.error?.message ?? "The local media could not be decoded."));
     const onAbort = () => finish(new DOMException("Local extraction cancelled.", "AbortError"));
     const finish = (error?: Error) => {
       window.clearTimeout(timeout);
       media.removeEventListener(eventName, onSuccess);
       media.removeEventListener("error", onError);
       signal?.removeEventListener("abort", onAbort);
-      error ? reject(error) : resolve();
+      if (error) reject(error);
+      else resolve();
     };
     media.addEventListener(eventName, onSuccess, { once: true });
     media.addEventListener("error", onError, { once: true });
@@ -336,7 +337,8 @@ function monitorRangePlayback(input: {
     const finish = (error?: Error) => {
       window.clearTimeout(timer);
       input.signal?.removeEventListener("abort", onAbort);
-      error ? reject(error) : resolve();
+      if (error) reject(error);
+      else resolve();
     };
     const onAbort = () => finish(new DOMException("Local extraction cancelled.", "AbortError"));
     const tick = () => {
