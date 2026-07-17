@@ -162,6 +162,15 @@ export async function listLongMediaManifests(): Promise<LongMediaManifest[]> {
   return readAll<LongMediaManifest>(db, MANIFEST_STORE);
 }
 
+export async function getLongMediaChunkRecord(
+  uploadId: string,
+  index: number,
+): Promise<LongMediaChunkRecord | undefined> {
+  if (!uploadId || !Number.isInteger(index) || index < 0) return undefined;
+  const db = await openDatabase();
+  return readRecord<LongMediaChunkRecord>(db, CHUNK_STORE, [uploadId, index]);
+}
+
 export async function updateLongMediaDuration(
   materialId: string,
   durationSeconds: number,

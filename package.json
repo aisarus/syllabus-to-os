@@ -31,6 +31,7 @@
     "eval:automatic-transcription": "node --experimental-strip-types scripts/run-automatic-transcription-evals.mjs",
     "eval:resumable-transcription": "bun scripts/run-resumable-transcription-evals.mjs",
     "eval:local-range-extraction": "bun scripts/run-local-range-extraction-evals.mjs",
+    "eval:lecture-backup": "bun scripts/run-lecture-backup-evals.mjs",
     "e2e:critical": "node scripts/run-critical-browser-e2e-wrapper.mjs",
     "e2e:question-evidence": "node scripts/run-question-evidence-browser-e2e.mjs",
     "e2e:workspace-backup": "node scripts/run-workspace-backup-browser-e2e.mjs",
@@ -40,6 +41,7 @@
     "e2e:automatic-transcription": "node scripts/run-automatic-transcription-browser-e2e.mjs",
     "e2e:resumable-transcription": "node scripts/run-resumable-transcription-browser-e2e-compatible.mjs",
     "e2e:local-range-extraction": "node scripts/run-local-range-extraction-browser-e2e.mjs",
+    "e2e:lecture-backup": "node scripts/run-lecture-backup-browser-e2e.mjs",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
     "verify:syllabus-review-contract": "node scripts/verify-syllabus-review-contract.mjs",
@@ -70,6 +72,7 @@
     "verify:automatic-transcription-contract": "node scripts/verify-automatic-transcription-contract.mjs",
     "verify:resumable-transcription-contract": "node scripts/verify-resumable-transcription-contract.mjs",
     "verify:local-range-extraction-contract": "node scripts/verify-local-range-extraction-contract.mjs",
+    "verify:lecture-backup-contract": "node scripts/verify-lecture-backup-contract.mjs",
     "check": "node scripts/check.mjs"
   },
   "dependencies": {
