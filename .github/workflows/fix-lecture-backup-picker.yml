@@ -61,15 +61,26 @@ jobs:
           fs.writeFileSync(e2ePath, e2e);
           NODE
 
-      - name: Format and validate focused change
-        run: |
-          npx prettier --write src/lib/lecture-backup.ts scripts/run-lecture-backup-browser-e2e.mjs
-          npm run verify:lecture-backup-contract
-          npm run eval:lecture-backup
-          npm run typecheck
-          npm run lint
-          npm run build
-          npm run e2e:lecture-backup
+      - name: Format
+        run: npx prettier --write src/lib/lecture-backup.ts scripts/run-lecture-backup-browser-e2e.mjs
+
+      - name: Verify contract
+        run: npm run verify:lecture-backup-contract
+
+      - name: Run deterministic eval
+        run: npm run eval:lecture-backup
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Run Chromium proof
+        run: npm run e2e:lecture-backup
 
       - name: Commit verified source changes
         run: |
