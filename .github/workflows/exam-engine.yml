@@ -48,4 +48,17 @@ jobs:
       - name: Run Exam Engine browser E2E
         run: node scripts/run-exam-engine-browser-e2e-final.mjs
       - name: Run exam planning browser proof
-        run: npm run e2e:exam-planning
+        id: planning_browser
+        continue-on-error: true
+        run: npm run e2e:exam-planning 2>&1 | tee exam-planning-browser-output.txt
+      - name: Upload exam planning browser diagnostics
+        if: steps.planning_browser.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: exam-planning-browser-diagnostics
+          path: exam-planning-browser-output.txt
+          if-no-files-found: error
+          retention-days: 3
+      - name: Fail when exam planning browser proof fails
+        if: steps.planning_browser.outcome == 'failure'
+        run: exit 1
