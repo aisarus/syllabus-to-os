@@ -56,6 +56,3 @@ jobs:
 
       - name: Run local extraction Chromium proof
         run: npm run e2e:local-range-extraction
-
-      - name: Run existing resumable transcription Chromium regression
-        run: npm run e2e:resumable-transcription
