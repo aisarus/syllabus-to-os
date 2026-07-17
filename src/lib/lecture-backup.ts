@@ -275,16 +275,15 @@ export async function saveLectureBackupPlan(
     onProgress?: (progress: LectureBackupProgress) => void;
   } = {},
 ): Promise<void> {
-  const picker =
-    typeof window !== "undefined" ? (window as SavePickerWindow).showSaveFilePicker : null;
-  if (!picker) {
+  const pickerWindow = typeof window !== "undefined" ? (window as SavePickerWindow) : null;
+  if (!pickerWindow?.showSaveFilePicker) {
     throw new Error(
       "Streaming lecture export requires a browser with the native Save File picker.",
     );
   }
   const suggestedName =
     options.suggestedName ?? safeBackupName(plan.manifest.sourceFileName, plan.manifest.materialId);
-  const handle = await picker({
+  const handle = await pickerWindow.showSaveFilePicker({
     suggestedName,
     types: [
       {

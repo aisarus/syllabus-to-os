@@ -210,8 +210,10 @@ const browserMocks = String.raw`(() => {
   window.__lectureBackupBlob = null;
   window.__lectureBackupWriteSizes = [];
   window.__lectureBackupAborted = false;
-  window.showSaveFilePicker = async () => ({
-    async createWritable() {
+  window.showSaveFilePicker = async function () {
+    if (this !== window) throw new Error("Save picker lost the Window receiver.");
+    return {
+      async createWritable() {
       const parts = [];
       return {
         async write(data) {
@@ -228,8 +230,9 @@ const browserMocks = String.raw`(() => {
           window.__lectureBackupAborted = true;
         }
       };
-    }
-  });
+      }
+    };
+  };
 })();`;
 
 async function main() {
