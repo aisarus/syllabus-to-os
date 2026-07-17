@@ -509,44 +509,24 @@ function assert(condition, message) {
 }
 
 async function waitForLocalExtraction(page, timeout = 20_000) {
-  const started = Date.now();
-  let diagnostics;
-  while (Date.now() - started < timeout) {
-    diagnostics = await page.evaluate(`(async () => {
-      const job = await new Promise((resolve, reject) => {
-        const request = indexedDB.open("lamdan-resumable-transcription", 1);
-        request.onsuccess = () => {
-          const db = request.result;
-          const item = db.transaction("jobs", "readonly").objectStore("jobs").get("mat_local");
-          item.onsuccess = () => { resolve(item.result); db.close(); };
-          item.onerror = () => reject(item.error);
-        };
-        request.onerror = () => reject(request.error);
-      });
-      const clips = await new Promise((resolve, reject) => {
-        const request = indexedDB.open("lamdan-local-range-extraction", 1);
-        request.onsuccess = () => {
-          const db = request.result;
-          const items = db.transaction("clips", "readonly").objectStore("clips").getAll();
-          items.onsuccess = () => { resolve(items.result); db.close(); };
-          items.onerror = () => reject(items.error);
-        };
-        request.onerror = () => reject(request.error);
-      });
-      return {
-        range: job?.ranges?.[0] ? {
-          status: job.ranges[0].status,
-          error: job.ranges[0].error,
-          localExtraction: job.ranges[0].localExtraction,
-        } : undefined,
-        clips: clips?.map((clip) => ({ status: clip.status, chunkCount: clip.chunkCount, byteSize: clip.byteSize })),
-        pageText: document.body?.innerText.slice(-1_500),
-      };
-    })()`);
-    if (diagnostics?.range?.localExtraction) return;
-    await sleep(100);
+  try {
+    await page.waitForText("Локально извлечён", timeout);
+  } catch (error) {
+    // Do not issue a long-lived Promise through CDP here: Chromium may collect
+    // it while IndexedDB is resolving. The synchronous DOM snapshot is stable
+    // and contains the visible local-capture failure/toast when one occurs.
+    const diagnostics = await page.evaluate(`(() => ({
+      pageText: document.body?.innerText.slice(-1_500),
+      toasts: [...document.querySelectorAll('[data-sonner-toast]')]
+        .map((toast) => toast.textContent?.replace(/\\s+/g, " ").trim())
+        .filter(Boolean),
+    }))()`);
+    throw new Error(
+      `Local extraction did not become ready: ${JSON.stringify(diagnostics)}; ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
   }
-  throw new Error(`Local extraction did not become ready: ${JSON.stringify(diagnostics)}`);
 }
 
 function sleep(milliseconds) {
