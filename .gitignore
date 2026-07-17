@@ -19,6 +19,8 @@ dist-ssr
 # Private evaluation assets and generated candidates
 private-ocr-assets/
 private-eval-candidates/
+private-lecture-assets/
+private-eval-reports/
 critical-e2e-artifacts/
 
 # Wrangler / Cloudflare
