@@ -78,13 +78,13 @@ for (const marker of [
 
 for (const marker of [
   "Возобновляемая расшифровка по диапазонам",
-  "Lamdan пока не извлекает и не перекодирует",
+  "Lamdan может создать точный audio clip",
   "createResumableTranscriptionJob",
   "requestAutomaticTranscription",
   "getLongMediaManifest(material.id)",
   "selectedCount",
-  "Явное согласие на отдельные clips",
-  "Запустить выбранные диапазоны",
+  "Явное согласие на отправку clips",
+  "Запустить подготовленные диапазоны",
   "Остановить текущий",
   "Загрузить объединённый draft",
   "buildTranscriptDraftFromResumableJob",

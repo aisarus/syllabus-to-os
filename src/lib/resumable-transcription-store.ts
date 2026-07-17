@@ -5,14 +5,31 @@ import {
 } from "./resumable-transcription";
 
 const DATABASE_NAME = "lamdan-resumable-transcription";
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 const JOB_STORE = "jobs";
+const CLIP_STORE = "local-clips";
+const CLIPS_BY_MATERIAL = "by-material";
+
+export interface ResumableRangeClipRecord {
+  materialId: string;
+  sourceUploadId: string;
+  rangeId: string;
+  startSeconds: number;
+  endSeconds: number;
+  durationSeconds: number;
+  fileName: string;
+  mimeType: string;
+  size: number;
+  blob: Blob;
+  createdAt: number;
+  updatedAt: number;
+}
 
 export async function getResumableTranscriptionJob(
   materialId: string,
 ): Promise<ResumableTranscriptionJob | undefined> {
   const db = await openDatabase();
-  const record = await readRecord<ResumableTranscriptionJob>(db, materialId);
+  const record = await readRecord<ResumableTranscriptionJob>(db, JOB_STORE, materialId);
   return record ? normalizeJob(record) : undefined;
 }
 
@@ -141,11 +158,69 @@ function choosePersistedRange(
   return incoming.updatedAt > existing.updatedAt ? incoming : existing;
 }
 
+export async function putResumableRangeClip(
+  record: ResumableRangeClipRecord,
+): Promise<ResumableRangeClipRecord> {
+  if (!record.materialId || !record.sourceUploadId || !record.rangeId) {
+    throw new Error("A local range clip is missing its source identity.");
+  }
+  if (!(record.blob instanceof Blob) || record.blob.size <= 0 || record.size !== record.blob.size) {
+    throw new Error("The local range clip blob is empty or inconsistent.");
+  }
+  const normalized: ResumableRangeClipRecord = {
+    ...record,
+    startSeconds: Math.max(0, Number(record.startSeconds) || 0),
+    endSeconds: Math.max(
+      Math.max(0, Number(record.startSeconds) || 0) + 0.01,
+      Number(record.endSeconds) || 0,
+    ),
+    durationSeconds: Math.max(0.01, Number(record.durationSeconds) || 0.01),
+    mimeType: record.mimeType || "audio/webm",
+    size: record.blob.size,
+    createdAt: Number(record.createdAt) || Date.now(),
+    updatedAt: Date.now(),
+  };
+  const db = await openDatabase();
+  await writeRecord(db, CLIP_STORE, normalized);
+  return normalized;
+}
+
+export async function listResumableRangeClips(
+  materialId: string,
+): Promise<ResumableRangeClipRecord[]> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(CLIP_STORE, "readonly");
+    const request = transaction.objectStore(CLIP_STORE).index(CLIPS_BY_MATERIAL).getAll(materialId);
+    request.onsuccess = () => resolve(request.result as ResumableRangeClipRecord[]);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Could not read locally extracted range clips."));
+  });
+}
+
+export async function deleteResumableRangeClip(materialId: string, rangeId: string): Promise<void> {
+  const db = await openDatabase();
+  await deleteRecord(db, CLIP_STORE, [materialId, rangeId]);
+}
+
+export function resumableRangeClipToFile(record: ResumableRangeClipRecord): File {
+  return new File([record.blob], record.fileName, {
+    type: record.mimeType,
+    lastModified: record.updatedAt,
+  });
+}
+
 export async function deleteResumableTranscriptionJob(materialId: string): Promise<void> {
   const db = await openDatabase();
   await new Promise<void>((resolve, reject) => {
-    const transaction = db.transaction(JOB_STORE, "readwrite");
+    const transaction = db.transaction([JOB_STORE, CLIP_STORE], "readwrite");
     transaction.objectStore(JOB_STORE).delete(materialId);
+    const clipStore = transaction.objectStore(CLIP_STORE);
+    const keys = clipStore.index(CLIPS_BY_MATERIAL).getAllKeys(materialId);
+    keys.onsuccess = () => {
+      for (const key of keys.result) clipStore.delete(key);
+    };
+    keys.onerror = () => transaction.abort();
     transaction.oncomplete = () => resolve();
     transaction.onerror = () =>
       reject(transaction.error ?? new Error("Could not delete the resumable transcription job."));
@@ -179,8 +254,9 @@ export async function pruneResumableTranscriptionJobs(
 export async function clearResumableTranscriptionJobs(): Promise<void> {
   const db = await openDatabase();
   await new Promise<void>((resolve, reject) => {
-    const transaction = db.transaction(JOB_STORE, "readwrite");
+    const transaction = db.transaction([JOB_STORE, CLIP_STORE], "readwrite");
     transaction.objectStore(JOB_STORE).clear();
+    transaction.objectStore(CLIP_STORE).clear();
     transaction.oncomplete = () => resolve();
     transaction.onerror = () =>
       reject(transaction.error ?? new Error("Could not clear resumable transcription jobs."));
@@ -235,6 +311,12 @@ function openDatabase(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(JOB_STORE)) {
         db.createObjectStore(JOB_STORE, { keyPath: "materialId" });
       }
+      if (!db.objectStoreNames.contains(CLIP_STORE)) {
+        const store = db.createObjectStore(CLIP_STORE, {
+          keyPath: ["materialId", "rangeId"],
+        });
+        store.createIndex(CLIPS_BY_MATERIAL, "materialId", { unique: false });
+      }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () =>
@@ -244,12 +326,40 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-function readRecord<T>(db: IDBDatabase, key: IDBValidKey): Promise<T | undefined> {
+function writeRecord(db: IDBDatabase, storeName: string, value: unknown): Promise<void> {
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(JOB_STORE, "readonly");
-    const request = transaction.objectStore(JOB_STORE).get(key);
+    const transaction = db.transaction(storeName, "readwrite");
+    transaction.objectStore(storeName).put(value);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Could not save resumable transcription data."));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("Resumable transcription save was aborted."));
+  });
+}
+
+function readRecord<T>(
+  db: IDBDatabase,
+  storeName: string,
+  key: IDBValidKey,
+): Promise<T | undefined> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, "readonly");
+    const request = transaction.objectStore(storeName).get(key);
     request.onsuccess = () => resolve(request.result as T | undefined);
     request.onerror = () =>
-      reject(request.error ?? new Error("Could not read the resumable transcription job."));
+      reject(request.error ?? new Error("Could not read resumable transcription data."));
+  });
+}
+
+function deleteRecord(db: IDBDatabase, storeName: string, key: IDBValidKey): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, "readwrite");
+    transaction.objectStore(storeName).delete(key);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Could not delete resumable transcription data."));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("Resumable transcription deletion was aborted."));
   });
 }
