@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Add bounded IndexedDB accessors
+      - name: Add bounded IndexedDB accessors and payload-size fix
         run: |
           node <<'NODE'
           const fs = require('node:fs');
@@ -52,6 +52,16 @@ jobs:
             if (!resumable.includes(anchor)) throw new Error('Missing range clip accessor anchor');
             resumable = resumable.replace(anchor, `export async function getResumableRangeClip(\n  materialId: string,\n  rangeId: string,\n): Promise<ResumableRangeClipRecord | undefined> {\n  if (!materialId || !rangeId) return undefined;\n  const db = await openDatabase();\n  return readRecord<ResumableRangeClipRecord>(db, CLIP_STORE, [materialId, rangeId]);\n}\n\n${anchor}`);
             fs.writeFileSync(resumablePath, resumable);
+          }
+
+          const backupPath = 'src/lib/lecture-backup.ts';
+          let backup = fs.readFileSync(backupPath, 'utf8');
+          const before = `      if (actualHash !== descriptor.sha256 || prepared.data.size !== undefined && prepared.data.size !== descriptor.size) {\n        throw new Error(\`Lecture backup source changed for record \${descriptor.id}. Prepare it again.\`);\n      }\n      if (prepared.data instanceof Uint8Array && prepared.data.byteLength !== descriptor.size) {\n        throw new Error(\`Lecture backup source changed for record \${descriptor.id}. Prepare it again.\`);\n      }`;
+          if (backup.includes(before)) {
+            backup = backup.replace(before, `      const actualSize =\n        prepared.data instanceof Blob ? prepared.data.size : prepared.data.byteLength;\n      if (actualHash !== descriptor.sha256 || actualSize !== descriptor.size) {\n        throw new Error(\`Lecture backup source changed for record \${descriptor.id}. Prepare it again.\`);\n      }`);
+            fs.writeFileSync(backupPath, backup);
+          } else if (!backup.includes('const actualSize =')) {
+            throw new Error('Missing payload-size patch anchor');
           }
           NODE
 
@@ -78,18 +88,7 @@ jobs:
         run: npm run eval:lecture-backup
 
       - name: Typecheck
-        shell: bash
-        run: |
-          set -o pipefail
-          npm run typecheck 2>&1 | tee lecture-backup-typecheck.log
-
-      - name: Upload typecheck diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lecture-backup-typecheck-diagnostics
-          path: lecture-backup-typecheck.log
-          retention-days: 3
+        run: npm run typecheck
 
       - name: Lint
         run: npm run lint
