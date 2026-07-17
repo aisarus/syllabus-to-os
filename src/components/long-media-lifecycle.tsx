@@ -8,6 +8,11 @@ import {
   deleteResumableTranscriptionJob,
   listResumableTranscriptionJobs,
 } from "@/lib/resumable-transcription-store";
+import {
+  deleteLocalRangeExtractionClip,
+  deleteLocalRangeExtractionClipsForMaterial,
+  listLocalRangeExtractionClips,
+} from "@/lib/local-range-extraction-store";
 import { getDataSnapshot, useData } from "@/lib/store";
 
 const ORPHAN_CONFIRMATION_MS = 15_000;
@@ -29,16 +34,27 @@ export function LongMediaLifecycle() {
 
     const inspectOrphans = async () => {
       const validMaterialIds = new Set(getDataSnapshot().materials.map((item) => item.id));
-      const [manifests, jobs, rangeJobs] = await Promise.all([
+      const [manifests, jobs, rangeJobs, localClips] = await Promise.all([
         listLongMediaManifests(),
         listAutomaticTranscriptionJobs(),
         listResumableTranscriptionJobs(),
+        listLocalRangeExtractionClips(),
       ]);
       const now = Date.now();
       const manifestIds = new Set(manifests.map((manifest) => manifest.materialId));
+      const manifestsByMaterialId = new Map(
+        manifests.map((manifest) => [manifest.materialId, manifest]),
+      );
       const jobIds = new Set(jobs.map((job) => job.materialId));
       const rangeJobIds = new Set(rangeJobs.map((job) => job.materialId));
-      const visibleLocalIds = new Set([...manifestIds, ...jobIds, ...rangeJobIds]);
+      for (const clip of localClips) {
+        const currentManifest = manifestsByMaterialId.get(clip.materialId);
+        if (currentManifest && currentManifest.uploadId !== clip.sourceUploadId) {
+          await deleteLocalRangeExtractionClip(clip.id);
+        }
+      }
+      const localClipIds = new Set(localClips.map((clip) => clip.materialId));
+      const visibleLocalIds = new Set([...manifestIds, ...jobIds, ...rangeJobIds, ...localClipIds]);
 
       for (const materialId of orphanSinceRef.current.keys()) {
         if (validMaterialIds.has(materialId) || !visibleLocalIds.has(materialId)) {
@@ -61,6 +77,8 @@ export function LongMediaLifecycle() {
         if (manifestIds.has(materialId)) await deleteLongMediaData(materialId);
         if (jobIds.has(materialId)) await deleteAutomaticTranscriptionJob(materialId);
         if (rangeJobIds.has(materialId)) await deleteResumableTranscriptionJob(materialId);
+        if (localClipIds.has(materialId))
+          await deleteLocalRangeExtractionClipsForMaterial(materialId);
         orphanSinceRef.current.delete(materialId);
       }
     };

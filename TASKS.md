@@ -175,7 +175,7 @@ npm run eval:ocr:live -- \
 - **Priority:** active P1 delivery
 - **Size:** L
 - **Depends on:** P1-010A durable long-media intake
-- **Current delivery:** P1-010C2 automatic local range extraction/transcoding
+- **Current delivery:** P1-010C streaming backup/export for raw media and transcription state
 
 ### Delivered in P1-010A / PR #46
 
@@ -209,10 +209,19 @@ npm run eval:ocr:live -- \
 - draft-only merged transcript loading with zero automatic source chunks;
 - deterministic and Chromium proof, complete repository CI and regression suite.
 
+### Delivered in P1-010C2 / PR #51
+
+- explicit, capability-gated local audio/WebM extraction from the persisted original at 1×;
+- staged IndexedDB capture with cancellation/failure cleanup and no complete-source `arrayBuffer()` read;
+- exact range identity plus duration, MIME and provider-size validation before C1 attachment;
+- persisted local clips restore after reload; manual C1 replacement clears their provenance;
+- retained manual C1 fallback and visible per-range errors that never erase a prior ready clip;
+- dedicated two-second WAV Chromium proof plus complete regression matrix, all green on PR #51.
+
 ### Remaining P1-010C work
 
-- automatic local audio extraction/transcoding for originals above one provider request;
 - streaming backup for raw media, editable transcript drafts and provider candidates;
+- streaming backup for locally extracted clips and resumable provider-range queues;
 - live licensed Hebrew/Russian lecture quality, latency and cost validation.
 
 ### P1-010C2 implementation boundary
@@ -221,7 +230,17 @@ npm run eval:ocr:live -- \
 - a generated clip must preserve the persisted range identity and pass duration, MIME and provider-size validation before it can become a C1 range file;
 - unsupported browser/media combinations stay visibly unsupported and retain the manual C1 file-selection fallback;
 - source playback timing remains 1×; a mismatched capture fails visibly instead of silently shifting timestamps;
+- a failed local capture remains visible on its exact range and never erases an existing ready clip;
 - processing must not call `arrayBuffer()` on the complete stored recording.
+
+### P1-010C2 verification state
+
+- local capture is explicit, capability-gated and records only an audio/WebM provider copy at 1×;
+- recorder chunks persist under a staging clip id before promotion; cancellation/failure deletes staging output;
+- size, temporary-storage and wall-time estimates are shown before extraction; actual wall/main-thread metrics remain visible when available;
+- exact range identity, seek, parsed-WebM or independently observed source-capture duration, MIME and provider-size validation run before C1 attachment;
+- extracted clips restore after reload and Data/orphan cleanup removes them with the range queue or material;
+- deterministic contract/evals, TypeScript, lint and production build pass locally; the dedicated Chromium workflow and complete six-workflow regression matrix passed on PR #51.
 
 ### Non-negotiable boundaries
 

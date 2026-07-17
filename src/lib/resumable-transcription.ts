@@ -12,6 +12,10 @@ import {
   type AutomaticTranscriptionProviderStatus,
   type AutomaticTranscriptionResponse,
 } from "./automatic-transcription";
+import {
+  validateLocalRangeExtractionPromotion,
+  type LocalRangeExtractionProvenance,
+} from "./local-range-extraction";
 
 export const DEFAULT_RESUMABLE_RANGE_SECONDS = 15 * 60;
 export const DEFAULT_RESUMABLE_OVERLAP_SECONDS = 2;
@@ -47,6 +51,7 @@ export interface ResumableTranscriptionRange {
   selectedFileName?: string;
   selectedFileSize?: number;
   selectedFileMimeType?: string;
+  localExtraction?: LocalRangeExtractionProvenance;
   providerRequestId?: string;
   resultSegments: AutomaticTranscriptSegment[];
   warnings: string[];
@@ -163,6 +168,18 @@ export function recoverInterruptedResumableJob(
   const now = Date.now();
   const ranges = job.ranges.map((range) => {
     if (!["ready", "uploading", "processing"].includes(range.status)) return range;
+    if (range.localExtraction?.sourceUploadId === job.sourceUploadId) {
+      return {
+        ...range,
+        status: "ready" as const,
+        uploadProgress: 0,
+        error:
+          range.status === "ready"
+            ? range.error
+            : "The browser interrupted this upload. Reconfirm consent before using the persisted local clip.",
+        updatedAt: now,
+      };
+    }
     return {
       ...range,
       status: "needs_file" as const,
@@ -180,6 +197,7 @@ export function attachResumableRangeFile(
   rangeId: string,
   file: Pick<File, "name" | "size" | "type">,
   maxBytes?: number,
+  options: { localExtraction?: LocalRangeExtractionProvenance } = {},
 ): ResumableTranscriptionJob {
   const validation = validateAutomaticTranscriptionFile(file, maxBytes);
   if (!validation.ok) throw new Error(validation.message);
@@ -189,11 +207,71 @@ export function attachResumableRangeFile(
     selectedFileName: file.name,
     selectedFileSize: file.size,
     selectedFileMimeType: file.type || "application/octet-stream",
+    localExtraction: options.localExtraction,
     uploadProgress: 0,
     resultSegments: [],
     warnings: [],
     providerRequestId: undefined,
     error: undefined,
+    updatedAt: Date.now(),
+  }));
+}
+
+export function attachLocallyExtractedResumableRangeFile(
+  job: ResumableTranscriptionJob,
+  rangeId: string,
+  file: Pick<File, "name" | "size" | "type">,
+  provenance: LocalRangeExtractionProvenance,
+  maxBytes?: number,
+): ResumableTranscriptionJob {
+  const range = job.ranges.find((item) => item.id === rangeId);
+  if (!range) throw new Error(`Unknown transcription range: ${rangeId}`);
+  const promotion = validateLocalRangeExtractionPromotion({
+    expected: {
+      materialId: job.materialId,
+      sourceUploadId: job.sourceUploadId,
+      rangeId: range.id,
+      startSeconds: range.startSeconds,
+      endSeconds: range.endSeconds,
+    },
+    provenance,
+    file,
+    actualDurationSeconds: provenance.durationSeconds,
+    maxBytes: maxBytes ?? Number.MAX_SAFE_INTEGER,
+  });
+  if (!promotion.ok) throw new Error(promotion.message);
+  return attachResumableRangeFile(job, rangeId, file, maxBytes, { localExtraction: provenance });
+}
+
+export function invalidateLocallyExtractedResumableRangeFile(
+  job: ResumableTranscriptionJob,
+  rangeId: string,
+  message = "The persisted local clip is unavailable. Extract it again or choose a clip manually.",
+): ResumableTranscriptionJob {
+  return updateRange(job, rangeId, (range) => ({
+    ...range,
+    status: "needs_file",
+    selectedFileName: undefined,
+    selectedFileSize: undefined,
+    selectedFileMimeType: undefined,
+    localExtraction: undefined,
+    uploadProgress: 0,
+    error: message,
+    updatedAt: Date.now(),
+  }));
+}
+
+export function recordLocalRangeExtractionFailure(
+  job: ResumableTranscriptionJob,
+  rangeId: string,
+  message: string,
+): ResumableTranscriptionJob {
+  return updateRange(job, rangeId, (range) => ({
+    ...range,
+    // Keep an already-ready manual or prior local clip usable. A failed replacement
+    // attempt must never erase it, but the fresh extraction failure must remain
+    // visible beside the range instead of disappearing with a toast.
+    error: message,
     updatedAt: Date.now(),
   }));
 }

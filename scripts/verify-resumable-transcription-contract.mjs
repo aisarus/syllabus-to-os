@@ -78,7 +78,7 @@ for (const marker of [
 
 for (const marker of [
   "Возобновляемая расшифровка по диапазонам",
-  "Lamdan пока не извлекает и не перекодирует",
+  "Ручной выбор C1 остаётся доступен",
   "createResumableTranscriptionJob",
   "requestAutomaticTranscription",
   "getLongMediaManifest(material.id)",

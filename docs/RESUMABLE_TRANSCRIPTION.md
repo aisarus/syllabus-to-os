@@ -57,4 +57,4 @@ The permanent gate covers the range contract, overlap/timestamp merge behavior, 
 
 ## Current boundary
 
-P1-010C1 expects the student to provide valid provider-ready clips matching the displayed ranges. Automatic local audio extraction/transcoding is P1-010C2. Streaming backup for raw media, editable transcript drafts, single-request candidates and resumable queues is also still pending.
+P1-010C1 continues to accept a student-provided provider-ready clip for every displayed range. Automatic local audio extraction/transcoding is P1-010C2: it adds a separate, capability-gated local audio/WebM extraction path that attaches only a validated local clip back to this same queue; manual selection remains the fallback. See [`LOCAL_RANGE_EXTRACTION.md`](./LOCAL_RANGE_EXTRACTION.md) for its local-only, staging and browser-support boundary. Streaming backup for raw media, editable transcript drafts, single-request candidates, extracted clips and resumable queues is still pending.

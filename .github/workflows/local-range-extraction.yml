@@ -1,0 +1,102 @@
+name: Local Range Extraction
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: local-range-extraction-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  local-range-extraction:
+    name: Contract, eval, types, lint, build and browser proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify local range extraction contract
+        run: npm run verify:local-range-extraction-contract
+
+      - name: Run local range extraction evaluations
+        id: local_range_evals
+        continue-on-error: true
+        run: npm run eval:local-range-extraction > local-range-extraction-evals.txt 2>&1
+
+      - name: Upload local range extraction evaluation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-range-extraction-eval-diagnostics
+          path: local-range-extraction-evals.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when local range extraction evaluations fail
+        if: steps.local_range_evals.outcome == 'failure'
+        run: exit 1
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        id: local_range_lint
+        continue-on-error: true
+        run: npm run lint > local-range-extraction-lint.txt 2>&1
+
+      - name: Upload local range extraction lint diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-range-extraction-lint-diagnostics
+          path: local-range-extraction-lint.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when local range extraction lint fails
+        if: steps.local_range_lint.outcome == 'failure'
+        run: exit 1
+
+      - name: Build
+        run: npm run build
+
+      - name: Run local range extraction browser E2E
+        id: local_range_browser
+        continue-on-error: true
+        run: npm run e2e:local-range-extraction > local-range-extraction-browser.txt 2>&1
+
+      - name: Upload local range extraction browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-range-extraction-browser-diagnostics
+          path: local-range-extraction-browser.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when local range extraction browser E2E fails
+        if: steps.local_range_browser.outcome == 'failure'
+        run: exit 1
