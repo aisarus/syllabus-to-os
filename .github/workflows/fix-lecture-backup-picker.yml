@@ -1,6 +1,7 @@
 name: Harden lecture backup save picker
 
 on:
+  pull_request:
   push:
     branches:
       - agent/p1-010c3-streaming-lecture-backup-20260717
