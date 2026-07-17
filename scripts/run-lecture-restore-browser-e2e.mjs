@@ -23,7 +23,15 @@ try {
     })()\`);
     assert(unchanged, "Local export mutated core material or source chunks.");
     console.log("Streaming lecture backup Chromium E2E passed.");`;
-  const restoreEnding = `    await page.clickText("Данные");
+  const restoreEnding = `    const dataNavigated = await page.evaluate(\`(() => {
+      const target = [...document.querySelectorAll('a[href="/app/data"]')].find((element) =>
+        element.getClientRects().length > 0
+      ) ?? document.querySelector('a[href="/app/data"]');
+      if (!target) return false;
+      target.click();
+      return true;
+    })()\`);
+    assert(dataNavigated, "Could not navigate to the Data route through the SPA link.");
     await page.waitForText("Восстановить streaming lecture bundle");
     const injected = await page.evaluate(\`(() => {
       const input = [...document.querySelectorAll('input[type="file"]')].find((element) =>
