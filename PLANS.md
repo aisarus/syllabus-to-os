@@ -138,7 +138,7 @@ C1 deliberately does not claim automatic extraction from the local multi-gigabyt
 - Merged output remains an editable draft.
 - No provider range result becomes a source chunk automatically.
 
-## Active delivery — P1-010C2 Automatic local range extraction/transcoding
+## Verified delivery — P1-010C2 Automatic local range extraction/transcoding
 
 ### Bounded local strategy
 
@@ -151,11 +151,11 @@ C1 deliberately does not claim automatic extraction from the local multi-gigabyt
 7. Add deterministic capability/estimate/validation/recovery evaluations and a permanent contract.
 8. Add a Chromium proof for local extraction → C1 queue → provider mock → merged draft, with no source chunks created automatically.
 
-### C2 progress
+### C2 verification
 
-Steps 1–7 are implemented in the current branch: the browser path is capability-gated, local-only, staged, cancellable and validated before it reaches the existing C1 queue. A two-second WAV Chromium scenario is wired for step 8; it is pending remote CI because this workspace has no usable local Chrome/Chromium executable.
+Steps 1–8 are complete. The browser path is capability-gated, local-only, staged, cancellable and validated before it reaches the existing C1 queue. PR #51 head `4b804c6` passed the two-second WAV Chromium proof, its contract, deterministic evaluations, typecheck, lint and production build. Its complete CI, Automatic Transcription, Resumable Transcription, Long Lecture Media and Exam Engine regression workflows also passed.
 
-The first remote browser run reached the real capture path but did not promote a ready clip. The focused follow-up waits for a decodable audio track, probes a recorder-produced WebM that exposes an infinite container duration, and otherwise uses only the independently observed 1× source-capture clock before the usual duration validation. Its rerun remains required before step 8 can be checked off.
+The browser proof exposed and resolved two real capture edge cases: decoder/audio-track readiness and a recorder-produced WebM without finite duration metadata. The final path probes the local container and otherwise validates the observed 1× source-capture clock; it never fabricates the requested duration. The manual C1 fallback remains visible throughout.
 
 ## Subsequent delivery
 

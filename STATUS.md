@@ -6,7 +6,7 @@ Last updated: 2026-07-17
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1, durable whole-lecture media intake, reviewed automatic transcription v1 and resumable provider-range queues are implemented and verified. P1-010C2 local range extraction/transcoding is the active delivery pass.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1, durable whole-lecture media intake, reviewed automatic transcription v1, resumable provider-range queues and local range extraction/transcoding are implemented and verified.
 
 ## Completed task state
 
@@ -24,7 +24,7 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-010A Durable whole-lecture audio/video intake` — complete and verified; PR #46.
 - `P1-010B Reviewed automatic transcription v1` — complete and verified; PR #47.
 - `P1-010C1 Resumable provider-range queues` — complete and verified; PR #48.
-- `P1-010C2 Local range extraction/transcoding` — [~] implementation complete locally; deterministic checks pass. The first dedicated Chromium run stopped before local-clip promotion; a focused decoder/track-readiness fix is awaiting remote confirmation.
+- `P1-010C2 Local range extraction/transcoding` — [x] complete and verified on PR #51. It awaits parent PR #50 being merged or retargeted before it can land in `main`.
 - `P1-011 Study Command Center v1` — complete and verified; PR #36.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37.
 - `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38.
@@ -85,18 +85,18 @@ Delivered on `agent/resumable-long-transcription` / PR #48:
 - deterministic evaluation coverage for range planning, overlap merge, partial failure, stale upload and interrupted-tab recovery;
 - Chromium proof: two range files → first success → isolated second failure → retry → overlap merge → three draft segments → reload, with zero source chunks throughout.
 
-Current boundary before P1-010C2:
+Historical C1 boundary resolved by P1-010C2:
 
-- Lamdan does not yet extract or transcode provider-ready clips automatically from the local multi-gigabyte original;
-- the student selects a clip matching each exact displayed range;
-- a browser reload cannot recreate selected `File` objects, so unfinished clips must be selected again;
+- Lamdan can now extract a supported audio/WebM provider-ready clip locally from the stored original for an exact displayed range;
+- manual C1 file selection remains the fallback, and manually chosen `File` objects still need to be selected again after a browser reload;
+- a persisted locally extracted clip restores after reload and keeps its exact range provenance;
 - provider output remains untrusted until review and approval;
-- raw media, editable transcript drafts, single-request candidates and resumable queues are not yet in Workspace ZIP v2;
+- raw media, editable transcript drafts, single-request candidates, locally extracted clips and resumable queues are not yet in Workspace ZIP v2;
 - live quality, latency and cost remain unverified without a configured provider and licensed representative lecture audio.
 
-## Active delivery — P1-010C2 local range extraction
+## Verified delivery — P1-010C2 local range extraction
 
-Implemented in the current branch, pending dedicated Chromium CI:
+Verified on PR #51 (`4b804c6`) with the dedicated Chromium workflow:
 
 - explicit browser capability detection for media-element capture, `MediaRecorder` and audio/WebM;
 - conservative provider-size, temporary-storage and normal-speed wall-time estimates before extraction;
@@ -106,14 +106,15 @@ Implemented in the current branch, pending dedicated Chromium CI:
 - lifecycle and Data-page deletion cover staged/local clips as well as original media and C1 queues;
 - deterministic capability/estimate/promotion/recovery evaluations, contract and a real two-second WAV Chromium scenario wired into a dedicated workflow.
 
-The current environment has no usable local Chromium proof. Do not mark this task verified until the new GitHub Actions browser workflow is green.
+This workspace has no usable local Chromium executable, so the GitHub Actions browser workflow is the authoritative proof for this path.
 
 ### Remote browser evidence
 
-- PR #51's first `Local Range Extraction` run passed its contract, deterministic evaluations, typecheck, lint and production build, while the two-second Chromium capture timed out before creating a ready clip.
-- The follow-up keeps the manual C1 path intact, waits for decoder/audio-track readiness, accepts a finite seekable duration when MediaRecorder WebM has no finite container duration, and records concise visible UI diagnostics if the browser proof still fails.
-- A local-capture error is now persisted and displayed on the exact range rather than being only a transient toast; a failed replacement preserves any previously ready clip. The latest Chromium artifact reports no readable container duration, so the follow-up probes that metadata and otherwise validates only the independently observed 1× source-capture clock—not the requested span.
-- `npm run check` passes locally after the follow-up. The dedicated remote browser workflow remains the only release gate for C2.
+- The initial Chromium artifacts revealed decoder/audio-track and recorder-duration edge cases, now covered by the contract and Chromium proof; C2 keeps the manual C1 fallback intact, persists the exact range error and never overwrites a previously ready clip.
+- A recorder WebM with no finite container duration is probed locally first; only then may the independently observed 1× source-capture clock satisfy the existing timing-tolerance validation. Lamdan never substitutes the requested range itself.
+- `Local Range Extraction` run `29562933111` passed its contract, deterministic evaluations, TypeScript, lint, production build and the two-second WAV Chromium E2E.
+- The same head passed all six regression workflows: CI, Automatic Transcription, Resumable Transcription, Long Lecture Media, Exam Engine and Local Range Extraction.
+- `npm run check` also passes locally (with the project-required Bun evaluator available).
 
 ## Verification state
 
@@ -148,7 +149,7 @@ The deterministic/provider-mock pipeline can verify consent, persistence, cancel
 
 ## Next execution targets
 
-1. Run the `P1-010C2` Chromium workflow and fix any real browser-capability regression before marking the local range path verified.
-2. Integrate raw media, editable drafts, provider candidates, extracted clips and range queues into a streaming backup format.
+1. Integrate raw media, editable drafts, provider candidates, extracted clips and range queues into a streaming backup format.
+2. Merge or retarget parent PR #50, then retarget/merge verified PR #51 into `main`; this is release sequencing, not a reason to weaken C2 verification.
 3. Extend Exam Engine with exam profiles, topic weights and bounded daily planning.
 4. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
