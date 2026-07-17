@@ -97,7 +97,7 @@ A user explicitly chooses to send one provider-ready recording copy for transcri
 - A stale candidate from a replaced recording cannot be applied.
 - Workspace ZIP v2 does not claim to contain provider candidates.
 
-## Active delivery — P1-010C1 Resumable provider-range queues
+## Verified delivery — P1-010C1 Resumable provider-range queues
 
 ### Product outcome
 
@@ -122,8 +122,8 @@ A student can divide a long lecture into exact overlapping ranges, upload provid
 15. Add deterministic planning, overlap, failure, recovery and source-integrity evaluations. ✓
 16. Add Chromium proof for two clips → isolated failure → retry → overlap merge → draft → reload. ✓
 17. Pass the dedicated contract, eval, TypeScript, lint, build and browser workflow. ✓
-18. Pass complete repository CI and existing automatic-transcription, long-media and Exam Engine regressions. In verification.
-19. Merge PR #48. Pending.
+18. Pass complete repository CI and existing automatic-transcription, long-media and Exam Engine regressions. ✓
+19. Merge PR #48. ✓
 
 ### C1 boundary
 
@@ -138,16 +138,18 @@ C1 deliberately does not claim automatic extraction from the local multi-gigabyt
 - Merged output remains an editable draft.
 - No provider range result becomes a source chunk automatically.
 
-## P1-010C2 Automatic local range extraction/transcoding
+## Active delivery — P1-010C2 Automatic local range extraction/transcoding
 
-1. Inspect browser media APIs and choose a bounded local extraction strategy.
-2. Show CPU, memory, temporary-storage and expected-output estimates before work begins.
-3. Extract audio without changing playback speed or lecture timing.
-4. Produce clips matching the exact persisted C1 range boundaries and overlap.
-5. Keep extraction local and cancellable.
-6. Verify clip duration, MIME type, size and range identity before provider consent.
-7. Avoid reading a multi-gigabyte original into one in-memory buffer.
-8. Add browser proof for extraction → range queue → provider mock → merged draft.
+### Bounded local strategy
+
+1. Detect the local browser capabilities needed for media-element capture and recording. Keep the already verified manual C1 range-file path as the explicit fallback when they are unavailable.
+2. Reconstruct a local playback source without reading the complete recording through `arrayBuffer()`, seek to the persisted range boundary and capture only its audio track at normal playback speed.
+3. Persist recorder output incrementally under a staging identifier; report CPU, elapsed wall time, temporary-storage use and a conservative expected output size before work begins.
+4. Keep capture local and cancellable. Cancellation or failure removes staging output and never changes a previously ready range.
+5. Promote an extracted clip only after its actual duration, MIME type, byte size and exact originating range identity pass validation. A timing mismatch remains an explicit error, never a silently shifted transcript.
+6. Attach the validated provider-ready clip to the existing C1 queue without recording consent or uploading anything.
+7. Add deterministic capability/estimate/validation/recovery evaluations and a permanent contract.
+8. Add a Chromium proof for local extraction → C1 queue → provider mock → merged draft, with no source chunks created automatically.
 
 ## Subsequent delivery
 

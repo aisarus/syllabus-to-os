@@ -1,5 +1,7 @@
 # Resumable range transcription — P1-010C1
 
+**Status:** delivered and verified in PR #48; merged into `main` as `199ce45` on 16 July 2026.
+
 ## Product outcome
 
 A student with a long lecture can plan exact, overlapping time ranges, attach a provider-ready media clip to any range, upload selected clips one at a time after explicit consent, retry or cancel ranges independently, and merge successful timestamped results into one unapproved transcript draft.

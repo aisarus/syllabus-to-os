@@ -1,6 +1,25 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
+const STOP_WORDS = new Set([
+  "the",
+  "and",
+  "for",
+  "with",
+  "what",
+  "which",
+  "как",
+  "что",
+  "для",
+  "это",
+  "или",
+  "של",
+  "את",
+  "על",
+  "מה",
+  "איזה",
+]);
+
 const jsonMode = process.argv.includes("--json");
 const manifest = JSON.parse(
   await readFile(resolve(process.cwd(), "evals/golden-quiz-manifest.json"), "utf8"),
@@ -365,22 +384,3 @@ function round(value) {
 function percent(value) {
   return `${Math.round(value * 1000) / 10}%`;
 }
-
-const STOP_WORDS = new Set([
-  "the",
-  "and",
-  "for",
-  "with",
-  "what",
-  "which",
-  "как",
-  "что",
-  "для",
-  "это",
-  "или",
-  "של",
-  "את",
-  "על",
-  "מה",
-  "איזה",
-]);

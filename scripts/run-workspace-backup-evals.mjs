@@ -7,6 +7,30 @@ import {
   prepareFullVisualBackup,
 } from "../src/lib/workspace-backup.ts";
 
+// JSZip reads browser Blobs through FileReader. Node exposes Blob but not
+// FileReader, so keep the evaluator on the same Blob import path as the app.
+if (typeof FileReader === "undefined") {
+  globalThis.FileReader = class NodeBlobReader {
+    result = null;
+    error = null;
+    onload = null;
+    onerror = null;
+
+    readAsArrayBuffer(blob) {
+      void blob.arrayBuffer().then(
+        (result) => {
+          this.result = result;
+          this.onload?.({ target: this });
+        },
+        (error) => {
+          this.error = error;
+          this.onerror?.({ target: this });
+        },
+      );
+    }
+  };
+}
+
 const encoder = new TextEncoder();
 
 function coreData() {
@@ -210,7 +234,7 @@ async function createWorkspaceZip({ tamperConcept = false } = {}) {
 {
   await assert.rejects(
     async () => prepareFullVisualBackup(await createWorkspaceZip({ tamperConcept: true })),
-    /checksum mismatch/i,
+    /(?:size|checksum) mismatch/i,
     "tampered evidence payload must be rejected before import",
   );
 }

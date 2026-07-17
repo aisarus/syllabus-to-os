@@ -177,7 +177,7 @@ for (const marker of [
   requireMarker(evals, marker, `Automatic transcription deterministic proof is missing: ${marker}`);
 }
 for (const marker of [
-  "explicit consent",
+  "Explicit consent",
   "cancelled",
   "review_ready",
   'status === "draft"',
