@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   prepare-exam-planning:
-    if: github.ref == 'refs/heads/agent/exam-plan-v2' && github.actor != 'github-actions[bot]'
+    if: (github.head_ref == 'agent/exam-plan-v2' || github.ref == 'refs/heads/agent/exam-plan-v2') && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
