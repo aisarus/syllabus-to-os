@@ -23,7 +23,7 @@ try {
     })()\`);
     assert(unchanged, "Local export mutated core material or source chunks.");
     console.log("Streaming lecture backup Chromium E2E passed.");`;
-  const restoreEnding = `    await page.navigate("/app/data");
+  const restoreEnding = `    await page.clickText("Данные");
     await page.waitForText("Восстановить streaming lecture bundle");
     const injected = await page.evaluate(\`(() => {
       const input = [...document.querySelectorAll('input[type="file"]')].find((element) =>
