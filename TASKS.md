@@ -175,7 +175,7 @@ npm run eval:ocr:live -- \
 - **Priority:** active P1 delivery
 - **Size:** L
 - **Depends on:** P1-010A durable long-media intake
-- **Current PR:** #47
+- **Current delivery:** P1-010C2 automatic local range extraction/transcoding
 
 ### Delivered in P1-010A / PR #46
 
@@ -200,12 +200,28 @@ npm run eval:ocr:live -- \
 - provider timestamps remain inside media duration;
 - contract/evals and cancellation → retry → draft → reload Chromium proof.
 
+### Delivered in P1-010C1 / PR #48
+
+- persisted exact 15-minute range queues with two-second overlap;
+- sequential per-range provider uploads with independent retry and cancellation;
+- revision-safe persistence, stale-upload rejection and interrupted-tab recovery;
+- true-overlap merge with visible gaps for failed, cancelled or unselected ranges;
+- draft-only merged transcript loading with zero automatic source chunks;
+- deterministic and Chromium proof, complete repository CI and regression suite.
+
 ### Remaining P1-010C work
 
 - automatic local audio extraction/transcoding for originals above one provider request;
-- resumable multi-part provider jobs and partial-range recovery;
 - streaming backup for raw media, editable transcript drafts and provider candidates;
 - live licensed Hebrew/Russian lecture quality, latency and cost validation.
+
+### P1-010C2 implementation boundary
+
+- extraction is local, explicit and cancellable; it never uploads the original;
+- a generated clip must preserve the persisted range identity and pass duration, MIME and provider-size validation before it can become a C1 range file;
+- unsupported browser/media combinations stay visibly unsupported and retain the manual C1 file-selection fallback;
+- source playback timing remains 1×; a mismatched capture fails visibly instead of silently shifting timestamps;
+- processing must not call `arrayBuffer()` on the complete stored recording.
 
 ### Non-negotiable boundaries
 

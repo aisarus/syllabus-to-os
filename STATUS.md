@@ -1,12 +1,12 @@
 # Lamdan — Current execution status
 
-Last updated: 2026-07-16
+Last updated: 2026-07-17
 
 ## Current milestone
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1, durable whole-lecture media intake and reviewed automatic transcription v1 are implemented and verified. Resumable long-file transcription C1 is the active delivery pass.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1, durable whole-lecture media intake, reviewed automatic transcription v1 and resumable provider-range queues are implemented and verified. P1-010C2 local range extraction/transcoding is the active delivery pass.
 
 ## Completed task state
 
@@ -23,7 +23,8 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-005 Store persistence and source-integrity hardening` — complete and verified; PR #35.
 - `P1-010A Durable whole-lecture audio/video intake` — complete and verified; PR #46.
 - `P1-010B Reviewed automatic transcription v1` — complete and verified; PR #47.
-- `P1-010C1 Resumable provider-range queues` — [~] implemented on PR #48; final repository verification active.
+- `P1-010C1 Resumable provider-range queues` — complete and verified; PR #48.
+- `P1-010C2 Local range extraction/transcoding` — [~] active; bounded local strategy and contract are being implemented.
 - `P1-011 Study Command Center v1` — complete and verified; PR #36.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37.
 - `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38.
@@ -62,7 +63,7 @@ Delivered in PR #46 and PR #47:
 - zero source-chunk changes until manual review and Apply;
 - real Chromium proofs for 18 MB local storage/apply/reload and cancellation → retry → candidate → draft → reload.
 
-## Active implementation pass — P1-010C1 resumable provider-range queues
+## Verified delivery — P1-010C1 resumable provider-range queues
 
 Delivered on `agent/resumable-long-transcription` / PR #48:
 
@@ -84,7 +85,7 @@ Delivered on `agent/resumable-long-transcription` / PR #48:
 - deterministic evaluation coverage for range planning, overlap merge, partial failure, stale upload and interrupted-tab recovery;
 - Chromium proof: two range files → first success → isolated second failure → retry → overlap merge → three draft segments → reload, with zero source chunks throughout.
 
-Current C1 boundary:
+Current boundary before P1-010C2:
 
 - Lamdan does not yet extract or transcode provider-ready clips automatically from the local multi-gigabyte original;
 - the student selects a clip matching each exact displayed range;
@@ -95,7 +96,7 @@ Current C1 boundary:
 
 ## Verification state
 
-PR #48 dedicated verification is green for:
+PR #48 passed its final common head and was merged into `main` as `199ce45`. Verification included:
 
 - permanent resumable-transcription contract;
 - deterministic range/merge/recovery evaluations;
@@ -104,7 +105,7 @@ PR #48 dedicated verification is green for:
 - Chromium partial-failure/retry/draft/reload proof;
 - zero automatic source chunks.
 
-The PR still requires one final common head with complete repository CI and the existing automatic-transcription, long-media and Exam Engine regression workflows green before merge. The final matrix also runs the critical browser end-to-end gate before merge.
+The final matrix included complete repository CI, existing automatic-transcription, long-media and Exam Engine regression workflows, plus the critical browser end-to-end gate.
 
 ## Existing validation blockers
 
@@ -126,8 +127,7 @@ The deterministic/provider-mock pipeline can verify consent, persistence, cancel
 
 ## Next execution targets
 
-1. Verify and merge resumable provider-range queues in PR #48.
-2. Build `P1-010C2`: automatic local extraction/transcoding of exact range clips from the stored original.
-3. Integrate raw media, editable drafts, provider candidates and range queues into a streaming backup format.
-4. Extend Exam Engine with exam profiles, topic weights and bounded daily planning.
-5. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
+1. Build `P1-010C2`: automatic local extraction/transcoding of exact range clips from the stored original.
+2. Integrate raw media, editable drafts, provider candidates and range queues into a streaming backup format.
+3. Extend Exam Engine with exam profiles, topic weights and bounded daily planning.
+4. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
