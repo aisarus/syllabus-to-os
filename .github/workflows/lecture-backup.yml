@@ -1,0 +1,58 @@
+name: Streaming Lecture Backup
+
+on:
+  push:
+    branches:
+      - main
+      - agent/p1-010c3-streaming-lecture-backup-20260717
+  pull_request:
+
+concurrency:
+  group: lecture-backup-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lecture-backup:
+    name: Contract, eval, types, lint, build and browser proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify streaming lecture backup contract
+        run: npm run verify:lecture-backup-contract
+
+      - name: Run streaming lecture backup evaluations
+        run: npm run eval:lecture-backup
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Run streaming lecture backup Chromium proof
+        run: npm run e2e:lecture-backup
