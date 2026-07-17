@@ -1,133 +1,104 @@
 # Lamdan — Current execution status
 
-Last updated: 2026-07-16
+Last updated: 2026-07-17
 
 ## Current milestone
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1, durable whole-lecture media intake and reviewed automatic transcription v1 are implemented and verified. Resumable long-file transcription C1 is the active delivery pass.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output → practice loop is implemented. M1 is not declared because the live OCR, Hebrew golden-quiz and one-course pilot gates still require external inputs.
+
+## Recently merged
+
+- `P1-010C4 Staged streaming lecture restore` — PR #54, merge `5a15cdee92313f4e6a0828a55d0011e192fce3bc`.
+- `P1-010C5 Offline Hebrew/Russian lecture-quality evaluator` — PR #57, merge `6bf6db4fbd8f3de1b0bf5ef66f9e003d874f4510`.
+- `P1-014B Bounded exam planning` — PR #58, merge `c9b1a06d0bd7ddefda90da1d4abb872617e39a05`.
+
+The old stacked PRs #55 and #56 were closed as superseded after clean PRs #57 and #58 merged.
 
 ## Completed task state
 
-- `P0-001` through `P0-020` — complete and verified.
-- `P0-021 Durable image intake and OCR review` — complete and verified.
-- `P0-022A Image Preprocessing Workspace` — complete and verified; PR #28.
-- `P0-022B OCR Region Overlay and Sync` — complete and verified; PR #29.
-- `P0-022C Full Visual Backup and Restore` — complete and verified; PR #30.
-- `P0-023 Quizlet-style cards and golden generated quizzes` — complete and verified.
-- `P1-001 Multi-page image materials` — complete and verified; PR #31.
-- `P1-002 Golden quiz quality evaluation` — complete and verified; PR #32.
-- `P1-003 Critical browser end-to-end coverage` — complete and verified; PR #33.
-- `P1-004 Add local-first global search v2` — complete and verified; PR #34.
-- `P1-005 Store persistence and source-integrity hardening` — complete and verified; PR #35.
-- `P1-010A Durable whole-lecture audio/video intake` — complete and verified; PR #46.
-- `P1-010B Reviewed automatic transcription v1` — complete and verified; PR #47.
-- `P1-010C1 Resumable provider-range queues` — [~] implemented on PR #48; final repository verification active.
-- `P1-011 Study Command Center v1` — complete and verified; PR #36.
-- `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37.
-- `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38.
-- `P1-013A per-question quiz evidence` — complete and verified; PR #39.
-- `P1-013B Workspace backup v2` — complete and verified; PR #41.
-- `P1-013C Reviewed concept extraction` — complete and verified; PR #42.
-- `P1-013D Open-answer evidence and mistake repair` — complete and verified; PR #43.
-- `P1-013E Edited-batch concept collision guard` — complete and verified; PR #44.
-- `P1-014A Frozen source-grounded Exam Engine v1` — complete and verified; PR #45.
+- `P0-001` through `P0-023` — complete and verified.
+- `P1-001` through `P1-005` — complete and verified.
+- `P1-010A` through `P1-010C4` — complete and verified.
+- `P1-010C5 evaluator infrastructure` — complete and verified; live evidence remains externally blocked.
+- `P1-011 Study Command Center` — complete and verified.
+- `P1-012 Lecture-to-Study-Pack` — complete and verified.
+- `P1-013A` through `P1-013E` — complete and verified.
+- `P1-014A Frozen Exam Engine` — complete and verified.
+- `P1-014B Bounded exam planning` — complete and verified.
 
-## Verified delivery — Whole-lecture intake and reviewed automatic transcription
+## Lecture-media capability
 
-Delivered in PR #46 and PR #47:
+The merged lecture path now supports:
 
-- separate `/app/lecture-media` route and primary navigation item;
-- audio/video selection by MIME or common extension;
-- explicit 4 GB local per-file boundary;
-- sequential 8 MB IndexedDB chunks instead of reading the complete recording into memory;
-- browser quota check and best-effort persistent-storage request before upload;
-- fresh staging `uploadId` for every new or replacement recording;
-- active manifest changes only after every chunk is stored;
-- core material is published only after a durable media manifest exists;
-- cancellation/error cleanup while an older complete recording remains intact;
-- SHA-256 per media chunk and explicit integrity verification;
-- local audio/video player reconstructed only after an explicit user action;
-- SRT, WebVTT and plain-text transcript import;
-- editable transcript blocks with timecodes, speaker labels and explicit approval states;
-- only approved non-empty segments become normal Lamdan source chunks;
-- optional server-side OpenAI Audio Transcriptions provider with credentials kept server-side;
-- exact provider, model, file and size disclosure before upload;
-- explicit consent, upload progress, cancellation, retry and persisted attempt count;
-- bounded 24 MB provider-ready request and separate compressed provider-copy option;
-- separate local candidate store with timestamps, language, speakers, uncertainty and visible uncovered intervals;
-- stale result rejection through `sourceUploadId`;
-- candidate loads into the editor only with `status: "draft"`;
-- zero source-chunk changes until manual review and Apply;
-- real Chromium proofs for 18 MB local storage/apply/reload and cancellation → retry → candidate → draft → reload.
+- local complete audio/video storage in sequential IndexedDB chunks;
+- quota checks, cancellation, replacement staging and SHA-256 verification;
+- reviewed SRT/VTT/TXT transcript drafts;
+- explicit provider consent and bounded provider-ready requests;
+- cancellation, retry and stale-source rejection;
+- resumable overlapping range queues;
+- local range extraction with manual fallback;
+- draft-only merge with visible gaps;
+- streaming `.lamdan-lecture` export;
+- verified duplicate restore with full rollback;
+- offline Hebrew/Russian WER/CER, timestamp, speaker, uncertainty, latency and cost evaluation.
 
-## Active implementation pass — P1-010C1 resumable provider-range queues
+No provider candidate becomes trusted text or a source chunk automatically.
 
-Delivered on `agent/resumable-long-transcription` / PR #48:
+## Exam capability
 
-- exact 15-minute range planning with a two-second overlap;
-- one persisted status machine per range: `needs_file`, `ready`, `uploading`, `processing`, `review_ready`, `cancelled` or `failed`;
-- separate provider-ready clip selection per displayed lecture range;
-- explicit consent naming provider, model and selected file count;
-- sequential uploads so one failure cannot destroy another completed range;
-- independent retry/cancellation and persisted attempt/request history;
-- clip-relative timestamps offset into the complete lecture timeline;
-- exact overlap duplicates merged without filling uncovered speech from model memory;
-- failed, cancelled and unselected ranges remain visible as gaps;
-- completed results persist in a separate IndexedDB queue;
-- interrupted/selected files return to `needs_file` after reload because browser `File` objects are intentionally not persisted;
-- stale queue rejection after the recording is replaced;
-- merged results load only as an unapproved transcript draft;
-- ordinary manual review and Apply remain the only route to source chunks;
-- guarded orphan cleanup and Data-page deletion for range queues;
-- deterministic evaluation coverage for range planning, overlap merge, partial failure, stale upload and interrupted-tab recovery;
-- Chromium proof: two range files → first success → isolated second failure → retry → overlap merge → three draft segments → reload, with zero source chunks throughout.
+The merged Exam Engine now supports:
 
-Current C1 boundary:
-
-- Lamdan does not yet extract or transcode provider-ready clips automatically from the local multi-gigabyte original;
-- the student selects a clip matching each exact displayed range;
-- a browser reload cannot recreate selected `File` objects, so unfinished clips must be selected again;
-- provider output remains untrusted until review and approval;
-- raw media, editable transcript drafts, single-request candidates and resumable queues are not yet in Workspace ZIP v2;
-- live quality, latency and cost remain unverified without a configured provider and licensed representative lecture audio.
+- source-linked frozen multiple-choice sessions;
+- immutable prompts, options, answers and source ids after start;
+- deadline and partial-answer persistence;
+- per-question evidence only for actual answers;
+- raw submitted score without an unsupported grade forecast;
+- a separate exam-planning profile with date, weekdays, daily/session limits and topic weights;
+- deterministic weighted allocation over at most the final 180 days;
+- planning persistence that does not rewrite frozen sessions;
+- original frozen-exam and combined planning → exam → reload Chromium proofs.
 
 ## Verification state
 
-PR #48 dedicated verification is green for:
+The final heads for PRs #54, #57 and #58 passed:
 
-- permanent resumable-transcription contract;
-- deterministic range/merge/recovery evaluations;
-- TypeScript, ESLint and formatting;
-- production build;
-- Chromium partial-failure/retry/draft/reload proof;
-- zero automatic source chunks.
+- permanent contracts and deterministic evaluations;
+- TypeScript and ESLint;
+- production builds;
+- dedicated Chromium proofs;
+- complete 111-step repository CI;
+- long-media, automatic transcription, resumable transcription, extraction, backup, restore and Exam Engine regressions.
 
-The PR still requires one final common head with complete repository CI and the existing automatic-transcription, long-media and Exam Engine regression workflows green before merge. The final matrix also runs the critical browser end-to-end gate before merge.
+Intermittent hosted-runner/CDP failures were rerun only after static gates and diagnostic evidence showed no product regression. Permanent planning-browser diagnostics now upload on future failures.
 
-## Existing validation blockers
+## Existing external blockers
 
 ### P1-006
 
-Live OCR quality cannot be measured without four private/licensed photos and a reachable deployment with the AI provider configured.
+Requires four legally usable representative images and a reachable configured deployment for live OCR quality measurement.
 
 ### P1-007
 
-Live golden quiz quality cannot be approved without a complete legally usable Hebrew source pack.
+Requires one complete legally usable Hebrew course source pack and manual question review.
 
 ### P1-008
 
-The one-course closed pilot depends on P1-006 and P1-007. M1 remains unachieved until the complete script passes.
+Depends on P1-006 and P1-007. M1 remains unachieved until the complete pilot script passes.
 
-### P1-010 live provider quality
+### Live lecture quality
 
-The deterministic/provider-mock pipeline can verify consent, persistence, cancellation, partial recovery and source integrity. Real transcription quality, latency, cost and provider error handling still require a deployment with provider credentials and licensed representative Hebrew/Russian lecture audio.
+The evaluator is merged, but real quality, latency and cost results require legally usable Hebrew/Russian recordings, exact human reference transcripts and reviewed provider candidates.
 
-## Next execution targets
+## Active target
 
-1. Verify and merge resumable provider-range queues in PR #48.
-2. Build `P1-010C2`: automatic local extraction/transcoding of exact range clips from the stored original.
-3. Integrate raw media, editable drafts, provider candidates and range queues into a streaming backup format.
-4. Extend Exam Engine with exam profiles, topic weights and bounded daily planning.
-5. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
+`P1-009 Deep multi-page browser coverage`:
+
+1. page reorder with stable citations;
+2. one failed OCR page with successful siblings preserved;
+3. page replacement and source-link repair;
+4. page-level visual export/restore;
+5. dangling-reference assertions after every flow and reload.
+
+After P1-009, the next planned product slice is `P1-015 Assignment Copilot`.
