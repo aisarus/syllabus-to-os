@@ -1,0 +1,70 @@
+name: C2 one-shot formatter
+
+on:
+  push:
+    branches:
+      - agent/p1-010c2-extraction-20260717
+
+permissions:
+  contents: write
+
+jobs:
+  format-and-remove:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/p1-010c2-extraction-20260717
+          fetch-depth: 0
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Replace cleanup expressions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('src/lib/local-range-extraction.ts')
+          text = path.read_text()
+          old = '      error ? reject(error) : resolve();'
+          new = '      if (error) reject(error);\n      else resolve();'
+          if text.count(old) != 2:
+              raise SystemExit(f'expected two cleanup expressions, found {text.count(old)}')
+          path.write_text(text.replace(old, new))
+          PY
+
+      - name: Format changed C2 files
+        run: |
+          bunx prettier --write \
+            src/lib/local-range-extraction.ts \
+            src/lib/resumable-transcription-store.ts \
+            src/components/resumable-transcription-panel.tsx \
+            scripts/run-local-range-extraction-browser-e2e.mjs \
+            scripts/run-local-range-extraction-evals.mjs \
+            scripts/run-resumable-transcription-browser-e2e-compatible.mjs \
+            scripts/verify-local-range-extraction-contract.mjs \
+            scripts/verify-resumable-transcription-contract.mjs \
+            scripts/check.mjs \
+            package.json \
+            .github/workflows/local-range-extraction.yml \
+            docs/LOCAL_RANGE_EXTRACTION.md
+
+      - name: Remove one-shot workflow
+        run: git rm .github/workflows/c2-format-fix.yml
+
+      - name: Commit formatted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "style: format local range extraction"
+          git push origin HEAD:agent/p1-010c2-extraction-20260717
