@@ -15,7 +15,11 @@ try {
       'indexedDB.open("lamdan-resumable-transcription")',
     )
     .replaceAll("indexedDB.open(name, 1)", "indexedDB.open(name)")
-    .replaceAll("Запустить выбранные диапазоны", "Запустить подготовленные диапазоны");
+    .replaceAll("Запустить выбранные диапазоны", "Запустить подготовленные диапазоны")
+    .replace(
+      '    await page.waitFor("document.readyState === \'complete\'");\n\n    await page.evaluate(`(async () => {',
+      '    await page.navigate("/app/dashboard");\n\n    await page.evaluate(`(async () => {',
+    );
   await writeFile(temporaryScript, compatible);
   const result = spawnSync(process.execPath, [temporaryScript], {
     cwd: process.cwd(),
