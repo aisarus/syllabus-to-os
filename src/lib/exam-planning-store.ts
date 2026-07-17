@@ -4,7 +4,9 @@ import {
   todayKey,
   validateExamPlanningProfile,
   type ExamPlanningProfile,
+  type ExamStudyDay,
   type ExamStudyPlan,
+  type ExamStudyTask,
 } from "./exam-planning";
 import { uid, type AppData } from "./store";
 
@@ -89,7 +91,10 @@ export const examPlanningStore = {
       sessionMinutes: input.sessionMinutes,
       availableWeekdays: [...new Set(input.availableWeekdays)].sort(),
       topicWeights: Object.fromEntries(
-        validation.topics.map((topic) => [topic.id, Math.min(5, Math.max(1, Math.round(input.topicWeights[topic.id] ?? 1)))]),
+        validation.topics.map((topic) => [
+          topic.id,
+          Math.min(5, Math.max(1, Math.round(input.topicWeights[topic.id] ?? 1))),
+        ]),
       ),
       createdAt: previous?.createdAt ?? now,
       updatedAt: now,
@@ -123,11 +128,17 @@ function normalizeData(raw: unknown): ExamPlanningData {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return EMPTY;
   const value = raw as Record<string, unknown>;
   const profiles = Array.isArray(value.profiles)
-    ? value.profiles.map(normalizeProfile).filter((item): item is ExamPlanningProfile => Boolean(item))
+    ? value.profiles
+        .map(normalizeProfile)
+        .filter((item): item is ExamPlanningProfile => Boolean(item))
     : [];
   const profileIds = new Set(profiles.map((profile) => profile.id));
   const plans = Array.isArray(value.plans)
-    ? value.plans.map(normalizePlan).filter((item): item is ExamStudyPlan => Boolean(item && profileIds.has(item.profileId)))
+    ? value.plans
+        .map(normalizePlan)
+        .filter(
+          (item): item is ExamStudyPlan => Boolean(item && profileIds.has(item.profileId)),
+        )
     : [];
   return { version: 1, profiles, plans };
 }
@@ -174,13 +185,22 @@ function normalizePlan(raw: unknown): ExamStudyPlan | null {
                   const topicId = text(entry.topicId);
                   const topicTitle = text(entry.topicTitle);
                   if (!taskId || !topicId || !topicTitle) return null;
-                  return { id: taskId, topicId, topicTitle, minutes: clamp(entry.minutes, 1, 480, 1) };
+                  return {
+                    id: taskId,
+                    topicId,
+                    topicTitle,
+                    minutes: clamp(entry.minutes, 1, 480, 1),
+                  };
                 })
-                .filter(Boolean)
+                .filter((task): task is ExamStudyTask => Boolean(task))
             : [];
-          return { date, totalMinutes: tasks.reduce((sum, task) => sum + task.minutes, 0), tasks };
+          return {
+            date,
+            totalMinutes: tasks.reduce((sum, task) => sum + task.minutes, 0),
+            tasks,
+          };
         })
-        .filter(Boolean)
+        .filter((day): day is ExamStudyDay => Boolean(day))
     : [];
   return {
     id,
@@ -193,7 +213,7 @@ function normalizePlan(raw: unknown): ExamStudyPlan | null {
     topicTotals: numberRecord(value.topicTotals, 0, Number.MAX_SAFE_INTEGER),
     days,
     warnings: stringArray(value.warnings),
-  } as ExamStudyPlan;
+  };
 }
 
 function text(value: unknown): string {
@@ -207,16 +227,29 @@ function finite(value: unknown, fallback: number): number {
 
 function clamp(value: unknown, minimum: number, maximum: number, fallback: number): number {
   const number = Number(value);
-  return Number.isFinite(number) ? Math.min(maximum, Math.max(minimum, Math.round(number))) : fallback;
+  return Number.isFinite(number)
+    ? Math.min(maximum, Math.max(minimum, Math.round(number)))
+    : fallback;
 }
 
 function numberArray(value: unknown): number[] {
-  return Array.isArray(value) ? [...new Set(value.map(Number).filter(Number.isInteger))].sort() : [];
+  return Array.isArray(value)
+    ? [...new Set(value.map(Number).filter(Number.isInteger))].sort()
+    : [];
 }
 
-function numberRecord(value: unknown, minimum: number, maximum: number): Record<string, number> {
+function numberRecord(
+  value: unknown,
+  minimum: number,
+  maximum: number,
+): Record<string, number> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, clamp(item, minimum, maximum, minimum)]));
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+      key,
+      clamp(item, minimum, maximum, minimum),
+    ]),
+  );
 }
 
 function stringArray(value: unknown): string[] {
