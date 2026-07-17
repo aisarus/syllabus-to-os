@@ -1,0 +1,40 @@
+name: Wire lecture quality command
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/p1-010c5-private-lecture-validation
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Add documented command
+        run: npm pkg set 'scripts.eval:lecture:private=node scripts/run-private-lecture-validation.mjs'
+      - run: npx prettier --write package.json
+      - run: node scripts/verify-lecture-quality-contract.mjs
+      - run: node scripts/run-private-lecture-validation-evals.mjs
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - name: Commit verified command
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore: wire lecture quality command"
+          git push origin HEAD:agent/p1-010c5-private-lecture-validation
