@@ -61,7 +61,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/lib/exam-planning.ts src/lib/exam-planning-store.ts src/components/exam-planning-panel.tsx src/routes/app.exam-engine.tsx scripts/run-exam-planning-evals.mjs scripts/run-exam-planning-browser-e2e.mjs scripts/verify-exam-planning-contract.mjs docs/EXAM_PLANNING_V1.md package.json scripts/check.mjs
+          if git diff --cached --quiet; then
+            exit 0
+          fi
           git commit -m "feat: wire bounded exam planning"
+          git fetch origin agent/exam-plan-v2
+          git rebase origin/agent/exam-plan-v2
           git push origin HEAD:agent/exam-plan-v2
 
   exam-engine:
