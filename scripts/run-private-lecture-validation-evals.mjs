@@ -27,9 +27,10 @@ assert.equal(
   ),
   0.8,
 );
-assert.deepEqual(timestampViolations([{ startSeconds: 5, endSeconds: 4 }], 10), [
-  "segment 1 has invalid timestamps",
-]);
+assert.deepEqual(
+  timestampViolations([{ startSeconds: 5, endSeconds: 4 }], 10),
+  ["segment 1 has invalid timestamps"],
+);
 assert.equal(
   speakerLabelCoverage([
     { text: "a", speaker: "S1" },
@@ -38,7 +39,10 @@ assert.equal(
   ]),
   0.5,
 );
-assert.equal(uncertainSegmentRatio([{ uncertain: true }, { uncertain: false }]), 0.5);
+assert.equal(
+  uncertainSegmentRatio([{ uncertain: true }, { uncertain: false }]),
+  0.5,
+);
 assert.equal(estimateCost(120, 0.01), 0.02);
 assert.equal(estimateCost(120, null), null);
 
@@ -71,7 +75,12 @@ const failing = evaluateLectureCandidate({
   latencyMs: 30_000,
   requestSpeakerLabels: true,
   segments: [
-    { startSeconds: 0, endSeconds: 4, text: "совсем другой текст", uncertain: true },
+    {
+      startSeconds: 0,
+      endSeconds: 4,
+      text: "совсем другой текст",
+      uncertain: true,
+    },
     { startSeconds: 21, endSeconds: 22, text: "вне диапазона" },
   ],
   thresholds: {
