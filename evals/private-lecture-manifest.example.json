@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "usdPerAudioMinute": 0.006,
+  "fixtures": [
+    {
+      "id": "he-academic-lecture-01",
+      "file": "he-academic-lecture-01.m4a",
+      "referenceFile": "he-academic-lecture-01.reference.txt",
+      "candidateFile": "he-academic-lecture-01.candidate.json",
+      "language": "he",
+      "durationSeconds": 600,
+      "requestSpeakerLabels": true,
+      "thresholds": {
+        "maxWer": 0.3,
+        "maxCer": 0.2,
+        "minTimestampCoverage": 0.9,
+        "minSpeakerLabelCoverage": 0.8,
+        "maxRealtimeFactor": 1,
+        "maxUncertainSegmentRatio": 0.25
+      }
+    },
+    {
+      "id": "ru-academic-lecture-01",
+      "file": "ru-academic-lecture-01.m4a",
+      "referenceFile": "ru-academic-lecture-01.reference.txt",
+      "candidateFile": "ru-academic-lecture-01.candidate.json",
+      "language": "ru",
+      "durationSeconds": 600,
+      "requestSpeakerLabels": true,
+      "thresholds": {
+        "maxWer": 0.25,
+        "maxCer": 0.15,
+        "minTimestampCoverage": 0.9,
+        "minSpeakerLabelCoverage": 0.8,
+        "maxRealtimeFactor": 1,
+        "maxUncertainSegmentRatio": 0.2
+      }
+    }
+  ]
+}
