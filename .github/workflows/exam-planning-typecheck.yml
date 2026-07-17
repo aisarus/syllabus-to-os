@@ -1,4 +1,4 @@
-name: Exam Planning Type Diagnostics
+name: Exam Planning Diagnostics
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  type-diagnostics:
+  diagnostics:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,14 +22,22 @@ jobs:
         id: typecheck
         continue-on-error: true
         run: npm run typecheck > exam-planning-typecheck.txt 2>&1
-      - name: Upload typecheck output
+      - name: Build
+        run: npm run build
+      - name: Capture browser output
+        id: browser
+        continue-on-error: true
+        run: node scripts/run-exam-planning-browser-e2e.mjs > exam-planning-browser.txt 2>&1
+      - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: exam-planning-typecheck
-          path: exam-planning-typecheck.txt
+          name: exam-planning-diagnostics
+          path: |
+            exam-planning-typecheck.txt
+            exam-planning-browser.txt
           if-no-files-found: error
           retention-days: 3
       - name: Fail after upload
-        if: steps.typecheck.outcome == 'failure'
+        if: steps.typecheck.outcome == 'failure' || steps.browser.outcome == 'failure'
         run: exit 1
