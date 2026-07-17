@@ -91,6 +91,32 @@ try {
       "Topic weights did not affect the allocated time."
     );
     await page.waitForText("2/2");`;
+  const startAnchor = `    await page.evaluate("window.confirm = () => true");
+    await page.clickText("Сохранить и начать");
+    await page.waitForText("Замороженная экзаменационная сессия");`;
+  const startReplacement = `    await page.evaluate("window.confirm = () => true");
+    await page.clickText("Сохранить и начать");
+    await page.waitFor(\`(() => {
+      const exams = JSON.parse(localStorage.getItem("lamdan.exam-engine.v1"));
+      return exams?.sessions?.some((session) => session.status === "active");
+    })()\`, 10_000).catch(async (error) => {
+      const snapshot = await page.evaluate(\`(() => ({
+        exams: JSON.parse(localStorage.getItem("lamdan.exam-engine.v1")),
+        body: document.body?.innerText?.slice(0, 12000),
+        buttons: [...document.querySelectorAll("button")].filter((button) => button.getClientRects().length > 0).map((button) => ({ text: button.textContent?.replace(/\\s+/g, " ").trim(), disabled: button.disabled }))
+      }))()\`);
+      console.error("EXAM_START_DIAGNOSTICS", JSON.stringify(snapshot, null, 2));
+      throw error;
+    });
+    await page.waitForText("Замороженная экзаменационная сессия").catch(async (error) => {
+      const snapshot = await page.evaluate(\`(() => ({
+        exams: JSON.parse(localStorage.getItem("lamdan.exam-engine.v1")),
+        body: document.body?.innerText?.slice(0, 12000),
+        buttons: [...document.querySelectorAll("button")].filter((button) => button.getClientRects().length > 0).map((button) => ({ text: button.textContent?.replace(/\\s+/g, " ").trim(), disabled: button.disabled }))
+      }))()\`);
+      console.error("EXAM_RENDER_DIAGNOSTICS", JSON.stringify(snapshot, null, 2));
+      throw error;
+    });`;
   const persistenceAnchor = `    assert(persisted.recognitionEvents === 2, "Exam concept evidence duplicated or disappeared.");
     console.log("Frozen Exam Engine browser E2E passed.");`;
   const persistenceReplacement = `    assert(persisted.recognitionEvents === 2, "Exam concept evidence duplicated or disappeared.");
@@ -106,6 +132,7 @@ try {
     [topicsAnchor, topicsReplacement, "topics"],
     [storageAnchor, storageReplacement, "storage"],
     [flowAnchor, flowReplacement, "flow"],
+    [startAnchor, startReplacement, "start"],
     [persistenceAnchor, persistenceReplacement, "persistence"],
   ]) {
     if (!source.includes(anchor)) throw new Error(`Missing exam browser ${label} anchor.`);
@@ -117,6 +144,7 @@ try {
     .replace(topicsAnchor, topicsReplacement)
     .replace(storageAnchor, storageReplacement)
     .replace(flowAnchor, flowReplacement)
+    .replace(startAnchor, startReplacement)
     .replace(persistenceAnchor, persistenceReplacement);
   await writeFile(scriptPath, compatible);
   const result = spawnSync(process.execPath, [scriptPath], {
