@@ -99,6 +99,7 @@ for (const marker of [
   "localExtraction?: LocalRangeExtractionProvenance",
   "attachLocallyExtractedResumableRangeFile",
   "invalidateLocallyExtractedResumableRangeFile",
+  "recordLocalRangeExtractionFailure",
   "validateLocalRangeExtractionPromotion",
   "The browser interrupted this upload",
 ]) {
@@ -141,6 +142,7 @@ for (const marker of [
   "a conservative oversize estimate must be rejected",
   "a clip from another persisted range identity must be rejected",
   "a capture timing mismatch must stay visible",
+  "a local capture failure must remain visible on its range",
   "an interrupted upload may recover to ready",
   "Local range extraction deterministic evaluations passed",
 ]) {

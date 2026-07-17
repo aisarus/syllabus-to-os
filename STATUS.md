@@ -112,6 +112,7 @@ The current environment has no usable local Chromium proof. Do not mark this tas
 
 - PR #51's first `Local Range Extraction` run passed its contract, deterministic evaluations, typecheck, lint and production build, while the two-second Chromium capture timed out before creating a ready clip.
 - The follow-up keeps the manual C1 path intact, waits for decoder/audio-track readiness, accepts a finite seekable duration when MediaRecorder WebM has no finite container duration, and records concise visible UI diagnostics if the browser proof still fails.
+- A local-capture error is now persisted and displayed on the exact range rather than being only a transient toast; a failed replacement preserves any previously ready clip.
 - `npm run check` passes locally after the follow-up. The dedicated remote browser workflow remains the only release gate for C2.
 
 ## Verification state

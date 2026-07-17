@@ -57,6 +57,7 @@ import {
   mergeResumableTranscriptionSegments,
   recoverInterruptedResumableJob,
   invalidateLocallyExtractedResumableRangeFile,
+  recordLocalRangeExtractionFailure,
   updateResumableRangeProgress,
   type ResumableTranscriptionJob,
   type ResumableTranscriptionRange,
@@ -343,11 +344,25 @@ export function ResumableTranscriptionPanel({
           : `Local clip ready: ${formatFileSize(extracted.file.size)}`,
       );
     } catch (error) {
-      if (!(error instanceof DOMException && error.name === "AbortError")) {
-        toast.error(error instanceof Error ? error.message : String(error));
-      } else {
-        toast.info(isRu ? "Локальное извлечение отменено." : "Local extraction cancelled.");
+      const message =
+        error instanceof DOMException && error.name === "AbortError"
+          ? isRu
+            ? "Локальное извлечение отменено. Можешь извлечь диапазон снова или выбрать clip вручную."
+            : "Local extraction was cancelled. Extract the range again or choose a clip manually."
+          : error instanceof Error
+            ? error.message
+            : String(error);
+      try {
+        const failed = recordLocalRangeExtractionFailure(job, range.id, message);
+        const saved = await putResumableTranscriptionJob(failed);
+        setJob(saved);
+      } catch (persistenceError) {
+        toast.error(
+          persistenceError instanceof Error ? persistenceError.message : String(persistenceError),
+        );
       }
+      if (error instanceof DOMException && error.name === "AbortError") toast.info(message);
+      else toast.error(message);
     } finally {
       if (extractedClipId && !attached) {
         await deleteLocalRangeExtractionClip(extractedClipId).catch(() => undefined);

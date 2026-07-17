@@ -21,6 +21,8 @@ For a persisted lecture range, Lamdan can explicitly create an audio/WebM provid
 
 `captureStream` and recorder support vary by browser and media codec. An unavailable capture API, missing audio track, imprecise seek, changed playback rate, source ending early, recorder failure, unknown duration or size/MIME/timing mismatch are explicit failures. The manual C1 **Choose clip** action stays available in all of those cases.
 
+The failure is kept on the exact range row, not only in a transient notification. A failed replacement never removes a previously ready clip.
+
 Local capture runs at normal playback speed so it does not silently shift timestamps. A 15-minute range can take about 15 minutes to capture. The browser generally cannot provide actual CPU time; Lamdan records wall time and, when the browser exposes Long Tasks, main-thread busy milliseconds instead of inventing a CPU metric.
 
 ## Persistence and recovery

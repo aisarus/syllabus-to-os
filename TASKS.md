@@ -221,6 +221,7 @@ npm run eval:ocr:live -- \
 - a generated clip must preserve the persisted range identity and pass duration, MIME and provider-size validation before it can become a C1 range file;
 - unsupported browser/media combinations stay visibly unsupported and retain the manual C1 file-selection fallback;
 - source playback timing remains 1×; a mismatched capture fails visibly instead of silently shifting timestamps;
+- a failed local capture remains visible on its exact range and never erases an existing ready clip;
 - processing must not call `arrayBuffer()` on the complete stored recording.
 
 ### P1-010C2 current implementation state

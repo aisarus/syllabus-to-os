@@ -516,7 +516,13 @@ async function waitForLocalExtraction(page, timeout = 20_000) {
     // it while IndexedDB is resolving. The synchronous DOM snapshot is stable
     // and contains the visible local-capture failure/toast when one occurs.
     const diagnostics = await page.evaluate(`(() => ({
-      pageText: document.body?.innerText.slice(-1_500),
+      rangePanel: [...document.querySelectorAll("section")]
+        .find((section) => section.innerText.includes("Возобновляемая расшифровка по диапазонам"))
+        ?.innerText.slice(0, 2_000),
+      visibleRangeErrors: [...document.querySelectorAll("p.text-red-300")]
+        .map((item) => item.textContent?.replace(/\\s+/g, " ").trim())
+        .filter(Boolean),
+      pageTail: document.body?.innerText.slice(-1_000),
       toasts: [...document.querySelectorAll('[data-sonner-toast]')]
         .map((toast) => toast.textContent?.replace(/\\s+/g, " ").trim())
         .filter(Boolean),

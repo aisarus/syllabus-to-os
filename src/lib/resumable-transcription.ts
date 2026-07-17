@@ -261,6 +261,21 @@ export function invalidateLocallyExtractedResumableRangeFile(
   }));
 }
 
+export function recordLocalRangeExtractionFailure(
+  job: ResumableTranscriptionJob,
+  rangeId: string,
+  message: string,
+): ResumableTranscriptionJob {
+  return updateRange(job, rangeId, (range) => ({
+    ...range,
+    // Keep an already-ready manual or prior local clip usable. A failed replacement
+    // attempt must never erase it, but the fresh extraction failure must remain
+    // visible beside the range instead of disappearing with a toast.
+    error: message,
+    updatedAt: Date.now(),
+  }));
+}
+
 export function beginResumableRangeAttempt(
   job: ResumableTranscriptionJob,
   rangeId: string,

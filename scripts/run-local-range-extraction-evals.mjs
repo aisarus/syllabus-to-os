@@ -10,6 +10,7 @@ import {
   attachLocallyExtractedResumableRangeFile,
   attachResumableRangeFile,
   createResumableTranscriptionJob,
+  recordLocalRangeExtractionFailure,
   recoverInterruptedResumableJob,
 } from "../src/lib/resumable-transcription.ts";
 
@@ -177,6 +178,21 @@ job = attachLocallyExtractedResumableRangeFile(
 );
 assert.equal(job.ranges[0].status, "ready");
 assert.equal(job.ranges[0].localExtraction?.clipId, "local_clip_eval");
+const preservedAfterFailedReplacement = recordLocalRangeExtractionFailure(
+  job,
+  job.ranges[0].id,
+  "The browser recorder failed while creating the local range.",
+);
+assert.equal(
+  preservedAfterFailedReplacement.ranges[0].status,
+  "ready",
+  "a failed replacement must not erase an already-ready local clip",
+);
+assert.equal(
+  preservedAfterFailedReplacement.ranges[0].error,
+  "The browser recorder failed while creating the local range.",
+  "a local capture failure must remain visible on its range",
+);
 assert.equal(
   recoverInterruptedResumableJob({
     ...job,
