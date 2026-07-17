@@ -45,7 +45,7 @@ jobs:
         run: npm run lint
       - name: Build
         run: npm run build
-      - name: Run frozen Exam Engine browser proof
+      - name: Run Exam Engine browser E2E
         run: node scripts/run-exam-engine-browser-e2e-final.mjs
       - name: Run exam planning browser proof
         run: npm run e2e:exam-planning
