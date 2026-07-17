@@ -6,7 +6,7 @@ const requiredDocuments = [
   ["AGENTS.md", "LOVABLE:BEGIN"],
   ["DESIGN_SYSTEM.md", "Academic Content Workspace"],
   ["ROADMAP.md", "Full Product Roadmap"],
-  ["TASKS.md", "P0 Implementation Tasks"],
+  ["TASKS.md", "implementation tasks"],
   ["STATUS.md", "Current execution status"],
   ["PILOT.md", "One-course closed pilot"],
   ["docs/LIVE_OCR_VALIDATION.md", "Live OCR validation"],
