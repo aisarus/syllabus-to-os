@@ -1,47 +1,14 @@
-name: Format lecture quality harness
+name: Retired lecture quality formatter
 
 on:
-  pull_request:
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  format-and-validate:
-    if: github.actor != 'github-actions[bot]'
+  retired:
+    if: false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: agent/p1-010c5-private-lecture-validation
-          fetch-depth: 0
-          persist-credentials: true
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - run: bun install --frozen-lockfile
-
-      - name: Format lecture quality files
-        run: npx prettier --write scripts/private-lecture-validation-metrics.mjs scripts/run-private-lecture-validation-evals.mjs scripts/run-private-lecture-validation.mjs scripts/verify-lecture-quality-contract.mjs docs/PRIVATE_LECTURE_VALIDATION.md evals/private-lecture-manifest.example.json .github/workflows/lecture-quality-validation.yml
-
-      - name: Validate lecture quality harness
-        run: |
-          node scripts/verify-lecture-quality-contract.mjs
-          node scripts/run-private-lecture-validation-evals.mjs
-          npm run typecheck
-          npm run lint
-          npm run build
-
-      - name: Commit verified formatting
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/private-lecture-validation-metrics.mjs scripts/run-private-lecture-validation-evals.mjs scripts/run-private-lecture-validation.mjs scripts/verify-lecture-quality-contract.mjs docs/PRIVATE_LECTURE_VALIDATION.md evals/private-lecture-manifest.example.json .github/workflows/lecture-quality-validation.yml
-          git commit -m "style: format lecture quality harness"
-          git push origin HEAD:agent/p1-010c5-private-lecture-validation
+      - run: echo "Temporary formatter retired."
