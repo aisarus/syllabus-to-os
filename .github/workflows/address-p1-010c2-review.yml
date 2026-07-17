@@ -1,0 +1,144 @@
+name: Address P1-010C2 review feedback
+
+on:
+  push:
+    branches:
+      - agent/p1-010c2-extraction-20260717
+
+permissions:
+  contents: write
+
+jobs:
+  patch-review-feedback:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/p1-010c2-extraction-20260717
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply review fixes
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          function replaceRequired(source, before, after, label) {
+            if (!source.includes(before)) throw new Error(`Missing patch anchor: ${label}`);
+            return source.replace(before, after);
+          }
+
+          const extractionPath = 'src/lib/local-range-extraction.ts';
+          let extraction = fs.readFileSync(extractionPath, 'utf8');
+          extraction = replaceRequired(
+            extraction,
+            `export interface LocalRangeExtractionCapability {\n  supported: boolean;\n  mimeType?: string;\n  reason?: string;\n}`,
+            `export type LocalRangeExtractionReasonCode =\n  | "browser_only"\n  | "media_recorder_unavailable"\n  | "web_audio_unavailable"\n  | "opus_unavailable";\n\nexport interface LocalRangeExtractionCapability {\n  supported: boolean;\n  mimeType?: string;\n  reason?: string;\n  reasonCode?: LocalRangeExtractionReasonCode;\n}`,
+            'capability reason type',
+          );
+          extraction = replaceRequired(
+            extraction,
+            `return { supported: false, reason: "Local extraction is available only in a browser." };`,
+            `return {\n      supported: false,\n      reason: "Local extraction is available only in a browser.",\n      reasonCode: "browser_only",\n    };`,
+            'browser-only reason',
+          );
+          extraction = replaceRequired(
+            extraction,
+            `return { supported: false, reason: "This browser does not provide MediaRecorder." };`,
+            `return {\n      supported: false,\n      reason: "This browser does not provide MediaRecorder.",\n      reasonCode: "media_recorder_unavailable",\n    };`,
+            'MediaRecorder reason',
+          );
+          extraction = replaceRequired(
+            extraction,
+            `return { supported: false, reason: "This browser does not provide Web Audio." };`,
+            `return {\n      supported: false,\n      reason: "This browser does not provide Web Audio.",\n      reasonCode: "web_audio_unavailable",\n    };`,
+            'Web Audio reason',
+          );
+          extraction = replaceRequired(
+            extraction,
+            `return { supported: false, reason: "No provider-ready Opus audio container is supported." };`,
+            `return {\n      supported: false,\n      reason: "No provider-ready Opus audio container is supported.",\n      reasonCode: "opus_unavailable",\n    };`,
+            'Opus reason',
+          );
+          extraction = replaceRequired(
+            extraction,
+            `  const clipBlob = new Blob(chunks, { type: capability.mimeType });\n  validateExtractedRangeClip({\n    expectedDurationSeconds: estimate.durationSeconds,\n    capturedDurationSeconds,`,
+            `  const clipBlob = new Blob(chunks, { type: capability.mimeType });\n  const encodedDurationSeconds = await measureEncodedAudioDuration(clipBlob, input.signal);\n  validateExtractedRangeClip({\n    expectedDurationSeconds: estimate.durationSeconds,\n    capturedDurationSeconds: encodedDurationSeconds,`,
+            'encoded duration validation',
+          );
+          extraction = replaceRequired(
+            extraction,
+            `    durationSeconds: capturedDurationSeconds,`,
+            `    durationSeconds: encodedDurationSeconds,`,
+            'returned encoded duration',
+          );
+          extraction = replaceRequired(
+            extraction,
+            `function waitForMediaMetadata(media: HTMLMediaElement, signal?: AbortSignal): Promise<void> {`,
+            `async function measureEncodedAudioDuration(\n  blob: Blob,\n  signal?: AbortSignal,\n): Promise<number> {\n  throwIfAborted(signal);\n  const objectUrl = URL.createObjectURL(blob);\n  const media = document.createElement("audio");\n  media.preload = "metadata";\n  media.src = objectUrl;\n  try {\n    await waitForMediaMetadata(media, signal);\n    if (Number.isFinite(media.duration) && media.duration > 0) return media.duration;\n\n    const durationChanged = waitForMediaEvent(media, "durationchange", signal, 10_000);\n    media.currentTime = Number.MAX_SAFE_INTEGER;\n    await durationChanged;\n    if (!Number.isFinite(media.duration) || media.duration <= 0) {\n      throw new Error("The encoded audio duration could not be measured.");\n    }\n    return media.duration;\n  } finally {\n    media.removeAttribute("src");\n    media.load();\n    URL.revokeObjectURL(objectUrl);\n  }\n}\n\nfunction waitForMediaMetadata(media: HTMLMediaElement, signal?: AbortSignal): Promise<void> {`,
+            'encoded duration helper',
+          );
+          extraction = replaceRequired(
+            extraction,
+            `  eventName: "loadedmetadata" | "seeked",`,
+            `  eventName: "loadedmetadata" | "seeked" | "durationchange",`,
+            'durationchange event type',
+          );
+
+          const monitorStart = extraction.indexOf('function monitorRangePlayback(input: {');
+          const monitorEnd = extraction.indexOf('\nfunction throwIfAborted', monitorStart);
+          if (monitorStart < 0 || monitorEnd < 0) throw new Error('Missing monitorRangePlayback anchors');
+          const monitorReplacement = `function monitorRangePlayback(input: {\n  media: HTMLMediaElement;\n  range: Pick<ResumableTranscriptionRange, "startSeconds" | "endSeconds">;\n  signal?: AbortSignal;\n  onProgress?: (progress: LocalRangeExtractionProgress) => void;\n  wallStartedAt: number;\n}): Promise<void> {\n  const duration = Math.max(0.01, input.range.endSeconds - input.range.startSeconds);\n  const inactivityLimitMs = 15_000;\n  return new Promise((resolve, reject) => {\n    let timer = 0;\n    let settled = false;\n    let lastMediaTime = input.media.currentTime;\n    let lastAdvanceAt = performance.now();\n    const finish = (error?: Error) => {\n      if (settled) return;\n      settled = true;\n      window.clearTimeout(timer);\n      input.signal?.removeEventListener("abort", onAbort);\n      input.media.removeEventListener("error", onMediaError);\n      input.media.removeEventListener("stalled", onStalled);\n      if (error) reject(error);\n      else resolve();\n    };\n    const onAbort = () => finish(new DOMException("Local extraction cancelled.", "AbortError"));\n    const onMediaError = () =>\n      finish(new Error(input.media.error?.message ?? "The local media decoder failed."));\n    const onStalled = () => finish(new Error("Local media playback stalled during extraction."));\n    const tick = () => {\n      if (input.signal?.aborted) {\n        onAbort();\n        return;\n      }\n      const now = performance.now();\n      const currentTime = input.media.currentTime;\n      if (currentTime > lastMediaTime + 0.01) {\n        lastMediaTime = currentTime;\n        lastAdvanceAt = now;\n      } else if (!input.media.paused && now - lastAdvanceAt > inactivityLimitMs) {\n        finish(new Error("Local media playback stopped advancing during extraction."));\n        return;\n      }\n      const captured = Math.max(0, currentTime - input.range.startSeconds);\n      input.onProgress?.({\n        fraction: Math.max(0, Math.min(1, captured / duration)),\n        currentTimeSeconds: currentTime,\n        elapsedSeconds: Math.max(0, (now - input.wallStartedAt) / 1_000),\n      });\n      if (currentTime >= input.range.endSeconds - 0.05 || input.media.ended) {\n        input.onProgress?.({\n          fraction: 1,\n          currentTimeSeconds: Math.min(currentTime, input.range.endSeconds),\n          elapsedSeconds: Math.max(0, (now - input.wallStartedAt) / 1_000),\n        });\n        finish();\n        return;\n      }\n      timer = window.setTimeout(tick, 125);\n    };\n    input.signal?.addEventListener("abort", onAbort, { once: true });\n    input.media.addEventListener("error", onMediaError, { once: true });\n    input.media.addEventListener("stalled", onStalled, { once: true });\n    tick();\n  });\n}\n`;
+          extraction = extraction.slice(0, monitorStart) + monitorReplacement + extraction.slice(monitorEnd);
+          fs.writeFileSync(extractionPath, extraction);
+
+          const panelPath = 'src/components/resumable-transcription-panel.tsx';
+          let panel = fs.readFileSync(panelPath, 'utf8');
+          panel = replaceRequired(
+            panel,
+            `interface ProviderModels {\n  plainModel?: string;\n  speakerModel?: string;\n}\n`,
+            `interface ProviderModels {\n  plainModel?: string;\n  speakerModel?: string;\n}\n\nconst LOCAL_EXTRACTION_REASON_RU = {\n  browser_only: "Локальная нарезка доступна только в браузере.",\n  media_recorder_unavailable: "Этот браузер не поддерживает MediaRecorder для локальной нарезки.",\n  web_audio_unavailable: "Этот браузер не поддерживает Web Audio для локальной нарезки.",\n  opus_unavailable: "Этот браузер не поддерживает подходящий Opus-аудиоконтейнер.",\n} as const;\n`,
+            'Russian capability messages',
+          );
+          panel = replaceRequired(
+            panel,
+            `            : extractionCapability.reason}`,
+            `            : isRu && extractionCapability.reasonCode\n              ? LOCAL_EXTRACTION_REASON_RU[extractionCapability.reasonCode]\n              : extractionCapability.reason}`,
+            'localized capability reason',
+          );
+          fs.writeFileSync(panelPath, panel);
+
+          const e2ePath = 'scripts/run-local-range-extraction-browser-e2e.mjs';
+          let e2e = fs.readFileSync(e2ePath, 'utf8');
+          const cdpStart = e2e.indexOf('class Cdp {');
+          const cdpEnd = e2e.indexOf('\nclass Page {', cdpStart);
+          if (cdpStart < 0 || cdpEnd < 0) throw new Error('Missing Cdp class anchors');
+          const cdpReplacement = `class Cdp {\n  constructor(socket) {\n    this.socket = socket;\n    this.nextId = 1;\n    this.pending = new Map();\n    socket.addEventListener("message", (event) => this.onMessage(event.data));\n    socket.addEventListener("close", () =>\n      this.rejectPending(new Error("Chrome DevTools connection closed.")),\n    );\n    socket.addEventListener("error", () =>\n      this.rejectPending(new Error("Chrome DevTools connection failed.")),\n    );\n  }\n\n  static async connect(url) {\n    const socket = new WebSocket(url);\n    await new Promise((resolve, reject) => {\n      socket.addEventListener("open", resolve, { once: true });\n      socket.addEventListener("error", reject, { once: true });\n    });\n    return new Cdp(socket);\n  }\n\n  send(method, params = {}, sessionId) {\n    const id = this.nextId++;\n    return new Promise((resolve, reject) => {\n      const timeout = setTimeout(() => {\n        this.pending.delete(id);\n        reject(new Error(\`CDP command timed out: \${method}\`));\n      }, 30_000);\n      this.pending.set(id, { resolve, reject, timeout });\n      try {\n        this.socket.send(JSON.stringify({ id, method, params, sessionId }));\n      } catch (error) {\n        clearTimeout(timeout);\n        this.pending.delete(id);\n        reject(error);\n      }\n    });\n  }\n\n  onMessage(raw) {\n    const message = JSON.parse(String(raw));\n    if (!message.id) return;\n    const pending = this.pending.get(message.id);\n    if (!pending) return;\n    this.pending.delete(message.id);\n    clearTimeout(pending.timeout);\n    if (message.error) pending.reject(new Error(message.error.message));\n    else pending.resolve(message.result ?? {});\n  }\n\n  rejectPending(error) {\n    for (const pending of this.pending.values()) {\n      clearTimeout(pending.timeout);\n      pending.reject(error);\n    }\n    this.pending.clear();\n  }\n\n  close() {\n    this.rejectPending(new Error("Chrome DevTools connection closed by the test."));\n    if (this.socket.readyState === WebSocket.OPEN) this.socket.close();\n  }\n}\n`;
+          e2e = e2e.slice(0, cdpStart) + cdpReplacement + e2e.slice(cdpEnd);
+          fs.writeFileSync(e2ePath, e2e);
+          NODE
+
+      - name: Format and validate focused changes
+        run: |
+          npx prettier --write src/lib/local-range-extraction.ts src/components/resumable-transcription-panel.tsx scripts/run-local-range-extraction-browser-e2e.mjs
+          npm run typecheck
+          npm run lint
+          npm run build
+          npm run eval:local-range-extraction
+          npm run e2e:local-range-extraction
+
+      - name: Commit fixes and remove this workflow
+        run: |
+          rm .github/workflows/address-p1-010c2-review.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/lib/local-range-extraction.ts src/components/resumable-transcription-panel.tsx scripts/run-local-range-extraction-browser-e2e.mjs .github/workflows/address-p1-010c2-review.yml
+          git commit -m "fix: harden local extraction review boundaries"
+          git push origin HEAD:agent/p1-010c2-extraction-20260717
