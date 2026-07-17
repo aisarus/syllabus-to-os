@@ -18,6 +18,7 @@ This file records the active implementation plan. Product intent remains in `ROA
 
 - `P1-010A Durable whole-lecture audio/video intake` — merged and verified in PR #46.
 - `P1-010B Reviewed automatic transcription v1` — merged and verified in PR #47.
+- `P1-010C1 Resumable provider-range queues` — merged and verified in PR #48.
 - `P1-011 Study Command Center v1` — merged in PR #36.
 - `P1-012 Lecture-to-Study-Pack` — merged in PR #37.
 - `P1-013 Concept graph and evidence model v1` — merged in PR #38.
@@ -97,13 +98,13 @@ A user explicitly chooses to send one provider-ready recording copy for transcri
 - A stale candidate from a replaced recording cannot be applied.
 - Workspace ZIP v2 does not claim to contain provider candidates.
 
-## Active delivery — P1-010C1 Resumable provider-range queues
+## Verified delivery — P1-010C1 Resumable provider-range queues
 
 ### Product outcome
 
 A student can divide a long lecture into exact overlapping ranges, upload provider-ready clips sequentially, preserve completed ranges when another range fails, retry only the failed range, and merge successful timestamped results into one unapproved draft.
 
-### Implemented sequence on PR #48
+### Delivered sequence on PR #48
 
 1. Plan exact 15-minute ranges with a two-second overlap. ✓
 2. Persist one independent range state machine and attempt history in IndexedDB. ✓
@@ -122,12 +123,12 @@ A student can divide a long lecture into exact overlapping ranges, upload provid
 15. Add deterministic planning, overlap, failure, recovery and source-integrity evaluations. ✓
 16. Add Chromium proof for two clips → isolated failure → retry → overlap merge → draft → reload. ✓
 17. Pass the dedicated contract, eval, TypeScript, lint, build and browser workflow. ✓
-18. Pass complete repository CI and existing automatic-transcription, long-media and Exam Engine regressions. In verification.
-19. Merge PR #48. Pending.
+18. Pass complete repository CI and existing automatic-transcription, long-media and Exam Engine regressions. ✓
+19. Merge PR #48. ✓
 
-### C1 boundary
+### Historical C1 boundary
 
-C1 deliberately does not claim automatic extraction from the local multi-gigabyte original. The user selects provider-ready clips matching the exact displayed ranges. Browser `File` objects are not persisted; unfinished clips must be selected again after reload.
+C1 deliberately did not claim automatic extraction from the local multi-gigabyte original. The user selected provider-ready clips matching the exact displayed ranges. P1-010C2 replaces that limitation with locally generated, persisted clips while keeping manual selection as a fallback.
 
 ### Non-negotiable boundaries
 
@@ -138,16 +139,22 @@ C1 deliberately does not claim automatic extraction from the local multi-gigabyt
 - Merged output remains an editable draft.
 - No provider range result becomes a source chunk automatically.
 
-## P1-010C2 Automatic local range extraction/transcoding
+## Active delivery — P1-010C2 Automatic local range extraction/transcoding (PR #52)
 
-1. Inspect browser media APIs and choose a bounded local extraction strategy.
-2. Show CPU, memory, temporary-storage and expected-output estimates before work begins.
-3. Extract audio without changing playback speed or lecture timing.
-4. Produce clips matching the exact persisted C1 range boundaries and overlap.
-5. Keep extraction local and cancellable.
-6. Verify clip duration, MIME type, size and range identity before provider consent.
-7. Avoid reading a multi-gigabyte original into one in-memory buffer.
-8. Add browser proof for extraction → range queue → provider mock → merged draft.
+1. Inspect browser media APIs and choose a bounded local extraction strategy. ✓
+2. Show CPU, memory, temporary-storage and expected-output estimates before work begins. ✓
+3. Extract audio without changing playback speed or lecture timing. ✓
+4. Produce clips matching the exact persisted C1 range boundaries and overlap. ✓
+5. Keep extraction local, persisted and cancellable. ✓
+6. Verify encoded clip duration, MIME type, size and source/range identity before provider consent. ✓
+7. Avoid reading a multi-gigabyte original into one in-memory buffer. ✓
+8. Add browser proof for extraction → range queue → provider mock → merged draft. ✓
+9. Reject decoder errors, stalled playback and inactive timelines instead of hanging indefinitely. ✓
+10. Reject or time out pending Chrome DevTools commands in the browser proof. ✓
+11. Localize unsupported-extraction reasons in RU/EN UI. ✓
+12. Preserve manual provider-ready clip selection as a fallback. ✓
+13. Pass dedicated C2 checks plus the separate C1 resumable regression on the final human-authored head. In verification.
+14. Merge PR #52. Pending.
 
 ## Subsequent delivery
 
