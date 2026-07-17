@@ -376,9 +376,10 @@ async function main() {
     );
     const version = await waitForJson(`http://${HOST}:${DEBUG_PORT}/json/version`, 30_000);
     cdp = await Cdp.connect(version.webSocketDebuggerUrl);
-    const { targetId } = await cdp.send("Target.createTarget", {
-      url: `${BASE_URL}/app/dashboard`,
-    });
+    // Attach and install mocks before entering an HTTP origin. A target created
+    // on the app URL can still be evaluated while its initial document is
+    // about:blank, where localStorage and IndexedDB deliberately throw.
+    const { targetId } = await cdp.send("Target.createTarget", { url: "about:blank" });
     const { sessionId } = await cdp.send("Target.attachToTarget", {
       targetId,
       flatten: true,
@@ -390,6 +391,7 @@ async function main() {
       page.send("DOM.enable"),
     ]);
     await page.send("Page.addScriptToEvaluateOnNewDocument", { source: providerMocks });
+    await page.navigate("/app/dashboard");
     await page.waitFor("document.readyState === 'complete'");
 
     await page.evaluate(`(async () => {
