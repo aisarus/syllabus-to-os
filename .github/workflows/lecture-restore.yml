@@ -1,0 +1,88 @@
+name: Staged Lecture Restore
+
+on:
+  push:
+    branches:
+      - main
+      - agent/p1-010c4-streaming-lecture-restore-20260717
+  pull_request:
+
+concurrency:
+  group: lecture-restore-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lecture-restore:
+    name: Contract, eval, types, lint, build and browser proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify staged lecture restore contract
+        run: npm run verify:lecture-restore-contract
+
+      - name: Run staged lecture restore evaluations
+        run: npm run eval:lecture-restore
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        id: lecture_restore_lint
+        continue-on-error: true
+        run: npm run lint > lecture-restore-lint.txt 2>&1
+
+      - name: Upload lecture restore lint diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lecture-restore-lint-diagnostics
+          path: lecture-restore-lint.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when lecture restore lint fails
+        if: steps.lecture_restore_lint.outcome == 'failure'
+        run: exit 1
+
+      - name: Build
+        run: npm run build
+
+      - name: Run staged lecture restore Chromium proof
+        id: lecture_restore_browser
+        continue-on-error: true
+        run: npm run e2e:lecture-restore > lecture-restore-browser.txt 2>&1
+
+      - name: Upload lecture restore browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lecture-restore-browser-diagnostics
+          path: lecture-restore-browser.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when lecture restore Chromium proof fails
+        if: steps.lecture_restore_browser.outcome == 'failure'
+        run: exit 1
