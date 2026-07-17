@@ -108,7 +108,7 @@ try {
       console.error("EXAM_START_DIAGNOSTICS", JSON.stringify(snapshot, null, 2));
       throw error;
     });
-    await page.waitForText("Замороженная экзаменационная сессия").catch(async (error) => {
+    await page.waitFor(\`document.body?.innerText?.toLocaleLowerCase("ru-RU").includes("замороженная экзаменационная сессия")\`).catch(async (error) => {
       const snapshot = await page.evaluate(\`(() => ({
         exams: JSON.parse(localStorage.getItem("lamdan.exam-engine.v1")),
         body: document.body?.innerText?.slice(0, 12000),
@@ -145,6 +145,10 @@ try {
     .replace(storageAnchor, storageReplacement)
     .replace(flowAnchor, flowReplacement)
     .replace(startAnchor, startReplacement)
+    .replaceAll(
+      'await page.waitForText("Замороженный результат экзамена");',
+      'await page.waitFor(`document.body?.innerText?.toLocaleLowerCase("ru-RU").includes("замороженный результат экзамена")`);',
+    )
     .replace(persistenceAnchor, persistenceReplacement);
   await writeFile(scriptPath, compatible);
   const result = spawnSync(process.execPath, [scriptPath], {
