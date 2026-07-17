@@ -20,6 +20,7 @@ This file records the active implementation plan. Product intent remains in `ROA
 - `P1-010B Reviewed automatic transcription v1` — merged and verified in PR #47.
 - `P1-010C1 Resumable provider-range queues` — merged and verified in PR #48.
 - `P1-010C2 Automatic local range extraction/transcoding` — merged and verified in PR #52.
+- `P1-010C3 Streaming lecture backup` — merged and verified in PR #53.
 - `P1-011 Study Command Center v1` — merged in PR #36.
 - `P1-012 Lecture-to-Study-Pack` — merged in PR #37.
 - `P1-013 Concept graph and evidence model v1` — merged in PR #38.
@@ -157,7 +158,7 @@ C1 deliberately did not claim automatic extraction from the local multi-gigabyte
 13. Pass dedicated C2 checks plus the separate C1 resumable regression on the final human-authored head. ✓
 14. Merge PR #52. ✓
 
-## Active delivery — P1-010C3 Streaming lecture backup (PR #53)
+## Verified delivery — P1-010C3 Streaming lecture backup
 
 ### Product outcome
 
@@ -173,13 +174,31 @@ A student can export one complete long-media material directly to a user-selecte
 8. Add an incremental inspector for framing, order, checksums and trailing bytes. ✓
 9. Expose RU/EN planning, size metrics, progress and cancellation in material detail. ✓
 10. Add deterministic manifest and corruption evaluations. ✓
-11. Add Chromium proof for three raw chunks plus all companion record kinds and bounded writes. In verification.
-12. Pass full CI and existing long-media, extraction, transcription and Exam Engine regressions. In verification.
-13. Merge PR #53. Pending.
+11. Add Chromium proof for three raw chunks plus all companion record kinds and bounded writes. ✓
+12. Pass full CI and existing long-media, extraction, transcription and Exam Engine regressions. ✓
+13. Merge PR #53. ✓
+
+## Active delivery — P1-010C4 Staged streaming lecture restore (PR #54)
+
+### Product outcome
+
+A student can restore a verified `.lamdan-lecture` bundle as a new independent long-media material without replacing existing lectures or loading the complete recording into memory.
+
+1. Verify the fixed signature, framed headers, exact EOF, payload sizes and every SHA-256 before publication. ✓
+2. Allocate new material and upload identities and always restore as a duplicate. ✓
+3. Stage raw media chunks one at a time under the new upload identity. ✓
+4. Stage local range clips and rewrite transcript, provider-candidate and resumable-queue identities. ✓
+5. Publish the media manifest only after complete archive consumption and publish the visible core material last. ✓
+6. Roll back raw chunks, manifest, transcript, provider candidate, queue, clips and core material after cancellation or failure. ✓
+7. Preserve provider text as candidate/draft only and never create source chunks automatically. ✓
+8. Add RU/EN Data-page preview, editable restored title, progress and cancellation. ✓
+9. Add deterministic valid, corrupt, truncated and trailing-byte archive evaluations. ✓
+10. Add Chromium proof for export → SPA Data route → verified restore → new identities → reload. ✓
+11. Pass full CI and existing backup, long-media, extraction, transcription and Exam Engine regressions. In verification.
+12. Merge PR #54. Pending.
 
 ## Subsequent delivery
 
-1. Add staged streaming restore/import for `.lamdan-lecture` bundles as P1-010C4.
-2. Validate real Hebrew/Russian lecture quality on licensed audio and record latency/cost.
-3. Extend Exam Engine with profile, topic weights and bounded daily planning.
-4. Continue `P1-015`–`P1-019` only through source-visible and reviewable contracts.
+1. Validate real Hebrew/Russian lecture quality on licensed audio and record latency/cost.
+2. Extend Exam Engine with profile, topic weights and bounded daily planning.
+3. Continue `P1-015`–`P1-019` only through source-visible and reviewable contracts.
