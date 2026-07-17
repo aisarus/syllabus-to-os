@@ -171,6 +171,60 @@ export async function getLongMediaChunkRecord(
   return readRecord<LongMediaChunkRecord>(db, CHUNK_STORE, [uploadId, index]);
 }
 
+export async function putLongMediaBackupChunk(record: LongMediaChunkRecord): Promise<void> {
+  if (
+    !record.uploadId ||
+    !record.materialId ||
+    !Number.isInteger(record.index) ||
+    record.index < 0 ||
+    !(record.blob instanceof Blob) ||
+    record.blob.size <= 0 ||
+    record.size !== record.blob.size ||
+    !/^[a-f0-9]{64}$/.test(record.sha256)
+  ) {
+    throw new Error("The staged lecture backup chunk is invalid.");
+  }
+  const existing = await getLongMediaManifest(record.materialId);
+  if (existing) {
+    throw new Error("A staged lecture chunk cannot replace a published media manifest.");
+  }
+  const db = await openDatabase();
+  await writeRecord(db, CHUNK_STORE, record);
+}
+
+export async function commitLongMediaBackupManifest(manifest: LongMediaManifest): Promise<void> {
+  if (await getLongMediaManifest(manifest.materialId)) {
+    throw new Error("The restore target already has a published media manifest.");
+  }
+  const db = await openDatabase();
+  const chunks = await readChunksForUpload(db, manifest.uploadId);
+  chunks.sort((left, right) => left.index - right.index);
+  if (chunks.length !== manifest.chunkCount) {
+    throw new Error("The staged lecture chunk count does not match its manifest.");
+  }
+  for (let index = 0; index < chunks.length; index += 1) {
+    const chunk = chunks[index];
+    if (
+      !chunk ||
+      chunk.index !== index ||
+      chunk.materialId !== manifest.materialId ||
+      chunk.uploadId !== manifest.uploadId ||
+      chunk.size !== chunk.blob.size
+    ) {
+      throw new Error("The staged lecture chunk identity is incomplete.");
+    }
+  }
+  if (chunks.reduce((sum, chunk) => sum + chunk.size, 0) !== manifest.size) {
+    throw new Error("The staged lecture byte total does not match its manifest.");
+  }
+  await writeRecord(db, MANIFEST_STORE, manifest);
+}
+
+export async function deleteLongMediaUploadChunks(uploadId: string): Promise<void> {
+  if (!uploadId) return;
+  await deleteChunksForUpload(await openDatabase(), uploadId);
+}
+
 export async function updateLongMediaDuration(
   materialId: string,
   durationSeconds: number,

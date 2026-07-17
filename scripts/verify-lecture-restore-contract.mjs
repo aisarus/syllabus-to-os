@@ -28,7 +28,8 @@ for (const marker of [
 }
 
 assert(
-  restore.indexOf("commitLongMediaBackupManifest") < restore.indexOf("materials: [restoredMaterial"),
+  restore.indexOf("commitLongMediaBackupManifest") <
+    restore.indexOf("materials: [restoredMaterial"),
   "Visible core material must publish after the verified long-media manifest.",
 );
 assert(

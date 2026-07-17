@@ -13,10 +13,7 @@ import {
   type LectureBackupRecordDescriptor,
   type LectureBackupRecordKind,
 } from "./lecture-backup";
-import type {
-  LongMediaManifest,
-  LongMediaTranscriptDraft,
-} from "./long-media";
+import type { LongMediaManifest, LongMediaTranscriptDraft } from "./long-media";
 import {
   commitLongMediaBackupManifest,
   deleteLongMediaData,
@@ -31,12 +28,7 @@ import {
   putResumableTranscriptionJob,
   type ResumableRangeClipRecord,
 } from "./resumable-transcription-store";
-import {
-  getDataSnapshot,
-  uid,
-  updateData,
-  type Material,
-} from "./store";
+import { getDataSnapshot, uid, updateData, type Material } from "./store";
 
 const encoder = new TextEncoder();
 const FRAME_PREFIX_BYTES = 4;
@@ -125,12 +117,10 @@ export async function prepareLectureRestore(
     targetMaterialId,
     targetUploadId,
     restoredTitle: `${sourceMaterial.title} (restored)`,
-    mediaChunkCount: inspection.manifest.records.filter(
-      (record) => record.kind === "mediaChunk",
-    ).length,
-    localClipCount: inspection.manifest.records.filter(
-      (record) => record.kind === "rangeClip",
-    ).length,
+    mediaChunkCount: inspection.manifest.records.filter((record) => record.kind === "mediaChunk")
+      .length,
+    localClipCount: inspection.manifest.records.filter((record) => record.kind === "rangeClip")
+      .length,
     includesTranscriptDraft: inspection.manifest.records.some(
       (record) => record.kind === "transcriptDraft",
     ),
@@ -164,10 +154,7 @@ export async function restoreLectureBackup(
   let stagedClipCount = 0;
   let corePublished = false;
 
-  const report = (
-    phase: LectureRestoreProgress["phase"],
-    currentKind?: LectureBackupRecordKind,
-  ) =>
+  const report = (phase: LectureRestoreProgress["phase"], currentKind?: LectureBackupRecordKind) =>
     options.onProgress?.({
       phase,
       completedRecords,
@@ -262,12 +249,7 @@ export async function restoreLectureBackup(
     if (!coreMaterial || !mediaManifest) {
       throw new Error("The lecture backup is missing required material records.");
     }
-    assertSourceCompanionIdentity(
-      plan.sourceManifest,
-      transcript,
-      automaticJob,
-      resumableJob,
-    );
+    assertSourceCompanionIdentity(plan.sourceManifest, transcript, automaticJob, resumableJob);
     validateRestoreChunkLayout(plan.sourceManifest, mediaManifest);
 
     report("publishing");
@@ -310,12 +292,7 @@ export async function restoreLectureBackup(
       });
     }
 
-    const restoredMaterial = buildRestoredMaterial(
-      coreMaterial,
-      restoredManifest,
-      plan,
-      now,
-    );
+    const restoredMaterial = buildRestoredMaterial(coreMaterial, restoredManifest, plan, now);
     updateData((data) => ({
       ...data,
       materials: [restoredMaterial, ...data.materials],
@@ -595,10 +572,7 @@ function assertSourceCompanionIdentity(
   }
 }
 
-function validateRestoreChunkLayout(
-  backup: LectureBackupManifest,
-  media: LongMediaManifest,
-): void {
+function validateRestoreChunkLayout(backup: LectureBackupManifest, media: LongMediaManifest): void {
   const chunks = backup.records
     .filter((record) => record.kind === "mediaChunk")
     .map((record) => ({
@@ -635,7 +609,9 @@ async function sha256Blob(blob: Blob): Promise<string> {
 }
 
 function equalBytes(left: Uint8Array, right: Uint8Array): boolean {
-  return left.byteLength === right.byteLength && left.every((value, index) => value === right[index]);
+  return (
+    left.byteLength === right.byteLength && left.every((value, index) => value === right[index])
+  );
 }
 
 function uniqueUploadId(): string {

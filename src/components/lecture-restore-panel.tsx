@@ -153,10 +153,12 @@ export function LectureRestorePanel() {
           <div className="flex items-start gap-3">
             <FileCheck2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
             <div className="min-w-0 flex-1">
-              <strong className="block truncate text-sm">{plan.sourceManifest.sourceFileName}</strong>
+              <strong className="block truncate text-sm">
+                {plan.sourceManifest.sourceFileName}
+              </strong>
               <p className="mt-1 text-xs text-muted-foreground">
-                {formatFileSize(plan.file.size)} · {plan.mediaChunkCount} media chunks · {plan.localClipCount}{" "}
-                local clips
+                {formatFileSize(plan.file.size)} · {plan.mediaChunkCount} media chunks ·{" "}
+                {plan.localClipCount} local clips
               </p>
               <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
                 <Flag enabled={plan.includesTranscriptDraft} label="editable draft" />
@@ -204,13 +206,18 @@ export function LectureRestorePanel() {
             <div className="h-full bg-primary transition-all" style={{ width: `${percent}%` }} />
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">
-            {progress.completedRecords}/{progress.totalRecords} · {formatFileSize(progress.processedBytes)}
+            {progress.completedRecords}/{progress.totalRecords} ·{" "}
+            {formatFileSize(progress.processedBytes)}
           </p>
         </div>
       ) : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Button variant={plan ? "outline" : "default"} onClick={chooseFile} disabled={Boolean(busy)}>
+        <Button
+          variant={plan ? "outline" : "default"}
+          onClick={chooseFile}
+          disabled={Boolean(busy)}
+        >
           {busy === "verifying" ? (
             <Loader2 className="me-1 h-4 w-4 animate-spin" />
           ) : plan ? (

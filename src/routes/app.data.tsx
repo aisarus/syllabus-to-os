@@ -13,6 +13,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/app-shell";
+import { LectureRestorePanel } from "@/components/lecture-restore-panel";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
 import { conceptStore, useConceptEvidenceData } from "@/lib/concept-store";
@@ -320,6 +321,8 @@ function DataPage() {
           </div>
         </div>
       </section>
+
+      <LectureRestorePanel />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <section className="rounded-lg border border-border bg-surface p-6">
