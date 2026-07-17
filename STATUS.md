@@ -29,6 +29,15 @@ The old stacked PRs #55 and #56 were closed as superseded after clean PRs #57 an
 - `P1-014A Frozen Exam Engine` — complete and verified.
 - `P1-014B Bounded exam planning` — complete and verified.
 
+## Delivered capability names
+
+- `P1-004 Add local-first global search v2`.
+- `Durable whole-lecture audio/video intake`.
+- `Reviewed automatic transcription`.
+- `per-question quiz evidence`.
+- `Reviewed concept extraction`.
+- `Open-answer evidence and mistake repair`.
+
 ## Lecture-media capability
 
 The merged lecture path now supports local complete media storage, reviewed transcript drafts, explicit provider consent, resumable ranges, local extraction, streaming export, verified duplicate restore and offline Hebrew/Russian quality evaluation.
