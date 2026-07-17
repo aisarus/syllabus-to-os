@@ -12,10 +12,12 @@ Verified and merged:
 - resumable range transcription and local extraction — PRs #48 and #52;
 - streaming lecture export and staged duplicate restore — PRs #53–#54;
 - offline Hebrew/Russian lecture-quality evaluator — PR #57;
-- Study Command Center, Study Pack and concept/evidence sequence — PRs #36–#44;
+- Study Command Center and Study Pack — PRs #36–#37;
+- concept/evidence sequence — PRs #38–#44;
+- Workspace backup v2 — PR #41;
 - frozen Exam Engine and bounded exam planning — PRs #45 and #58.
 
-Live OCR, Hebrew golden-quiz validation, the dependent one-course pilot and real lecture-quality evidence remain blocked on external inputs. The deterministic infrastructure for those runs is ready.
+The validation infrastructure is ready; the remaining real-world runs depend on representative external inputs.
 
 ## Active delivery — P1-009 deep multi-page browser coverage
 
@@ -49,4 +51,4 @@ Prove source integrity through difficult multi-page visual-material transitions 
 3. `P1-017 Ask My Course`.
 4. `P1-018 workload forecast`.
 5. `P1-019 accessibility and explanation profile`.
-6. Run externally blocked validation gates when their required inputs are supplied.
+6. Run the remaining validation gates when their required inputs are supplied.
