@@ -70,4 +70,19 @@ jobs:
         run: npm run build
 
       - name: Run streaming lecture backup Chromium proof
-        run: npm run e2e:lecture-backup
+        id: lecture_backup_browser
+        continue-on-error: true
+        run: npm run e2e:lecture-backup > lecture-backup-browser.txt 2>&1
+
+      - name: Upload lecture backup browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lecture-backup-browser-diagnostics
+          path: lecture-backup-browser.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when lecture backup Chromium proof fails
+        if: steps.lecture_backup_browser.outcome == 'failure'
+        run: exit 1
