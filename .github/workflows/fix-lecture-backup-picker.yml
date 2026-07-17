@@ -80,7 +80,22 @@ jobs:
         run: npm run build
 
       - name: Run Chromium proof
-        run: npm run e2e:lecture-backup
+        id: picker_browser
+        continue-on-error: true
+        run: npm run e2e:lecture-backup > picker-browser.txt 2>&1
+
+      - name: Upload Chromium diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: picker-browser-diagnostics
+          path: picker-browser.txt
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when Chromium proof fails
+        if: steps.picker_browser.outcome == 'failure'
+        run: exit 1
 
       - name: Commit verified source changes
         run: |
