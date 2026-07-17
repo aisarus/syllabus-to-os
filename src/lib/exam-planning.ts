@@ -77,10 +77,18 @@ export function validateExamPlanningProfile(
   if (!start) errors.push("The planning start date is invalid.");
   if (!exam) errors.push("The exam date is invalid.");
   if (start && exam && exam <= start) errors.push("The exam date must be in the future.");
-  if (!Number.isInteger(profile.dailyMinutes) || profile.dailyMinutes < 10 || profile.dailyMinutes > 480) {
+  if (
+    !Number.isInteger(profile.dailyMinutes) ||
+    profile.dailyMinutes < 10 ||
+    profile.dailyMinutes > 480
+  ) {
     errors.push("Daily budget must be between 10 and 480 minutes.");
   }
-  if (!Number.isInteger(profile.sessionMinutes) || profile.sessionMinutes < 5 || profile.sessionMinutes > 120) {
+  if (
+    !Number.isInteger(profile.sessionMinutes) ||
+    profile.sessionMinutes < 5 ||
+    profile.sessionMinutes > 120
+  ) {
     errors.push("Session length must be between 5 and 120 minutes.");
   }
   const weekdays = normalizeWeekdays(profile.availableWeekdays);
@@ -134,7 +142,10 @@ export function buildExamStudyPlan(input: {
     assigned: 0,
   }));
   const totalBudget = validation.availableDates.length * input.profile.dailyMinutes;
-  const targets = weightedTargets(totalBudget, states.map((state) => state.weight));
+  const targets = weightedTargets(
+    totalBudget,
+    states.map((state) => state.weight),
+  );
   const days: ExamStudyDay[] = [];
   for (const date of validation.availableDates) {
     let remaining = input.profile.dailyMinutes;
@@ -185,7 +196,9 @@ export function buildExamStudyPlan(input: {
 
 export function todayKey(timestamp = Date.now()): string {
   const value = new Date(timestamp);
-  return toDateKey(new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate())));
+  return toDateKey(
+    new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate())),
+  );
 }
 
 function weightedTargets(total: number, weights: number[]): number[] {
@@ -203,12 +216,17 @@ function weightedTargets(total: number, weights: number[]): number[] {
 }
 
 function normalizeWeekdays(values: number[]): number[] {
-  return [...new Set(values.map(Number).filter((value) => Number.isInteger(value) && value >= 0 && value <= 6))].sort();
+  return [
+    ...new Set(
+      values.map(Number).filter((value) => Number.isInteger(value) && value >= 0 && value <= 6),
+    ),
+  ].sort();
 }
 
 function enumerateDates(start: Date, end: Date): string[] {
   const values: string[] = [];
-  for (let cursor = start; cursor < end; cursor = addDays(cursor, 1)) values.push(toDateKey(cursor));
+  for (let cursor = start; cursor < end; cursor = addDays(cursor, 1))
+    values.push(toDateKey(cursor));
   return values;
 }
 
@@ -216,7 +234,9 @@ function parseDate(value: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/u.test(value)) return null;
   const [year, month, day] = value.split("-").map(Number);
   const date = new Date(Date.UTC(year, month - 1, day));
-  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  return date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
     ? date
     : null;
 }

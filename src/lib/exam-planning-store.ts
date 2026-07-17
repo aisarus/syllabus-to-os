@@ -136,9 +136,7 @@ function normalizeData(raw: unknown): ExamPlanningData {
   const plans = Array.isArray(value.plans)
     ? value.plans
         .map(normalizePlan)
-        .filter(
-          (item): item is ExamStudyPlan => Boolean(item && profileIds.has(item.profileId)),
-        )
+        .filter((item): item is ExamStudyPlan => Boolean(item && profileIds.has(item.profileId)))
     : [];
   return { version: 1, profiles, plans };
 }
@@ -238,11 +236,7 @@ function numberArray(value: unknown): number[] {
     : [];
 }
 
-function numberRecord(
-  value: unknown,
-  minimum: number,
-  maximum: number,
-): Record<string, number> {
+function numberRecord(value: unknown, minimum: number, maximum: number): Record<string, number> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   return Object.fromEntries(
     Object.entries(value as Record<string, unknown>).map(([key, item]) => [

@@ -21,9 +21,7 @@ export function ExamPlanningPanel({
 }) {
   const planning = useExamPlanningData();
   const profile = planning.profiles.find((item) => item.courseId === courseId);
-  const plan = profile
-    ? planning.plans.find((item) => item.profileId === profile.id)
-    : undefined;
+  const plan = profile ? planning.plans.find((item) => item.profileId === profile.id) : undefined;
   const topics = useMemo(
     () =>
       core.topics
@@ -214,11 +212,16 @@ export function ExamPlanningPanel({
               <h3 className="font-semibold">{isRu ? "Веса тем" : "Topic weights"}</h3>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              {isRu ? "1 — обычный приоритет, 5 — максимальная доля времени." : "1 is normal priority; 5 receives the largest time share."}
+              {isRu
+                ? "1 — обычный приоритет, 5 — максимальная доля времени."
+                : "1 is normal priority; 5 receives the largest time share."}
             </p>
             <div className="mt-3 grid gap-2 md:grid-cols-2">
               {topics.map((topic) => (
-                <label key={topic.id} className="flex items-center gap-3 rounded-md border border-border p-3 text-sm">
+                <label
+                  key={topic.id}
+                  className="flex items-center gap-3 rounded-md border border-border p-3 text-sm"
+                >
                   <span className="min-w-0 flex-1 truncate">{topic.title}</span>
                   <Input
                     className="w-20"
@@ -243,7 +246,10 @@ export function ExamPlanningPanel({
               <div className="grid grid-cols-3 gap-2 text-center text-xs">
                 <Metric label={isRu ? "Учебные дни" : "Study days"} value={plan.days.length} />
                 <Metric label={isRu ? "Всего минут" : "Total minutes"} value={plan.totalMinutes} />
-                <Metric label={isRu ? "Темы" : "Topics"} value={Object.keys(plan.topicTotals).length} />
+                <Metric
+                  label={isRu ? "Темы" : "Topics"}
+                  value={Object.keys(plan.topicTotals).length}
+                />
               </div>
               <div className="mt-4 max-h-[420px] space-y-2 overflow-auto pe-1">
                 {plan.days.slice(0, 30).map((day) => (
@@ -254,7 +260,10 @@ export function ExamPlanningPanel({
                     </div>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {day.tasks.map((task) => (
-                        <span key={task.id} className="rounded bg-primary/10 px-2 py-1 text-primary">
+                        <span
+                          key={task.id}
+                          className="rounded bg-primary/10 px-2 py-1 text-primary"
+                        >
                           {task.topicTitle} · {task.minutes}
                         </span>
                       ))}
@@ -264,7 +273,9 @@ export function ExamPlanningPanel({
               </div>
               {plan.days.length > 30 ? (
                 <p className="mt-3 text-xs text-muted-foreground">
-                  {isRu ? `Показаны первые 30 из ${plan.days.length} дней.` : `Showing the first 30 of ${plan.days.length} days.`}
+                  {isRu
+                    ? `Показаны первые 30 из ${plan.days.length} дней.`
+                    : `Showing the first 30 of ${plan.days.length} days.`}
                 </p>
               ) : null}
             </div>

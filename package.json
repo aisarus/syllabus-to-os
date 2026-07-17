@@ -78,7 +78,10 @@
     "verify:lecture-backup-contract": "node scripts/verify-lecture-backup-contract.mjs",
     "verify:lecture-restore-contract": "node scripts/verify-lecture-restore-contract.mjs",
     "check": "node scripts/check.mjs",
-    "eval:lecture:private": "node scripts/run-private-lecture-validation.mjs"
+    "eval:lecture:private": "node scripts/run-private-lecture-validation.mjs",
+    "verify:exam-planning-contract": "node scripts/verify-exam-planning-contract.mjs",
+    "eval:exam-planning": "node --experimental-strip-types scripts/run-exam-planning-evals.mjs",
+    "e2e:exam-planning": "node scripts/run-exam-planning-browser-e2e.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
