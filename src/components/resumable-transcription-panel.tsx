@@ -65,6 +65,13 @@ interface ProviderModels {
   speakerModel?: string;
 }
 
+const LOCAL_EXTRACTION_REASON_RU = {
+  browser_only: "Локальная нарезка доступна только в браузере.",
+  media_recorder_unavailable: "Этот браузер не поддерживает MediaRecorder для локальной нарезки.",
+  web_audio_unavailable: "Этот браузер не поддерживает Web Audio для локальной нарезки.",
+  opus_unavailable: "Этот браузер не поддерживает подходящий Opus-аудиоконтейнер.",
+} as const;
+
 export function ResumableTranscriptionPanel({
   material,
   onDraftApplied,
@@ -470,7 +477,9 @@ export function ResumableTranscriptionPanel({
             ? isRu
               ? "Локальная нарезка идёт в реальном времени, не меняет скорость лекции и не загружает оригинал. Вкладку нужно держать открытой до завершения диапазона."
               : "Local extraction runs in real time, preserves lecture speed, and never uploads the original. Keep this tab open until the range finishes."
-            : extractionCapability.reason}
+            : isRu && extractionCapability.reasonCode
+              ? LOCAL_EXTRACTION_REASON_RU[extractionCapability.reasonCode]
+              : extractionCapability.reason}
         </div>
       </div>
 

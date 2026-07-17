@@ -12,10 +12,17 @@ const MIME_CANDIDATES = [
   "audio/ogg",
 ];
 
+export type LocalRangeExtractionReasonCode =
+  | "browser_only"
+  | "media_recorder_unavailable"
+  | "web_audio_unavailable"
+  | "opus_unavailable";
+
 export interface LocalRangeExtractionCapability {
   supported: boolean;
   mimeType?: string;
   reason?: string;
+  reasonCode?: LocalRangeExtractionReasonCode;
 }
 
 export interface LocalRangeExtractionEstimate {
@@ -48,19 +55,35 @@ interface AudioContextWindow extends Window {
 
 export function getLocalRangeExtractionCapability(): LocalRangeExtractionCapability {
   if (typeof window === "undefined" || typeof document === "undefined") {
-    return { supported: false, reason: "Local extraction is available only in a browser." };
+    return {
+      supported: false,
+      reason: "Local extraction is available only in a browser.",
+      reasonCode: "browser_only",
+    };
   }
   if (typeof MediaRecorder === "undefined") {
-    return { supported: false, reason: "This browser does not provide MediaRecorder." };
+    return {
+      supported: false,
+      reason: "This browser does not provide MediaRecorder.",
+      reasonCode: "media_recorder_unavailable",
+    };
   }
   const AudioContextConstructor =
     window.AudioContext ?? (window as AudioContextWindow).webkitAudioContext;
   if (!AudioContextConstructor) {
-    return { supported: false, reason: "This browser does not provide Web Audio." };
+    return {
+      supported: false,
+      reason: "This browser does not provide Web Audio.",
+      reasonCode: "web_audio_unavailable",
+    };
   }
   const mimeType = MIME_CANDIDATES.find((candidate) => MediaRecorder.isTypeSupported(candidate));
   if (!mimeType) {
-    return { supported: false, reason: "No provider-ready Opus audio container is supported." };
+    return {
+      supported: false,
+      reason: "No provider-ready Opus audio container is supported.",
+      reasonCode: "opus_unavailable",
+    };
   }
   return { supported: true, mimeType };
 }
@@ -237,9 +260,10 @@ export async function extractLongMediaRangeLocally(input: {
   }
 
   const clipBlob = new Blob(chunks, { type: capability.mimeType });
+  const encodedDurationSeconds = await measureEncodedAudioDuration(clipBlob, input.signal);
   validateExtractedRangeClip({
     expectedDurationSeconds: estimate.durationSeconds,
-    capturedDurationSeconds,
+    capturedDurationSeconds: encodedDurationSeconds,
     size: clipBlob.size,
     mimeType: capability.mimeType,
     maxBytes: input.maxOutputBytes,
@@ -261,11 +285,35 @@ export async function extractLongMediaRangeLocally(input: {
       lastModified: createdAt,
     }),
     mimeType: capability.mimeType,
-    durationSeconds: capturedDurationSeconds,
+    durationSeconds: encodedDurationSeconds,
     startSeconds: input.range.startSeconds,
     endSeconds: input.range.endSeconds,
     createdAt,
   };
+}
+
+async function measureEncodedAudioDuration(blob: Blob, signal?: AbortSignal): Promise<number> {
+  throwIfAborted(signal);
+  const objectUrl = URL.createObjectURL(blob);
+  const media = document.createElement("audio");
+  media.preload = "metadata";
+  media.src = objectUrl;
+  try {
+    await waitForMediaMetadata(media, signal);
+    if (Number.isFinite(media.duration) && media.duration > 0) return media.duration;
+
+    const durationChanged = waitForMediaEvent(media, "durationchange", signal, 10_000);
+    media.currentTime = Number.MAX_SAFE_INTEGER;
+    await durationChanged;
+    if (!Number.isFinite(media.duration) || media.duration <= 0) {
+      throw new Error("The encoded audio duration could not be measured.");
+    }
+    return media.duration;
+  } finally {
+    media.removeAttribute("src");
+    media.load();
+    URL.revokeObjectURL(objectUrl);
+  }
 }
 
 function waitForMediaMetadata(media: HTMLMediaElement, signal?: AbortSignal): Promise<void> {
@@ -286,7 +334,7 @@ async function seekMedia(
 
 function waitForMediaEvent(
   media: HTMLMediaElement,
-  eventName: "loadedmetadata" | "seeked",
+  eventName: "loadedmetadata" | "seeked" | "durationchange",
   signal: AbortSignal | undefined,
   timeoutMs: number,
 ): Promise<void> {
@@ -332,31 +380,51 @@ function monitorRangePlayback(input: {
   wallStartedAt: number;
 }): Promise<void> {
   const duration = Math.max(0.01, input.range.endSeconds - input.range.startSeconds);
+  const inactivityLimitMs = 15_000;
   return new Promise((resolve, reject) => {
     let timer = 0;
+    let settled = false;
+    let lastMediaTime = input.media.currentTime;
+    let lastAdvanceAt = performance.now();
     const finish = (error?: Error) => {
+      if (settled) return;
+      settled = true;
       window.clearTimeout(timer);
       input.signal?.removeEventListener("abort", onAbort);
+      input.media.removeEventListener("error", onMediaError);
+      input.media.removeEventListener("stalled", onStalled);
       if (error) reject(error);
       else resolve();
     };
     const onAbort = () => finish(new DOMException("Local extraction cancelled.", "AbortError"));
+    const onMediaError = () =>
+      finish(new Error(input.media.error?.message ?? "The local media decoder failed."));
+    const onStalled = () => finish(new Error("Local media playback stalled during extraction."));
     const tick = () => {
       if (input.signal?.aborted) {
         onAbort();
         return;
       }
-      const captured = Math.max(0, input.media.currentTime - input.range.startSeconds);
+      const now = performance.now();
+      const currentTime = input.media.currentTime;
+      if (currentTime > lastMediaTime + 0.01) {
+        lastMediaTime = currentTime;
+        lastAdvanceAt = now;
+      } else if (!input.media.paused && now - lastAdvanceAt > inactivityLimitMs) {
+        finish(new Error("Local media playback stopped advancing during extraction."));
+        return;
+      }
+      const captured = Math.max(0, currentTime - input.range.startSeconds);
       input.onProgress?.({
         fraction: Math.max(0, Math.min(1, captured / duration)),
-        currentTimeSeconds: input.media.currentTime,
-        elapsedSeconds: Math.max(0, (performance.now() - input.wallStartedAt) / 1_000),
+        currentTimeSeconds: currentTime,
+        elapsedSeconds: Math.max(0, (now - input.wallStartedAt) / 1_000),
       });
-      if (input.media.currentTime >= input.range.endSeconds - 0.05 || input.media.ended) {
+      if (currentTime >= input.range.endSeconds - 0.05 || input.media.ended) {
         input.onProgress?.({
           fraction: 1,
-          currentTimeSeconds: Math.min(input.media.currentTime, input.range.endSeconds),
-          elapsedSeconds: Math.max(0, (performance.now() - input.wallStartedAt) / 1_000),
+          currentTimeSeconds: Math.min(currentTime, input.range.endSeconds),
+          elapsedSeconds: Math.max(0, (now - input.wallStartedAt) / 1_000),
         });
         finish();
         return;
@@ -364,6 +432,8 @@ function monitorRangePlayback(input: {
       timer = window.setTimeout(tick, 125);
     };
     input.signal?.addEventListener("abort", onAbort, { once: true });
+    input.media.addEventListener("error", onMediaError, { once: true });
+    input.media.addEventListener("stalled", onStalled, { once: true });
     tick();
   });
 }

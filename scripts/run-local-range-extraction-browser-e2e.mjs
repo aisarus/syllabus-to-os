@@ -16,6 +16,12 @@ class Cdp {
     this.nextId = 1;
     this.pending = new Map();
     socket.addEventListener("message", (event) => this.onMessage(event.data));
+    socket.addEventListener("close", () =>
+      this.rejectPending(new Error("Chrome DevTools connection closed.")),
+    );
+    socket.addEventListener("error", () =>
+      this.rejectPending(new Error("Chrome DevTools connection failed.")),
+    );
   }
 
   static async connect(url) {
@@ -30,8 +36,18 @@ class Cdp {
   send(method, params = {}, sessionId) {
     const id = this.nextId++;
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
-      this.socket.send(JSON.stringify({ id, method, params, sessionId }));
+      const timeout = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`CDP command timed out: ${method}`));
+      }, 30_000);
+      this.pending.set(id, { resolve, reject, timeout });
+      try {
+        this.socket.send(JSON.stringify({ id, method, params, sessionId }));
+      } catch (error) {
+        clearTimeout(timeout);
+        this.pending.delete(id);
+        reject(error);
+      }
     });
   }
 
@@ -41,11 +57,21 @@ class Cdp {
     const pending = this.pending.get(message.id);
     if (!pending) return;
     this.pending.delete(message.id);
+    clearTimeout(pending.timeout);
     if (message.error) pending.reject(new Error(message.error.message));
     else pending.resolve(message.result ?? {});
   }
 
+  rejectPending(error) {
+    for (const pending of this.pending.values()) {
+      clearTimeout(pending.timeout);
+      pending.reject(error);
+    }
+    this.pending.clear();
+  }
+
   close() {
+    this.rejectPending(new Error("Chrome DevTools connection closed by the test."));
     if (this.socket.readyState === WebSocket.OPEN) this.socket.close();
   }
 }
