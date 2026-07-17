@@ -3,6 +3,7 @@ import {
   type ResumableTranscriptionJob,
   type ResumableTranscriptionRange,
 } from "./resumable-transcription";
+import type { LocalRangeExtractionProvenance } from "./local-range-extraction";
 
 const DATABASE_NAME = "lamdan-resumable-transcription";
 const DATABASE_VERSION = 1;
@@ -218,9 +219,44 @@ function normalizeRange(
     endSeconds,
     attempt: Math.max(0, Number(range.attempt) || 0),
     uploadProgress: Math.max(0, Math.min(1, Number(range.uploadProgress) || 0)),
+    localExtraction: normalizeLocalExtraction(range.localExtraction),
     resultSegments: Array.isArray(range.resultSegments) ? range.resultSegments : [],
     warnings: Array.from(new Set(Array.isArray(range.warnings) ? range.warnings : [])),
     updatedAt: Number(range.updatedAt) || Date.now(),
+  };
+}
+
+function normalizeLocalExtraction(
+  value: LocalRangeExtractionProvenance | undefined,
+): LocalRangeExtractionProvenance | undefined {
+  if (
+    !value ||
+    !value.clipId ||
+    !value.materialId ||
+    !value.sourceUploadId ||
+    !value.rangeId ||
+    !value.fileName ||
+    !value.mimeType ||
+    !Number.isFinite(value.startSeconds) ||
+    !Number.isFinite(value.endSeconds) ||
+    !Number.isFinite(value.byteSize) ||
+    !Number.isFinite(value.durationSeconds)
+  ) {
+    return undefined;
+  }
+  return {
+    ...value,
+    startSeconds: Math.max(0, value.startSeconds),
+    endSeconds: Math.max(value.startSeconds + 0.01, value.endSeconds),
+    byteSize: Math.max(0, value.byteSize),
+    durationSeconds: Math.max(0, value.durationSeconds),
+    estimatedBytes: Math.max(0, Number(value.estimatedBytes) || 0),
+    wallTimeMilliseconds: Math.max(0, Number(value.wallTimeMilliseconds) || 0),
+    mainThreadBusyMilliseconds:
+      value.mainThreadBusyMilliseconds === undefined
+        ? undefined
+        : Math.max(0, Number(value.mainThreadBusyMilliseconds) || 0),
+    createdAt: Number(value.createdAt) || Date.now(),
   };
 }
 

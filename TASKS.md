@@ -223,6 +223,15 @@ npm run eval:ocr:live -- \
 - source playback timing remains 1×; a mismatched capture fails visibly instead of silently shifting timestamps;
 - processing must not call `arrayBuffer()` on the complete stored recording.
 
+### P1-010C2 current implementation state
+
+- local capture is explicit, capability-gated and records only an audio/WebM provider copy at 1×;
+- recorder chunks persist under a staging clip id before promotion; cancellation/failure deletes staging output;
+- size, temporary-storage and wall-time estimates are shown before extraction; actual wall/main-thread metrics remain visible when available;
+- exact range identity, seek, actual duration, MIME and provider-size validation run before C1 attachment;
+- extracted clips restore after reload and Data/orphan cleanup removes them with the range queue or material;
+- deterministic contract/evals pass locally; the dedicated Chromium workflow remains the release gate.
+
 ### Non-negotiable boundaries
 
 - no hidden upload during storage, navigation, playback or integrity checking;

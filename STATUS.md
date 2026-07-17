@@ -24,7 +24,7 @@ Lamdan remains a late MVP / early closed alpha. The trusted local-first source �
 - `P1-010A Durable whole-lecture audio/video intake` — complete and verified; PR #46.
 - `P1-010B Reviewed automatic transcription v1` — complete and verified; PR #47.
 - `P1-010C1 Resumable provider-range queues` — complete and verified; PR #48.
-- `P1-010C2 Local range extraction/transcoding` — [~] active; bounded local strategy and contract are being implemented.
+- `P1-010C2 Local range extraction/transcoding` — [~] implementation complete locally; deterministic checks pass and the dedicated Chromium workflow is pending remote confirmation.
 - `P1-011 Study Command Center v1` — complete and verified; PR #36.
 - `P1-012 Lecture-to-Study-Pack` — complete and verified; PR #37.
 - `P1-013 Concept graph and evidence model v1` — complete and verified; PR #38.
@@ -94,6 +94,20 @@ Current boundary before P1-010C2:
 - raw media, editable transcript drafts, single-request candidates and resumable queues are not yet in Workspace ZIP v2;
 - live quality, latency and cost remain unverified without a configured provider and licensed representative lecture audio.
 
+## Active delivery — P1-010C2 local range extraction
+
+Implemented in the current branch, pending dedicated Chromium CI:
+
+- explicit browser capability detection for media-element capture, `MediaRecorder` and audio/WebM;
+- conservative provider-size, temporary-storage and normal-speed wall-time estimates before extraction;
+- 1× local audio capture with staged IndexedDB chunk persistence, cancellation cleanup and no complete-source `arrayBuffer()` read;
+- exact material/upload/range identity, seek, duration, MIME and provider-size validation before a clip may enter the C1 queue;
+- a persisted local clip restores after reload, while a manual C1 replacement clears its extraction provenance;
+- lifecycle and Data-page deletion cover staged/local clips as well as original media and C1 queues;
+- deterministic capability/estimate/promotion/recovery evaluations, contract and a real two-second WAV Chromium scenario wired into a dedicated workflow.
+
+The current environment has no usable local Chromium proof. Do not mark this task verified until the new GitHub Actions browser workflow is green.
+
 ## Verification state
 
 PR #48 passed its final common head and was merged into `main` as `199ce45`. Verification included:
@@ -127,7 +141,7 @@ The deterministic/provider-mock pipeline can verify consent, persistence, cancel
 
 ## Next execution targets
 
-1. Build `P1-010C2`: automatic local extraction/transcoding of exact range clips from the stored original.
-2. Integrate raw media, editable drafts, provider candidates and range queues into a streaming backup format.
+1. Run the `P1-010C2` Chromium workflow and fix any real browser-capability regression before marking the local range path verified.
+2. Integrate raw media, editable drafts, provider candidates, extracted clips and range queues into a streaming backup format.
 3. Extend Exam Engine with exam profiles, topic weights and bounded daily planning.
 4. Run `P1-006`, `P1-007` and the one-course pilot when private inputs are supplied.
