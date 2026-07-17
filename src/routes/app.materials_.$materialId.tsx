@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, BookOpenCheck } from "lucide-react";
 import { useState } from "react";
 import { AutomaticTranscriptionPanel } from "@/components/automatic-transcription-panel";
+import { LectureBackupPanel } from "@/components/lecture-backup-panel";
 import { LongMediaWorkspace } from "@/components/long-media-workspace";
 import { MaterialOutputHistory } from "@/components/material-output-history";
 import { MaterialWorkspace } from "@/components/material-workspace";
@@ -74,6 +75,7 @@ function MaterialDetail() {
       <div className="mx-auto max-w-[1440px]">
         {longMedia ? (
           <>
+            <LectureBackupPanel key={`backup:${material.id}`} material={material} />
             <ResumableTranscriptionPanel
               key={`ranges:${material.id}`}
               material={material}
