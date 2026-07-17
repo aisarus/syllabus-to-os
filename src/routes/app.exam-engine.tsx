@@ -46,32 +46,32 @@ function ExamEnginePage() {
     );
   }
 
-  if (activeSession) {
-    return <ExamEngine key={`${data.courses[0]?.id ?? "course"}:${data.quizzes.length}`} />;
-  }
-
   return (
     <>
       <ExamEngine key={`${data.courses[0]?.id ?? "course"}:${data.quizzes.length}`} />
-      <div className="mx-auto mt-5 max-w-[1440px] rounded-xl border border-border bg-surface p-4 md:p-5">
-        <label className="block max-w-sm text-xs text-muted-foreground">
-          {lang === "ru" ? "Курс для плана подготовки" : "Course for the study plan"}
-          <select
-            className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-            value={planningCourseId}
-            onChange={(event) => setPlanningCourseId(event.target.value)}
-          >
-            {data.courses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.title}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <div className="mx-auto max-w-[1440px]">
-        <ExamPlanningPanel core={data} courseId={planningCourseId} isRu={lang === "ru"} />
-      </div>
+      {!activeSession ? (
+        <>
+          <div className="mx-auto mt-5 max-w-[1440px] rounded-xl border border-border bg-surface p-4 md:p-5">
+            <label className="block max-w-sm text-xs text-muted-foreground">
+              {lang === "ru" ? "Курс для плана подготовки" : "Course for the study plan"}
+              <select
+                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={planningCourseId}
+                onChange={(event) => setPlanningCourseId(event.target.value)}
+              >
+                {data.courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="mx-auto max-w-[1440px]">
+            <ExamPlanningPanel core={data} courseId={planningCourseId} isRu={lang === "ru"} />
+          </div>
+        </>
+      ) : null}
     </>
   );
 }
