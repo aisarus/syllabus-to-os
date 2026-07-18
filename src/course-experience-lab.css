@@ -73,3 +73,52 @@
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
+
+.course-knowledge-lab__chevron {
+  flex: none;
+  color: var(--cw-gold);
+  transition: transform 170ms ease;
+}
+
+.course-knowledge-lab[open] .course-knowledge-lab__chevron {
+  transform: rotate(180deg);
+}
+
+.course-knowledge-lab__body {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid rgba(199, 146, 79, 0.11);
+  padding: 18px;
+}
+
+.course-knowledge-lab__body > section {
+  max-width: none;
+  margin-top: 0;
+  border-color: rgba(199, 146, 79, 0.17);
+  border-radius: 8px;
+  background: #121612;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.16);
+}
+
+@media (max-width: 720px) {
+  .course-knowledge-lab > summary {
+    min-height: 80px;
+    gap: 11px;
+    padding: 15px;
+  }
+
+  .course-knowledge-lab__copy small,
+  .course-knowledge-lab__status {
+    display: none;
+  }
+
+  .course-knowledge-lab__body {
+    padding: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .course-knowledge-lab__chevron {
+    transition: none !important;
+  }
+}
