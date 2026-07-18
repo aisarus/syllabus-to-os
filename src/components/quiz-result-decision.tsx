@@ -1,0 +1,1 @@
+// Quiz result decision component.
