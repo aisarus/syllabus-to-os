@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, CircleHelp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { DiagnosticExamBlueprint } from "@/components/diagnostic-exam-blueprint";
+import { DiagnosticExamBlueprint } from "@/components/diagnostic-exam-blueprint-entry";
 import { ExamEngine } from "@/components/exam-engine";
 import { ExamEngineRestoredResult } from "@/components/exam-engine-restored-result";
 import { ExamPlanningPanel } from "@/components/exam-planning-panel";
