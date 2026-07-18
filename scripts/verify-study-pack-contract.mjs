@@ -79,7 +79,7 @@ for (const marker of [
   requireMarker(dialog, marker, `Study Pack review/save flow is missing: ${marker}`);
 }
 
-for (const marker of ["savedContent?: ReactNode", "state === \"saved\"", "{savedContent}"]) {
+for (const marker of ["savedContent?: ReactNode", 'state === "saved"', "{savedContent}"]) {
   requireMarker(draftModal, marker, `AI saved-state continuation contract is missing: ${marker}`);
 }
 
