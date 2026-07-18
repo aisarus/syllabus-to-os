@@ -52,7 +52,8 @@ function MaterialDetail() {
   const chunks = getChunksByMaterial(data, material.id);
   const longMedia = isLongMediaMaterial(material);
   const multiPageImage = isMultiPageImageMaterial(material);
-  const processingNeedsAttention = chunks.length === 0 || material.processingStatus !== "ready";
+  const processingNeedsAttention =
+    chunks.length === 0 || material.processingStatus !== "ready";
   const processingTitle = longMedia
     ? isRu
       ? "Расшифровка и резервная копия лекции"
@@ -100,7 +101,10 @@ function MaterialDetail() {
             material={material}
             onDraftApplied={() => setTranscriptRevision((current) => current + 1)}
           />
-          <LongMediaWorkspace key={`${material.id}:${transcriptRevision}`} material={material} />
+          <LongMediaWorkspace
+            key={`${material.id}:${transcriptRevision}`}
+            material={material}
+          />
         </div>
       ) : multiPageImage ? (
         <MultiPageImageWorkspace material={material} />
@@ -125,7 +129,9 @@ function MaterialDetail() {
             {isRu ? "Следующий учебный слой" : "Next study layer"}
           </div>
           <h2 id="material-study-pack-title">
-            {isRu ? "Собрать занятие из подтверждённого источника" : "Build a session from the approved source"}
+            {isRu
+              ? "Собрать занятие из подтверждённого источника"
+              : "Build a session from the approved source"}
           </h2>
           <p>
             {longMedia && chunks.length === 0
@@ -155,7 +161,9 @@ function MaterialDetail() {
             <History size={18} />
           </span>
           <span>
-            <strong>{isRu ? "История созданных результатов" : "Created output history"}</strong>
+            <strong>
+              {isRu ? "История созданных результатов" : "Created output history"}
+            </strong>
             <small>
               {isRu
                 ? "Сохранённые конспекты, карточки, тесты и другие результаты по этому источнику."
@@ -200,7 +208,11 @@ function ProcessingWorkspace({
           <ShieldCheck size={13} />
           {status}
         </span>
-        <ChevronDown className="material-processing__chevron" size={18} aria-hidden="true" />
+        <ChevronDown
+          className="material-processing__chevron"
+          size={18}
+          aria-hidden="true"
+        />
       </summary>
       <div className="material-processing__body">{children}</div>
     </details>
