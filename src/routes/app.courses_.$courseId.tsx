@@ -51,7 +51,11 @@ function CoursePage() {
             <ShieldCheck size={13} />
             {isRu ? "по подтверждённым данным" : "verified data only"}
           </span>
-          <ChevronDown className="course-knowledge-lab__chevron" size={18} aria-hidden="true" />
+          <ChevronDown
+            className="course-knowledge-lab__chevron"
+            size={18}
+            aria-hidden="true"
+          />
         </summary>
 
         <div className="course-knowledge-lab__body">
