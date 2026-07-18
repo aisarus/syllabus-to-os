@@ -1,0 +1,124 @@
+.course-knowledge-lab {
+  overflow: hidden;
+  border: 1px solid rgba(199, 146, 79, 0.16);
+  border-radius: 8px;
+  background: #111510;
+  box-shadow: inset 0 0 34px rgba(0, 0, 0, 0.15);
+}
+
+.course-knowledge-lab > summary {
+  display: flex;
+  min-height: 92px;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 22px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.course-knowledge-lab > summary::-webkit-details-marker {
+  display: none;
+}
+
+.course-knowledge-lab > summary:hover {
+  background: rgba(199, 146, 79, 0.035);
+}
+
+.course-knowledge-lab__icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  place-items: center;
+  border: 1px solid rgba(199, 146, 79, 0.35);
+  border-radius: 50%;
+  color: var(--cw-gold);
+  background: rgba(199, 146, 79, 0.065);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.24);
+}
+
+.course-knowledge-lab__copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 4px;
+}
+
+.course-knowledge-lab__copy strong {
+  color: var(--cw-cream);
+  font-family: Fraunces, Georgia, serif;
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.course-knowledge-lab__copy small {
+  max-width: 850px;
+  color: var(--cw-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.course-knowledge-lab__status {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(199, 146, 79, 0.2);
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: #bcb19d;
+  background: rgba(9, 12, 10, 0.45);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.course-knowledge-lab__chevron {
+  flex: none;
+  color: var(--cw-gold);
+  transition: transform 170ms ease;
+}
+
+.course-knowledge-lab[open] .course-knowledge-lab__chevron {
+  transform: rotate(180deg);
+}
+
+.course-knowledge-lab__body {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid rgba(199, 146, 79, 0.11);
+  padding: 18px;
+}
+
+.course-knowledge-lab__body > section {
+  max-width: none;
+  margin-top: 0;
+  border-color: rgba(199, 146, 79, 0.17);
+  border-radius: 8px;
+  background: #121612;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.16);
+}
+
+@media (max-width: 720px) {
+  .course-knowledge-lab > summary {
+    min-height: 80px;
+    gap: 11px;
+    padding: 15px;
+  }
+
+  .course-knowledge-lab__copy small,
+  .course-knowledge-lab__status {
+    display: none;
+  }
+
+  .course-knowledge-lab__body {
+    padding: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .course-knowledge-lab__chevron {
+    transition: none !important;
+  }
+}

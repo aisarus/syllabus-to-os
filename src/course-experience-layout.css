@@ -1,0 +1,96 @@
+.course-experience__workspace > div {
+  max-width: none;
+}
+
+.course-experience__workspace > div > header {
+  position: relative;
+  overflow: hidden;
+  margin-top: 12px;
+  border: 1px solid rgba(199, 146, 79, 0.22);
+  border-radius: 8px;
+  padding: clamp(20px, 3vw, 32px);
+  background:
+    radial-gradient(circle at 90% 4%, rgba(199, 146, 79, 0.13), transparent 21rem),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.026), transparent 58%),
+    #141814;
+  box-shadow:
+    0 22px 58px rgba(0, 0, 0, 0.22),
+    inset 0 1px rgba(255, 244, 218, 0.035);
+}
+
+.course-experience__workspace > div > header input {
+  color: var(--cw-cream);
+  text-shadow: 0 8px 30px rgba(0, 0, 0, 0.22);
+}
+
+.course-experience__workspace > div > header + div {
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.58fr);
+  gap: 14px;
+  align-items: start;
+  margin-top: 16px;
+}
+
+.course-experience__workspace main > section,
+.course-experience__workspace aside > section {
+  border-color: rgba(199, 146, 79, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.018), transparent 52%),
+    #121612;
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.17),
+    inset 0 1px rgba(255, 244, 218, 0.025);
+}
+
+.course-experience__workspace main > section:first-child {
+  border-color: rgba(199, 146, 79, 0.27);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.23),
+    inset 0 1px rgba(255, 244, 218, 0.035);
+}
+
+.course-experience__workspace > div > header + div > aside {
+  position: sticky;
+  top: 18px;
+  max-height: calc(100svh - 36px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(199, 146, 79, 0.22) transparent;
+}
+
+.course-experience__risk > section {
+  max-width: none;
+  margin-top: 0;
+  border-color: rgba(199, 146, 79, 0.19);
+  border-radius: 8px;
+  background:
+    linear-gradient(105deg, rgba(199, 146, 79, 0.055), transparent 48%),
+    #121612;
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.17),
+    inset 0 1px rgba(255, 244, 218, 0.025);
+}
+
+@media (max-width: 1080px) {
+  .course-experience__workspace > div > header + div {
+    grid-template-columns: 1fr;
+  }
+
+  .course-experience__workspace > div > header + div > aside {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 720px) {
+  .course-experience__workspace > div > header {
+    padding: 18px 16px;
+  }
+
+  .course-experience__workspace > div > header + div > aside {
+    grid-template-columns: 1fr;
+  }
+}
