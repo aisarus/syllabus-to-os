@@ -1,0 +1,14 @@
+.course-experience {
+  display: grid;
+  max-width: 1440px;
+  gap: 16px;
+  margin: 0 auto;
+}
+
+.course-experience__eyebrow {
+  color: var(--cw-gold);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
