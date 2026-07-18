@@ -20,11 +20,7 @@ type StudyOutputLayoutProps = {
   compact?: boolean;
 };
 
-export function StudyOutputLayout({
-  current,
-  children,
-  compact = false,
-}: StudyOutputLayoutProps) {
+export function StudyOutputLayout({ current, children, compact = false }: StudyOutputLayoutProps) {
   const { lang } = useApp();
   const data = useData();
   const isRu = lang === "ru";
@@ -70,7 +66,10 @@ export function StudyOutputLayout({
 
   return (
     <div className={`study-output-system${compact ? " study-output-system--compact" : ""}`}>
-      <section className="study-output-system__masthead" aria-label={isRu ? "Учебный цикл" : "Study cycle"}>
+      <section
+        className="study-output-system__masthead"
+        aria-label={isRu ? "Учебный цикл" : "Study cycle"}
+      >
         <div className="study-output-system__intro">
           <span className="study-output-system__seal" aria-hidden="true">
             <BookOpenCheck size={20} />
@@ -79,7 +78,9 @@ export function StudyOutputLayout({
             <div className="study-output-system__eyebrow">
               {isRu ? "Единый учебный цикл" : "One study cycle"}
             </div>
-            <strong>{isRu ? "Понять → вспомнить → проверить" : "Understand → recall → test"}</strong>
+            <strong>
+              {isRu ? "Понять → вспомнить → проверить" : "Understand → recall → test"}
+            </strong>
             {!compact && (
               <p>
                 {isRu
@@ -95,7 +96,10 @@ export function StudyOutputLayout({
         </span>
       </section>
 
-      <nav className="study-output-system__nav" aria-label={isRu ? "Учебные форматы" : "Study formats"}>
+      <nav
+        className="study-output-system__nav"
+        aria-label={isRu ? "Учебные форматы" : "Study formats"}
+      >
         {items.map((item, index) => {
           const Icon = item.icon;
           const active = current === item.id;
