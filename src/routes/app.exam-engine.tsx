@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, CircleHelp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { DiagnosticExamBlueprint } from "@/components/diagnostic-exam-blueprint-entry";
 import { ExamEngine } from "@/components/exam-engine";
 import { ExamEngineRestoredResult } from "@/components/exam-engine-restored-result";
 import { ExamPlanningPanel } from "@/components/exam-planning-panel";
@@ -84,8 +85,8 @@ function ExamEnginePage() {
                 <strong className="mt-1 block truncate">{requestedQuiz.title}</strong>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
                   {lang === "ru"
-                    ? "Курс для плана подготовки уже выбран. Используй этот банк вопросов при создании экзаменационного blueprint."
-                    : "The study-plan course is already selected. Use this question bank when creating the exam blueprint."}
+                    ? "Курс и банк вопросов уже выбраны для экзаменационного blueprint. Проверь состав и запускай только после source validation."
+                    : "The course and question bank are preselected for the exam blueprint. Review the set and start only after source validation."}
                 </p>
               </div>
             </div>
@@ -100,7 +101,15 @@ function ExamEnginePage() {
           </div>
         </section>
       )}
-      <ExamEngine key={`${initialCourseId}:${data.quizzes.length}`} />
+      {requestedQuiz && !activeSession ? (
+        <DiagnosticExamBlueprint
+          key={`${initialCourseId}:${requestedQuiz.id}:${data.quizzes.length}`}
+          initialCourseId={initialCourseId}
+          initialQuizId={requestedQuiz.id}
+        />
+      ) : (
+        <ExamEngine key={`${data.courses.length}:${data.quizzes.length}`} />
+      )}
       {!activeSession ? (
         <>
           <div className="mx-auto mt-5 max-w-[1440px] rounded-xl border border-border bg-surface p-4 md:p-5">

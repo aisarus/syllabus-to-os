@@ -47,6 +47,21 @@ jobs:
         run: npm run build
       - name: Run Exam Engine browser E2E
         run: node scripts/run-exam-engine-browser-e2e-final.mjs
+      - name: Run Exam Engine deep-link browser proof
+        id: deep_link_browser
+        continue-on-error: true
+        run: node scripts/run-exam-deep-link-browser-e2e.mjs 2>&1 | tee exam-deep-link-browser-output.txt
+      - name: Upload Exam Engine deep-link diagnostics
+        if: steps.deep_link_browser.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: exam-deep-link-browser-diagnostics
+          path: exam-deep-link-browser-output.txt
+          if-no-files-found: error
+          retention-days: 3
+      - name: Fail when Exam Engine deep-link proof fails
+        if: steps.deep_link_browser.outcome == 'failure'
+        run: exit 1
       - name: Run exam planning browser proof
         id: planning_browser
         continue-on-error: true
