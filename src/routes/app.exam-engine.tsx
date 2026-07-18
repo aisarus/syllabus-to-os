@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft, CircleHelp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ExamEngine } from "@/components/exam-engine";
 import { ExamEngineRestoredResult } from "@/components/exam-engine-restored-result";
@@ -37,7 +38,6 @@ function ExamEnginePage() {
     }
     return data.courses[0]?.id ?? "";
   }, [data.courses, requestedQuiz?.courseId, search.course]);
-  const initialQuizId = requestedQuiz?.id ?? "";
   const [planningCourseId, setPlanningCourseId] = useState(initialCourseId);
   const restoredSession = showRestoredResult
     ? exams.sessions.find((session) => session.status === "submitted" && session.result)
@@ -72,11 +72,35 @@ function ExamEnginePage() {
 
   return (
     <>
-      <ExamEngine
-        key={`${initialCourseId}:${initialQuizId}:${data.quizzes.length}`}
-        initialCourseId={initialCourseId}
-        initialQuizId={initialQuizId}
-      />
+      {requestedQuiz && (
+        <section className="mx-auto mb-4 max-w-[1440px] rounded-xl border border-primary/30 bg-primary/5 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
+              <CircleHelp className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-[0.16em] text-primary">
+                  {lang === "ru" ? "Контекст диагностики" : "Diagnostic context"}
+                </div>
+                <strong className="mt-1 block truncate">{requestedQuiz.title}</strong>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  {lang === "ru"
+                    ? "Курс для плана подготовки уже выбран. Используй этот банк вопросов при создании экзаменационного blueprint."
+                    : "The study-plan course is already selected. Use this question bank when creating the exam blueprint."}
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/app/quizzes/$quizId"
+              params={{ quizId: requestedQuiz.id }}
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              {lang === "ru" ? "К результату" : "Back to result"}
+            </Link>
+          </div>
+        </section>
+      )}
+      <ExamEngine key={`${initialCourseId}:${data.quizzes.length}`} />
       {!activeSession ? (
         <>
           <div className="mx-auto mt-5 max-w-[1440px] rounded-xl border border-border bg-surface p-4 md:p-5">
