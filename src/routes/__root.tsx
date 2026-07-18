@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import academicCss from "../content-workspace-global.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import "@/lib/source-safe-store";
 import { AppProvider } from "@/lib/app-context";
 import { Toaster } from "@/components/ui/sonner";
 
