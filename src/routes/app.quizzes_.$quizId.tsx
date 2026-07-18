@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { EvidenceQuizExperience } from "@/components/evidence-quiz-experience";
+import { QuizRepairRunner } from "@/components/quiz-repair-runner";
 import { StudyOutputLayout } from "@/components/study-output-layout";
 import { parseQuizRepairQuestionIds } from "@/lib/quiz-repair-search";
 
@@ -19,7 +20,11 @@ function QuizDetailPage() {
   const { repair } = Route.useSearch();
   return (
     <StudyOutputLayout current="quizzes" compact>
-      <EvidenceQuizExperience quizId={quizId} initialRepairQuestionIds={repair} />
+      {repair.length > 0 ? (
+        <QuizRepairRunner quizId={quizId} requestedQuestionIds={repair} />
+      ) : (
+        <EvidenceQuizExperience quizId={quizId} />
+      )}
     </StudyOutputLayout>
   );
 }
