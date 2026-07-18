@@ -21,7 +21,7 @@ const [
   read("src/components/exam-engine.tsx"),
   read("src/components/exam-engine-restored-result.tsx"),
   read("src/routes/app.exam-engine.tsx"),
-  read("src/components/diagnostic-exam-blueprint.tsx"),
+  read("src/components/diagnostic-exam-blueprint-entry.tsx"),
   read("scripts/run-exam-engine-evals.mjs"),
   read("scripts/run-exam-engine-browser-e2e.mjs"),
   read("scripts/run-exam-engine-browser-e2e-final.mjs"),
