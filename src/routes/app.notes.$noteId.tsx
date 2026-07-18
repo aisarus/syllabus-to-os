@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { NoteEditorWorkspace } from "@/components/note-editor-workspace";
+import { StudyOutputLayout } from "@/components/study-output-layout";
 
 export const Route = createFileRoute("/app/notes/$noteId")({
   component: NoteDetailPage,
@@ -7,5 +8,9 @@ export const Route = createFileRoute("/app/notes/$noteId")({
 
 function NoteDetailPage() {
   const { noteId } = Route.useParams();
-  return <NoteEditorWorkspace noteId={noteId} />;
+  return (
+    <StudyOutputLayout current="notes" compact>
+      <NoteEditorWorkspace noteId={noteId} />
+    </StudyOutputLayout>
+  );
 }
