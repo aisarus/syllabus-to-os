@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, CircleHelp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { DiagnosticExamBlueprint } from "@/components/diagnostic-exam-blueprint";
 import { ExamEngine } from "@/components/exam-engine";
 import { ExamEngineRestoredResult } from "@/components/exam-engine-restored-result";
 import { ExamPlanningPanel } from "@/components/exam-planning-panel";
@@ -100,11 +101,15 @@ function ExamEnginePage() {
           </div>
         </section>
       )}
-      <ExamEngine
-        key={`${initialCourseId}:${requestedQuiz?.id ?? "quiz"}:${data.quizzes.length}`}
-        initialCourseId={initialCourseId}
-        initialQuizId={requestedQuiz?.id}
-      />
+      {requestedQuiz && !activeSession ? (
+        <DiagnosticExamBlueprint
+          key={`${initialCourseId}:${requestedQuiz.id}:${data.quizzes.length}`}
+          initialCourseId={initialCourseId}
+          initialQuizId={requestedQuiz.id}
+        />
+      ) : (
+        <ExamEngine key={`${data.courses.length}:${data.quizzes.length}`} />
+      )}
       {!activeSession ? (
         <>
           <div className="mx-auto mt-5 max-w-[1440px] rounded-xl border border-border bg-surface p-4 md:p-5">
