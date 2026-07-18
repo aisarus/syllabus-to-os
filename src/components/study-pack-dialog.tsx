@@ -15,10 +15,7 @@ import {
   type StudyPackDraft,
 } from "@/lib/ai";
 import { studyPackCopyText, validateStudyPackDraft } from "@/lib/study-pack";
-import {
-  persistStudyPack,
-  type PersistStudyPackResult,
-} from "@/lib/study-pack-persistence";
+import { persistStudyPack, type PersistStudyPackResult } from "@/lib/study-pack-persistence";
 import { getChunksByMaterial, useData } from "@/lib/store";
 
 const MAX_CHUNKS = 8;
