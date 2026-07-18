@@ -5,19 +5,21 @@ import { StudyOutputLayout } from "@/components/study-output-layout";
 import { parseQuizRepairQuestionIds } from "@/lib/quiz-repair-search";
 
 interface QuizRepairSearch {
-  repair: string[];
+  repair?: string[];
 }
 
 export const Route = createFileRoute("/app/quizzes_/$quizId")({
-  validateSearch: (raw): QuizRepairSearch => ({
-    repair: parseQuizRepairQuestionIds(raw.repair),
-  }),
+  validateSearch: (raw): QuizRepairSearch => {
+    const repair = parseQuizRepairQuestionIds(raw.repair);
+    return repair.length > 0 ? { repair } : {};
+  },
   component: QuizDetailPage,
 });
 
 function QuizDetailPage() {
   const { quizId } = Route.useParams();
-  const { repair } = Route.useSearch();
+  const search = Route.useSearch();
+  const repair = search.repair ?? [];
   return (
     <StudyOutputLayout current="quizzes" compact>
       {repair.length > 0 ? (
