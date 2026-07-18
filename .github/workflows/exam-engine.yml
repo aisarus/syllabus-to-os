@@ -40,7 +40,20 @@ jobs:
       - name: Run exam planning evaluations
         run: npm run eval:exam-planning
       - name: Typecheck
-        run: npm run typecheck
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck 2>&1 | tee exam-engine-typecheck-output.txt
+      - name: Upload Exam Engine typecheck diagnostics
+        if: steps.typecheck.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: exam-engine-typecheck-diagnostics
+          path: exam-engine-typecheck-output.txt
+          if-no-files-found: error
+          retention-days: 3
+      - name: Fail when Exam Engine typecheck fails
+        if: steps.typecheck.outcome == 'failure'
+        run: exit 1
       - name: Lint
         run: npm run lint
       - name: Build
