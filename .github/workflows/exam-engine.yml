@@ -62,6 +62,21 @@ jobs:
       - name: Fail when Exam Engine deep-link proof fails
         if: steps.deep_link_browser.outcome == 'failure'
         run: exit 1
+      - name: Run Exam Engine result-review browser proof
+        id: result_review_browser
+        continue-on-error: true
+        run: node scripts/run-exam-result-review-browser-e2e.mjs 2>&1 | tee exam-result-review-browser-output.txt
+      - name: Upload Exam Engine result-review diagnostics
+        if: steps.result_review_browser.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: exam-result-review-browser-diagnostics
+          path: exam-result-review-browser-output.txt
+          if-no-files-found: error
+          retention-days: 3
+      - name: Fail when Exam Engine result-review proof fails
+        if: steps.result_review_browser.outcome == 'failure'
+        run: exit 1
       - name: Run exam planning browser proof
         id: planning_browser
         continue-on-error: true
