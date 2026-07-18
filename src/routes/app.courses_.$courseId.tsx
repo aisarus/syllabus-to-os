@@ -43,9 +43,7 @@ function CoursePage() {
               {isRu ? "Лаборатория знаний" : "Knowledge lab"}
             </span>
             <strong>
-              {isRu
-                ? "Понятия, открытые ответы и evidence"
-                : "Concepts, open answers and evidence"}
+              {isRu ? "Понятия, открытые ответы и evidence" : "Concepts, open answers and evidence"}
             </strong>
             <small>
               {isRu
@@ -57,11 +55,7 @@ function CoursePage() {
             <ShieldCheck size={13} />
             {isRu ? "по подтверждённым данным" : "verified data only"}
           </span>
-          <ChevronDown
-            className="course-knowledge-lab__chevron"
-            size={18}
-            aria-hidden="true"
-          />
+          <ChevronDown className="course-knowledge-lab__chevron" size={18} aria-hidden="true" />
         </summary>
 
         <div className="course-knowledge-lab__body">
