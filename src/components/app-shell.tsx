@@ -17,9 +17,13 @@ import {
   Settings,
   Mic2,
   GraduationCap,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Plus,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import "@/content-workspace.css";
+import "@/ux-foundation.css";
 import { useApp } from "@/lib/app-context";
 import type { Dict, Lang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -39,14 +43,20 @@ type NavItem = {
   icon: typeof Home;
 };
 
-const coreNav: ReadonlyArray<NavItem> = [
+const overviewNav: ReadonlyArray<NavItem> = [
   { to: "/app/dashboard", labelKey: "dashboard", icon: Home },
+];
+
+const libraryNav: ReadonlyArray<NavItem> = [
   { to: "/app/courses", labelKey: "courses", icon: BookOpen },
   { to: "/app/materials", labelKey: "materials", icon: FolderOpen },
   { to: "/app/lecture-media", labelKey: "lecture", icon: Mic2 },
   { to: "/app/notes", labelKey: "notes", icon: FileText },
   { to: "/app/flashcards", labelKey: "flashcards", icon: Layers3 },
   { to: "/app/quizzes", labelKey: "quizzes", icon: CircleHelp },
+];
+
+const focusNav: ReadonlyArray<NavItem> = [
   { to: "/app/exam-engine", labelKey: "exam", icon: GraduationCap },
 ];
 
@@ -68,7 +78,7 @@ function Brand() {
       <span className="content-brand__mark" aria-hidden="true">
         <Leaf size={17} />
       </span>
-      <span>
+      <span className="content-brand__copy">
         <strong>Lamdan</strong>
         <small>{lang === "ru" ? "система учебного контента" : "study content system"}</small>
       </span>
@@ -80,30 +90,35 @@ function NavGroup({
   label,
   items,
   pathname,
+  compact,
   onNavigate,
 }: {
   label: string;
   items: ReadonlyArray<NavItem>;
   pathname: string;
+  compact?: boolean;
   onNavigate?: () => void;
 }) {
   const { t } = useApp();
   return (
-    <div>
+    <div className="content-nav-group">
       <div className="content-nav__label">{label}</div>
       <nav className="content-nav" aria-label={label}>
         {items.map((item) => {
           const active = pathname === item.to || pathname.startsWith(`${item.to}/`);
           const Icon = item.icon;
+          const itemLabel = t[item.labelKey];
           return (
             <Link
               key={item.to}
               to={item.to as never}
               onClick={onNavigate}
               className={cn("content-nav__item", active && "is-active")}
+              title={compact ? itemLabel : undefined}
+              aria-current={active ? "page" : undefined}
             >
-              <Icon size={16} strokeWidth={1.7} />
-              <span>{t[item.labelKey]}</span>
+              <Icon size={17} strokeWidth={1.7} />
+              <span>{itemLabel}</span>
               <ChevronRight className="content-nav__arrow" size={13} />
             </Link>
           );
@@ -113,28 +128,105 @@ function NavGroup({
   );
 }
 
-function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function SidebarContent({
+  pathname,
+  compact = false,
+  showCompactToggle = false,
+  onToggleCompact,
+  onNavigate,
+}: {
+  pathname: string;
+  compact?: boolean;
+  showCompactToggle?: boolean;
+  onToggleCompact?: () => void;
+  onNavigate?: () => void;
+}) {
   const { lang, setLang } = useApp();
+  const workspaceLabel = lang === "ru" ? "Рабочий стол" : "Desk";
+  const libraryLabel = lang === "ru" ? "Библиотека" : "Library";
+  const focusLabel = lang === "ru" ? "Подготовка" : "Focus";
+  const systemLabel = lang === "ru" ? "Система" : "System";
+
   return (
     <>
-      <Brand />
-      <NavGroup
-        label={lang === "ru" ? "Рабочее пространство" : "Workspace"}
-        items={coreNav}
-        pathname={pathname}
-        onNavigate={onNavigate}
-      />
-      <NavGroup
-        label={lang === "ru" ? "Система" : "System"}
-        items={utilityNav}
-        pathname={pathname}
-        onNavigate={onNavigate}
-      />
+      <div className="content-sidebar__brand-row">
+        <Brand />
+        {showCompactToggle && (
+          <button
+            type="button"
+            className="content-sidebar__collapse"
+            onClick={onToggleCompact}
+            aria-label={
+              compact
+                ? lang === "ru"
+                  ? "Развернуть боковую панель"
+                  : "Expand sidebar"
+                : lang === "ru"
+                  ? "Свернуть боковую панель"
+                  : "Collapse sidebar"
+            }
+            title={
+              compact
+                ? lang === "ru"
+                  ? "Развернуть"
+                  : "Expand"
+                : lang === "ru"
+                  ? "Свернуть"
+                  : "Collapse"
+            }
+          >
+            {compact ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
+          </button>
+        )}
+      </div>
+
+      <Link
+        to="/app/dashboard"
+        onClick={onNavigate}
+        className="content-sidebar__primary-action"
+        title={compact ? (lang === "ru" ? "Добавить материалы" : "Add materials") : undefined}
+      >
+        <Plus size={17} />
+        <span>{lang === "ru" ? "Добавить материалы" : "Add materials"}</span>
+      </Link>
+
+      <div className="content-sidebar__navigation">
+        <NavGroup
+          label={workspaceLabel}
+          items={overviewNav}
+          pathname={pathname}
+          compact={compact}
+          onNavigate={onNavigate}
+        />
+        <NavGroup
+          label={libraryLabel}
+          items={libraryNav}
+          pathname={pathname}
+          compact={compact}
+          onNavigate={onNavigate}
+        />
+        <NavGroup
+          label={focusLabel}
+          items={focusNav}
+          pathname={pathname}
+          compact={compact}
+          onNavigate={onNavigate}
+        />
+        <NavGroup
+          label={systemLabel}
+          items={utilityNav}
+          pathname={pathname}
+          compact={compact}
+          onNavigate={onNavigate}
+        />
+      </div>
+
       <div className="content-sidebar__footer">
         <Select value={lang} onValueChange={(value) => setLang(value as Lang)}>
           <SelectTrigger
             className="content-language"
             aria-label={lang === "ru" ? "Язык" : "Language"}
+            title={compact ? (lang === "ru" ? "Язык интерфейса" : "Interface language") : undefined}
           >
             <Languages size={14} />
             <SelectValue />
@@ -158,14 +250,50 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { lang } = useApp();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCompact, setSidebarCompact] = useState(false);
+
+  useEffect(() => {
+    setSidebarCompact(localStorage.getItem("lamdan.sidebar.compact") === "true");
+  }, []);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [mobileOpen]);
+
+  const toggleSidebar = () => {
+    setSidebarCompact((current) => {
+      const next = !current;
+      localStorage.setItem("lamdan.sidebar.compact", String(next));
+      return next;
+    });
+  };
 
   return (
-    <div className="content-app">
+    <div className={cn("content-app", sidebarCompact && "content-app--compact")}>
+      <a className="content-skip-link" href="#lamdan-main-content">
+        {lang === "ru" ? "Перейти к содержанию" : "Skip to content"}
+      </a>
+
       <aside
         className="content-sidebar"
         aria-label={lang === "ru" ? "Навигация Lamdan" : "Lamdan navigation"}
       >
-        <SidebarContent pathname={pathname} />
+        <SidebarContent
+          pathname={pathname}
+          compact={sidebarCompact}
+          showCompactToggle
+          onToggleCompact={toggleSidebar}
+        />
       </aside>
 
       <div className="content-main">
@@ -174,13 +302,17 @@ export function AppShell({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => setMobileOpen(true)}
             aria-label={lang === "ru" ? "Открыть навигацию" : "Open navigation"}
+            aria-expanded={mobileOpen}
+            aria-controls="lamdan-mobile-navigation"
           >
             <Menu size={21} />
           </button>
           <Brand />
           <span aria-hidden="true" />
         </header>
-        <main className="content-main__content">{children}</main>
+        <main id="lamdan-main-content" className="content-main__content" tabIndex={-1}>
+          {children}
+        </main>
       </div>
 
       {mobileOpen && (
@@ -191,9 +323,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setMobileOpen(false)}
             aria-label={lang === "ru" ? "Закрыть навигацию" : "Close navigation"}
           />
-          <aside className="content-mobile-drawer">
+          <aside
+            id="lamdan-mobile-navigation"
+            className="content-mobile-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label={lang === "ru" ? "Мобильная навигация Lamdan" : "Lamdan mobile navigation"}
+          >
             <div className="content-mobile-drawer__header">
-              <span />
+              <span>{lang === "ru" ? "Навигация" : "Navigation"}</span>
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
