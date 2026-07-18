@@ -3,12 +3,10 @@ import { useRef, useState, type DragEvent, type ReactNode } from "react";
 import {
   AlertTriangle,
   ArrowUpRight,
-  Brain,
-  CalendarDays,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   CircleHelp,
-  Clock3,
   FileInput,
   FileText,
   FileUp,
@@ -30,6 +28,7 @@ import {
 } from "@/lib/study-command-center";
 import { useData } from "@/lib/store";
 import "@/study-command-center.css";
+import "@/study-desk-dashboard.css";
 
 export const Route = createFileRoute("/app/dashboard")({
   component: Dashboard,
@@ -152,47 +151,47 @@ function Dashboard() {
 
   const copy = isRu
     ? {
-        eyebrow: "Рабочее пространство контента",
-        subtitle:
-          "Lamdan собирает учебный хаос в один маршрут и показывает, что даст максимальный результат прямо сейчас.",
+        eyebrow: "Учебный стол",
+        subtitle: "Продолжи с нужного места или положи на стол новый источник.",
         date: new Intl.DateTimeFormat("ru-RU", {
           day: "numeric",
           month: "long",
           weekday: "long",
         }).format(now),
+        focusLabel: "Продолжить работу",
+        focusBody: "Lamdan выбрал действие из реальных материалов, дедлайнов и повторений.",
+        mainTask: "Следующий шаг",
+        openTask: "Открыть",
         commandLabel: "Академический автопилот",
-        commandTitle: "Что делать сейчас",
+        commandTitle: "План и риски",
         commandBody:
-          "Приоритеты рассчитаны только из реальных дедлайнов, экзаменов, повторений, попыток тестов и состояния источников.",
+          "Дополнительный слой для тех случаев, когда нужен порядок действий, а не ещё одна панель статистики.",
         honestData: "Только реальные данные",
-        mainTask: "Главная задача",
-        openTask: "Начать",
         plan: "План сессии",
-        quickWins: "Быстрые победы",
-        risks: "Риски и пробелы",
-        noQuickWins: "Сейчас нет отдельной задачи короче 15 минут.",
+        quickWins: "Короткие действия",
+        risks: "Требует внимания",
+        noQuickWins: "Отдельных коротких действий сейчас нет.",
         noRisks: "Критических рисков по имеющимся данным не найдено.",
         minutes: "мин",
-        metricCards: "карточек к повторению",
+        metricCards: "карточек ждут повторения",
         metricAssignments: "открытых заданий",
-        metricReview: "источников требуют внимания",
-        metricCourses: "активных курсов",
-        metricStudied: "минут за 7 дней",
-        intakeLabel: "Единый вход",
-        intakeTitle: "Добавь учебные материалы",
+        metricReview: "источников требуют проверки",
+        intakeLabel: "Новый источник",
+        intakeTitle: "Добавь материал",
         intakeBody:
-          "Выбери или перетащи сразу несколько файлов и фотографий. Lamdan обработает их в очереди, а ты сможешь продолжать работать.",
-        chooseFiles: "Выбрать файлы или фото",
+          "Перетащи сюда PDF, документ, таблицу или фотографии. Очередь обработает файлы, не прерывая работу.",
+        chooseFiles: "Выбрать файлы",
         importSyllabus: "Импортировать силлабус",
-        aiLabel: "AI-преобразование",
-        aiTitle: "Создай результат из материала",
-        aiBody: "Выбери источник, проверь черновик и сохрани его в библиотеку.",
+        aiLabel: "Из материала — в учебный инструмент",
+        aiTitle: "Подготовить конспект, карточки или тест",
+        aiBody:
+          "Сначала выбирается источник, затем ты проверяешь черновик и только потом сохраняешь.",
         note: "Создать конспект",
         cards: "Создать карточки",
         quiz: "Создать тест",
-        recent: "Последние материалы",
-        allMaterials: "Все материалы",
-        noMaterials: "Материалов пока нет. Загрузи первые файлы или фото выше.",
+        recent: "Недавние материалы",
+        allMaterials: "Вся библиотека",
+        noMaterials: "На столе пока пусто. Добавь первый файл или фотографию.",
         courses: "Курсы",
         allCourses: "Все курсы",
         noCourses: "Курсов пока нет. Начни с импорта силлабуса.",
@@ -204,49 +203,49 @@ function Dashboard() {
         quizzes: "Тесты",
         open: "Открыть",
         courseWithoutCode: "БЕЗ КОДА",
+        expandAutopilot: "Открыть дополнительный план",
       }
     : {
-        eyebrow: "Content workspace",
-        subtitle:
-          "Lamdan turns academic chaos into one route and shows the highest-value next action.",
+        eyebrow: "Study desk",
+        subtitle: "Continue where it matters or place a new source on the desk.",
         date: new Intl.DateTimeFormat("en-GB", {
           day: "numeric",
           month: "long",
           weekday: "long",
         }).format(now),
+        focusLabel: "Continue working",
+        focusBody: "Lamdan selected an action from real sources, deadlines and reviews.",
+        mainTask: "Next step",
+        openTask: "Open",
         commandLabel: "Academic autopilot",
-        commandTitle: "What to do now",
+        commandTitle: "Plan and risks",
         commandBody:
-          "Priorities use only real deadlines, exams, due reviews, quiz attempts and source-processing state.",
+          "A secondary layer for moments when you need an order of work, not another statistics dashboard.",
         honestData: "Real data only",
-        mainTask: "Main task",
-        openTask: "Start",
         plan: "Study session plan",
-        quickWins: "Quick wins",
-        risks: "Risks and gaps",
-        noQuickWins: "There is no separate task shorter than 15 minutes right now.",
+        quickWins: "Short actions",
+        risks: "Needs attention",
+        noQuickWins: "There are no separate short actions right now.",
         noRisks: "No critical risk is visible in the available data.",
         minutes: "min",
-        metricCards: "cards due",
+        metricCards: "cards waiting for review",
         metricAssignments: "open assignments",
-        metricReview: "sources need attention",
-        metricCourses: "active courses",
-        metricStudied: "minutes in 7 days",
-        intakeLabel: "Universal intake",
-        intakeTitle: "Add study materials",
+        metricReview: "sources need review",
+        intakeLabel: "New source",
+        intakeTitle: "Add material",
         intakeBody:
-          "Choose or drop several files and photos at once. Lamdan processes them in a queue while you continue working.",
-        chooseFiles: "Choose files or photos",
+          "Drop PDFs, documents, spreadsheets or photos here. The queue processes them without interrupting your work.",
+        chooseFiles: "Choose files",
         importSyllabus: "Import syllabus",
-        aiLabel: "AI transformation",
-        aiTitle: "Create an output from a material",
-        aiBody: "Choose a source, review the draft and save it to your library.",
+        aiLabel: "From source to study tool",
+        aiTitle: "Prepare a note, flashcards or quiz",
+        aiBody: "Choose a source, review the draft and only then save it.",
         note: "Create note",
         cards: "Create flashcards",
         quiz: "Create quiz",
         recent: "Recent materials",
-        allMaterials: "All materials",
-        noMaterials: "No materials yet. Upload your first files or photos above.",
+        allMaterials: "Full library",
+        noMaterials: "The desk is empty. Add your first file or photo.",
         courses: "Courses",
         allCourses: "All courses",
         noCourses: "No courses yet. Start by importing a syllabus.",
@@ -258,6 +257,7 @@ function Dashboard() {
         quizzes: "Quizzes",
         open: "Open",
         courseWithoutCode: "NO CODE",
+        expandAutopilot: "Open the additional plan",
       };
 
   const commandCenter = buildStudyCommandCenter(data, {
@@ -284,7 +284,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="cw-dashboard">
+    <div className="cw-dashboard cw-dashboard--study-desk">
       <header className="cw-dashboard__topbar">
         <div>
           <div className="cw-eyebrow">{copy.eyebrow}</div>
@@ -294,146 +294,38 @@ function Dashboard() {
         <time className="cw-date">{copy.date}</time>
       </header>
 
-      <section className="cw-panel cw-command-center" aria-labelledby="study-command-title">
-        <div className="cw-command-center__header">
-          <div>
-            <div className="cw-section-label">{copy.commandLabel}</div>
-            <h2 id="study-command-title">{copy.commandTitle}</h2>
-            <p>{copy.commandBody}</p>
+      <section className="cw-study-desk" aria-label={copy.focusLabel}>
+        <article className="cw-panel cw-desk-focus">
+          <div className="cw-desk-focus__header">
+            <div>
+              <div className="cw-section-label">{copy.focusLabel}</div>
+              <p>{copy.focusBody}</p>
+            </div>
+            <span className="cw-command-center__honesty">
+              <ShieldCheck size={13} />
+              {copy.honestData}
+            </span>
           </div>
-          <span className="cw-command-center__honesty">
-            <ShieldCheck size={13} />
-            {copy.honestData}
-          </span>
-        </div>
 
-        <div className="cw-command-center__grid">
-          <article className="cw-focus-card">
+          <div className="cw-focus-card cw-focus-card--desk">
             <span className="cw-focus-card__icon">
               <Target size={25} />
             </span>
             <div>
               <div className="cw-focus-card__meta">
                 <span>{copy.mainTask}</span>
-                <span className="cw-focus-card__urgency" data-urgency={commandCenter.focus.urgency}>
-                  <Clock3 size={11} /> {commandCenter.focus.durationMinutes} {copy.minutes}
-                </span>
               </div>
-              <h3>{commandCenter.focus.title}</h3>
+              <h2>{commandCenter.focus.title}</h2>
               <p>{commandCenter.focus.detail}</p>
             </div>
             <ActionLink action={commandCenter.focus} className="cw-focus-card__action">
               {copy.openTask} <ChevronRight size={16} />
             </ActionLink>
-          </article>
+          </div>
+        </article>
 
-          <aside className="cw-plan-card">
-            <div className="cw-plan-card__top">
-              <strong>{copy.plan}</strong>
-              <div className="cw-budget-switcher" aria-label={copy.plan}>
-                {([20, 45, 90] as const).map((budget) => (
-                  <button
-                    key={budget}
-                    type="button"
-                    data-active={studyBudget === budget}
-                    onClick={() => setStudyBudget(budget)}
-                  >
-                    {budget}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="cw-plan-list">
-              {plan.map(({ action, allocatedMinutes }) => (
-                <div key={action.id} className="cw-plan-item">
-                  <span className="cw-plan-item__minutes">{allocatedMinutes}m</span>
-                  <span>
-                    <strong>{action.title}</strong>
-                    <small>{action.detail}</small>
-                  </span>
-                  <ActionLink action={action} className="cw-plan-item__action">
-                    <ChevronRight size={14} />
-                  </ActionLink>
-                </div>
-              ))}
-            </div>
-          </aside>
-        </div>
-
-        <div className="cw-command-metrics">
-          <div className="cw-command-metric">
-            <strong>{commandCenter.metrics.dueCards}</strong>
-            <span>{copy.metricCards}</span>
-          </div>
-          <div className="cw-command-metric">
-            <strong>{commandCenter.metrics.openAssignments}</strong>
-            <span>{copy.metricAssignments}</span>
-          </div>
-          <div className="cw-command-metric">
-            <strong>{commandCenter.metrics.materialsNeedingReview}</strong>
-            <span>{copy.metricReview}</span>
-          </div>
-          <div className="cw-command-metric">
-            <strong>{commandCenter.metrics.activeCourses}</strong>
-            <span>{copy.metricCourses}</span>
-          </div>
-          <div className="cw-command-metric">
-            <strong>{commandCenter.metrics.studiedMinutesThisWeek}</strong>
-            <span>{copy.metricStudied}</span>
-          </div>
-        </div>
-
-        <div className="cw-command-center__lower">
-          <div className="cw-command-list">
-            <div className="cw-command-list__header">
-              <Sparkles size={15} /> {copy.quickWins}
-            </div>
-            {quickWins.length === 0 ? (
-              <div className="cw-command-empty">{copy.noQuickWins}</div>
-            ) : (
-              quickWins.map((action) => (
-                <div key={action.id} className="cw-command-row">
-                  <span>
-                    <ActionLink action={action} className="cw-command-row__link">
-                      <strong>{action.title}</strong>
-                    </ActionLink>
-                    <small>{action.detail}</small>
-                  </span>
-                  <span className="cw-command-row__time">
-                    {action.durationMinutes} {copy.minutes}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="cw-command-list">
-            <div className="cw-command-list__header">
-              <AlertTriangle size={15} /> {copy.risks}
-            </div>
-            {commandCenter.risks.length === 0 ? (
-              <div className="cw-command-empty">
-                <CheckCircle2 size={15} />
-                &nbsp; {copy.noRisks}
-              </div>
-            ) : (
-              commandCenter.risks.map((risk) => (
-                <div key={risk.id} className="cw-command-row">
-                  <RiskLink risk={risk}>
-                    <strong>{risk.title}</strong>
-                    <small>{risk.detail}</small>
-                  </RiskLink>
-                  <span className="cw-command-row__time">{risk.urgency}</span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="cw-dashboard__hero-grid">
         <div
-          className="cw-panel cw-intake"
+          className="cw-panel cw-intake cw-intake--desk"
           onDragEnter={(event) => {
             event.preventDefault();
             setDragging(true);
@@ -444,6 +336,9 @@ function Dashboard() {
           data-dragging={dragging || undefined}
         >
           <div className="cw-section-label">{copy.intakeLabel}</div>
+          <span className="cw-intake__seal" aria-hidden="true">
+            <FileUp size={24} />
+          </span>
           <h2>{copy.intakeTitle}</h2>
           <p>{copy.intakeBody}</p>
           <div className="cw-intake__actions">
@@ -465,20 +360,9 @@ function Dashboard() {
             </Link>
           </div>
         </div>
-
-        <aside className="cw-panel cw-ai-panel">
-          <div className="cw-section-label">{copy.aiLabel}</div>
-          <h2>{copy.aiTitle}</h2>
-          <p>{copy.aiBody}</p>
-          <div className="cw-ai-actions">
-            <AIGenerateButton kind="note" label={copy.note} />
-            <AIGenerateButton kind="flashcards" label={copy.cards} />
-            <AIGenerateButton kind="quiz" label={copy.quiz} />
-          </div>
-        </aside>
       </section>
 
-      <section className="cw-dashboard__content-grid">
+      <section className="cw-dashboard__content-grid cw-dashboard__content-grid--primary">
         <div className="cw-panel cw-section">
           <div className="cw-section__header">
             <h2>{copy.recent}</h2>
@@ -567,6 +451,19 @@ function Dashboard() {
         </div>
       </section>
 
+      <section className="cw-panel cw-ai-panel cw-ai-panel--wide">
+        <div>
+          <div className="cw-section-label">{copy.aiLabel}</div>
+          <h2>{copy.aiTitle}</h2>
+          <p>{copy.aiBody}</p>
+        </div>
+        <div className="cw-ai-actions">
+          <AIGenerateButton kind="note" label={copy.note} />
+          <AIGenerateButton kind="flashcards" label={copy.cards} />
+          <AIGenerateButton kind="quiz" label={copy.quiz} />
+        </div>
+      </section>
+
       <section aria-label={copy.library} className="cw-library-strip">
         <Link to="/app/materials" className="cw-library-link">
           <FolderOpen size={24} />
@@ -606,10 +503,116 @@ function Dashboard() {
         </Link>
       </section>
 
-      <div hidden>
-        <Brain />
-        <CalendarDays />
-      </div>
+      <details className="cw-panel cw-command-center cw-command-center--secondary">
+        <summary aria-label={copy.expandAutopilot}>
+          <span>
+            <span className="cw-section-label">{copy.commandLabel}</span>
+            <strong>{copy.commandTitle}</strong>
+            <small>{copy.commandBody}</small>
+          </span>
+          <ChevronDown size={18} aria-hidden="true" />
+        </summary>
+
+        <div className="cw-command-center__secondary-body">
+          <div className="cw-command-center__grid cw-command-center__grid--secondary">
+            <aside className="cw-plan-card">
+              <div className="cw-plan-card__top">
+                <strong>{copy.plan}</strong>
+                <div className="cw-budget-switcher" aria-label={copy.plan}>
+                  {([20, 45, 90] as const).map((budget) => (
+                    <button
+                      key={budget}
+                      type="button"
+                      data-active={studyBudget === budget}
+                      onClick={() => setStudyBudget(budget)}
+                    >
+                      {budget}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="cw-plan-list">
+                {plan.map(({ action, allocatedMinutes }) => (
+                  <div key={action.id} className="cw-plan-item">
+                    <span className="cw-plan-item__minutes">
+                      {allocatedMinutes} {copy.minutes}
+                    </span>
+                    <span>
+                      <strong>{action.title}</strong>
+                      <small>{action.detail}</small>
+                    </span>
+                    <ActionLink action={action} className="cw-plan-item__action">
+                      <ChevronRight size={14} />
+                    </ActionLink>
+                  </div>
+                ))}
+              </div>
+            </aside>
+
+            <div className="cw-command-center__lower cw-command-center__lower--stacked">
+              <div className="cw-command-list">
+                <div className="cw-command-list__header">
+                  <Sparkles size={15} /> {copy.quickWins}
+                </div>
+                {quickWins.length === 0 ? (
+                  <div className="cw-command-empty">{copy.noQuickWins}</div>
+                ) : (
+                  quickWins.map((action) => (
+                    <div key={action.id} className="cw-command-row">
+                      <span>
+                        <ActionLink action={action} className="cw-command-row__link">
+                          <strong>{action.title}</strong>
+                        </ActionLink>
+                        <small>{action.detail}</small>
+                      </span>
+                      <span className="cw-command-row__time">
+                        {action.durationMinutes} {copy.minutes}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="cw-command-list">
+                <div className="cw-command-list__header">
+                  <AlertTriangle size={15} /> {copy.risks}
+                </div>
+                {commandCenter.risks.length === 0 ? (
+                  <div className="cw-command-empty">
+                    <CheckCircle2 size={15} />
+                    &nbsp; {copy.noRisks}
+                  </div>
+                ) : (
+                  commandCenter.risks.map((risk) => (
+                    <div key={risk.id} className="cw-command-row">
+                      <RiskLink risk={risk}>
+                        <strong>{risk.title}</strong>
+                        <small>{risk.detail}</small>
+                      </RiskLink>
+                      <span className="cw-command-row__time">{risk.urgency}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="cw-command-metrics cw-command-metrics--quiet">
+            <div className="cw-command-metric">
+              <strong>{commandCenter.metrics.dueCards}</strong>
+              <span>{copy.metricCards}</span>
+            </div>
+            <div className="cw-command-metric">
+              <strong>{commandCenter.metrics.openAssignments}</strong>
+              <span>{copy.metricAssignments}</span>
+            </div>
+            <div className="cw-command-metric">
+              <strong>{commandCenter.metrics.materialsNeedingReview}</strong>
+              <span>{copy.metricReview}</span>
+            </div>
+          </div>
+        </div>
+      </details>
     </div>
   );
 }
