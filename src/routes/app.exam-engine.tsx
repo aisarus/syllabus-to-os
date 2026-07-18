@@ -27,7 +27,7 @@ function ExamEnginePage() {
   const data = useData();
   const exams = useExamEngineData();
   const search = Route.useSearch();
-  const [showRestoredResult, setShowRestoredResult] = useState(true);
+  const [dismissedResultIds, setDismissedResultIds] = useState<string[]>([]);
   const requestedQuiz = data.quizzes.find((quiz) => quiz.id === search.quiz);
   const initialCourseId = useMemo(() => {
     if (data.courses.some((course) => course.id === search.course)) return search.course;
@@ -40,9 +40,12 @@ function ExamEnginePage() {
     return data.courses[0]?.id ?? "";
   }, [data.courses, requestedQuiz?.courseId, search.course]);
   const [planningCourseId, setPlanningCourseId] = useState(initialCourseId);
-  const restoredSession = showRestoredResult
-    ? exams.sessions.find((session) => session.status === "submitted" && session.result)
-    : undefined;
+  const restoredSession = exams.sessions.find(
+    (session) =>
+      session.status === "submitted" &&
+      Boolean(session.result) &&
+      !dismissedResultIds.includes(session.id),
+  );
   const activeSession = exams.sessions.find((session) => session.status === "active");
 
   useEffect(() => {
@@ -66,7 +69,11 @@ function ExamEnginePage() {
     return (
       <ExamEngineRestoredResult
         session={restoredSession}
-        onExit={() => setShowRestoredResult(false)}
+        onExit={() =>
+          setDismissedResultIds((current) =>
+            current.includes(restoredSession.id) ? current : [...current, restoredSession.id],
+          )
+        }
       />
     );
   }
