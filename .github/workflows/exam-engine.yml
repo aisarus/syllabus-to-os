@@ -42,7 +42,7 @@ jobs:
       - name: Typecheck
         id: typecheck
         continue-on-error: true
-        run: npm run typecheck 2>&1 | tee exam-engine-typecheck-output.txt
+        run: set -o pipefail; npm run typecheck 2>&1 | tee exam-engine-typecheck-output.txt
       - name: Upload Exam Engine typecheck diagnostics
         if: steps.typecheck.outcome == 'failure'
         uses: actions/upload-artifact@v4
