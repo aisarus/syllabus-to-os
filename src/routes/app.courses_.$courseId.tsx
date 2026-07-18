@@ -27,7 +27,7 @@ function CoursePage() {
         <ConceptEvidenceRiskSummary courseId={courseId} />
       </div>
 
-      <details className="course-knowledge-lab">
+      <details className="course-knowledge-lab" defaultOpen>
         <summary>
           <span className="course-knowledge-lab__icon" aria-hidden="true">
             <BrainCircuit size={20} />
