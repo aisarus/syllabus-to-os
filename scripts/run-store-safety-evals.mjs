@@ -4,6 +4,11 @@ import {
   persistWorkspaceSnapshot,
 } from "../src/lib/persistence-health.ts";
 import {
+  getDataSnapshot,
+  setData,
+  store,
+} from "../src/lib/source-safe-store.ts";
+import {
   repairDanglingSourceReferences,
   replaceMaterialChunksWithStableIds,
 } from "../src/lib/source-integrity.ts";
@@ -53,6 +58,19 @@ const originalChunks = [
   },
 ];
 const linked = base({
+  materials: [
+    {
+      id: "material_1",
+      title: "Source material",
+      type: "lecture",
+      sourceMode: "pasted_text",
+      tags: [],
+      rawText: "Old heading\n\nx² = 4",
+      processingStatus: "ready",
+      createdAt: now,
+      updatedAt: now,
+    },
+  ],
   materialChunks: originalChunks,
   notes: [
     {
@@ -76,6 +94,14 @@ const linked = base({
       status: "new",
       dueAt: now,
       interval: 0,
+      createdAt: now,
+    },
+  ],
+  quizzes: [
+    {
+      id: "quiz_1",
+      title: "Quiz",
+      materialId: "material_1",
       createdAt: now,
     },
   ],
@@ -138,7 +164,9 @@ assert.deepEqual(
   ["chunk_heading", "chunk_math"],
 );
 assert.deepEqual(replacement.data.notes[0].sourceChunkIds, ["chunk_heading", "chunk_math"]);
-assert.deepEqual(replacement.data.presentationOutlines[0].slides[0].sourceChunkIds, ["chunk_math"]);
+assert.deepEqual(replacement.data.presentationOutlines[0].slides[0].sourceChunkIds, [
+  "chunk_math",
+]);
 
 const legacyCurrent = base({
   ...linked,
@@ -155,6 +183,45 @@ assert.deepEqual(repaired.data.notes[0].sourceChunkIds, ["new_heading", "new_mat
 assert.deepEqual(repaired.data.flashcards[0].sourceChunkIds, ["new_math"]);
 assert.deepEqual(repaired.data.quizQuestions[0].sourceChunkIds, ["new_heading"]);
 assert.deepEqual(repaired.data.presentationOutlines[0].slides[0].sourceChunkIds, ["new_math"]);
+
+setData(linked);
+store.deleteMaterialChunk("chunk_math");
+const afterChunkDelete = getDataSnapshot();
+assert.deepEqual(afterChunkDelete.notes[0].sourceChunkIds, ["chunk_heading"]);
+assert.deepEqual(afterChunkDelete.flashcards[0].sourceChunkIds, []);
+assert.deepEqual(afterChunkDelete.quizQuestions[0].sourceChunkIds, ["chunk_heading"]);
+assert.deepEqual(afterChunkDelete.presentationOutlines[0].slides[0].sourceChunkIds, []);
+
+setData(linked);
+const stableReplacement = store.replaceMaterialChunksForMaterial("material_1", [
+  {
+    order: 0,
+    title: "Heading revised",
+    text: "New heading",
+    pageNumber: 1,
+    section: "ocr:heading",
+  },
+]);
+const afterReplacement = getDataSnapshot();
+assert.equal(stableReplacement[0].id, "chunk_heading");
+assert.deepEqual(afterReplacement.notes[0].sourceChunkIds, ["chunk_heading"]);
+assert.deepEqual(afterReplacement.flashcards[0].sourceChunkIds, []);
+assert.deepEqual(afterReplacement.quizQuestions[0].sourceChunkIds, ["chunk_heading"]);
+assert.deepEqual(afterReplacement.presentationOutlines[0].slides[0].sourceChunkIds, []);
+
+setData(linked);
+store.deleteMaterial("material_1");
+const afterMaterialDelete = getDataSnapshot();
+assert.equal(afterMaterialDelete.materials.length, 0);
+assert.equal(afterMaterialDelete.materialChunks.length, 0);
+assert.equal(afterMaterialDelete.notes[0].materialId, undefined);
+assert.equal(afterMaterialDelete.flashcards[0].materialId, undefined);
+assert.equal(afterMaterialDelete.quizzes[0].materialId, undefined);
+assert.equal(afterMaterialDelete.presentationOutlines[0].materialId, undefined);
+assert.deepEqual(afterMaterialDelete.notes[0].sourceChunkIds, []);
+assert.deepEqual(afterMaterialDelete.flashcards[0].sourceChunkIds, []);
+assert.deepEqual(afterMaterialDelete.quizQuestions[0].sourceChunkIds, []);
+assert.deepEqual(afterMaterialDelete.presentationOutlines[0].slides[0].sourceChunkIds, []);
 
 let persisted = null;
 const workingStorage = {
