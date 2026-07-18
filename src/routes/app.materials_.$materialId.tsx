@@ -52,19 +52,18 @@ function MaterialDetail() {
   const chunks = getChunksByMaterial(data, material.id);
   const longMedia = isLongMediaMaterial(material);
   const multiPageImage = isMultiPageImageMaterial(material);
+  const visualMaterial = multiPageImage || material.mimeType?.startsWith("image/") === true;
+  const hasProcessingWorkspace = longMedia || visualMaterial;
   const processingNeedsAttention =
-    chunks.length === 0 || material.processingStatus !== "ready";
+    hasProcessingWorkspace &&
+    (chunks.length === 0 || material.processingStatus !== "ready");
   const processingTitle = longMedia
     ? isRu
       ? "Расшифровка и резервная копия лекции"
       : "Lecture transcript and backup"
-    : multiPageImage
-      ? isRu
-        ? "Страницы, изображения и OCR"
-        : "Pages, images and OCR"
-      : isRu
-        ? "Изображение и OCR"
-        : "Image and OCR";
+    : isRu
+      ? "Страницы, изображения и OCR"
+      : "Pages, images and OCR";
   const processingBody = longMedia
     ? isRu
       ? "Здесь находятся технические шаги подготовки источника: локальная копия, диапазоны, автоматическая расшифровка и проверка черновика."
@@ -73,11 +72,12 @@ function MaterialDetail() {
       ? "Проверка изображения и распознанного текста отделена от чтения и работы с подтверждённым источником."
       : "Image and recognized-text review is separated from reading and working with the approved source.";
 
-  const processingWorkspace = (
+  const processingWorkspace = hasProcessingWorkspace ? (
     <ProcessingWorkspace
+      eyebrow={isRu ? "Подготовка источника" : "Source preparation"}
       title={processingTitle}
       body={processingBody}
-      defaultOpen={processingNeedsAttention}
+      initiallyOpen={processingNeedsAttention}
       status={
         processingNeedsAttention
           ? isRu
@@ -112,7 +112,7 @@ function MaterialDetail() {
         <OCRReviewPanel material={material} />
       )}
     </ProcessingWorkspace>
-  );
+  ) : null;
 
   return (
     <div className="material-experience">
@@ -181,26 +181,34 @@ function MaterialDetail() {
 }
 
 function ProcessingWorkspace({
+  eyebrow,
   title,
   body,
   status,
-  defaultOpen,
+  initiallyOpen,
   children,
 }: {
+  eyebrow: string;
   title: string;
   body: string;
   status: string;
-  defaultOpen: boolean;
+  initiallyOpen: boolean;
   children: ReactNode;
 }) {
+  const [open, setOpen] = useState(initiallyOpen);
+
   return (
-    <details className="material-processing" defaultOpen={defaultOpen}>
+    <details
+      className="material-processing"
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
       <summary>
         <span className="material-processing__icon" aria-hidden="true">
           <Cpu size={19} />
         </span>
         <span className="material-processing__copy">
-          <span className="material-experience__eyebrow">Source preparation</span>
+          <span className="material-experience__eyebrow">{eyebrow}</span>
           <strong>{title}</strong>
           <small>{body}</small>
         </span>
