@@ -83,8 +83,20 @@ export function examDeepLinkFixture() {
       },
     ],
     materialChunks: [
-      { id: "chk_first", materialId: "mat_first", order: 0, text: "First source text.", createdAt: now },
-      { id: "chk_target", materialId: "mat_target", order: 0, text: "Target source text.", createdAt: now },
+      {
+        id: "chk_first",
+        materialId: "mat_first",
+        order: 0,
+        text: "First source text.",
+        createdAt: now,
+      },
+      {
+        id: "chk_target",
+        materialId: "mat_target",
+        order: 0,
+        text: "Target source text.",
+        createdAt: now,
+      },
     ],
     materialOutputs: [],
     presentationOutlines: [],
