@@ -69,7 +69,7 @@ function MaterialDetail() {
       eyebrow={isRu ? "Подготовка источника" : "Source preparation"}
       title={processingTitle}
       body={processingBody}
-      initiallyOpen={processingNeedsAttention}
+      initiallyOpen={longMedia || processingNeedsAttention}
       status={
         processingNeedsAttention
           ? isRu
