@@ -6,6 +6,7 @@ const timeout = setTimeout(() => {
 
 try {
   await import("./run-critical-browser-e2e.mjs");
+  await import("./run-source-reference-deletion-browser-e2e.mjs");
   clearTimeout(timeout);
   process.exit(process.exitCode ?? 0);
 } catch (error) {
