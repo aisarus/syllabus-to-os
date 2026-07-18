@@ -7,6 +7,8 @@ const [
   server,
   route,
   dialog,
+  draftModal,
+  continuation,
   editor,
   persistence,
   materialRoute,
@@ -19,6 +21,8 @@ const [
   read("src/lib/server/study-pack-generation.ts"),
   read("src/routes/api/ai/generate-study-pack.ts"),
   read("src/components/study-pack-dialog.tsx"),
+  read("src/components/ai-draft-modal.tsx"),
+  read("src/components/study-pack-continuation.tsx"),
   read("src/components/study-pack-editor.tsx"),
   read("src/lib/study-pack-persistence.ts"),
   read("src/routes/app.materials_.$materialId.tsx"),
@@ -68,9 +72,29 @@ for (const marker of [
   "One source → a complete study session",
   "validateStudyPackDraft",
   "persistStudyPack",
+  "setSavedResult(result)",
+  "StudyPackContinuation",
   "Ничего не сохранится без твоего подтверждения",
 ]) {
   requireMarker(dialog, marker, `Study Pack review/save flow is missing: ${marker}`);
+}
+
+for (const marker of ["savedContent?: ReactNode", "state === \"saved\"", "{savedContent}"]) {
+  requireMarker(draftModal, marker, `AI saved-state continuation contract is missing: ${marker}`);
+}
+
+for (const marker of [
+  "StudyPackContinuation",
+  "Понять",
+  "Вспомнить",
+  "Проверить",
+  'to="/app/notes/$noteId"',
+  'to="/app/flashcards"',
+  'to="/app/quizzes/$quizId"',
+  "result.noteId",
+  "result.quizId",
+]) {
+  requireMarker(continuation, marker, `Study Pack continuation path is missing: ${marker}`);
 }
 
 for (const marker of [
@@ -84,6 +108,7 @@ for (const marker of [
 
 for (const marker of [
   "persistStudyPack",
+  "PersistStudyPackResult",
   "updateData((data)",
   "notes: [note, ...data.notes]",
   "flashcards: [...data.flashcards, ...flashcards]",
