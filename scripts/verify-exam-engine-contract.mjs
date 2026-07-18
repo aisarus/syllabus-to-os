@@ -7,12 +7,14 @@ const [
   store,
   workspace,
   restoredResult,
+  resultDecision,
   route,
   diagnosticEntry,
   evals,
   browserE2E,
   browserRunner,
   deepLinkBrowser,
+  resultReviewBrowser,
   docs,
   workflow,
 ] = await Promise.all([
@@ -20,12 +22,14 @@ const [
   read("src/lib/exam-engine-store.ts"),
   read("src/components/exam-engine.tsx"),
   read("src/components/exam-engine-restored-result.tsx"),
+  read("src/components/exam-result-decision.tsx"),
   read("src/routes/app.exam-engine.tsx"),
   read("src/components/diagnostic-exam-blueprint-entry.tsx"),
   read("scripts/run-exam-engine-evals.mjs"),
   read("scripts/run-exam-engine-browser-e2e.mjs"),
   read("scripts/run-exam-engine-browser-e2e-final.mjs"),
   read("scripts/run-exam-deep-link-browser-e2e.mjs"),
+  read("scripts/run-exam-result-review-browser-e2e.mjs"),
   read("docs/EXAM_ENGINE_V1.md"),
   read(".github/workflows/exam-engine.yml"),
 ]);
@@ -87,14 +91,24 @@ for (const marker of [
   requireMarker(workspace, marker, `Exam Engine UI is missing: ${marker}`);
 }
 
+for (const marker of ["ExamResultDecision", "session={session}", "onExit={onExit}"]) {
+  requireMarker(restoredResult, marker, `Restored Exam result wrapper is missing: ${marker}`);
+}
+
 for (const marker of [
-  "Замороженный результат экзамена",
-  "Результат восстановлен из локальной frozen session после reload",
-  "сырой score",
-  "Правильный ответ",
+  "ExamResultDecision",
+  "Сохранённый frozen result",
+  "факт этой попытки",
+  "issues.length",
+  "sourceChunkIds",
+  'to="/app/materials/$materialId"',
+  'to="/app/quizzes/$quizId"',
+  "Открыть подтверждающий источник",
+  "исходный chunk больше недоступен",
+  "Правильные ответы этой попытки",
   "К blueprints",
 ]) {
-  requireMarker(restoredResult, marker, `Restored Exam result surface is missing: ${marker}`);
+  requireMarker(resultDecision, marker, `Exam result decision is missing: ${marker}`);
 }
 
 for (const marker of [
@@ -175,6 +189,17 @@ for (const marker of [
 }
 
 for (const marker of [
+  "2 вопросов требуют возврата к источнику",
+  "/app/materials/mat_result",
+  "/app/quizzes/quiz_result",
+  "Viewing the result mutated the frozen exam snapshot",
+  "Reload rewrote the frozen exam snapshot",
+  "source-linked review without mutating the snapshot",
+]) {
+  requireMarker(resultReviewBrowser, marker, `Exam result-review proof is missing: ${marker}`);
+}
+
+for (const marker of [
   "Frozen session",
   "Source-grounded question bank",
   "Partial answers",
@@ -191,6 +216,9 @@ for (const marker of [
   "run-exam-engine-browser-e2e-final.mjs",
   "Run Exam Engine deep-link browser proof",
   "run-exam-deep-link-browser-e2e.mjs",
+  "Run Exam Engine result-review browser proof",
+  "run-exam-result-review-browser-e2e.mjs",
+  "exam-result-review-browser-diagnostics",
   "npm run typecheck",
   "npm run lint",
   "npm run build",
