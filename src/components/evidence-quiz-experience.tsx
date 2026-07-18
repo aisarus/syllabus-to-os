@@ -234,7 +234,8 @@ export function EvidenceQuizExperience({ quizId }: { quizId: string }) {
                 : "Every answer is saved as an immutable snapshot. A linked concept receives recognition evidence only from that exact question."}
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
-              {detailedAttempts.length} {isRu ? "попыток с полными ответами" : "attempts with full answer history"}
+              {detailedAttempts.length}{" "}
+              {isRu ? "попыток с полными ответами" : "attempts with full answer history"}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -308,7 +309,8 @@ export function EvidenceQuizExperience({ quizId }: { quizId: string }) {
               {isRu ? "Вопрос" : "Question"} {index + 1} / {questions.length}
             </span>
             <span>
-              {Object.values(answers).length} {isRu ? "ответов сохранено в черновике" : "answers in draft"}
+              {Object.values(answers).length}{" "}
+              {isRu ? "ответов сохранено в черновике" : "answers in draft"}
             </span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
