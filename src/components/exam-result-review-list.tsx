@@ -3,6 +3,7 @@ import { BookOpenCheck, CheckCircle2, RotateCcw } from "lucide-react";
 import { ExamResultIssueCard } from "@/components/exam-result-issue-card";
 import { Button } from "@/components/ui/button";
 import type { ExamSession } from "@/lib/exam-engine";
+import { serializeQuizRepairQuestionIds } from "@/lib/quiz-repair-search";
 import type { AppData } from "@/lib/store";
 
 export function ExamResultReviewList({
@@ -24,6 +25,7 @@ export function ExamResultReviewList({
   }));
   const issues = rows.filter((row) => row.result?.correct !== true);
   const correctRows = rows.filter((row) => row.result?.correct === true);
+  const repair = serializeQuizRepairQuestionIds(issues.map((row) => row.question.questionId));
 
   return (
     <section className="rounded-2xl border border-border bg-surface p-5 md:p-6">
@@ -43,9 +45,19 @@ export function ExamResultReviewList({
           </h2>
         </div>
         <Button asChild>
-          <Link to="/app/quizzes/$quizId" params={{ quizId: session.quizId }}>
+          <Link
+            to="/app/quizzes/$quizId"
+            params={{ quizId: session.quizId }}
+            search={{ repair: repair ? [repair] : [] }}
+          >
             <BookOpenCheck className="h-4 w-4 me-1" />
-            {isRu ? "Открыть банк в тренажёре" : "Open bank in trainer"}
+            {issues.length > 0
+              ? isRu
+                ? `Исправить эти вопросы · ${issues.length}`
+                : `Repair these questions · ${issues.length}`
+              : isRu
+                ? "Открыть банк в тренажёре"
+                : "Open bank in trainer"}
           </Link>
         </Button>
       </div>
@@ -102,7 +114,11 @@ export function ExamResultReviewList({
           {isRu ? "К blueprints" : "Back to blueprints"}
         </Button>
         <Button asChild variant="ghost">
-          <Link to="/app/quizzes/$quizId" params={{ quizId: session.quizId }}>
+          <Link
+            to="/app/quizzes/$quizId"
+            params={{ quizId: session.quizId }}
+            search={{ repair: [] }}
+          >
             {isRu ? "Повторить исходную диагностику" : "Repeat the source diagnostic"}
           </Link>
         </Button>
