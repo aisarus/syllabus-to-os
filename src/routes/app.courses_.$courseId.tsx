@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BrainCircuit, ChevronDown, ShieldCheck } from "lucide-react";
+import { useState } from "react";
 import { ConceptEvidenceRiskSummary } from "@/components/concept-evidence-risk-summary";
 import { ConceptEvidenceWorkspace } from "@/components/concept-evidence-workspace";
 import { ConceptExtractionReview } from "@/components/concept-extraction-review";
@@ -16,6 +17,7 @@ function CoursePage() {
   const { courseId } = Route.useParams();
   const { lang } = useApp();
   const isRu = lang === "ru";
+  const [knowledgeLabOpen, setKnowledgeLabOpen] = useState(true);
 
   return (
     <div className="course-experience">
@@ -27,7 +29,11 @@ function CoursePage() {
         <ConceptEvidenceRiskSummary courseId={courseId} />
       </div>
 
-      <details className="course-knowledge-lab" defaultOpen>
+      <details
+        className="course-knowledge-lab"
+        open={knowledgeLabOpen}
+        onToggle={(event) => setKnowledgeLabOpen(event.currentTarget.open)}
+      >
         <summary>
           <span className="course-knowledge-lab__icon" aria-hidden="true">
             <BrainCircuit size={20} />
