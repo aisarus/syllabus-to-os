@@ -42,6 +42,7 @@ interface AIDraftModalProps {
   onRegenerate?: () => void;
   copyText?: string;
   dirty?: boolean;
+  savedContent?: ReactNode;
   children?: ReactNode;
 }
 
@@ -62,6 +63,7 @@ export function AIDraftModal(props: AIDraftModalProps) {
     onRegenerate,
     copyText,
     dirty,
+    savedContent,
     children,
   } = props;
   const isRu = lang === "ru";
@@ -141,20 +143,23 @@ export function AIDraftModal(props: AIDraftModalProps) {
         )}
 
         {state === "saved" && (
-          <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-5 text-sm">
-            <div className="flex items-start gap-3">
-              <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-300" />
-              <div>
-                <div className="font-medium text-emerald-200">
-                  {isRu ? "Результат сохранён" : "Output saved"}
+          <div className="space-y-3">
+            <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-5 text-sm">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-300" />
+                <div>
+                  <div className="font-medium text-emerald-200">
+                    {isRu ? "Результат сохранён" : "Output saved"}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {isRu
+                      ? "Черновик сохранён ровно один раз и связан с выбранными источниками."
+                      : "The draft was saved exactly once and remains linked to the selected sources."}
+                  </p>
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {isRu
-                    ? "Черновик сохранён ровно один раз и связан с выбранными источниками."
-                    : "The draft was saved exactly once and remains linked to the selected sources."}
-                </p>
               </div>
             </div>
+            {savedContent}
           </div>
         )}
 

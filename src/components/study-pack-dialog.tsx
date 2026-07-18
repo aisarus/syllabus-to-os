@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BookOpenCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { AIDraftModal, type AIDraftState } from "@/components/ai-draft-modal";
+import { StudyPackContinuation } from "@/components/study-pack-continuation";
 import { StudyPackEditor } from "@/components/study-pack-editor";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -14,7 +15,7 @@ import {
   type StudyPackDraft,
 } from "@/lib/ai";
 import { studyPackCopyText, validateStudyPackDraft } from "@/lib/study-pack";
-import { persistStudyPack } from "@/lib/study-pack-persistence";
+import { persistStudyPack, type PersistStudyPackResult } from "@/lib/study-pack-persistence";
 import { getChunksByMaterial, useData } from "@/lib/store";
 
 const MAX_CHUNKS = 8;
@@ -61,6 +62,7 @@ function StudyPackDialog(
   const [draft, setDraft] = useState<StudyPackDraft | null>(null);
   const [baseline, setBaseline] = useState("");
   const [saveLocked, setSaveLocked] = useState(false);
+  const [savedResult, setSavedResult] = useState<PersistStudyPackResult | null>(null);
   const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
 
   const material = data.materials.find((item) => item.id === props.materialId) ?? null;
@@ -83,6 +85,7 @@ function StudyPackDialog(
     setDraft(null);
     setBaseline("");
     setSaveLocked(false);
+    setSavedResult(null);
     void checkAIStatus().then((status) => setAiConfigured(status.configured));
   }, [props.open]);
 
@@ -136,6 +139,7 @@ function StudyPackDialog(
     setDraft(result.data);
     setBaseline(JSON.stringify(result.data));
     setSaveLocked(false);
+    setSavedResult(null);
     setState("ready");
   };
 
@@ -144,7 +148,7 @@ function StudyPackDialog(
     setSaveLocked(true);
 
     try {
-      persistStudyPack({
+      const result = persistStudyPack({
         draft,
         locale: lang,
         materialId: material.id,
@@ -153,6 +157,7 @@ function StudyPackDialog(
         topicId: props.topicId ?? material.topicId,
         fallbackSourceChunkIds: selectedChunks.map((chunk) => chunk.id),
       });
+      setSavedResult(result);
       setBaseline(serialized);
       setState("saved");
       toast.success(isRu ? "Учебный комплект сохранён" : "Study pack saved");
@@ -179,6 +184,15 @@ function StudyPackDialog(
       onRegenerate={generate}
       copyText={draft ? studyPackCopyText(draft, lang) : undefined}
       dirty={dirty}
+      savedContent={
+        savedResult ? (
+          <StudyPackContinuation
+            result={savedResult}
+            isRu={isRu}
+            onNavigate={() => props.onOpenChange(false)}
+          />
+        ) : undefined
+      }
     >
       {state === "idle" && (
         <div className="space-y-4">
