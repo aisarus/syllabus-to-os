@@ -1,4 +1,4 @@
-/* Material experience — the approved source is the primary working surface. */
+/* Material experience: the approved source is the primary working surface. */
 
 .material-experience {
   display: grid;
@@ -102,9 +102,8 @@
   padding-bottom: 2px;
 }
 
-.material-experience__workspace button:focus-visible,
-.material-experience__workspace a:focus-visible,
-.material-study-pack button:focus-visible,
+.material-experience button:focus-visible,
+.material-experience a:focus-visible,
 .material-processing > summary:focus-visible,
 .material-history > summary:focus-visible {
   outline: 2px solid var(--cw-gold);
@@ -164,7 +163,7 @@
 .material-study-pack__copy h2 {
   margin: 7px 0 6px;
   color: var(--cw-cream);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: Fraunces, Georgia, serif;
   font-size: clamp(22px, 2.5vw, 32px);
   font-weight: 600;
   line-height: 1.12;
@@ -232,7 +231,7 @@
 .material-processing__copy strong,
 .material-history > summary strong {
   color: var(--cw-cream);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: Fraunces, Georgia, serif;
   font-size: 20px;
   font-weight: 600;
 }
@@ -288,19 +287,15 @@
 .material-processing__stack > div,
 .material-history__body > div {
   max-width: none;
+  margin-top: 0;
 }
 
 .material-processing__body > div,
 .material-processing__stack > div {
-  margin-top: 0;
   border-color: rgba(199, 146, 79, 0.16);
   box-shadow:
     0 14px 38px rgba(0, 0, 0, 0.16),
     inset 0 1px rgba(255, 244, 218, 0.02);
-}
-
-.material-history__body > div {
-  margin-top: 0;
 }
 
 @media (max-width: 1180px) {
@@ -330,13 +325,13 @@
     overflow: visible;
   }
 
-  .material-experience__workspace > div > div.grid > aside:first-child {
-    order: 2;
-  }
-
   .material-experience__workspace > div > div.grid > main {
     order: 1;
     min-height: auto;
+  }
+
+  .material-experience__workspace > div > div.grid > aside:first-child {
+    order: 2;
   }
 
   .material-experience__workspace > div > div.grid > aside:last-child {
