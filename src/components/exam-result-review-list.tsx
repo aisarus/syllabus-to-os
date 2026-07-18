@@ -25,9 +25,7 @@ export function ExamResultReviewList({
   }));
   const issues = rows.filter((row) => row.result?.correct !== true);
   const correctRows = rows.filter((row) => row.result?.correct === true);
-  const repair = serializeQuizRepairQuestionIds(
-    issues.map((row) => row.question.questionId),
-  );
+  const repair = serializeQuizRepairQuestionIds(issues.map((row) => row.question.questionId));
 
   return (
     <section className="rounded-2xl border border-border bg-surface p-5 md:p-6">
