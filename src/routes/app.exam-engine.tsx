@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ExamEngine } from "@/components/exam-engine";
 import { ExamEngineRestoredResult } from "@/components/exam-engine-restored-result";
 import { ExamPlanningPanel } from "@/components/exam-planning-panel";
@@ -7,7 +7,16 @@ import { useApp } from "@/lib/app-context";
 import { useExamEngineData } from "@/lib/exam-engine-store";
 import { useData } from "@/lib/store";
 
+interface ExamEngineSearch {
+  course: string;
+  quiz: string;
+}
+
 export const Route = createFileRoute("/app/exam-engine")({
+  validateSearch: (raw): ExamEngineSearch => ({
+    course: typeof raw.course === "string" ? raw.course : "",
+    quiz: typeof raw.quiz === "string" ? raw.quiz : "",
+  }),
   component: ExamEnginePage,
 });
 
@@ -15,18 +24,33 @@ function ExamEnginePage() {
   const { lang } = useApp();
   const data = useData();
   const exams = useExamEngineData();
+  const search = Route.useSearch();
   const [showRestoredResult, setShowRestoredResult] = useState(true);
-  const [planningCourseId, setPlanningCourseId] = useState(data.courses[0]?.id ?? "");
+  const requestedQuiz = data.quizzes.find((quiz) => quiz.id === search.quiz);
+  const initialCourseId = useMemo(() => {
+    if (data.courses.some((course) => course.id === search.course)) return search.course;
+    if (
+      requestedQuiz?.courseId &&
+      data.courses.some((course) => course.id === requestedQuiz.courseId)
+    ) {
+      return requestedQuiz.courseId;
+    }
+    return data.courses[0]?.id ?? "";
+  }, [data.courses, requestedQuiz?.courseId, search.course]);
+  const initialQuizId = requestedQuiz?.id ?? "";
+  const [planningCourseId, setPlanningCourseId] = useState(initialCourseId);
   const restoredSession = showRestoredResult
     ? exams.sessions.find((session) => session.status === "submitted" && session.result)
     : undefined;
   const activeSession = exams.sessions.find((session) => session.status === "active");
 
   useEffect(() => {
-    if (!data.courses.some((course) => course.id === planningCourseId)) {
-      setPlanningCourseId(data.courses[0]?.id ?? "");
+    if (data.courses.some((course) => course.id === initialCourseId)) {
+      setPlanningCourseId(initialCourseId);
+      return;
     }
-  }, [data.courses, planningCourseId]);
+    setPlanningCourseId(data.courses[0]?.id ?? "");
+  }, [data.courses, initialCourseId]);
 
   if (data.courses.length === 0) {
     return (
@@ -48,7 +72,11 @@ function ExamEnginePage() {
 
   return (
     <>
-      <ExamEngine key={`${data.courses[0]?.id ?? "course"}:${data.quizzes.length}`} />
+      <ExamEngine
+        key={`${initialCourseId}:${initialQuizId}:${data.quizzes.length}`}
+        initialCourseId={initialCourseId}
+        initialQuizId={initialQuizId}
+      />
       {!activeSession ? (
         <>
           <div className="mx-auto mt-5 max-w-[1440px] rounded-xl border border-border bg-surface p-4 md:p-5">
