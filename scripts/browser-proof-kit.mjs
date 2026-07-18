@@ -63,7 +63,11 @@ export class BrowserProofPage {
       flatten: true,
     });
     const page = new BrowserProofPage(cdp, browserContextId, sessionId, baseUrl);
-    await Promise.all([page.send("Page.enable"), page.send("Runtime.enable"), page.send("DOM.enable")]);
+    await Promise.all([
+      page.send("Page.enable"),
+      page.send("Runtime.enable"),
+      page.send("DOM.enable"),
+    ]);
     await page.waitFor("document.readyState === 'complete'");
     return page;
   }
