@@ -6,9 +6,7 @@ export function parseQuizRepairQuestionIds(value: unknown): string[] {
       : [];
   return Array.from(
     new Set(
-      tokens
-        .map((token) => token.trim())
-        .filter((token) => /^[A-Za-z0-9_-]{1,120}$/.test(token)),
+      tokens.map((token) => token.trim()).filter((token) => /^[A-Za-z0-9_-]{1,120}$/.test(token)),
     ),
   ).slice(0, 100);
 }
