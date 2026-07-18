@@ -8,9 +8,11 @@ const [
   workspace,
   restoredResult,
   route,
+  diagnosticEntry,
   evals,
   browserE2E,
   browserRunner,
+  deepLinkBrowser,
   docs,
   workflow,
 ] = await Promise.all([
@@ -19,9 +21,11 @@ const [
   read("src/components/exam-engine.tsx"),
   read("src/components/exam-engine-restored-result.tsx"),
   read("src/routes/app.exam-engine.tsx"),
+  read("src/components/diagnostic-exam-blueprint.tsx"),
   read("scripts/run-exam-engine-evals.mjs"),
   read("scripts/run-exam-engine-browser-e2e.mjs"),
   read("scripts/run-exam-engine-browser-e2e-final.mjs"),
+  read("scripts/run-exam-deep-link-browser-e2e.mjs"),
   read("docs/EXAM_ENGINE_V1.md"),
   read(".github/workflows/exam-engine.yml"),
 ]);
@@ -95,16 +99,31 @@ for (const marker of [
 
 for (const marker of [
   'createFileRoute("/app/exam-engine")',
-  "const data = useData()",
-  "const exams = useExamEngineData()",
-  "data.courses.length === 0",
-  'session.status === "submitted" && session.result',
-  "<ExamEngineRestoredResult",
-  "setShowRestoredResult(false)",
+  "validateSearch",
+  "requestedQuiz",
+  "initialCourseId",
+  "<DiagnosticExamBlueprint",
+  "initialQuizId={requestedQuiz.id}",
   "<ExamEngine key=",
   "data.quizzes.length",
 ]) {
   requireMarker(route, marker, `Exam Engine hydrated route is missing: ${marker}`);
+}
+
+for (const marker of [
+  "DiagnosticExamBlueprint",
+  "initialCourseId",
+  "initialQuizId",
+  'data-testid="diagnostic-exam-course"',
+  'data-testid="diagnostic-exam-quiz"',
+  'data-testid="diagnostic-exam-questions"',
+  'data-testid="diagnostic-exam-start"',
+  "validateExamBlueprint",
+  "examEngineStore.createBlueprint",
+  "examEngineStore.startSession",
+  "Lamdan does not replace them with the first available quiz",
+]) {
+  requireMarker(diagnosticEntry, marker, `Diagnostic Exam Engine entry is missing: ${marker}`);
 }
 
 for (const marker of [
@@ -144,6 +163,18 @@ for (const marker of [
 }
 
 for (const marker of [
+  "crs_target",
+  "quiz_target",
+  "diagnostic-exam-course",
+  "diagnostic-exam-quiz",
+  "Question from the requested diagnostic bank",
+  "Blueprint used the wrong question bank",
+  "Frozen session did not preserve the deep-linked question bank",
+]) {
+  requireMarker(deepLinkBrowser, marker, `Exam Engine deep-link proof is missing: ${marker}`);
+}
+
+for (const marker of [
   "Frozen session",
   "Source-grounded question bank",
   "Partial answers",
@@ -158,6 +189,8 @@ for (const marker of [
   "Run Exam Engine evaluations",
   "Run Exam Engine browser E2E",
   "run-exam-engine-browser-e2e-final.mjs",
+  "Run Exam Engine deep-link browser proof",
+  "run-exam-deep-link-browser-e2e.mjs",
   "npm run typecheck",
   "npm run lint",
   "npm run build",
