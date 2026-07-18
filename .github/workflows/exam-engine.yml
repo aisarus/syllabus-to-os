@@ -47,6 +47,8 @@ jobs:
         run: npm run build
       - name: Run Exam Engine browser E2E
         run: node scripts/run-exam-engine-browser-e2e-final.mjs
+      - name: Run Exam Engine deep-link browser proof
+        run: node scripts/run-exam-deep-link-browser-e2e.mjs
       - name: Run exam planning browser proof
         id: planning_browser
         continue-on-error: true
