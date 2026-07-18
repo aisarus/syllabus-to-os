@@ -1,4 +1,4 @@
-import { ExamResultDecision } from "@/components/exam-result-decision";
+import { ExamResultDecision } from "@/components/exam-result-review";
 import type { ExamSession } from "@/lib/exam-engine";
 
 export function ExamEngineRestoredResult({
