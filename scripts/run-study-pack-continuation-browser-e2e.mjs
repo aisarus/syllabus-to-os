@@ -211,9 +211,15 @@ await runBrowserProof({
     assert(saved.quizId, "Study Pack did not persist a diagnostic quiz.");
     assert(saved.flashcards === 1, "Study Pack continuation count does not match saved cards.");
     assert(saved.questions === 1, "Study Pack continuation count does not match saved questions.");
-    assert(saved.links.includes(`/app/notes/${saved.noteId}`), "Saved note continuation link is missing.");
+    assert(
+      saved.links.includes(`/app/notes/${saved.noteId}`),
+      "Saved note continuation link is missing.",
+    );
     assert(saved.links.includes("/app/flashcards"), "Flashcard continuation link is missing.");
-    assert(saved.links.includes(`/app/quizzes/${saved.quizId}`), "Diagnostic continuation link is missing.");
+    assert(
+      saved.links.includes(`/app/quizzes/${saved.quizId}`),
+      "Diagnostic continuation link is missing.",
+    );
 
     const opened = await page.evaluate(`(() => {
       const target = document.querySelector(${JSON.stringify('a[href^="/app/notes/"]')});
