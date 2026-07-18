@@ -150,9 +150,15 @@ await runBrowserProof({
     })()`);
     assert(history.coreAttempts.length === 2, "Repair did not create a separate core attempt.");
     assert(history.detailAnswers.length === 2, "Repair did not create a separate answer snapshot.");
-    assert(history.detailAnswers[0][0].selectedOption === "Distractor one", "Original mistake changed.");
+    assert(
+      history.detailAnswers[0][0].selectedOption === "Distractor one",
+      "Original mistake changed.",
+    );
     assert(history.detailAnswers[0][0].correct === false, "Original failure evidence changed.");
-    assert(history.detailAnswers[1][0].selectedOption === "Verified answer", "Repair answer missing.");
+    assert(
+      history.detailAnswers[1][0].selectedOption === "Verified answer",
+      "Repair answer missing.",
+    );
     assert(history.detailAnswers[1][0].correct === true, "Repair success evidence missing.");
 
     await page.reload();
