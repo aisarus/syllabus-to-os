@@ -46,7 +46,7 @@
 
 .course-knowledge-lab__copy strong {
   color: var(--cw-cream);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: Fraunces, Georgia, serif;
   font-size: 21px;
   font-weight: 600;
 }
