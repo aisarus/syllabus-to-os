@@ -1,0 +1,5 @@
+/* Unified study output system */
+.study-output-system {
+  width: min(100%, 1440px);
+  margin-inline: auto;
+}
