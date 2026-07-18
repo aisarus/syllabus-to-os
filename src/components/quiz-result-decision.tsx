@@ -8,10 +8,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type {
-  QuizAttemptAnswerSnapshot,
-  RecordedQuizAttempt,
-} from "@/lib/quiz-attempt-details";
+import type { QuizAttemptAnswerSnapshot, RecordedQuizAttempt } from "@/lib/quiz-attempt-details";
 import { useData } from "@/lib/store";
 
 export function QuizResultDecision({
