@@ -8,9 +8,12 @@ const [
   conceptStore,
   lifecycle,
   experience,
-  route,
+  resultDecision,
+  quizRoute,
+  examRoute,
   evals,
   browserE2E,
+  repairBrowserE2E,
   packageJson,
   workflow,
   docs,
@@ -22,9 +25,12 @@ const [
   read("src/lib/concept-store.ts"),
   read("src/components/concept-evidence-lifecycle.tsx"),
   read("src/components/evidence-quiz-experience.tsx"),
+  read("src/components/quiz-result-decision.tsx"),
   read("src/routes/app.quizzes_.$quizId.tsx"),
+  read("src/routes/app.exam-engine.tsx"),
   read("scripts/run-per-question-evidence-evals.mjs"),
   read("scripts/run-question-evidence-browser-e2e.mjs"),
+  read("scripts/run-quiz-repair-browser-e2e.mjs"),
   read("package.json"),
   read(".github/workflows/ci.yml"),
   read("docs/CONCEPT_EVIDENCE_MODEL.md"),
@@ -85,16 +91,41 @@ for (const marker of [
   "recordQuizAttemptWithAnswers",
   "onClickCapture={blockLegacyRunner}",
   "Запускай тест через evidence-aware тренажёр",
-  "Редактирование вопроса позже не изменит эту историю",
+  "QuizResultDecision",
+  "repairQuestionIds",
+  "startRepair",
+  "Режим исправления",
 ]) {
   requireMarker(experience, marker, `Evidence-aware quiz UI is missing: ${marker}`);
 }
 
+for (const marker of [
+  "QuizResultDecision",
+  "Повторить только ошибки",
+  "Открыть подтверждающий источник",
+  "Продолжить в Exam Engine",
+  'to="/app/exam-engine"',
+  "course: courseId",
+  "quiz: quizId",
+  "Это факт только об этой попытке",
+]) {
+  requireMarker(resultDecision, marker, `Quiz result decision path is missing: ${marker}`);
+}
+
 requireMarker(
-  route,
+  quizRoute,
   "<EvidenceQuizExperience quizId={quizId} />",
   "Quiz detail route does not use the evidence-aware runner.",
 );
+
+for (const marker of [
+  "validateSearch",
+  "Контекст диагностики",
+  "requestedQuiz",
+  "planningCourseId",
+]) {
+  requireMarker(examRoute, marker, `Exam Engine diagnostic context is missing: ${marker}`);
+}
 
 for (const marker of [
   "attempt history must be immutable",
@@ -112,6 +143,17 @@ for (const marker of [
   "Question-level quiz evidence browser E2E passed",
 ]) {
   requireMarker(browserE2E, marker, `Question evidence browser proof is missing: ${marker}`);
+}
+
+for (const marker of [
+  "Distractor one",
+  "Повторить только ошибки (1)",
+  "Режим исправления",
+  "Verified answer",
+  "Original mistake changed",
+  "Repair history did not survive reload",
+]) {
+  requireMarker(repairBrowserE2E, marker, `Quiz repair browser proof is missing: ${marker}`);
 }
 
 requireMarker(

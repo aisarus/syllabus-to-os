@@ -4,11 +4,11 @@ import {
   CheckCircle2,
   GraduationCap,
   Languages,
-  RotateCcw,
   Settings2,
   ShieldCheck,
   Shuffle,
   Sparkles,
+  Wrench,
   XCircle,
 } from "lucide-react";
 import { useMemo, useState, type MouseEvent } from "react";
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { AIGenerateButton } from "@/components/ai-generate-dialog";
 import { parseGoldenQuizFeedback, hasQuizTranslation } from "@/lib/golden-quiz";
 import { validateQuestion } from "@/components/quiz-library";
+import { QuizResultDecision } from "@/components/quiz-result-decision";
 import { QuizStudio } from "@/components/quiz-studio";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
@@ -49,15 +50,15 @@ export function EvidenceQuizExperience({ quizId }: { quizId: string }) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [recorded, setRecorded] = useState<RecordedQuizAttempt | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
+  const [repairQuestionIds, setRepairQuestionIds] = useState<string[] | null>(null);
 
-  const questions = useMemo(
-    () =>
-      deterministicShuffle(
-        rawQuestions.filter((question) => validateQuestion(question).valid),
-        `evidence-quiz:${quizId}:${attemptNonce}`,
-      ),
-    [rawQuestions, quizId, attemptNonce],
-  );
+  const questions = useMemo(() => {
+    const validQuestions = rawQuestions.filter((question) => validateQuestion(question).valid);
+    const scopedQuestions = repairQuestionIds
+      ? validQuestions.filter((question) => repairQuestionIds.includes(question.id))
+      : validQuestions;
+    return deterministicShuffle(scopedQuestions, `evidence-quiz:${quizId}:${attemptNonce}`);
+  }, [rawQuestions, repairQuestionIds, quizId, attemptNonce]);
   const current = questions[index];
   const feedback = current
     ? parseGoldenQuizFeedback(current.explanation, current.options.length)
@@ -99,12 +100,22 @@ export function EvidenceQuizExperience({ quizId }: { quizId: string }) {
     );
   }
 
-  const restart = () => {
+  const resetRun = () => {
     setAttemptNonce((value) => value + 1);
     setIndex(0);
     setSelectedOriginalIndex(null);
     setAnswers({});
     setRecorded(null);
+  };
+
+  const restart = () => {
+    setRepairQuestionIds(null);
+    resetRun();
+  };
+
+  const startRepair = (questionIds: string[]) => {
+    setRepairQuestionIds(Array.from(new Set(questionIds)));
+    resetRun();
   };
 
   const next = () => {
@@ -243,13 +254,27 @@ export function EvidenceQuizExperience({ quizId }: { quizId: string }) {
                     : "Show translation"}
               </Button>
             )}
-            <Button variant="outline" onClick={restart} disabled={questions.length === 0}>
+            <Button variant="outline" onClick={restart} disabled={rawQuestions.length === 0}>
               <Shuffle className="h-4 w-4 me-1" />
               {isRu ? "Новая попытка" : "New attempt"}
             </Button>
           </div>
         </div>
       </header>
+
+      {repairQuestionIds && !recorded && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-3 text-xs">
+          <span className="inline-flex items-center gap-2">
+            <Wrench className="h-4 w-4 text-yellow-200" />
+            {isRu
+              ? `Режим исправления: ${questions.length} ошибочных вопросов`
+              : `Repair mode: ${questions.length} missed questions`}
+          </span>
+          <Button size="sm" variant="ghost" onClick={restart}>
+            {isRu ? "Вернуться ко всему тесту" : "Return to full quiz"}
+          </Button>
+        </div>
+      )}
 
       {questions.length === 0 ? (
         <section className="mt-5 rounded-2xl border border-dashed border-border p-12 text-center">
@@ -269,7 +294,14 @@ export function EvidenceQuizExperience({ quizId }: { quizId: string }) {
           </Button>
         </section>
       ) : recorded ? (
-        <EvidenceQuizResult recorded={recorded} isRu={isRu} onRestart={restart} />
+        <QuizResultDecision
+          recorded={recorded}
+          quizId={quiz.id}
+          courseId={quiz.courseId}
+          isRu={isRu}
+          onRestart={restart}
+          onRepair={startRepair}
+        />
       ) : current && feedback ? (
         <section className="mt-5">
           <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
@@ -386,39 +418,6 @@ export function EvidenceQuizExperience({ quizId }: { quizId: string }) {
         </section>
       ) : null}
     </div>
-  );
-}
-
-function EvidenceQuizResult({
-  recorded,
-  isRu,
-  onRestart,
-}: {
-  recorded: RecordedQuizAttempt;
-  isRu: boolean;
-  onRestart: () => void;
-}) {
-  return (
-    <section className="mt-5 rounded-2xl border border-border bg-surface p-6 text-center">
-      <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
-      <h2 className="mt-3 font-serif text-2xl font-semibold">
-        {recorded.attempt.score}% · {recorded.attempt.correctCount}/{recorded.attempt.total}
-      </h2>
-      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-        {isRu
-          ? `Сохранено ${recorded.detail.answers.length} снимков ответов. Редактирование вопроса позже не изменит эту историю.`
-          : `${recorded.detail.answers.length} answer snapshots were saved. Editing a question later will not rewrite this history.`}
-      </p>
-      {!recorded.persistenceOk && (
-        <p className="mx-auto mt-3 max-w-xl rounded border border-red-500/30 bg-red-500/5 p-3 text-xs text-red-200">
-          {recorded.error}
-        </p>
-      )}
-      <Button className="mt-5" onClick={onRestart}>
-        <RotateCcw className="h-4 w-4 me-1" />
-        {isRu ? "Пройти ещё раз" : "Try again"}
-      </Button>
-    </section>
   );
 }
 
