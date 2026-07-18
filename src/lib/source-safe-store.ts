@@ -14,10 +14,7 @@ import {
  * This is intentionally pure so store-level evaluations can prove the same rule
  * used by the browser application.
  */
-export function scrubSourceChunkReferences(
-  data: AppData,
-  chunkIds: Iterable<string>,
-): AppData {
+export function scrubSourceChunkReferences(data: AppData, chunkIds: Iterable<string>): AppData {
   const removedIds = new Set(chunkIds);
   if (removedIds.size === 0) return data;
 
@@ -38,9 +35,7 @@ export function scrubSourceChunkReferences(
   });
   const quizQuestions = data.quizQuestions.map((question) => {
     const sourceChunkIds = rewrite(question.sourceChunkIds);
-    return sourceChunkIds === question.sourceChunkIds
-      ? question
-      : { ...question, sourceChunkIds };
+    return sourceChunkIds === question.sourceChunkIds ? question : { ...question, sourceChunkIds };
   });
   const presentationOutlines = data.presentationOutlines.map((outline) => {
     let changed = false;
@@ -107,11 +102,8 @@ function replaceMaterialChunksSafely(
 ): MaterialChunk[] {
   let created: MaterialChunk[] = [];
   updateData((data) => {
-    const replacement = replaceMaterialChunksWithStableIds(
-      data,
-      materialId,
-      chunks,
-      () => uid("chk"),
+    const replacement = replaceMaterialChunksWithStableIds(data, materialId, chunks, () =>
+      uid("chk"),
     );
     created = replacement.chunks;
     return replacement.data;
