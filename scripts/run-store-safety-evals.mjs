@@ -3,11 +3,7 @@ import {
   inspectWorkspacePersistence,
   persistWorkspaceSnapshot,
 } from "../src/lib/persistence-health.ts";
-import {
-  getDataSnapshot,
-  setData,
-  store,
-} from "../src/lib/source-safe-store.ts";
+import { getDataSnapshot, setData, store } from "../src/lib/source-safe-store.ts";
 import {
   repairDanglingSourceReferences,
   replaceMaterialChunksWithStableIds,
@@ -164,9 +160,7 @@ assert.deepEqual(
   ["chunk_heading", "chunk_math"],
 );
 assert.deepEqual(replacement.data.notes[0].sourceChunkIds, ["chunk_heading", "chunk_math"]);
-assert.deepEqual(replacement.data.presentationOutlines[0].slides[0].sourceChunkIds, [
-  "chunk_math",
-]);
+assert.deepEqual(replacement.data.presentationOutlines[0].slides[0].sourceChunkIds, ["chunk_math"]);
 
 const legacyCurrent = base({
   ...linked,
