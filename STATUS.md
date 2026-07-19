@@ -1,12 +1,20 @@
 # Lamdan — Current execution status
 
-Last updated: 2026-07-16
+Last updated: 2026-07-19
 
 ## Current milestone
 
 **Milestone H — Academic Autopilot foundation**
 
-Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1, durable whole-lecture media intake and reviewed automatic transcription v1 are implemented and verified. Resumable long-file transcription C1 is the active delivery pass.
+Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output → practice loop is implemented. M1 is still blocked on licensed live OCR, Hebrew golden-quiz validation and the complete one-course pilot. Main now includes long-lecture extraction/backup/restore, focused dashboard and navigation, source-safe page replacement, a connected Understand → Recall → Test loop, Study Pack continuation, quiz mistake repair and canonical frozen-exam result/repair flows through PR #72. Production Phase 1 is active: persistence honesty, explicit repository boundaries, API resource controls, cancellation and accessibility hardening.
+
+## Main reconciliation — 2026-07-19
+
+- PRs #52–#58 completed local lecture extraction, streaming backup/restore, licensed-quality evaluation infrastructure and bounded exam planning.
+- PRs #61–#64 reorganized navigation, dashboard, material/course hierarchy and the Understand → Recall → Test loop.
+- PRs #65–#66 hardened source-reference deletion and multi-page replacement browser proof.
+- PRs #67–#72 completed Study Pack continuation, quiz mistake repair, diagnostic exam deep links, canonical result review and focused frozen-question repair.
+- Open PR #59 is superseded by this reconciliation because it predates PRs #61–#72.
 
 ## Completed task state
 

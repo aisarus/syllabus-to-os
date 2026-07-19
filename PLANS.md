@@ -2,6 +2,19 @@
 
 This file records the active implementation plan. Product intent remains in `ROADMAP.md`; canonical task status and acceptance criteria live in `TASKS.md`; evidence and blockers live in `STATUS.md`.
 
+## Active production Phase 1 — stabilization
+
+**Branch:** `agent/production-phase-1-stabilization`
+
+1. Reconcile execution documents with merged main through PR #72.
+2. Make local workspace writes durable-before-publish and regression-test quota failure.
+3. Replace import-order method mutation with an explicit repository boundary and base-store source integrity.
+4. Add shared runtime validation and bounded AI/OCR/transcription execution.
+5. Add real running-job cancellation and accessibility baseline.
+6. Execute the one-course pilot when licensed external fixtures are supplied.
+
+No cloud backend, broad redesign or new product surface enters this phase.
+
 ## M1 validation plan — P1-006 to P1-008
 
 **Status:** externally blocked, infrastructure ready.
