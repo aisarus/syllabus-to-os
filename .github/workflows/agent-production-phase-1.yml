@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - scripts/apply-production-phase-1-api.mjs
+      - scripts/fix-production-phase-1-api-interpolation.mjs
       - .github/workflows/agent-production-phase-1.yml
 
 permissions:
@@ -54,10 +55,12 @@ jobs:
       - name: Apply shared AI API policy
         if: steps.guard.outputs.run == 'true'
         run: |
+          node scripts/fix-production-phase-1-api-interpolation.mjs
           node scripts/apply-production-phase-1-api.mjs
           npx prettier --write \
             package.json \
             scripts/apply-production-phase-1-api.mjs \
+            scripts/fix-production-phase-1-api-interpolation.mjs \
             scripts/run-ai-route-policy-evals.mjs \
             scripts/verify-ai-route-policy-contract.mjs \
             src/lib/server/ai-generation.ts \
@@ -92,7 +95,7 @@ jobs:
         run: |
           git config user.name "Lamdan Production Agent"
           git config user.email "actions@users.noreply.github.com"
-          git add package.json scripts/apply-production-phase-1-api.mjs scripts/run-ai-route-policy-evals.mjs scripts/verify-ai-route-policy-contract.mjs src/lib/server/ai-generation.ts src/lib/server/ai-route-policy.ts src/lib/server/ai-route-schemas.ts src/lib/server/gemini.ts src/lib/server/ocr-generation.ts src/routes/api/ai
+          git add package.json scripts/apply-production-phase-1-api.mjs scripts/fix-production-phase-1-api-interpolation.mjs scripts/run-ai-route-policy-evals.mjs scripts/verify-ai-route-policy-contract.mjs src/lib/server/ai-generation.ts src/lib/server/ai-route-policy.ts src/lib/server/ai-route-schemas.ts src/lib/server/gemini.ts src/lib/server/ocr-generation.ts src/routes/api/ai
           git commit -m "feat(api): add runtime schemas and bounded AI request policy [phase1-api-generated]"
 
       - name: Push verified API commit
