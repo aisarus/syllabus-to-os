@@ -1,13 +1,16 @@
-import { replaceMaterialChunksWithStableIds } from "./source-integrity";
+import { replaceMaterialChunksWithStableIds } from "./source-integrity.ts";
 import {
   getDataSnapshot,
+  getPendingWorkspacePersistenceFailure,
+  retryPendingWorkspacePersistence,
   setData,
   store,
   uid,
   updateData,
+  workspaceStoreTesting,
   type AppData,
   type MaterialChunk,
-} from "./store";
+} from "./store.ts";
 
 /**
  * Removes deleted chunk ids from every entity that can persist source evidence.
@@ -117,4 +120,12 @@ store.deleteMaterial = deleteMaterialSafely;
 store.deleteMaterialChunk = deleteMaterialChunkSafely;
 store.replaceMaterialChunksForMaterial = replaceMaterialChunksSafely;
 
-export { getDataSnapshot, setData, store };
+export {
+  getDataSnapshot,
+  getPendingWorkspacePersistenceFailure,
+  retryPendingWorkspacePersistence,
+  setData,
+  store,
+  updateData,
+  workspaceStoreTesting,
+};

@@ -2,17 +2,27 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [backup, workspaceBackup, visualStore, store, dataPage, checkScript, packageJson, workflow] =
-  await Promise.all([
-    read("src/lib/visual-backup.ts"),
-    read("src/lib/workspace-backup.ts"),
-    read("src/lib/visual-source-store.ts"),
-    read("src/lib/store.ts"),
-    read("src/routes/app.data.tsx"),
-    read("scripts/check.mjs"),
-    read("package.json"),
-    read(".github/workflows/ci.yml"),
-  ]);
+const [
+  backup,
+  workspaceBackup,
+  visualStore,
+  store,
+  storeHelpers,
+  dataPage,
+  checkScript,
+  packageJson,
+  workflow,
+] = await Promise.all([
+  read("src/lib/visual-backup.ts"),
+  read("src/lib/workspace-backup.ts"),
+  read("src/lib/visual-source-store.ts"),
+  read("src/lib/store.ts"),
+  read("src/lib/store-helpers.ts"),
+  read("src/routes/app.data.tsx"),
+  read("scripts/check.mjs"),
+  read("package.json"),
+  read(".github/workflows/ci.yml"),
+]);
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
@@ -74,13 +84,17 @@ for (const marker of [
   requireMarker(visualStore, marker, `Visual source rollback cannot be atomic: ${marker}`);
 }
 
+for (const marker of ["./store-helpers.ts"]) {
+  requireMarker(store, marker, `Store facade no longer exposes backup helpers: ${marker}`);
+}
+
 for (const marker of [
   "parseAppDataJSON",
   "getDataSnapshot",
   "replaceAllAtomically",
-  "localStorage.setItem(KEY, serialized)",
+  "setData(normalized)",
 ]) {
-  requireMarker(store, marker, `Text-data restore is not guarded: ${marker}`);
+  requireMarker(storeHelpers, marker, `Text-data restore is not guarded: ${marker}`);
 }
 
 for (const marker of [

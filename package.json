@@ -18,7 +18,7 @@
     "eval:golden-quiz": "node scripts/run-golden-quiz-evals.mjs",
     "eval:golden-quiz:json": "node scripts/run-golden-quiz-evals.mjs --json",
     "eval:global-search": "node --experimental-strip-types scripts/run-global-search-evals.mjs",
-    "eval:store-safety": "node --experimental-strip-types scripts/run-store-safety-evals.mjs",
+    "eval:store-safety": "node --experimental-strip-types scripts/run-store-safety-evals.mjs && node --experimental-strip-types scripts/run-durable-store-evals.mjs",
     "eval:study-command": "node --experimental-strip-types scripts/run-study-command-center-evals.mjs",
     "eval:study-pack": "node --experimental-strip-types scripts/run-study-pack-evals.mjs",
     "eval:concept-evidence": "node --experimental-strip-types scripts/run-concept-evidence-evals.mjs",

@@ -5,12 +5,19 @@ import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
 import "@/lib/install-store-safety";
 import {
+  WorkspacePersistenceError,
   inspectWorkspacePersistence,
   persistWorkspaceSnapshot,
   type WorkspacePersistenceHealth,
 } from "@/lib/persistence-health";
 import { repairDanglingSourceReferences } from "@/lib/source-integrity";
-import { updateData, useData, type AppData } from "@/lib/store";
+import {
+  retryPendingWorkspacePersistence,
+  updateData,
+  useData,
+  useWorkspacePersistenceFailure,
+  type AppData,
+} from "@/lib/store";
 
 /**
  * Keeps the legacy local-first store honest without changing its persisted v1
@@ -21,6 +28,7 @@ export function StoreSafetyLifecycle() {
   const { lang } = useApp();
   const isRu = lang === "ru";
   const data = useData();
+  const pendingFailure = useWorkspacePersistenceFailure();
   const previousRef = useRef<AppData | null>(null);
   const applyingRepairRef = useRef(false);
   const [health, setHealth] = useState<WorkspacePersistenceHealth | null>(null);
@@ -41,11 +49,15 @@ export function StoreSafetyLifecycle() {
     if (repair.changed) {
       applyingRepairRef.current = true;
       previousRef.current = repair.data;
-      updateData(() => repair.data);
-      console.info("Lamdan repaired source references", {
-        remapped: Object.keys(repair.remappedIds).length,
-        removed: repair.removedReferenceCount,
-      });
+      try {
+        updateData(() => repair.data);
+        console.info("Lamdan repaired source references", {
+          remapped: Object.keys(repair.remappedIds).length,
+          removed: repair.removedReferenceCount,
+        });
+      } catch (error) {
+        if (!(error instanceof WorkspacePersistenceError)) throw error;
+      }
       return;
     }
     previousRef.current = data;
@@ -55,10 +67,14 @@ export function StoreSafetyLifecycle() {
     setHealth(inspectWorkspacePersistence(data));
   }, [data]);
 
-  if (!health || health.ok) return null;
+  const visibleHealth = pendingFailure?.health ?? health;
+  if (!visibleHealth || visibleHealth.ok) return null;
 
-  const retry = () => setHealth(persistWorkspaceSnapshot(data));
-  const exportEmergencyCopy = () => downloadEmergencyJSON(health.serialized);
+  const retry = () => {
+    const retried = retryPendingWorkspacePersistence();
+    setHealth(retried ?? persistWorkspaceSnapshot(data));
+  };
+  const exportEmergencyCopy = () => downloadEmergencyJSON(visibleHealth.serialized);
 
   return (
     <section
@@ -70,16 +86,16 @@ export function StoreSafetyLifecycle() {
         <div>
           <strong className="block">
             {isRu
-              ? "Последние изменения не записаны в браузер"
-              : "Recent changes are not saved locally"}
+              ? "Изменение не применено: браузер не подтвердил сохранение"
+              : "Change not applied: browser storage did not confirm the save"}
           </strong>
           <p className="mt-1 text-xs leading-5 text-red-100/80">
             {isRu
-              ? "Данные пока остаются в памяти этой вкладки. Не обновляй страницу: скачай аварийную копию или освободи место и повтори сохранение."
-              : "The data still exists in this tab's memory. Do not reload: download an emergency copy or free browser storage and retry."}
+              ? "Текущий сохранённый workspace не изменён. Черновик неудачной операции хранится в памяти этой вкладки: скачай копию или освободи место и повтори сохранение."
+              : "The current saved workspace is unchanged. The failed operation remains as an in-tab recovery candidate: download it or free storage and retry."}
           </p>
-          {health.error && (
-            <p className="mt-1 break-words text-[11px] text-red-100/70">{health.error}</p>
+          {visibleHealth.error && (
+            <p className="mt-1 break-words text-[11px] text-red-100/70">{visibleHealth.error}</p>
           )}
         </div>
       </div>
@@ -88,7 +104,13 @@ export function StoreSafetyLifecycle() {
           <RefreshCw className="h-4 w-4 me-1" />
           {isRu ? "Повторить" : "Retry"}
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={exportEmergencyCopy}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={exportEmergencyCopy}
+          disabled={!visibleHealth.serialized}
+        >
           <Download className="h-4 w-4 me-1" />
           {isRu ? "Аварийная JSON-копия" : "Emergency JSON"}
         </Button>
