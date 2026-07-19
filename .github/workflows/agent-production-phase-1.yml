@@ -5,19 +5,18 @@ on:
     branches:
       - main
     paths:
-      - scripts/apply-production-phase-1-api.mjs
-      - scripts/fix-production-phase-1-api-interpolation.mjs
+      - scripts/apply-production-phase-1-cancellation.mjs
       - .github/workflows/agent-production-phase-1.yml
 
 permissions:
   contents: write
 
 concurrency:
-  group: agent-production-phase-1-api
+  group: agent-production-phase-1-cancellation
   cancel-in-progress: false
 
 jobs:
-  api-hardening:
+  intake-cancellation:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -31,9 +30,8 @@ jobs:
         shell: bash
         run: |
           message="$(git log -1 --pretty=%B)"
-          if [[ "$message" == *"[phase1-api-generated]"* ]]; then
+          if [[ "$message" == *"[phase1-cancel-generated]"* ]]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Generated API head detected; executor will not run again."
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
@@ -52,50 +50,39 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: bun install --frozen-lockfile
 
-      - name: Apply shared AI API policy
-        id: apply
+      - name: Apply cancellation hardening
         if: steps.guard.outputs.run == 'true'
-        continue-on-error: true
         run: |
-          node scripts/fix-production-phase-1-api-interpolation.mjs
-          node scripts/apply-production-phase-1-api.mjs > phase1-api-apply.log 2>&1
+          node scripts/apply-production-phase-1-cancellation.mjs
           npx prettier --write \
             package.json \
-            scripts/apply-production-phase-1-api.mjs \
-            scripts/fix-production-phase-1-api-interpolation.mjs \
-            scripts/run-ai-route-policy-evals.mjs \
-            scripts/verify-ai-route-policy-contract.mjs \
-            src/lib/server/ai-generation.ts \
-            src/lib/server/ai-route-policy.ts \
-            src/lib/server/ai-route-schemas.ts \
-            src/lib/server/gemini.ts \
-            src/lib/server/ocr-generation.ts \
-            src/routes/api/ai/*.ts
+            scripts/apply-production-phase-1-cancellation.mjs \
+            scripts/run-intake-cancellation-evals.mjs \
+            scripts/verify-intake-cancellation-contract.mjs \
+            src/components/material-intake-queue.tsx \
+            src/lib/intake-cancellation.ts \
+            src/lib/material-fingerprints.ts \
+            src/lib/material-intake.ts \
+            src/lib/document-ingestion.ts \
+            src/lib/ingestion/pdf.ts \
+            src/lib/ingestion/docx.ts \
+            src/lib/ingestion/xlsx.ts
 
-      - name: Upload API migration diagnostics
-        if: steps.apply.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase1-api-apply-debug
-          path: |
-            phase1-api-apply.log
-            scripts/apply-production-phase-1-api.mjs
-          if-no-files-found: error
-          retention-days: 2
+      - name: Verify cancellation contract
+        if: steps.guard.outputs.run == 'true'
+        run: npm run verify:intake-cancellation-contract
 
-      - name: Fail on API migration error
-        if: steps.apply.outcome == 'failure'
+      - name: Run cancellation evaluation
+        if: steps.guard.outputs.run == 'true'
+        run: npm run eval:intake-cancellation
+
+      - name: Recheck persistence and API contracts
+        if: steps.guard.outputs.run == 'true'
         run: |
-          cat phase1-api-apply.log
-          exit 1
-
-      - name: Verify API policy contract
-        if: steps.guard.outputs.run == 'true'
-        run: npm run verify:ai-route-policy-contract
-
-      - name: Run API policy evaluations
-        if: steps.guard.outputs.run == 'true'
-        run: npm run eval:ai-route-policy
+          npm run verify:store-safety-contract
+          npm run eval:store-safety
+          npm run verify:ai-route-policy-contract
+          npm run eval:ai-route-policy
 
       - name: Typecheck
         if: steps.guard.outputs.run == 'true'
@@ -109,14 +96,14 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: npm run build
 
-      - name: Commit API hardening
+      - name: Commit cancellation hardening
         if: steps.guard.outputs.run == 'true'
         run: |
           git config user.name "Lamdan Production Agent"
           git config user.email "actions@users.noreply.github.com"
-          git add package.json scripts/apply-production-phase-1-api.mjs scripts/fix-production-phase-1-api-interpolation.mjs scripts/run-ai-route-policy-evals.mjs scripts/verify-ai-route-policy-contract.mjs src/lib/server/ai-generation.ts src/lib/server/ai-route-policy.ts src/lib/server/ai-route-schemas.ts src/lib/server/gemini.ts src/lib/server/ocr-generation.ts src/routes/api/ai
-          git commit -m "feat(api): add runtime schemas and bounded AI request policy [phase1-api-generated]"
+          git add package.json scripts/apply-production-phase-1-cancellation.mjs scripts/run-intake-cancellation-evals.mjs scripts/verify-intake-cancellation-contract.mjs src/components/material-intake-queue.tsx src/lib/intake-cancellation.ts src/lib/material-fingerprints.ts src/lib/material-intake.ts src/lib/document-ingestion.ts src/lib/ingestion/pdf.ts src/lib/ingestion/docx.ts src/lib/ingestion/xlsx.ts
+          git commit -m "fix(intake): abort running extraction without post-cancel writes [phase1-cancel-generated]"
 
-      - name: Push verified API commit
+      - name: Push verified cancellation commit
         if: steps.guard.outputs.run == 'true'
         run: git push origin HEAD:agent/production-phase-1-stabilization
