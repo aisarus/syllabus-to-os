@@ -25,7 +25,6 @@ concurrency:
 
 jobs:
   apply-and-verify:
-    if: ${{ (github.event_name == 'pull_request' && github.event.action == 'opened') || (github.event_name == 'push' && !contains(github.event.head_commit.message, '[phase1-generated]')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -34,21 +33,38 @@ jobs:
           fetch-depth: 0
           ref: agent/production-phase-1-stabilization
 
+      - name: Determine executor state
+        id: guard
+        shell: bash
+        run: |
+          message="$(git log -1 --pretty=%B)"
+          if [[ "$message" == *"[phase1-generated]"* ]]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Generated head detected; executor will not run again."
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: oven-sh/setup-bun@v2
+        if: steps.guard.outputs.run == 'true'
         with:
           bun-version: latest
 
       - uses: actions/setup-node@v4
+        if: steps.guard.outputs.run == 'true'
         with:
           node-version: 22
 
       - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
         run: bun install --frozen-lockfile
 
       - name: Reconcile execution ledger
+        if: steps.guard.outputs.run == 'true'
         run: node scripts/apply-production-phase-1.mjs docs
 
       - name: Commit documentation reconciliation
+        if: steps.guard.outputs.run == 'true'
         run: |
           git config user.name "Lamdan Production Agent"
           git config user.email "actions@users.noreply.github.com"
@@ -56,6 +72,7 @@ jobs:
           git commit -m "docs: reconcile execution ledger with main [phase1-generated]"
 
       - name: Apply durable repository boundary
+        if: steps.guard.outputs.run == 'true'
         run: |
           node scripts/apply-production-phase-1.mjs store
           node scripts/fix-production-phase-1-specifiers.mjs
@@ -73,24 +90,31 @@ jobs:
             src/components/store-safety-lifecycle.tsx
 
       - name: Verify store safety contract
+        if: steps.guard.outputs.run == 'true'
         run: npm run verify:store-safety-contract
 
       - name: Run store safety evaluation
+        if: steps.guard.outputs.run == 'true'
         run: npm run eval:store-safety
 
       - name: Typecheck
+        if: steps.guard.outputs.run == 'true'
         run: npm run typecheck
 
       - name: Lint
+        if: steps.guard.outputs.run == 'true'
         run: npm run lint
 
       - name: Production build
+        if: steps.guard.outputs.run == 'true'
         run: npm run build
 
       - name: Commit stabilization foundation
+        if: steps.guard.outputs.run == 'true'
         run: |
           git add scripts/apply-production-phase-1.mjs scripts/fix-production-phase-1-specifiers.mjs src/lib/store.ts src/lib/source-reference-safety.ts src/lib/workspace-repository.ts src/lib/source-safe-store.ts src/lib/install-store-safety.ts src/routes/__root.tsx src/components/store-safety-lifecycle.tsx scripts/run-store-safety-evals.mjs scripts/verify-store-safety-contract.mjs
           git commit -m "refactor(store): add durable workspace repository boundary [phase1-generated]"
 
       - name: Push verified commits
+        if: steps.guard.outputs.run == 'true'
         run: git push origin HEAD:agent/production-phase-1-stabilization
