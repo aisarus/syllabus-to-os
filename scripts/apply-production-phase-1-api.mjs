@@ -261,7 +261,7 @@ export async function executeAIRequest(
   }
 
   const replayKey = idempotencyKey
-    ? `${clientKey}:${options.operation}:${idempotencyKey}`
+    ? \`\${clientKey}:\${options.operation}:\${idempotencyKey}\`
     : undefined;
   if (replayKey) {
     const existing = idempotent.get(replayKey);
@@ -698,7 +698,7 @@ export async function generateGeminiJSON<T = unknown>(
   options: GeminiRequestOptions = {},
 ): Promise<GeminiResult<T>> {
   return requestJSON<T>(
-    \`${prompt}\\n\\nReturn ONLY a strict JSON object. No markdown, no commentary.\\n\\nExpected schema (informal):\\n${schemaDescription}\`,
+    \`\${prompt}\\n\\nReturn ONLY a strict JSON object. No markdown, no commentary.\\n\\nExpected schema (informal):\\n\${schemaDescription}\`,
     options,
   );
 }
@@ -716,7 +716,7 @@ export async function generateGeminiVisionJSON<T = unknown>(
     [
       {
         type: "text",
-        text: \`${prompt}\\n\\nReturn ONLY a strict JSON object. No markdown, no commentary.\\n\\nExpected schema (informal):\\n${schemaDescription}\`,
+        text: \`\${prompt}\\n\\nReturn ONLY a strict JSON object. No markdown, no commentary.\\n\\nExpected schema (informal):\\n\${schemaDescription}\`,
       },
       { type: "image_url", image_url: { url: imageDataUrl } },
     ],
@@ -772,8 +772,8 @@ async function requestJSON<T>(
         }
         return {
           ok: false,
-          error: \`AI call failed (${response.status})\`,
-          details: \`provider_status=${response.status}\`,
+          error: \`AI call failed (\${response.status})\`,
+          details: \`provider_status=\${response.status}\`,
         };
       }
 
@@ -848,7 +848,8 @@ syllabus = replaceExact(
   "syllabus imports",
 );
 const oldHandlerStart = `      POST: async ({ request }) => {\n        if (!isGeminiConfigured()) {`;
-if (!syllabus.includes(oldHandlerStart)) throw new Error("Patch anchor not found: syllabus handler");
+if (!syllabus.includes(oldHandlerStart))
+  throw new Error("Patch anchor not found: syllabus handler");
 const handlerStart = syllabus.indexOf(oldHandlerStart);
 const handlerEndMarker = `        return Response.json({ ok: true, draft, warnings, model: getGeminiModelName() });\n      },`;
 const handlerEnd = syllabus.indexOf(handlerEndMarker, handlerStart);

@@ -1,18 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { runAIGeneration, type AIGenerationInput } from "@/lib/server/ai-generation";
+import { runAIGeneration } from "@/lib/server/ai-generation";
+import { handleAIJSONRequest } from "@/lib/server/ai-route-policy";
+import { aiGenerationInputSchema } from "@/lib/server/ai-route-schemas";
 
 export const Route = createFileRoute("/api/ai/simplify-text")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        let body: AIGenerationInput;
-        try {
-          body = (await request.json()) as AIGenerationInput;
-        } catch {
-          return Response.json({ ok: false, error: "Invalid JSON body" }, { status: 400 });
-        }
-        return Response.json(await runAIGeneration("simplify", body));
-      },
+      POST: async ({ request }) =>
+        handleAIJSONRequest(request, {
+          operation: "simplify-text",
+          schema: aiGenerationInputSchema,
+          costUnits: 1,
+          handler: (body, context) => runAIGeneration("simplify", body, context),
+        }),
     },
   },
 });

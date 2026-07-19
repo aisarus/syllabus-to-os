@@ -372,6 +372,7 @@ function normalize(kind: AIKind, raw: unknown, input: AIGenerationInput): Normal
 export async function runAIGeneration(
   kind: AIKind,
   input: AIGenerationInput,
+  options: { signal?: AbortSignal } = {},
 ): Promise<AIRouteResponse<unknown>> {
   if (!isGeminiConfigured()) return { ok: false, error: "AI is not configured" };
 
@@ -391,7 +392,7 @@ export async function runAIGeneration(
   }
 
   const { prompt, schema } = buildPrompt(kind, input);
-  const response = await generateGeminiJSON<unknown>(prompt, schema);
+  const response = await generateGeminiJSON<unknown>(prompt, schema, options);
   if (!response.ok) {
     return { ok: false, error: response.error, details: response.details };
   }

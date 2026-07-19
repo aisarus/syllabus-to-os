@@ -1,18 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { runAIGeneration, type AIGenerationInput } from "@/lib/server/ai-generation";
+import { runAIGeneration } from "@/lib/server/ai-generation";
+import { handleAIJSONRequest } from "@/lib/server/ai-route-policy";
+import { aiGenerationInputSchema } from "@/lib/server/ai-route-schemas";
 
 export const Route = createFileRoute("/api/ai/generate-assignment-breakdown")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        let body: AIGenerationInput;
-        try {
-          body = (await request.json()) as AIGenerationInput;
-        } catch {
-          return Response.json({ ok: false, error: "Invalid JSON body" }, { status: 400 });
-        }
-        return Response.json(await runAIGeneration("assignment", body));
-      },
+      POST: async ({ request }) =>
+        handleAIJSONRequest(request, {
+          operation: "generate-assignment-breakdown",
+          schema: aiGenerationInputSchema,
+          costUnits: 2,
+          handler: (body, context) => runAIGeneration("assignment", body, context),
+        }),
     },
   },
 });

@@ -16,7 +16,10 @@ for (const name of [
   const placeholder = "${" + name + "}";
   const escaped = "\\" + placeholder;
   const doubleEscaped = "\\\\" + placeholder;
-  const pattern = new RegExp("(?<!\\\\)\\$\\{" + name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") + "\\}", "g");
+  const pattern = new RegExp(
+    "(?<!\\\\)\\$\\{" + name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") + "\\}",
+    "g",
+  );
   content = content.replaceAll(doubleEscaped, escaped).replace(pattern, escaped);
 }
 content = content.replace(
