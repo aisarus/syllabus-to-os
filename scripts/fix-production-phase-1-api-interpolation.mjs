@@ -17,4 +17,8 @@ for (const name of [
   const after = `\\\${${name}}`;
   content = content.replaceAll(before, after);
 }
+content = content.replace(
+  "? `\\${clientKey}:\\${options.operation}:\\${idempotencyKey}`",
+  "? \\`\\${clientKey}:\\${options.operation}:\\${idempotencyKey}\\`",
+);
 await writeFile(path, content, "utf8");
