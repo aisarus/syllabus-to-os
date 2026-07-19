@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - scripts/apply-production-phase-1-cancellation.mjs
+      - scripts/fix-production-phase-1-cancellation-templates.mjs
       - .github/workflows/agent-production-phase-1.yml
 
 permissions:
@@ -53,10 +54,12 @@ jobs:
       - name: Apply cancellation hardening
         if: steps.guard.outputs.run == 'true'
         run: |
+          node scripts/fix-production-phase-1-cancellation-templates.mjs
           node scripts/apply-production-phase-1-cancellation.mjs
           npx prettier --write \
             package.json \
             scripts/apply-production-phase-1-cancellation.mjs \
+            scripts/fix-production-phase-1-cancellation-templates.mjs \
             scripts/run-intake-cancellation-evals.mjs \
             scripts/verify-intake-cancellation-contract.mjs \
             src/components/material-intake-queue.tsx \
@@ -101,7 +104,7 @@ jobs:
         run: |
           git config user.name "Lamdan Production Agent"
           git config user.email "actions@users.noreply.github.com"
-          git add package.json scripts/apply-production-phase-1-cancellation.mjs scripts/run-intake-cancellation-evals.mjs scripts/verify-intake-cancellation-contract.mjs src/components/material-intake-queue.tsx src/lib/intake-cancellation.ts src/lib/material-fingerprints.ts src/lib/material-intake.ts src/lib/document-ingestion.ts src/lib/ingestion/pdf.ts src/lib/ingestion/docx.ts src/lib/ingestion/xlsx.ts
+          git add package.json scripts/apply-production-phase-1-cancellation.mjs scripts/fix-production-phase-1-cancellation-templates.mjs scripts/run-intake-cancellation-evals.mjs scripts/verify-intake-cancellation-contract.mjs src/components/material-intake-queue.tsx src/lib/intake-cancellation.ts src/lib/material-fingerprints.ts src/lib/material-intake.ts src/lib/document-ingestion.ts src/lib/ingestion/pdf.ts src/lib/ingestion/docx.ts src/lib/ingestion/xlsx.ts
           git commit -m "fix(intake): abort running extraction without post-cancel writes [phase1-cancel-generated]"
 
       - name: Push verified cancellation commit
