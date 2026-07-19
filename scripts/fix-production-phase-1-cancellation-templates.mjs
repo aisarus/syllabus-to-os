@@ -10,4 +10,7 @@ content = content.replace(
   '  failures.forEach((failure) => console.error(`- ${failure}`));',
   '  failures.forEach((failure) => console.error(\\`- \\${failure}\\`));',
 );
+const newlineBefore = 'console.error("Intake cancellation contract failed:' + "\\n" + '");';
+const newlineAfter = 'console.error("Intake cancellation contract failed:' + "\\\\n" + '");';
+content = content.replace(newlineBefore, newlineAfter);
 await writeFile(path, content, "utf8");
