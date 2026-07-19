@@ -6,12 +6,14 @@ on:
       - main
     paths:
       - scripts/apply-production-phase-1.mjs
+      - scripts/fix-production-phase-1-specifiers.mjs
       - .github/workflows/agent-production-phase-1.yml
   push:
     branches:
       - agent/production-phase-1-stabilization
     paths:
       - scripts/apply-production-phase-1.mjs
+      - scripts/fix-production-phase-1-specifiers.mjs
       - .github/workflows/agent-production-phase-1.yml
 
 permissions:
@@ -54,7 +56,9 @@ jobs:
           git commit -m "docs: reconcile execution ledger with main [phase1-generated]"
 
       - name: Apply durable repository boundary
-        run: node scripts/apply-production-phase-1.mjs store
+        run: |
+          node scripts/apply-production-phase-1.mjs store
+          node scripts/fix-production-phase-1-specifiers.mjs
 
       - name: Verify store safety contract
         run: npm run verify:store-safety-contract
