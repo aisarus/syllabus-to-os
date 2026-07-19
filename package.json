@@ -83,7 +83,9 @@
     "eval:exam-planning": "node --experimental-strip-types scripts/run-exam-planning-evals.mjs",
     "e2e:exam-planning": "node scripts/run-exam-planning-browser-e2e.mjs",
     "verify:ai-route-policy-contract": "node scripts/verify-ai-route-policy-contract.mjs",
-    "eval:ai-route-policy": "node --experimental-strip-types scripts/run-ai-route-policy-evals.mjs"
+    "eval:ai-route-policy": "node --experimental-strip-types scripts/run-ai-route-policy-evals.mjs",
+    "verify:intake-cancellation-contract": "node scripts/verify-intake-cancellation-contract.mjs",
+    "eval:intake-cancellation": "node --experimental-strip-types scripts/run-intake-cancellation-evals.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

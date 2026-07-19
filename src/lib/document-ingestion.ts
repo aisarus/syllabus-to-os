@@ -6,6 +6,7 @@
 // - Anything else: honestly marked "unsupported"; user pastes text manually.
 // No fake summaries, no fake AI.
 
+import { isIntakeCancellation, throwIfIntakeCancelled } from "./intake-cancellation";
 import type {
   MaterialExtractionMethod,
   MaterialProcessingStatus,
@@ -85,41 +86,46 @@ export function classifyFile(file: File): {
   return { isText: false };
 }
 
-export async function ingestFile(file: File): Promise<IngestResult> {
+export async function ingestFile(file: File, signal?: AbortSignal): Promise<IngestResult> {
+  throwIfIntakeCancelled(signal);
   const ext = (file.name.split(".").pop() || "").toLowerCase();
   const cls = classifyFile(file);
 
   if (cls.isText) {
     try {
-      const text = await readFileAsText(file);
+      const text = await readFileAsText(file, signal);
       return finish(text, cls.extractionMethod ?? "txt");
-    } catch (e) {
-      return errorResult((e as Error).message);
+    } catch (error) {
+      if (isIntakeCancellation(error, signal)) throw error;
+      return errorResult((error as Error).message);
     }
   }
 
   if (ext === "xlsx" || ext === "xls") {
     try {
       const { extractXlsx } = await import("./ingestion/xlsx");
-      return await extractXlsx(file);
-    } catch (e) {
-      return errorResult((e as Error).message);
+      return await extractXlsx(file, signal);
+    } catch (error) {
+      if (isIntakeCancellation(error, signal)) throw error;
+      return errorResult((error as Error).message);
     }
   }
   if (ext === "docx") {
     try {
       const { extractDocx } = await import("./ingestion/docx");
-      return await extractDocx(file);
-    } catch (e) {
-      return errorResult((e as Error).message);
+      return await extractDocx(file, signal);
+    } catch (error) {
+      if (isIntakeCancellation(error, signal)) throw error;
+      return errorResult((error as Error).message);
     }
   }
   if (ext === "pdf") {
     try {
       const { extractPdf } = await import("./ingestion/pdf");
-      return await extractPdf(file);
-    } catch (e) {
-      return errorResult((e as Error).message);
+      return await extractPdf(file, signal);
+    } catch (error) {
+      if (isIntakeCancellation(error, signal)) throw error;
+      return errorResult((error as Error).message);
     }
   }
 
@@ -138,11 +144,42 @@ export function ingestPastedText(text: string): IngestResult {
   return finish(text, "manual");
 }
 
-export function readFileAsText(file: File): Promise<string> {
+export function readFileAsText(file: File, signal?: AbortSignal): Promise<string> {
   return new Promise((resolve, reject) => {
+    try {
+      throwIfIntakeCancelled(signal);
+    } catch (error) {
+      reject(error);
+      return;
+    }
+
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result ?? ""));
-    reader.onerror = () => reject(reader.error);
+    const cleanup = () => signal?.removeEventListener("abort", abort);
+    const abort = () => reader.abort();
+    reader.onload = () => {
+      cleanup();
+      try {
+        throwIfIntakeCancelled(signal);
+        resolve(String(reader.result ?? ""));
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.onerror = () => {
+      cleanup();
+      reject(reader.error);
+    };
+    reader.onabort = () => {
+      cleanup();
+      try {
+        throwIfIntakeCancelled(signal);
+      } catch (error) {
+        reject(error);
+        return;
+      }
+      reject(new Error("File reading was aborted."));
+    };
+    signal?.addEventListener("abort", abort, { once: true });
     reader.readAsText(file);
   });
 }

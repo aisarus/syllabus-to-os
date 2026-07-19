@@ -62,7 +62,10 @@ documentIngestion = replaceExact(
   "ingest signal signature",
 );
 documentIngestion = documentIngestion
-  .replace(`const text = await readFileAsText(file);`, `const text = await readFileAsText(file, signal);`)
+  .replace(
+    `const text = await readFileAsText(file);`,
+    `const text = await readFileAsText(file, signal);`,
+  )
   .replace(`return await extractXlsx(file);`, `return await extractXlsx(file, signal);`)
   .replace(`return await extractDocx(file);`, `return await extractDocx(file, signal);`)
   .replace(`return await extractPdf(file);`, `return await extractPdf(file, signal);`);
@@ -264,7 +267,7 @@ const files = Object.fromEntries(
 );
 const failures = [];
 const requireMarker = (path, marker) => {
-  if (!files[path].includes(marker)) failures.push(`${path} is missing ${marker}`);
+  if (!files[path].includes(marker)) failures.push(\`\${path} is missing \${marker}\`);
 };
 
 for (const marker of [
@@ -291,8 +294,8 @@ for (const path of [
 requireMarker("src/lib/intake-cancellation.ts", "isIntakeCancellation");
 
 if (failures.length > 0) {
-  console.error("Intake cancellation contract failed:\n");
-  failures.forEach((failure) => console.error(`- ${failure}`));
+  console.error("Intake cancellation contract failed:\\n");
+  failures.forEach((failure) => console.error(\`- \${failure}\`));
   process.exit(1);
 }
 console.log("AbortController-backed running intake cancellation contract passed.");

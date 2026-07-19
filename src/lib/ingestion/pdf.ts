@@ -1,3 +1,4 @@
+import { throwIfIntakeCancelled } from "../intake-cancellation";
 import {
   countWords,
   guessLanguage,
@@ -23,10 +24,13 @@ async function loadPdfjs() {
   return pdfjsLib;
 }
 
-export async function extractPdf(file: File): Promise<IngestResult> {
+export async function extractPdf(file: File, signal?: AbortSignal): Promise<IngestResult> {
+  throwIfIntakeCancelled(signal);
   const pdfjsLib = await loadPdfjs();
   const data = await file.arrayBuffer();
+  throwIfIntakeCancelled(signal);
   const doc = await pdfjsLib.getDocument({ data }).promise;
+  throwIfIntakeCancelled(signal);
   const pageCount = doc.numPages;
 
   const pages: string[] = [];
@@ -34,8 +38,10 @@ export async function extractPdf(file: File): Promise<IngestResult> {
   let order = 0;
 
   for (let p = 1; p <= pageCount; p++) {
+    throwIfIntakeCancelled(signal);
     const page = await doc.getPage(p);
     const content = await page.getTextContent();
+    throwIfIntakeCancelled(signal);
     const items = content.items as Array<{ str: string; hasEOL?: boolean }>;
     let pageText = "";
     for (const it of items) {
