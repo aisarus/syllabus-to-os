@@ -55,9 +55,12 @@ jobs:
         id: apply
         if: steps.guard.outputs.run == 'true'
         continue-on-error: true
+        shell: bash
         run: |
-          node scripts/fix-production-phase-1-cancellation-templates.mjs
-          node scripts/apply-production-phase-1-cancellation.mjs > phase1-cancellation-apply.log 2>&1
+          set -o pipefail
+          : > phase1-cancellation-apply.log
+          node scripts/fix-production-phase-1-cancellation-templates.mjs >> phase1-cancellation-apply.log 2>&1
+          node scripts/apply-production-phase-1-cancellation.mjs >> phase1-cancellation-apply.log 2>&1
           npx prettier --write \
             package.json \
             scripts/apply-production-phase-1-cancellation.mjs \
@@ -71,7 +74,7 @@ jobs:
             src/lib/document-ingestion.ts \
             src/lib/ingestion/pdf.ts \
             src/lib/ingestion/docx.ts \
-            src/lib/ingestion/xlsx.ts
+            src/lib/ingestion/xlsx.ts >> phase1-cancellation-apply.log 2>&1
 
       - name: Upload cancellation diagnostics
         if: steps.apply.outcome == 'failure'
@@ -81,7 +84,17 @@ jobs:
           path: |
             phase1-cancellation-apply.log
             scripts/apply-production-phase-1-cancellation.mjs
-          if-no-files-found: error
+            scripts/run-intake-cancellation-evals.mjs
+            scripts/verify-intake-cancellation-contract.mjs
+            src/components/material-intake-queue.tsx
+            src/lib/intake-cancellation.ts
+            src/lib/material-fingerprints.ts
+            src/lib/material-intake.ts
+            src/lib/document-ingestion.ts
+            src/lib/ingestion/pdf.ts
+            src/lib/ingestion/docx.ts
+            src/lib/ingestion/xlsx.ts
+          if-no-files-found: warn
           retention-days: 2
 
       - name: Fail on cancellation migration error
