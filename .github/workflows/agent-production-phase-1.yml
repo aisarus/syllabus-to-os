@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   apply-and-verify:
-    if: ${{ github.event_name == 'pull_request' || !contains(github.event.head_commit.message, '[phase1-generated]') }}
+    if: ${{ (github.event_name == 'pull_request' && github.event.action == 'opened') || (github.event_name == 'push' && !contains(github.event.head_commit.message, '[phase1-generated]')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -59,6 +59,18 @@ jobs:
         run: |
           node scripts/apply-production-phase-1.mjs store
           node scripts/fix-production-phase-1-specifiers.mjs
+          npx prettier --write \
+            scripts/apply-production-phase-1.mjs \
+            scripts/fix-production-phase-1-specifiers.mjs \
+            scripts/run-store-safety-evals.mjs \
+            scripts/verify-store-safety-contract.mjs \
+            src/lib/store.ts \
+            src/lib/source-reference-safety.ts \
+            src/lib/workspace-repository.ts \
+            src/lib/source-safe-store.ts \
+            src/lib/install-store-safety.ts \
+            src/routes/__root.tsx \
+            src/components/store-safety-lifecycle.tsx
 
       - name: Verify store safety contract
         run: npm run verify:store-safety-contract
@@ -70,37 +82,14 @@ jobs:
         run: npm run typecheck
 
       - name: Lint
-        id: lint
-        continue-on-error: true
-        run: npm run lint > phase1-lint.log 2>&1
-
-      - name: Upload lint diagnostics
-        if: steps.lint.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase1-lint-debug
-          path: |
-            phase1-lint.log
-            src/lib/store.ts
-            src/lib/source-reference-safety.ts
-            src/lib/workspace-repository.ts
-            src/lib/source-safe-store.ts
-            src/lib/install-store-safety.ts
-          if-no-files-found: error
-          retention-days: 2
-
-      - name: Fail on lint error
-        if: steps.lint.outcome == 'failure'
-        run: |
-          cat phase1-lint.log
-          exit 1
+        run: npm run lint
 
       - name: Production build
         run: npm run build
 
       - name: Commit stabilization foundation
         run: |
-          git add src/lib/store.ts src/lib/source-reference-safety.ts src/lib/workspace-repository.ts src/lib/source-safe-store.ts src/lib/install-store-safety.ts src/routes/__root.tsx src/components/store-safety-lifecycle.tsx scripts/run-store-safety-evals.mjs scripts/verify-store-safety-contract.mjs
+          git add scripts/apply-production-phase-1.mjs scripts/fix-production-phase-1-specifiers.mjs src/lib/store.ts src/lib/source-reference-safety.ts src/lib/workspace-repository.ts src/lib/source-safe-store.ts src/lib/install-store-safety.ts src/routes/__root.tsx src/components/store-safety-lifecycle.tsx scripts/run-store-safety-evals.mjs scripts/verify-store-safety-contract.mjs
           git commit -m "refactor(store): add durable workspace repository boundary [phase1-generated]"
 
       - name: Push verified commits
