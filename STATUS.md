@@ -1,10 +1,10 @@
 # Lamdan — Current execution status
 
 <!-- LAMDAN_EXECUTION_LEDGER
-baseline_sha: 92108e1c8041f99544c1983ff1d24d6687645a66
-baseline_pr: 72
+baseline_sha: 716f8ba4c7430f30635fe2b6934b562ae2ec6abf
+baseline_pr: 76
 active_phase: production-phase-0-stabilization
-active_task: S1-001
+active_task: S3-001
 active_pr: none
 external_blockers: live-ocr,golden-quiz,licensed-lecture-evaluation
 -->
@@ -13,14 +13,14 @@ Last updated: 2026-07-19
 
 ## Current milestone
 
-**Production readiness Phase 0 — stabilization and trustworthy data boundaries**
+**Production readiness Phase 0 — stabilization and trustworthy service boundaries**
 
-The verified runtime baseline is `main` through commit `92108e1c8041f99544c1983ff1d24d6687645a66` / PR #72. The previous long-media, Exam Engine and UX delivery passes are merged; no historical PR is the active implementation source. Draft PR #73 is not part of this baseline and is not treated as verified delivery.
+The verified runtime baseline is `main` through commit `716f8ba4c7430f30635fe2b6934b562ae2ec6abf` / PR #76. PR #75 established durable-before-publish workspace persistence. PR #76 added the explicit `WorkspaceRepository`, moved source safety into normal mutators and removed import-order method replacement. Draft PR #73 remains excluded and is not a verified source of truth.
 
-**Active task:** `S1-001 Durable-before-publish core persistence`  
+**Active task:** `S3-001 AI API inventory and shared validation/error contracts`
 **Active PR:** none
 
-The next runtime slice must ensure that a failed durable write cannot publish a candidate workspace state or notify subscribers as though the change were saved. No IndexedDB migration, backend work, broad redesign or new product feature belongs in this task.
+This slice must inventory every `src/routes/api/ai/*` endpoint and introduce shared runtime request validation plus a stable redacted error envelope. Request IDs, rate/concurrency/cost controls, idempotency and cancellation remain separate follow-up slices and must not be mixed into this task.
 
 ## Current product state
 
@@ -36,6 +36,7 @@ Lamdan remains a late MVP / early closed alpha with a substantial local-first, s
 
 ## External milestone blockers
 
+- `P1-005` reviewed OCR pipeline — implemented in the verified baseline; live quality remains gated by `P1-006`.
 The following remain external evidence gates rather than completed product claims:
 
 - `P1-006` live OCR validation on private/licensed Hebrew and mixed-content images;
@@ -46,7 +47,8 @@ The following remain external evidence gates rather than completed product claim
 ## Completed task state
 
 - `P0-001` through `P0-023` — complete in the historical product ledger.
-- `P1-001` through `P1-005` — implemented; the current production plan reopens persistence honesty as `S1-001` because the core store still publishes state before durable-write confirmation.
+- `S1-001` durable-before-publish persistence — merged in PR #75; failed writes do not publish state or notify ordinary subscribers.
+- `S2-001` explicit `WorkspaceRepository` and import-order independence — merged in PR #76; source integrity and flashcard evidence no longer rely on shared-method replacement.
 - `P1-010A` through `P1-010C4` — merged and verified in PRs #46, #47, #48, #52, #53 and #54.
 - Private Hebrew/Russian lecture quality harness — merged in PR #57; live licensed evaluation remains blocked.
 - Bounded exam planning — merged in PR #58.
@@ -119,9 +121,11 @@ The deterministic/provider-mock pipeline can verify consent, persistence, cancel
 
 ## Next execution targets
 
-**Active task:** `S1-001 Durable-before-publish core persistence`
+**Active task:** `S3-001 AI API inventory and shared validation/error contracts`
 
-1. Prove that failed durable writes cannot publish candidate state or notify subscribers.
-2. Introduce the explicit repository/source-integrity boundary only after S1-001 is green.
-3. Harden AI API validation, resource controls and cancellation in separate bounded slices.
-4. Run `P1-006`, `P1-007` and `P1-008` when licensed inputs and a connected deployment are available.
+1. Enumerate every `src/routes/api/ai/*` endpoint with request shape, response shape, provider boundary and current validation behavior.
+2. Add shared Zod request validation primitives and a stable redacted JSON error envelope.
+3. Migrate a bounded representative endpoint set first, then all AI routes only when contracts stay compatible.
+4. Keep request IDs, payload/time/concurrency/rate/cost limits and idempotency in `S3-002`.
+5. Keep AbortSignal propagation and late-result rejection in `S3-003`.
+6. Run `P1-006`, `P1-007` and `P1-008` when licensed inputs and a connected deployment are available.

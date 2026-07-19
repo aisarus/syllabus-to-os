@@ -1,10 +1,10 @@
 # Lamdan — P0 Implementation Tasks and Production Readiness Ledger
 
 <!-- LAMDAN_EXECUTION_LEDGER
-baseline_sha: 92108e1c8041f99544c1983ff1d24d6687645a66
-baseline_pr: 72
+baseline_sha: 716f8ba4c7430f30635fe2b6934b562ae2ec6abf
+baseline_pr: 76
 active_phase: production-phase-0-stabilization
-active_task: S1-001
+active_task: S3-001
 active_pr: none
 external_blockers: live-ocr,golden-quiz,licensed-lecture-evaluation
 -->
@@ -28,51 +28,62 @@ A task is complete only when its applicable contracts/evals pass on the same hea
 
 ## S1-001 — Durable-before-publish core persistence
 
+- **Status:** [x]
+- **Merged:** PR #75
+- **Evidence:** quota, unavailable-storage, serialization and read-back failures preserve the published snapshot; ordinary subscribers are not notified; recovery retry/export remains available.
+
+## S2-001 — Explicit WorkspaceRepository and import-order independence
+
+- **Status:** [x]
+- **Merged:** PR #76
+- **Evidence:** base mutators use `WorkspaceRepository`; source deletion/replacement is implemented as pure transforms; shared store method identity survives compatibility imports; flashcard evidence subscribes explicitly after successful persistence.
+
+## S3-001 — AI API inventory and shared validation/error contracts
+
 - **Status:** [ ]
 - **Priority:** active P0 production blocker
 - **Size:** M
-- **Depends on:** verified `main` through PR #72 and synchronized execution docs
-- **Active task:** `S1-001`
+- **Depends on:** S1-001 and S2-001
+- **Active task:** `S3-001`
 - **Current PR:** none
 
 ### Problem
 
-The core workspace store assigns candidate state before attempting `localStorage.setItem`, suppresses write failures and still notifies subscribers. A quota or storage failure can therefore appear saved until reload.
+AI server routes have grown independently. Their actual request schemas, maximum inputs and error responses are not yet represented by one runtime contract, so malformed input and provider failures can behave inconsistently.
 
 ### Scope
 
-- compute a candidate snapshot without publishing it;
-- write through an injectable durable-storage boundary;
-- verify the stored value by reading it back;
-- publish state and notify listeners only after verification;
-- expose typed failure information and an exportable recovery candidate;
-- add deterministic success, quota, arbitrary-error, read-back-mismatch and subscriber regressions.
+- inventory every `src/routes/api/ai/*` endpoint and its current input/output/provider boundary;
+- introduce shared Zod parsing helpers for JSON and form-data metadata where applicable;
+- introduce one redacted JSON error envelope with stable error codes and HTTP status mapping;
+- preserve draft-only AI/OCR/transcription behavior and existing successful response shapes;
+- add deterministic contract tests for malformed JSON, missing fields, wrong field types, oversized declared values and redacted internal failures;
+- migrate routes in bounded groups without changing product behavior.
 
 ### Acceptance criteria
 
-- failed writes leave the published snapshot unchanged;
-- failed writes do not notify subscribers;
-- successful writes receive read-back verification;
-- callers can distinguish quota, unavailable-storage, serialization and verification failures;
-- the recovery candidate is exportable without becoming current state;
-- `npm run verify:store-safety-contract`, `npm run eval:store-safety`, `npm run typecheck`, `npm run lint` and `npm run build` pass on the same local head.
+- the endpoint inventory is generated or verified from the actual route tree;
+- every migrated endpoint validates input before provider invocation;
+- malformed input receives a deterministic 4xx JSON response;
+- provider/internal errors do not expose secrets, stack traces or raw source content;
+- successful response contracts remain compatible;
+- relevant endpoint contracts/evals, `npm run typecheck`, `npm run lint` and `npm run build` pass on the same local head.
 
 ### Explicit exclusions
 
-- IndexedDB migration;
-- backend, authentication or sync;
-- broad redesign;
-- new product or AI features;
-- unrelated conversion of every store consumer.
+- request IDs and distributed tracing;
+- rate, concurrency, timeout and cost limits;
+- idempotency keys;
+- AbortSignal propagation;
+- authentication/backend redesign;
+- new AI product features.
 
 ## Queued stabilization tasks
 
-1. `S2-001` — explicit `WorkspaceRepository` and removal of import-order method mutation.
-2. `S3-001` — inventory all AI API endpoints and introduce shared Zod/error contracts.
-3. `S3-002` — request IDs, time/payload/concurrency/rate/cost limits and idempotency.
-4. `S3-003` — real AbortSignal propagation and late-result rejection.
-5. `S4-001` — accessibility baseline and executable one-course pilot harness.
-6. `D1-001` — versioned schemas and IndexedDB planning only after stabilization is green.
+1. `S3-002` — request IDs, payload/time/concurrency/rate/cost limits and idempotency.
+2. `S3-003` — real AbortSignal propagation and late-result rejection.
+3. `S4-001` — accessibility baseline and executable one-course pilot harness.
+4. `D1-001` — versioned schemas and IndexedDB planning only after stabilization is green.
 
 ---
 
@@ -116,7 +127,7 @@ Run the full `PILOT.md` flow from empty workspace through syllabus, sources, Stu
 
 ---
 
-# Verified baseline through PR #72
+# Verified baseline through PR #76
 
 The following capabilities are present in the baseline and are not active implementation tasks:
 
@@ -128,7 +139,8 @@ The following capabilities are present in the baseline and are not active implem
 - bounded exam planning — PR #58;
 - navigation, focused dashboard, course/material hierarchy and unified study flow — PRs #61–#64;
 - source-reference deletion integrity and multipage replacement browser proof — PRs #65–#66;
-- Study Pack continuation, quiz repair and Exam Engine result/repair refinements — PRs #67–#72.
+- Study Pack continuation, quiz repair and Exam Engine result/repair refinements — PRs #67–#72;
+- durable-before-publish persistence and explicit repository/import-order boundaries — PRs #75–#76.
 
 Historical open PRs that predate this baseline are not active sources of truth. Draft PR #73 is excluded until independently reviewed and merged.
 
@@ -148,12 +160,12 @@ They must not begin before data-loss, persistence, API-abuse, cancellation and r
 
 # Current execution order
 
-**Active task:** `S1-001 Durable-before-publish core persistence`  
+**Active task:** `S3-001 AI API inventory and shared validation/error contracts`
 **Active PR:** none
 
-1. Complete `S1-001` and prove failed writes cannot publish or notify.
-2. Complete `S2-001` explicit repository/source-integrity boundary.
-3. Complete `S3-001` through `S3-003` API validation, resource controls and cancellation.
+1. Complete `S3-001` inventory, runtime validation and stable error-envelope contracts.
+2. Complete `S3-002` request/resource/cost/idempotency controls.
+3. Complete `S3-003` cancellation propagation and late-result rejection.
 4. Complete `S4-001` accessibility baseline and executable pilot harness.
 5. Begin versioned schemas and IndexedDB only after stabilization is green.
 6. Run `P1-006`, `P1-007` and `P1-008` when licensed inputs and a connected deployment are available.

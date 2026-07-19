@@ -1,10 +1,10 @@
 # Lamdan implementation plans
 
 <!-- LAMDAN_EXECUTION_LEDGER
-baseline_sha: 92108e1c8041f99544c1983ff1d24d6687645a66
-baseline_pr: 72
+baseline_sha: 716f8ba4c7430f30635fe2b6934b562ae2ec6abf
+baseline_pr: 76
 active_phase: production-phase-0-stabilization
-active_task: S1-001
+active_task: S3-001
 active_pr: none
 external_blockers: live-ocr,golden-quiz,licensed-lecture-evaluation
 -->
@@ -13,52 +13,49 @@ This file records the active implementation plan. Product intent remains in `ROA
 
 ## Active plan — Production readiness Phase 0
 
-**Baseline:** `main` at `92108e1c8041f99544c1983ff1d24d6687645a66` / PR #72  
-**Active task:** `S1-001 Durable-before-publish core persistence`  
+**Baseline:** `main` at `716f8ba4c7430f30635fe2b6934b562ae2ec6abf` / PR #76
+**Active task:** `S3-001 AI API inventory and shared validation/error contracts`
 **Active PR:** none
 
-### Scope of S1-001
+### Scope of S3-001
 
-1. Introduce an explicit durable-write result with typed failure information.
-2. Compute a candidate workspace snapshot without publishing it.
-3. Serialize and write the candidate through an injectable storage boundary.
-4. Verify the stored value by reading it back.
-5. Publish state and notify subscribers only after successful verification.
-6. Preserve the previous published snapshot after quota, arbitrary storage or read-back failures.
-7. Add deterministic regression coverage for state publication, subscriber notification and recovery payloads.
+1. Enumerate the real `src/routes/api/ai/*` tree and record each request, response and provider boundary.
+2. Introduce shared Zod parsing helpers for JSON and form-data metadata.
+3. Introduce a stable redacted JSON error envelope and HTTP status mapping.
+4. Migrate endpoints in bounded groups without changing successful response shapes or draft-only trust boundaries.
+5. Add negative contracts proving invalid inputs fail before provider invocation and internal failures expose no secret, stack or raw source content.
 
 ### Explicit exclusions
 
-- no IndexedDB migration;
-- no cloud backend, authentication or synchronization;
-- no broad UI redesign;
-- no new AI/OCR/transcription feature;
-- no unrelated refactor of all store consumers.
+- no request IDs, tracing, rate/concurrency/cost limits or idempotency in this slice;
+- no AbortSignal/cancellation work;
+- no authentication or cloud-backend redesign;
+- no new AI tool or student-facing feature;
+- no IndexedDB migration.
 
 ### Acceptance gate
 
 The task is complete only when the following evidence is green on the same local head:
 
-- the store-safety evaluator is executable in the supported local runtime;
-- a failed durable write leaves the published snapshot unchanged;
-- subscribers are not notified after a failed durable write;
-- successful writes receive read-back verification;
-- the UI can receive a typed persistence failure and recovery candidate;
-- `npm run verify:store-safety-contract`;
-- `npm run eval:store-safety`;
+- endpoint inventory matches the real route tree;
+- migrated endpoints reject malformed input deterministically before provider invocation;
+- error responses use the shared redacted envelope;
+- successful response shapes and draft-only behavior remain compatible;
+- relevant API contracts and deterministic evals;
 - `npm run typecheck`;
 - `npm run lint`;
 - `npm run build`.
 
+## Completed stabilization slices
+
+1. `S1-001` — durable-before-publish persistence, merged in PR #75.
+2. `S2-001` — explicit `WorkspaceRepository` and removal of import-order method mutation, merged in PR #76.
+
 ## Subsequent Phase 0 slices
 
-These tasks begin only after S1-001 is green:
-
-1. `S2-001` — explicit `WorkspaceRepository` and removal of import-order method mutation.
-2. `S3-001` — inventory and shared validation/error contracts for `src/routes/api/ai/*`.
-3. `S3-002` — request IDs, payload/time/concurrency/rate/cost limits and idempotency.
-4. `S3-003` — real cancellation propagation and late-result rejection.
-5. `S4-001` — accessibility baseline and executable one-course pilot harness.
+1. `S3-002` — request IDs, payload/time/concurrency/rate/cost limits and idempotency.
+2. `S3-003` — real cancellation propagation and late-result rejection.
+3. `S4-001` — accessibility baseline and executable one-course pilot harness.
 
 ## External validation plan — P1-006 to P1-008
 
@@ -72,13 +69,14 @@ These tasks begin only after S1-001 is green:
 6. Run the complete one-course pilot in `PILOT.md`.
 7. Fix every critical data-loss, provenance or mobile blocker before declaring M1.
 
-## Verified baseline through PR #72
+## Verified baseline through PR #76
 
 - long-media intake, reviewed automatic transcription, resumable ranges, local extraction, streaming backup and staged restore — PRs #46, #47, #48, #52, #53 and #54;
 - private Hebrew/Russian lecture quality harness — PR #57;
 - bounded exam planning — PR #58;
 - navigation, focused dashboard, course/material hierarchy and unified study outputs — PRs #61–#64;
 - source-reference deletion integrity and multi-page replacement browser proof — PRs #65–#66;
-- Study Pack continuation, quiz mistake repair and Exam Engine result/repair flow — PRs #67–#72.
+- Study Pack continuation, quiz mistake repair and Exam Engine result/repair flow — PRs #67–#72;
+- durable-before-publish persistence and explicit repository/import-order boundaries — PRs #75–#76.
 
 Open historical PRs that predate this baseline are not active implementation sources. Draft PR #73 is also excluded until independently reviewed and merged.
