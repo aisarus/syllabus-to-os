@@ -64,36 +64,36 @@ jobs:
         run: npm run verify:store-safety-contract
 
       - name: Run store safety evaluation
-        id: store-eval
-        continue-on-error: true
-        run: npm run eval:store-safety > phase1-store-eval.log 2>&1
-
-      - name: Upload evaluation diagnostics
-        if: steps.store-eval.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase1-store-eval-debug
-          path: |
-            phase1-store-eval.log
-            src/lib/store.ts
-            src/lib/source-reference-safety.ts
-            src/lib/workspace-repository.ts
-            src/lib/source-safe-store.ts
-            scripts/run-store-safety-evals.mjs
-          if-no-files-found: error
-          retention-days: 2
-
-      - name: Fail on store evaluation error
-        if: steps.store-eval.outcome == 'failure'
-        run: |
-          cat phase1-store-eval.log
-          exit 1
+        run: npm run eval:store-safety
 
       - name: Typecheck
         run: npm run typecheck
 
       - name: Lint
-        run: npm run lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint > phase1-lint.log 2>&1
+
+      - name: Upload lint diagnostics
+        if: steps.lint.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase1-lint-debug
+          path: |
+            phase1-lint.log
+            src/lib/store.ts
+            src/lib/source-reference-safety.ts
+            src/lib/workspace-repository.ts
+            src/lib/source-safe-store.ts
+            src/lib/install-store-safety.ts
+          if-no-files-found: error
+          retention-days: 2
+
+      - name: Fail on lint error
+        if: steps.lint.outcome == 'failure'
+        run: |
+          cat phase1-lint.log
+          exit 1
 
       - name: Production build
         run: npm run build
