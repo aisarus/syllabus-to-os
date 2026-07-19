@@ -5,28 +5,20 @@ on:
     branches:
       - main
     paths:
-      - scripts/apply-production-phase-1.mjs
-      - scripts/fix-production-phase-1-specifiers.mjs
-      - .github/workflows/agent-production-phase-1.yml
-  push:
-    branches:
-      - agent/production-phase-1-stabilization
-    paths:
-      - scripts/apply-production-phase-1.mjs
-      - scripts/fix-production-phase-1-specifiers.mjs
+      - scripts/apply-production-phase-1-api.mjs
       - .github/workflows/agent-production-phase-1.yml
 
 permissions:
   contents: write
 
 concurrency:
-  group: agent-production-phase-1
+  group: agent-production-phase-1-api
   cancel-in-progress: false
 
 jobs:
-  apply-and-verify:
+  api-hardening:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,9 +30,9 @@ jobs:
         shell: bash
         run: |
           message="$(git log -1 --pretty=%B)"
-          if [[ "$message" == *"[phase1-generated]"* ]]; then
+          if [[ "$message" == *"[phase1-api-generated]"* ]]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Generated head detected; executor will not run again."
+            echo "Generated API head detected; executor will not run again."
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
@@ -59,43 +51,29 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: bun install --frozen-lockfile
 
-      - name: Reconcile execution ledger
-        if: steps.guard.outputs.run == 'true'
-        run: node scripts/apply-production-phase-1.mjs docs
-
-      - name: Commit documentation reconciliation
+      - name: Apply shared AI API policy
         if: steps.guard.outputs.run == 'true'
         run: |
-          git config user.name "Lamdan Production Agent"
-          git config user.email "actions@users.noreply.github.com"
-          git add PLANS.md TASKS.md STATUS.md
-          git commit -m "docs: reconcile execution ledger with main [phase1-generated]"
-
-      - name: Apply durable repository boundary
-        if: steps.guard.outputs.run == 'true'
-        run: |
-          node scripts/apply-production-phase-1.mjs store
-          node scripts/fix-production-phase-1-specifiers.mjs
+          node scripts/apply-production-phase-1-api.mjs
           npx prettier --write \
-            scripts/apply-production-phase-1.mjs \
-            scripts/fix-production-phase-1-specifiers.mjs \
-            scripts/run-store-safety-evals.mjs \
-            scripts/verify-store-safety-contract.mjs \
-            src/lib/store.ts \
-            src/lib/source-reference-safety.ts \
-            src/lib/workspace-repository.ts \
-            src/lib/source-safe-store.ts \
-            src/lib/install-store-safety.ts \
-            src/routes/__root.tsx \
-            src/components/store-safety-lifecycle.tsx
+            package.json \
+            scripts/apply-production-phase-1-api.mjs \
+            scripts/run-ai-route-policy-evals.mjs \
+            scripts/verify-ai-route-policy-contract.mjs \
+            src/lib/server/ai-generation.ts \
+            src/lib/server/ai-route-policy.ts \
+            src/lib/server/ai-route-schemas.ts \
+            src/lib/server/gemini.ts \
+            src/lib/server/ocr-generation.ts \
+            src/routes/api/ai/*.ts
 
-      - name: Verify store safety contract
+      - name: Verify API policy contract
         if: steps.guard.outputs.run == 'true'
-        run: npm run verify:store-safety-contract
+        run: npm run verify:ai-route-policy-contract
 
-      - name: Run store safety evaluation
+      - name: Run API policy evaluations
         if: steps.guard.outputs.run == 'true'
-        run: npm run eval:store-safety
+        run: npm run eval:ai-route-policy
 
       - name: Typecheck
         if: steps.guard.outputs.run == 'true'
@@ -109,12 +87,14 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: npm run build
 
-      - name: Commit stabilization foundation
+      - name: Commit API hardening
         if: steps.guard.outputs.run == 'true'
         run: |
-          git add scripts/apply-production-phase-1.mjs scripts/fix-production-phase-1-specifiers.mjs src/lib/store.ts src/lib/source-reference-safety.ts src/lib/workspace-repository.ts src/lib/source-safe-store.ts src/lib/install-store-safety.ts src/routes/__root.tsx src/components/store-safety-lifecycle.tsx scripts/run-store-safety-evals.mjs scripts/verify-store-safety-contract.mjs
-          git commit -m "refactor(store): add durable workspace repository boundary [phase1-generated]"
+          git config user.name "Lamdan Production Agent"
+          git config user.email "actions@users.noreply.github.com"
+          git add package.json scripts/apply-production-phase-1-api.mjs scripts/run-ai-route-policy-evals.mjs scripts/verify-ai-route-policy-contract.mjs src/lib/server/ai-generation.ts src/lib/server/ai-route-policy.ts src/lib/server/ai-route-schemas.ts src/lib/server/gemini.ts src/lib/server/ocr-generation.ts src/routes/api/ai
+          git commit -m "feat(api): add runtime schemas and bounded AI request policy [phase1-api-generated]"
 
-      - name: Push verified commits
+      - name: Push verified API commit
         if: steps.guard.outputs.run == 'true'
         run: git push origin HEAD:agent/production-phase-1-stabilization
