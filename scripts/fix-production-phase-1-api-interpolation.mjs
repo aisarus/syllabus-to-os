@@ -13,9 +13,11 @@ for (const name of [
   "route",
   "failure",
 ]) {
-  const before = `\${${name}}`;
-  const after = `\\\${${name}}`;
-  content = content.replaceAll(before, after);
+  const placeholder = "${" + name + "}";
+  const escaped = "\\" + placeholder;
+  const doubleEscaped = "\\\\" + placeholder;
+  const pattern = new RegExp("(?<!\\\\)\\$\\{" + name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") + "\\}", "g");
+  content = content.replaceAll(doubleEscaped, escaped).replace(pattern, escaped);
 }
 content = content.replace(
   "? `\\${clientKey}:\\${options.operation}:\\${idempotencyKey}`",
