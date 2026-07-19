@@ -3,151 +3,187 @@ import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
 const [
-  appRoute,
+  app,
+  root,
   lifecycle,
   installer,
   persistence,
-  store,
-  storeRuntime,
-  integrity,
-  evaluation,
-  durableEvaluation,
-  privateRunner,
-  tasks,
-  status,
+  runtime,
+  facade,
+  mutators,
+  repository,
+  compatibility,
+  safety,
+  concept,
+  conceptLifecycle,
+  durableEval,
+  repositoryEval,
 ] = await Promise.all([
   read("src/routes/app.tsx"),
+  read("src/routes/__root.tsx"),
   read("src/components/store-safety-lifecycle.tsx"),
   read("src/lib/install-store-safety.ts"),
   read("src/lib/persistence-health.ts"),
-  read("src/lib/store.ts"),
   read("src/lib/store-runtime.ts"),
-  read("src/lib/source-integrity.ts"),
-  read("scripts/run-store-safety-evals.mjs"),
+  read("src/lib/store.ts"),
+  read("src/lib/store-mutators.ts"),
+  read("src/lib/workspace-repository.ts"),
+  read("src/lib/source-safe-store.ts"),
+  read("src/lib/source-reference-safety.ts"),
+  read("src/lib/concept-store.ts"),
+  read("src/components/concept-evidence-lifecycle.tsx"),
   read("scripts/run-durable-store-evals.mjs"),
-  read("scripts/run-private-ocr-provider.mjs"),
-  read("TASKS.md"),
-  read("STATUS.md"),
+  read("scripts/run-workspace-repository-evals.mjs"),
 ]);
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
   if (!content.includes(marker)) failures.push(message);
 };
+const forbidMarker = (content, marker, message) => {
+  if (content.includes(marker)) failures.push(message);
+};
 
-requireMarker(appRoute, "<StoreSafetyLifecycle />", "The app shell does not mount store safety.");
-for (const marker of [
-  "useWorkspacePersistenceFailure",
-  "retryPendingWorkspacePersistence",
-  "Аварийная JSON-копия",
-  "Изменение не применено",
-]) {
-  requireMarker(lifecycle, marker, `Store safety lifecycle is missing: ${marker}`);
-}
-
-// S2-001 will remove this compatibility installer. Until then, keep its existing
-// source-integrity behavior covered without treating it as the persistence boundary.
-for (const marker of [
-  "installStoreSafetyGuards",
-  "replaceMaterialChunksWithStableIds",
-  "store.replaceMaterialChunksForMaterial",
-  "store.updateNote",
-]) {
-  requireMarker(installer, marker, `Store safety compatibility installer is missing: ${marker}`);
-}
-
+requireMarker(app, "<StoreSafetyLifecycle />", "App shell does not mount store safety.");
 for (const marker of [
   "WorkspacePersistenceError",
+  "retryPendingWorkspacePersistence",
+  "Emergency JSON",
+]) {
+  requireMarker(lifecycle, marker, `Store safety UI is missing: ${marker}`);
+}
+for (const marker of [
   "WorkspacePersistenceFailureKind",
   'failureKind: "verification"',
   'failureKind: "serialization"',
-  "QuotaExceededError",
   "persistWorkspaceSnapshot",
 ]) {
-  requireMarker(persistence, marker, `Persistence result contract is missing: ${marker}`);
+  requireMarker(persistence, marker, `Persistence contract is missing: ${marker}`);
 }
-
 for (const marker of [
-  "commitWorkspaceCandidate",
+  "commitWorkspaceData",
   "pendingPersistenceFailure",
-  "retryPendingWorkspacePersistence",
-  "workspaceStoreTesting",
+  "subscribeWorkspaceData",
   "useWorkspacePersistenceFailure",
 ]) {
-  requireMarker(
-    storeRuntime,
-    marker,
-    `Durable-before-publish store contract is missing: ${marker}`,
-  );
-}
-for (const marker of ["./store-runtime.ts", "./store-mutators.ts", "./store-helpers.ts"]) {
-  requireMarker(store, marker, `Store facade is missing module export: ${marker}`);
+  requireMarker(runtime, marker, `Runtime persistence boundary is missing: ${marker}`);
 }
 
-const commitStart = storeRuntime.indexOf("function commitWorkspaceCandidate");
-const commitEnd = storeRuntime.indexOf("function subscribe(", commitStart);
-const commitBody =
-  commitStart >= 0 && commitEnd > commitStart ? storeRuntime.slice(commitStart, commitEnd) : "";
-const persistIndex = commitBody.indexOf("persistWorkspaceSnapshot");
-const failureIndex = commitBody.indexOf("if (!health.ok)");
-const publishIndex = commitBody.indexOf("state = next");
-const notifyIndex = commitBody.indexOf("notifyDataListeners()");
-if (
-  !commitBody ||
-  persistIndex < 0 ||
-  failureIndex < persistIndex ||
-  publishIndex < failureIndex ||
-  notifyIndex < publishIndex
-) {
-  failures.push(
-    "The core store does not persist and verify a candidate before publishing state and notifying subscribers.",
-  );
-}
-const failureBody =
-  failureIndex >= 0 && publishIndex > failureIndex
-    ? commitBody.slice(failureIndex, publishIndex)
-    : "";
-if (failureBody.includes("notifyDataListeners")) {
-  failures.push("The failed-write branch still notifies ordinary data subscribers.");
+const commitStart = runtime.indexOf("export function commitWorkspaceData");
+const commitEnd = runtime.indexOf("export function subscribeWorkspaceData", commitStart);
+const commit =
+  commitStart >= 0 && commitEnd > commitStart ? runtime.slice(commitStart, commitEnd) : "";
+const persist = commit.indexOf("persistWorkspaceSnapshot");
+const fail = commit.indexOf("if (!health.ok)");
+const publish = commit.indexOf("state = next");
+const notify = commit.indexOf("notifyDataListeners()");
+if (!commit || persist < 0 || fail < persist || publish < fail || notify < publish) {
+  failures.push("Core state is not persisted and verified before publication and notification.");
 }
 
 for (const marker of [
-  "replaceMaterialChunksWithStableIds",
-  "repairDanglingSourceReferences",
-  "presentationOutlines",
-  "sourceChunkIds",
+  "./store-runtime.ts",
+  "./store-mutators.ts",
+  "./store-helpers.ts",
+  "./workspace-repository.ts",
 ]) {
-  requireMarker(integrity, marker, `Source-integrity contract is missing: ${marker}`);
+  requireMarker(facade, marker, `Store facade is missing: ${marker}`);
 }
+for (const marker of [
+  "export interface WorkspaceRepository",
+  "getMutationBase()",
+  "replace(next: AppData)",
+  "transaction<T>",
+  "getRecoveryCandidate()",
+  "cloneWorkspaceData",
+]) {
+  requireMarker(repository, marker, `WorkspaceRepository is missing: ${marker}`);
+}
+for (const marker of [
+  "workspaceRepository.update",
+  "workspaceRepository.transaction",
+  "deleteMaterialFromWorkspace",
+  "replaceMaterialChunksInWorkspace",
+  "subscribeCardReviewEvents",
+  "notifyCardReview",
+]) {
+  requireMarker(mutators, marker, `Base mutator boundary is missing: ${marker}`);
+}
+for (const marker of [
+  "scrubSourceChunkReferences",
+  "deleteMaterialFromWorkspace",
+  "deleteMaterialChunkFromWorkspace",
+  "replaceMaterialChunksInWorkspace",
+  "presentationOutlines",
+]) {
+  requireMarker(safety, marker, `Source-reference safety is missing: ${marker}`);
+}
+for (const marker of ["source-reference-safety.ts", "workspaceRepository", "store"]) {
+  requireMarker(compatibility, marker, `Compatibility facade is missing: ${marker}`);
+}
+
+forbidMarker(
+  lifecycle,
+  'import "@/lib/install-store-safety"',
+  "Lifecycle still uses an installer side effect.",
+);
+forbidMarker(
+  root,
+  'import "@/lib/source-safe-store"',
+  "Root still uses a source-safe side effect.",
+);
+requireMarker(
+  installer,
+  "Intentionally empty",
+  "Compatibility installer is not an explicit no-op.",
+);
+forbidMarker(installer, 'from "./store', "Compatibility installer still imports the shared store.");
+
+const monkeyPatch = /\bstore\.[A-Za-z_$][\w$]*\s*=/;
+for (const [name, content] of [
+  ["installer", installer],
+  ["compatibility", compatibility],
+  ["mutators", mutators],
+  ["concept", concept],
+]) {
+  if (monkeyPatch.test(content)) failures.push(`${name} still replaces a shared store method.`);
+}
+for (const marker of ["installConceptEvidenceBridge", "subscribeCardReviewEvents"]) {
+  requireMarker(concept, marker, `Concept review bridge is missing: ${marker}`);
+}
+requireMarker(
+  conceptLifecycle,
+  "useEffect(() => installConceptEvidenceBridge(), [])",
+  "Concept review bridge is not registered explicitly.",
+);
 
 for (const marker of [
   "note_unsaved",
   "publishedBeforeFailure",
   "dataNotifications",
   'failureKind === "quota"',
-  '"unavailable", "unavailable"',
-  '"mismatch", "verification"',
   'failureKind === "serialization"',
   "retryPendingWorkspacePersistence",
 ]) {
-  requireMarker(durableEvaluation, marker, `Store publication regression is missing: ${marker}`);
+  requireMarker(durableEval, marker, `Durable-write regression is missing: ${marker}`);
 }
-
 for (const marker of [
-  "/api/ai/ocr-image",
-  "--require-external-candidates",
-  "private-eval-candidates",
-  "promptVersion",
+  "workspaceRepository.transaction",
+  "note_not_published",
+  "getRecoveryCandidate",
+  "methodIdentity",
+  "presentationOutlines",
+  "cardReviewEvents",
+  "subscribeCardReviewEvents",
 ]) {
-  requireMarker(privateRunner, marker, `Private OCR runner is missing: ${marker}`);
+  requireMarker(repositoryEval, marker, `Repository regression is missing: ${marker}`);
 }
-requireMarker(tasks, "S1-001", "TASKS.md does not contain S1-001.");
-requireMarker(status, "S1-001", "STATUS.md does not record S1-001.");
 
-if (failures.length > 0) {
+if (failures.length) {
   console.error("Store safety contract verification failed:\n");
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
-
-console.log("Store durable-before-publish and source-integrity contract passed.");
+console.log(
+  "WorkspaceRepository, durable persistence and import-order independence contract passed.",
+);

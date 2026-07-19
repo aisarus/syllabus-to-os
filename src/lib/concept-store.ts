@@ -11,13 +11,12 @@ import {
   type ConceptMistakeKind,
 } from "./concept-evidence";
 import { getQuizAttemptDetailSnapshot, type QuizAttemptDetailData } from "./quiz-attempt-details";
-import { store, uid, type AppData } from "./store";
+import { store, subscribeCardReviewEvents, uid, type AppData } from "./store";
 
 const KEY = "lamdan.concept-evidence.v1";
 const SERVER_SNAPSHOT = emptyConceptEvidenceData();
 let state: ConceptEvidenceData = SERVER_SNAPSHOT;
 let hydrated = false;
-let bridgeInstalled = false;
 const listeners = new Set<() => void>();
 
 function load(): ConceptEvidenceData {
@@ -289,14 +288,8 @@ export function syncQuizAttemptEvidence(
   }
 }
 
-export function installConceptEvidenceBridge(): void {
-  if (bridgeInstalled) return;
-  bridgeInstalled = true;
-  const originalReviewCard = store.reviewCard.bind(store);
-  store.reviewCard = ((id, quality) => {
-    originalReviewCard(id, quality);
-    recordFlashcardReviewEvidence(id, quality);
-  }) as typeof store.reviewCard;
+export function installConceptEvidenceBridge(): () => void {
+  return subscribeCardReviewEvents(recordFlashcardReviewEvidence);
 }
 
 export function exportConceptEvidenceJSON(courseId?: string): string {

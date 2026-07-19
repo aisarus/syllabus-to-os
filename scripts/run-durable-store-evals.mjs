@@ -170,3 +170,5 @@ unsubscribeData();
 unsubscribeFailure();
 workspaceStoreTesting.reset();
 console.log("Durable-before-publish core store evaluations passed.");
+
+await import("./run-workspace-repository-evals.mjs");

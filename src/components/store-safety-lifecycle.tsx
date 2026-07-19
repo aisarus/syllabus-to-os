@@ -3,7 +3,6 @@ import { AlertTriangle, Download, RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
-import "@/lib/install-store-safety";
 import {
   WorkspacePersistenceError,
   inspectWorkspacePersistence,
