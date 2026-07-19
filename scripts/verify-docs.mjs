@@ -4,10 +4,7 @@ import { resolve } from "node:path";
 const args = process.argv.slice(2);
 const ledgerRootIndex = args.indexOf("--ledger-root");
 const ledgerOnly = ledgerRootIndex >= 0;
-const root = resolve(
-  process.cwd(),
-  ledgerOnly ? (args[ledgerRootIndex + 1] ?? "") : ".",
-);
+const root = resolve(process.cwd(), ledgerOnly ? (args[ledgerRootIndex + 1] ?? "") : ".");
 
 if (ledgerOnly && !args[ledgerRootIndex + 1]) {
   console.error("Documentation verification failed:\n\n- --ledger-root requires a directory.");
@@ -96,9 +93,7 @@ function parseLedger(fileName) {
   return values;
 }
 
-const ledgers = new Map(
-  ledgerDocuments.map((fileName) => [fileName, parseLedger(fileName)]),
-);
+const ledgers = new Map(ledgerDocuments.map((fileName) => [fileName, parseLedger(fileName)]));
 const reference = ledgers.get("STATUS.md");
 if (reference) {
   for (const [fileName, ledger] of ledgers) {
@@ -152,7 +147,9 @@ if (!ledgerOnly) {
     failures.push("STATUS.md or PLANS.md still promotes a historical PR as active delivery.");
   }
   if (/The PR still requires|Verify and merge[^\n]*PR\s*#48/iu.test(status)) {
-    failures.push("STATUS.md still contains pre-merge instructions for an already merged delivery.");
+    failures.push(
+      "STATUS.md still contains pre-merge instructions for an already merged delivery.",
+    );
   }
   if (reference?.active_pr === "none" && /## Active implementation pass/iu.test(status)) {
     failures.push("STATUS.md names an active implementation pass while active_pr is none.");
