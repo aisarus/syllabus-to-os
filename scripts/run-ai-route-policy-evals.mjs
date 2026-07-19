@@ -4,6 +4,10 @@ import {
   handleAIJSONRequest,
   resetAIRequestPolicyForTests,
 } from "../src/lib/server/ai-route-policy.ts";
+import {
+  conceptExtractionInputSchema,
+  openAnswerReviewInputSchema,
+} from "../src/lib/server/ai-route-schemas.ts";
 
 const schema = z.object({ text: z.string().max(32) }).strict();
 const request = (body, headers = {}) =>
@@ -12,6 +16,31 @@ const request = (body, headers = {}) =>
     headers: { "content-type": "application/json", "x-real-ip": "127.0.0.1", ...headers },
     body,
   });
+
+assert.equal(
+  conceptExtractionInputSchema.safeParse({
+    chunks: [{ id: "chunk-1", text: "Source evidence" }],
+    existingConceptTitles: ["Existing concept"],
+  }).success,
+  true,
+);
+assert.equal(
+  openAnswerReviewInputSchema.safeParse({
+    chunks: [{ id: "chunk-1", text: "Source evidence" }],
+    concept: { id: "concept-1", title: "Concept" },
+    kind: "application",
+    prompt: "Apply the concept",
+    response: "My answer",
+  }).success,
+  true,
+);
+assert.equal(
+  openAnswerReviewInputSchema.safeParse({
+    chunks: [{ id: "chunk-1", text: "Source evidence" }],
+    unexpected: true,
+  }).success,
+  false,
+);
 
 resetAIRequestPolicyForTests();
 let response = await handleAIJSONRequest(request("{"), {
