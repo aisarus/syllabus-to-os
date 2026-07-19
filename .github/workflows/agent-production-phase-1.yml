@@ -56,13 +56,20 @@ jobs:
       - name: Apply durable repository boundary
         run: node scripts/apply-production-phase-1.mjs store
 
-      - name: Verify store contracts and evaluations
-        run: |
-          npm run verify:store-safety-contract
-          npm run eval:store-safety
-          npm run typecheck
-          npm run lint
-          npm run build
+      - name: Verify store safety contract
+        run: npm run verify:store-safety-contract
+
+      - name: Run store safety evaluation
+        run: npm run eval:store-safety
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Production build
+        run: npm run build
 
       - name: Commit stabilization foundation
         run: |
