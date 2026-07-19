@@ -1,11 +1,19 @@
+import { throwIfIntakeCancelled } from "./intake-cancellation";
+
 const KEY = "lamdan.material-fingerprints.v1";
 
 type FingerprintIndex = Record<string, string>;
 
-export async function fingerprintFile(file: File): Promise<string | undefined> {
+export async function fingerprintFile(
+  file: File,
+  signal?: AbortSignal,
+): Promise<string | undefined> {
+  throwIfIntakeCancelled(signal);
   if (typeof crypto === "undefined" || !crypto.subtle) return undefined;
   const bytes = await file.arrayBuffer();
+  throwIfIntakeCancelled(signal);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
+  throwIfIntakeCancelled(signal);
   return Array.from(new Uint8Array(digest), (value) => value.toString(16).padStart(2, "0")).join(
     "",
   );

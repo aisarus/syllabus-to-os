@@ -1,19 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { type AIGenerationInput } from "@/lib/server/ai-generation";
-import { runGoldenQuizGeneration } from "@/lib/server/golden-quiz-generation";
+import { runAIGeneration } from "@/lib/server/ai-generation";
+import { handleAIJSONRequest } from "@/lib/server/ai-route-policy";
+import { aiGenerationInputSchema } from "@/lib/server/ai-route-schemas";
 
 export const Route = createFileRoute("/api/ai/generate-quiz")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        let body: AIGenerationInput;
-        try {
-          body = (await request.json()) as AIGenerationInput;
-        } catch {
-          return Response.json({ ok: false, error: "Invalid JSON body" }, { status: 400 });
-        }
-        return Response.json(await runGoldenQuizGeneration(body));
-      },
+      POST: async ({ request }) =>
+        handleAIJSONRequest(request, {
+          operation: "generate-quiz",
+          schema: aiGenerationInputSchema,
+          costUnits: 4,
+          handler: (body, context) => runAIGeneration("quiz", body, context),
+        }),
     },
   },
 });

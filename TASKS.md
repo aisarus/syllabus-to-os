@@ -2,6 +2,19 @@
 
 This is the canonical executable task ledger for Lamdan. Product intent lives in `ROADMAP.md`; active delivery plans live in `PLANS.md`; operational evidence and blockers live in `STATUS.md`.
 
+## Active production-readiness pass — 2026-07-19
+
+The canonical product backlog below remains intact. The current cross-cutting execution order is:
+
+1. `[~] PROD-001` — durable persistence boundary: publish state only after verified storage.
+2. `[~] PROD-002` — explicit `WorkspaceRepository`; remove import-order store monkey-patching.
+3. `[ ] PROD-003` — shared runtime API schemas, error envelope and bounded AI resource policy.
+4. `[ ] PROD-004` — real cancellation for running intake/provider work.
+5. `[ ] PROD-005` — keyboard, focus, contrast and mixed-direction accessibility baseline.
+6. `[!] PROD-006` — licensed OCR/quiz/transcription evidence and one-course pilot.
+
+Merged main already includes the UX/exam sequence through PR #72; historical entries that mention older active PRs are evidence records, not the current execution state.
+
 ## Status legend
 
 - `[ ]` not started

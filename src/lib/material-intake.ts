@@ -1,4 +1,5 @@
 import { ingestFile, ingestPastedText, type IngestResult } from "./document-ingestion";
+import { throwIfIntakeCancelled } from "./intake-cancellation";
 import {
   fingerprintFile,
   materialIdForFingerprint,
@@ -105,9 +106,16 @@ export function intakeOutcome(status: MaterialProcessingStatus): MaterialIntakeO
   }
 }
 
-export async function prepareFileIntake(file: File): Promise<PreparedFileIntake> {
+export async function prepareFileIntake(
+  file: File,
+  options: { signal?: AbortSignal } = {},
+): Promise<PreparedFileIntake> {
+  throwIfIntakeCancelled(options.signal);
   const isVisualSource = isVisualSourceCandidate(file);
-  const extraction = isVisualSource ? prepareVisualExtraction(file) : await ingestFile(file);
+  const extraction = isVisualSource
+    ? prepareVisualExtraction(file)
+    : await ingestFile(file, options.signal);
+  throwIfIntakeCancelled(options.signal);
   return {
     fileName: file.name,
     mimeType: file.type || undefined,

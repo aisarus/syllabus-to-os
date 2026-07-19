@@ -27,6 +27,7 @@ import { MaterialIntakeReviewDialog } from "@/components/material-intake-review-
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
 import { formatFileSize } from "@/lib/document-ingestion";
+import { isIntakeCancellation, throwIfIntakeCancelled } from "@/lib/intake-cancellation";
 import {
   fingerprintFile,
   materialIdForFingerprint,
@@ -118,6 +119,7 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
   const itemsRef = useRef(items);
   const dataRef = useRef(data);
   const runningRef = useRef(new Set<string>());
+  const abortControllersRef = useRef(new Map<string, AbortController>());
   const fingerprintsInFlightRef = useRef(new Map<string, string>());
 
   useEffect(() => {
@@ -127,6 +129,14 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
   useEffect(() => {
     dataRef.current = data;
   }, [data]);
+
+  useEffect(
+    () => () => {
+      abortControllersRef.current.forEach((controller) => controller.abort());
+      abortControllersRef.current.clear();
+    },
+    [],
+  );
 
   const enqueueFiles = useCallback<MaterialIntakeQueueContextValue["enqueueFiles"]>(
     (files, options = {}) => {
@@ -150,6 +160,9 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
     if (!item || item.status !== "queued" || runningRef.current.has(id)) return;
 
     runningRef.current.add(id);
+    const controller = new AbortController();
+    abortControllersRef.current.set(id, controller);
+    const { signal } = controller;
     setItems((current) =>
       current.map((candidate) =>
         candidate.id === id
@@ -160,7 +173,8 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
 
     let ownedFingerprint: string | undefined;
     try {
-      const fingerprint = item.fingerprint ?? (await fingerprintFile(item.file));
+      const fingerprint = item.fingerprint ?? (await fingerprintFile(item.file, signal));
+      throwIfIntakeCancelled(signal);
       if (fingerprint && !item.duplicateDecision) {
         const exactDuplicate = findExactDuplicate(
           fingerprint,
@@ -170,6 +184,7 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
           fingerprintsInFlightRef.current,
         );
         if (exactDuplicate) {
+          throwIfIntakeCancelled(signal);
           pauseForDuplicate(id, fingerprint, undefined, exactDuplicate, setItems);
           return;
         }
@@ -180,7 +195,8 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
         ownedFingerprint = fingerprint;
       }
 
-      const prepared = item.prepared ?? (await prepareFileIntake(item.file));
+      const prepared = item.prepared ?? (await prepareFileIntake(item.file, { signal }));
+      throwIfIntakeCancelled(signal);
       if (!item.duplicateDecision) {
         const likelyDuplicate = findLikelyDuplicate(
           prepared,
@@ -189,11 +205,13 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
           itemsRef.current,
         );
         if (likelyDuplicate) {
+          throwIfIntakeCancelled(signal);
           pauseForDuplicate(id, fingerprint, prepared, likelyDuplicate, setItems);
           return;
         }
       }
 
+      throwIfIntakeCancelled(signal);
       setItems((current) =>
         current.map((candidate) =>
           candidate.id === id
@@ -208,18 +226,25 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
         ),
       );
     } catch (error) {
+      const cancelled = isIntakeCancellation(error, signal);
       setItems((current) =>
         current.map((candidate) =>
           candidate.id === id
             ? {
                 ...candidate,
-                status: "error",
-                message: error instanceof Error ? error.message : String(error),
+                status: cancelled ? "cancelled" : "error",
+                message: cancelled
+                  ? "Processing cancelled."
+                  : error instanceof Error
+                    ? error.message
+                    : String(error),
+                prepared: cancelled ? undefined : candidate.prepared,
               }
             : candidate,
         ),
       );
     } finally {
+      abortControllersRef.current.delete(id);
       runningRef.current.delete(id);
       if (ownedFingerprint && fingerprintsInFlightRef.current.get(ownedFingerprint) === id) {
         fingerprintsInFlightRef.current.delete(ownedFingerprint);
@@ -256,9 +281,12 @@ export function MaterialIntakeQueueProvider({ children }: { children: ReactNode 
   }, []);
 
   const cancel = useCallback((id: string) => {
+    abortControllersRef.current.get(id)?.abort();
     setItems((current) =>
       current.map((item) =>
-        item.id === id && item.status === "queued" ? { ...item, status: "cancelled" } : item,
+        item.id === id && (item.status === "queued" || item.status === "extracting")
+          ? { ...item, status: "cancelled", message: "Processing cancelled." }
+          : item,
       ),
     );
   }, []);

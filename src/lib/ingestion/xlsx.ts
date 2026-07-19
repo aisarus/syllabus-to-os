@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { throwIfIntakeCancelled } from "../intake-cancellation";
 import {
   countWords,
   createChunksFromText,
@@ -7,14 +8,18 @@ import {
   type IngestResult,
 } from "../document-ingestion";
 
-export async function extractXlsx(file: File): Promise<IngestResult> {
+export async function extractXlsx(file: File, signal?: AbortSignal): Promise<IngestResult> {
+  throwIfIntakeCancelled(signal);
   const buf = await file.arrayBuffer();
+  throwIfIntakeCancelled(signal);
   const wb = XLSX.read(buf, { type: "array" });
+  throwIfIntakeCancelled(signal);
   const parts: string[] = [];
   const chunks: IngestChunk[] = [];
   let order = 0;
 
   for (const name of wb.SheetNames) {
+    throwIfIntakeCancelled(signal);
     const sh = wb.Sheets[name];
     if (!sh) continue;
     const rows = XLSX.utils.sheet_to_json<unknown[]>(sh, {

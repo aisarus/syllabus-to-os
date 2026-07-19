@@ -25,7 +25,10 @@ export type OCRGenerationResponse =
     }
   | { ok: false; error: string; details?: string };
 
-export async function runOCRGeneration(input: OCRGenerationInput): Promise<OCRGenerationResponse> {
+export async function runOCRGeneration(
+  input: OCRGenerationInput,
+  options: { signal?: AbortSignal } = {},
+): Promise<OCRGenerationResponse> {
   const locale = input.locale ?? "ru";
   const sourceStyle = input.sourceStyle ?? "mixed";
   const validationError = validateInput(input, locale);
@@ -54,7 +57,12 @@ export async function runOCRGeneration(input: OCRGenerationInput): Promise<OCRGe
     }>
   }`;
 
-  const response = await generateGeminiVisionJSON<unknown>(prompt, schema, input.imageDataUrl);
+  const response = await generateGeminiVisionJSON<unknown>(
+    prompt,
+    schema,
+    input.imageDataUrl,
+    options,
+  );
   if (!response.ok) return response;
 
   const draft = normalizeOCRDraft(response.data, {

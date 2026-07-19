@@ -1,0 +1,144 @@
+name: Agent production phase 1
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/apply-production-phase-1-cancellation.mjs
+      - scripts/fix-production-phase-1-cancellation-templates.mjs
+      - .github/workflows/agent-production-phase-1.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agent-production-phase-1-cancellation
+  cancel-in-progress: false
+
+jobs:
+  intake-cancellation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: agent/production-phase-1-stabilization
+
+      - name: Determine executor state
+        id: guard
+        shell: bash
+        run: |
+          message="$(git log -1 --pretty=%B)"
+          if [[ "$message" == *"[phase1-cancel-generated]"* ]]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: oven-sh/setup-bun@v2
+        if: steps.guard.outputs.run == 'true'
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.run == 'true'
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Apply cancellation hardening
+        id: apply
+        if: steps.guard.outputs.run == 'true'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          : > phase1-cancellation-apply.log
+          node scripts/fix-production-phase-1-cancellation-templates.mjs >> phase1-cancellation-apply.log 2>&1
+          node scripts/apply-production-phase-1-cancellation.mjs >> phase1-cancellation-apply.log 2>&1
+          npx prettier --write \
+            package.json \
+            scripts/apply-production-phase-1-cancellation.mjs \
+            scripts/fix-production-phase-1-cancellation-templates.mjs \
+            scripts/run-intake-cancellation-evals.mjs \
+            scripts/verify-intake-cancellation-contract.mjs \
+            src/components/material-intake-queue.tsx \
+            src/lib/intake-cancellation.ts \
+            src/lib/material-fingerprints.ts \
+            src/lib/material-intake.ts \
+            src/lib/document-ingestion.ts \
+            src/lib/ingestion/pdf.ts \
+            src/lib/ingestion/docx.ts \
+            src/lib/ingestion/xlsx.ts >> phase1-cancellation-apply.log 2>&1
+
+      - name: Upload cancellation diagnostics
+        if: steps.apply.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase1-cancellation-apply-debug
+          path: |
+            phase1-cancellation-apply.log
+            scripts/apply-production-phase-1-cancellation.mjs
+            scripts/run-intake-cancellation-evals.mjs
+            scripts/verify-intake-cancellation-contract.mjs
+            src/components/material-intake-queue.tsx
+            src/lib/intake-cancellation.ts
+            src/lib/material-fingerprints.ts
+            src/lib/material-intake.ts
+            src/lib/document-ingestion.ts
+            src/lib/ingestion/pdf.ts
+            src/lib/ingestion/docx.ts
+            src/lib/ingestion/xlsx.ts
+          if-no-files-found: warn
+          retention-days: 2
+
+      - name: Fail on cancellation migration error
+        if: steps.apply.outcome == 'failure'
+        run: |
+          cat phase1-cancellation-apply.log
+          exit 1
+
+      - name: Verify cancellation contract
+        if: steps.guard.outputs.run == 'true'
+        run: npm run verify:intake-cancellation-contract
+
+      - name: Run cancellation evaluation
+        if: steps.guard.outputs.run == 'true'
+        run: npm run eval:intake-cancellation
+
+      - name: Recheck persistence and API contracts
+        if: steps.guard.outputs.run == 'true'
+        run: |
+          npm run verify:store-safety-contract
+          npm run eval:store-safety
+          npm run verify:ai-route-policy-contract
+          npm run eval:ai-route-policy
+
+      - name: Typecheck
+        if: steps.guard.outputs.run == 'true'
+        run: npm run typecheck
+
+      - name: Lint
+        if: steps.guard.outputs.run == 'true'
+        run: npm run lint
+
+      - name: Production build
+        if: steps.guard.outputs.run == 'true'
+        run: npm run build
+
+      - name: Commit cancellation hardening
+        if: steps.guard.outputs.run == 'true'
+        run: |
+          git config user.name "Lamdan Production Agent"
+          git config user.email "actions@users.noreply.github.com"
+          git add package.json scripts/apply-production-phase-1-cancellation.mjs scripts/fix-production-phase-1-cancellation-templates.mjs scripts/run-intake-cancellation-evals.mjs scripts/verify-intake-cancellation-contract.mjs src/components/material-intake-queue.tsx src/lib/intake-cancellation.ts src/lib/material-fingerprints.ts src/lib/material-intake.ts src/lib/document-ingestion.ts src/lib/ingestion/pdf.ts src/lib/ingestion/docx.ts src/lib/ingestion/xlsx.ts
+          git commit -m "fix(intake): abort running extraction without post-cancel writes [phase1-cancel-generated]"
+
+      - name: Push verified cancellation commit
+        if: steps.guard.outputs.run == 'true'
+        run: git push origin HEAD:agent/production-phase-1-stabilization
