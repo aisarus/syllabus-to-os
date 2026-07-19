@@ -100,7 +100,7 @@ function recoveryCandidate(next: AppData, health: WorkspacePersistenceHealth): A
   }
 }
 
-function commitWorkspaceCandidate(next: AppData): WorkspacePersistenceHealth {
+export function commitWorkspaceData(next: AppData): WorkspacePersistenceHealth {
   const health = persistWorkspaceSnapshot(next, workspaceStorageProvider());
   if (!health.ok) {
     const candidate = recoveryCandidate(next, health);
@@ -118,7 +118,7 @@ function commitWorkspaceCandidate(next: AppData): WorkspacePersistenceHealth {
   return health;
 }
 
-function subscribe(fn: () => void) {
+export function subscribeWorkspaceData(fn: () => void) {
   ensureHydrated();
   queueMicrotask(fn);
   listeners.add(fn);
@@ -144,7 +144,7 @@ function getServerPersistenceFailureSnapshot() {
 }
 
 export function useData(): AppData {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  return useSyncExternalStore(subscribeWorkspaceData, getSnapshot, getServerSnapshot);
 }
 
 export function useWorkspacePersistenceFailure(): PendingWorkspacePersistenceFailure | null {
@@ -163,26 +163,26 @@ export function retryPendingWorkspacePersistence(): WorkspacePersistenceHealth |
   const pending = pendingPersistenceFailure;
   if (!pending) return null;
   try {
-    return commitWorkspaceCandidate(pending.candidate);
+    return commitWorkspaceData(pending.candidate);
   } catch (error) {
     if (error instanceof WorkspacePersistenceError) return error.health;
     throw error;
   }
 }
 
-export function setData(next: AppData): void {
+export function setData(next: AppData): WorkspacePersistenceHealth {
   ensureHydrated();
-  commitWorkspaceCandidate(next);
+  return commitWorkspaceData(next);
 }
 
-export function updateData(fn: (data: AppData) => AppData): void {
+export function updateData(fn: (data: AppData) => AppData): WorkspacePersistenceHealth {
   ensureHydrated();
   const base =
     pendingPersistenceFailure?.health.serialized && pendingPersistenceFailure.candidate
       ? pendingPersistenceFailure.candidate
       : state;
   const next = fn(base);
-  commitWorkspaceCandidate(next);
+  return commitWorkspaceData(next);
 }
 
 export const workspaceStoreTesting = {
@@ -202,7 +202,7 @@ export const workspaceStoreTesting = {
     };
   },
   subscribe(listener: () => void) {
-    return subscribe(listener);
+    return subscribeWorkspaceData(listener);
   },
   subscribePersistenceFailure(listener: () => void) {
     return subscribePersistenceFailure(listener);

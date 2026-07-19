@@ -13,8 +13,6 @@ const [
   courseRoute,
   evals,
   roadmap,
-  tasks,
-  status,
 ] = await Promise.all([
   read("src/lib/concept-evidence.ts"),
   read("src/lib/concept-store.ts"),
@@ -26,8 +24,6 @@ const [
   read("src/routes/app.courses_.$courseId.tsx"),
   read("scripts/run-concept-evidence-evals.mjs"),
   read("ROADMAP.md"),
-  read("TASKS.md"),
-  read("STATUS.md"),
 ]);
 
 const failures = [];
@@ -80,7 +76,6 @@ for (const marker of [
 }
 
 for (const marker of [
-  "installConceptEvidenceBridge",
   "getDataSnapshot()",
   "reconcileQuizAttemptDetails(hydratedCore)",
   "reconcileConceptEvidence(hydratedCore, hydratedDetails)",
@@ -88,6 +83,15 @@ for (const marker of [
 ]) {
   requireMarker(lifecycle, marker, `Concept lifecycle is missing: ${marker}`);
 }
+
+for (const marker of ["installConceptEvidenceBridge", "subscribeCardReviewEvents"]) {
+  requireMarker(store, marker, `Concept review subscription is missing: ${marker}`);
+}
+requireMarker(
+  lifecycle,
+  "useEffect(() => installConceptEvidenceBridge(), [])",
+  "Concept evidence review subscription is not registered explicitly by the lifecycle.",
+);
 
 for (const marker of [
   "Карта знаний",
@@ -140,13 +144,11 @@ requireMarker(
   "Course route does not expose the knowledge map.",
 );
 
-for (const [content, marker, file] of [
-  [roadmap, "Phase 7 — Concepts and evidence-based mastery", "ROADMAP.md"],
-  [tasks, "P1-013 — Concept graph and evidence model", "TASKS.md"],
-  [status, "P1-013", "STATUS.md"],
-]) {
-  requireMarker(content, marker, `${file} is missing concept evidence status: ${marker}`);
-}
+requireMarker(
+  roadmap,
+  "Phase 7 — Concepts and evidence-based mastery",
+  "ROADMAP.md is missing the concept evidence product contract.",
+);
 
 if (failures.length > 0) {
   console.error("Concept evidence contract verification failed:\n");

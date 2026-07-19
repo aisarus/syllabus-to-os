@@ -12,12 +12,12 @@ import {
 } from "@/lib/quiz-attempt-details";
 import { getDataSnapshot, useData } from "@/lib/store";
 
-installConceptEvidenceBridge();
-
 export function ConceptEvidenceLifecycle() {
   const core = useData();
   const conceptData = useConceptEvidenceData();
   const detailData = useQuizAttemptDetailData();
+
+  useEffect(() => installConceptEvidenceBridge(), []);
 
   useEffect(() => {
     const hydratedCore = getDataSnapshot();
