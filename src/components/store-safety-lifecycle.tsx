@@ -3,7 +3,6 @@ import { AlertTriangle, Download, RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-context";
-import "@/lib/install-store-safety";
 import {
   inspectWorkspacePersistence,
   persistWorkspaceSnapshot,
@@ -13,8 +12,8 @@ import { repairDanglingSourceReferences } from "@/lib/source-integrity";
 import { updateData, useData, type AppData } from "@/lib/store";
 
 /**
- * Keeps the legacy local-first store honest without changing its persisted v1
- * schema. The component detects failed localStorage writes and repairs citations
+ * Keeps the local-first store observable while the explicit repository boundary
+ * preserves the persisted v1 schema. The component detects failed localStorage writes and repairs citations
  * after older chunk-editing paths replace source ids.
  */
 export function StoreSafetyLifecycle() {

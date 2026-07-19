@@ -1,4 +1,11 @@
 import { useSyncExternalStore } from "react";
+import {
+  persistWorkspaceSnapshot,
+  type StorageLike,
+  type WorkspacePersistenceHealth,
+} from "./persistence-health.ts";
+import { scrubSourceChunkReferences } from "./source-reference-safety.ts";
+import { replaceMaterialChunksWithStableIds } from "./source-integrity.ts";
 
 // ============ Types ============
 
@@ -323,13 +330,21 @@ function ensureHydrated() {
   state = load();
 }
 
-function persist() {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(state));
-  } catch {
-    // A full localStorage quota must not prevent in-memory UI updates.
+export class WorkspacePersistenceError extends Error {
+  readonly health: WorkspacePersistenceHealth;
+
+  constructor(health: WorkspacePersistenceHealth) {
+    super(health.error ?? "Browser-local workspace save failed.");
+    this.name = "WorkspacePersistenceError";
+    this.health = health;
   }
-  listeners.forEach((l) => l());
+}
+
+export function commitWorkspaceData(next: AppData, storage?: StorageLike): void {
+  const health = persistWorkspaceSnapshot(next, storage);
+  if (!health.ok) throw new WorkspacePersistenceError(health);
+  state = next;
+  listeners.forEach((listener) => listener());
 }
 
 function subscribe(fn: () => void) {
@@ -351,13 +366,14 @@ export function useData(): AppData {
 }
 
 export function setData(next: AppData) {
-  state = next;
-  persist();
+  ensureHydrated();
+  commitWorkspaceData(next);
 }
 
 export function updateData(fn: (d: AppData) => AppData) {
-  state = fn(state);
-  persist();
+  ensureHydrated();
+  const next = fn(state);
+  commitWorkspaceData(next);
 }
 
 export function uid(prefix = "id"): string {
@@ -567,20 +583,30 @@ export const store = {
     }));
   },
   deleteMaterial(id: string) {
-    updateData((d) => ({
-      ...d,
-      materials: d.materials.filter((m) => m.id !== id),
-      materialChunks: d.materialChunks.filter((ch) => ch.materialId !== id),
-      materialOutputs: d.materialOutputs.filter((o) => o.materialId !== id),
-      notes: d.notes.map((n) => (n.materialId === id ? { ...n, materialId: undefined } : n)),
-      flashcards: d.flashcards.map((c) =>
-        c.materialId === id ? { ...c, materialId: undefined } : c,
-      ),
-      quizzes: d.quizzes.map((q) => (q.materialId === id ? { ...q, materialId: undefined } : q)),
-      presentationOutlines: d.presentationOutlines.map((p) =>
-        p.materialId === id ? { ...p, materialId: undefined } : p,
-      ),
-    }));
+    updateData((data) => {
+      const removedChunkIds = data.materialChunks
+        .filter((chunk) => chunk.materialId === id)
+        .map((chunk) => chunk.id);
+      const withoutMaterial: AppData = {
+        ...data,
+        materials: data.materials.filter((material) => material.id !== id),
+        materialChunks: data.materialChunks.filter((chunk) => chunk.materialId !== id),
+        materialOutputs: data.materialOutputs.filter((output) => output.materialId !== id),
+        notes: data.notes.map((note) =>
+          note.materialId === id ? { ...note, materialId: undefined } : note,
+        ),
+        flashcards: data.flashcards.map((card) =>
+          card.materialId === id ? { ...card, materialId: undefined } : card,
+        ),
+        quizzes: data.quizzes.map((quiz) =>
+          quiz.materialId === id ? { ...quiz, materialId: undefined } : quiz,
+        ),
+        presentationOutlines: data.presentationOutlines.map((outline) =>
+          outline.materialId === id ? { ...outline, materialId: undefined } : outline,
+        ),
+      };
+      return scrubSourceChunkReferences(withoutMaterial, removedChunkIds);
+    });
   },
   recordOutput(o: Omit<MaterialOutput, "id" | "createdAt">) {
     const out: MaterialOutput = { ...o, id: uid("out"), createdAt: Date.now() };
@@ -600,45 +626,28 @@ export const store = {
     }));
   },
   deleteMaterialChunk(id: string) {
-    updateData((d) => ({
-      ...d,
-      materialChunks: d.materialChunks.filter((ch) => ch.id !== id),
-      notes: d.notes.map((n) =>
-        n.sourceChunkIds?.includes(id)
-          ? { ...n, sourceChunkIds: n.sourceChunkIds.filter((x) => x !== id) }
-          : n,
+    updateData((data) =>
+      scrubSourceChunkReferences(
+        {
+          ...data,
+          materialChunks: data.materialChunks.filter((chunk) => chunk.id !== id),
+        },
+        [id],
       ),
-      flashcards: d.flashcards.map((c) =>
-        c.sourceChunkIds?.includes(id)
-          ? { ...c, sourceChunkIds: c.sourceChunkIds.filter((x) => x !== id) }
-          : c,
-      ),
-      quizQuestions: d.quizQuestions.map((q) =>
-        q.sourceChunkIds?.includes(id)
-          ? { ...q, sourceChunkIds: q.sourceChunkIds.filter((x) => x !== id) }
-          : q,
-      ),
-    }));
+    );
   },
   replaceMaterialChunksForMaterial(
     materialId: string,
     chunks: Array<Omit<MaterialChunk, "id" | "createdAt" | "materialId">>,
   ) {
-    const now = Date.now();
-    const created: MaterialChunk[] = chunks.map((c, i) => ({
-      ...c,
-      order: c.order ?? i,
-      materialId,
-      id: uid("chk"),
-      createdAt: now,
-    }));
-    updateData((d) => ({
-      ...d,
-      materialChunks: [
-        ...d.materialChunks.filter((ch) => ch.materialId !== materialId),
-        ...created,
-      ],
-    }));
+    let created: MaterialChunk[] = [];
+    updateData((data) => {
+      const replacement = replaceMaterialChunksWithStableIds(data, materialId, chunks, () =>
+        uid("chk"),
+      );
+      created = replacement.chunks;
+      return replacement.data;
+    });
     return created;
   },
   // presentation outlines
@@ -805,12 +814,7 @@ export function getDataSnapshot(): AppData {
  */
 export function replaceAllAtomically(next: AppData): void {
   const normalized = normalizeAppData(next as unknown as Record<string, unknown>);
-  const serialized = JSON.stringify(normalized);
-  if (typeof window !== "undefined") {
-    localStorage.setItem(KEY, serialized);
-  }
-  state = normalized;
-  listeners.forEach((listener) => listener());
+  commitWorkspaceData(normalized);
 }
 
 export function importJSON(json: string): { ok: true } | { ok: false; error: string } {

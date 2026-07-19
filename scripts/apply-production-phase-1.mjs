@@ -23,7 +23,12 @@ function replaceExact(content, before, after, label) {
 async function patchDocs() {
   const statusPath = "STATUS.md";
   let status = await read(statusPath);
-  status = replaceExact(status, "Last updated: 2026-07-16", "Last updated: 2026-07-19", "STATUS date");
+  status = replaceExact(
+    status,
+    "Last updated: 2026-07-16",
+    "Last updated: 2026-07-19",
+    "STATUS date",
+  );
   status = replaceExact(
     status,
     "Lamdan remains a late MVP / early closed alpha. The trusted local-first source → review → output loop is implemented. M1 is still blocked on private live OCR and quiz validation. Concept evidence, reviewed extraction, open-answer repair, collision hardening, Exam Engine v1, durable whole-lecture media intake and reviewed automatic transcription v1 are implemented and verified. Resumable long-file transcription C1 is the active delivery pass.",

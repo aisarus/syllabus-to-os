@@ -3,7 +3,12 @@ import {
   inspectWorkspacePersistence,
   persistWorkspaceSnapshot,
 } from "../src/lib/persistence-health.ts";
-import { getDataSnapshot, setData, store } from "../src/lib/source-safe-store.ts";
+import {
+  commitWorkspaceData,
+  getDataSnapshot,
+  setData,
+  store,
+} from "../src/lib/source-safe-store.ts";
 import {
   repairDanglingSourceReferences,
   replaceMaterialChunksWithStableIds,
@@ -240,4 +245,9 @@ const failed = persistWorkspaceSnapshot(linked, fullStorage);
 assert.equal(failed.ok, false);
 assert.match(failed.error, /storage is full/i);
 
-console.log("Store persistence honesty and source-reference integrity evaluations passed.");
+setData(linked);
+const beforeFailedCommit = getDataSnapshot();
+assert.throws(() => commitWorkspaceData(base({ notes: [] }), fullStorage), /storage is full/i);
+assert.deepEqual(getDataSnapshot(), beforeFailedCommit);
+
+console.log("Store durable-before-publish and source-reference integrity evaluations passed.");

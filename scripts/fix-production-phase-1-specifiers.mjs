@@ -9,14 +9,8 @@ const replacements = new Map([
       ['from "./source-integrity"', 'from "./source-integrity.ts"'],
     ],
   ],
-  [
-    "src/lib/source-reference-safety.ts",
-    [['from "./store"', 'from "./store.ts"']],
-  ],
-  [
-    "src/lib/workspace-repository.ts",
-    [['from "./store"', 'from "./store.ts"']],
-  ],
+  ["src/lib/source-reference-safety.ts", [['from "./store"', 'from "./store.ts"']]],
+  ["src/lib/workspace-repository.ts", [['from "./store"', 'from "./store.ts"']]],
   [
     "src/lib/source-safe-store.ts",
     [
