@@ -21,7 +21,7 @@ import {
   PanelLeftOpen,
   Plus,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import "@/content-workspace.css";
 import "@/ux-foundation.css";
 import { useApp } from "@/lib/app-context";
@@ -251,6 +251,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCompact, setSidebarCompact] = useState(false);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileDrawerRef = useRef<HTMLElement>(null);
+  const mobileCloseButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setSidebarCompact(localStorage.getItem("lamdan.sidebar.compact") === "true");
@@ -259,14 +262,45 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!mobileOpen) return;
     const previousOverflow = document.body.style.overflow;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMobileOpen(false);
+    const drawer = mobileDrawerRef.current;
+    const focusableSelector =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const focusInitialControl = window.requestAnimationFrame(() => {
+      mobileCloseButtonRef.current?.focus();
+    });
+    const handleDrawerKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMobileOpen(false);
+        return;
+      }
+      if (event.key !== "Tab" || !drawer) return;
+      const focusable = Array.from(drawer.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+        (element) =>
+          !element.hasAttribute("hidden") && element.getAttribute("aria-hidden") !== "true",
+      );
+      if (focusable.length === 0) {
+        event.preventDefault();
+        drawer.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("keydown", handleDrawerKeyDown);
     return () => {
+      window.cancelAnimationFrame(focusInitialControl);
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("keydown", handleDrawerKeyDown);
+      mobileMenuButtonRef.current?.focus();
     };
   }, [mobileOpen]);
 
@@ -299,6 +333,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="content-main">
         <header className="content-mobile-header">
           <button
+            ref={mobileMenuButtonRef}
             type="button"
             onClick={() => setMobileOpen(true)}
             aria-label={lang === "ru" ? "Открыть навигацию" : "Open navigation"}
@@ -324,15 +359,20 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-label={lang === "ru" ? "Закрыть навигацию" : "Close navigation"}
           />
           <aside
+            ref={mobileDrawerRef}
             id="lamdan-mobile-navigation"
             className="content-mobile-drawer"
             role="dialog"
             aria-modal="true"
-            aria-label={lang === "ru" ? "Мобильная навигация Lamdan" : "Lamdan mobile navigation"}
+            aria-labelledby="lamdan-mobile-navigation-title"
+            tabIndex={-1}
           >
             <div className="content-mobile-drawer__header">
-              <span>{lang === "ru" ? "Навигация" : "Navigation"}</span>
+              <span id="lamdan-mobile-navigation-title">
+                {lang === "ru" ? "Навигация" : "Navigation"}
+              </span>
               <button
+                ref={mobileCloseButtonRef}
                 type="button"
                 onClick={() => setMobileOpen(false)}
                 aria-label={lang === "ru" ? "Закрыть меню" : "Close menu"}
