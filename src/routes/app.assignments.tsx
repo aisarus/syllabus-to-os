@@ -49,14 +49,19 @@ function AssignmentForm({ id, onDone }: { id?: string; onDone: () => void }) {
   return (
     <div className="space-y-3">
       <div>
-        <Label>{t.title}</Label>
-        <Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
+        <Label htmlFor="assignment-title">{t.title}</Label>
+        <Input
+          id="assignment-title"
+          dir="auto"
+          value={f.title}
+          onChange={(e) => setF({ ...f, title: e.target.value })}
+        />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>{t.linkedCourse}</Label>
+          <Label htmlFor="assignment-course">{t.linkedCourse}</Label>
           <Select value={f.courseId} onValueChange={(v) => setF({ ...f, courseId: v })}>
-            <SelectTrigger>
+            <SelectTrigger id="assignment-course">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -70,20 +75,21 @@ function AssignmentForm({ id, onDone }: { id?: string; onDone: () => void }) {
           </Select>
         </div>
         <div>
-          <Label>{t.dueDate}</Label>
+          <Label htmlFor="assignment-due-date">{t.dueDate}</Label>
           <Input
+            id="assignment-due-date"
             type="date"
             value={f.dueDate}
             onChange={(e) => setF({ ...f, dueDate: e.target.value })}
           />
         </div>
         <div>
-          <Label>{t.status}</Label>
+          <Label htmlFor="assignment-status">{t.status}</Label>
           <Select
             value={f.status}
             onValueChange={(v) => setF({ ...f, status: v as AssignmentStatus })}
           >
-            <SelectTrigger>
+            <SelectTrigger id="assignment-status">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -95,9 +101,9 @@ function AssignmentForm({ id, onDone }: { id?: string; onDone: () => void }) {
           </Select>
         </div>
         <div>
-          <Label>{t.priority}</Label>
+          <Label htmlFor="assignment-priority">{t.priority}</Label>
           <Select value={f.priority} onValueChange={(v) => setF({ ...f, priority: v as Priority })}>
-            <SelectTrigger>
+            <SelectTrigger id="assignment-priority">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -108,13 +114,20 @@ function AssignmentForm({ id, onDone }: { id?: string; onDone: () => void }) {
           </Select>
         </div>
         <div>
-          <Label>{t.grade}</Label>
-          <Input value={f.grade} onChange={(e) => setF({ ...f, grade: e.target.value })} />
+          <Label htmlFor="assignment-grade">{t.grade}</Label>
+          <Input
+            id="assignment-grade"
+            dir="auto"
+            value={f.grade}
+            onChange={(e) => setF({ ...f, grade: e.target.value })}
+          />
         </div>
       </div>
       <div>
-        <Label>{t.notes}</Label>
+        <Label htmlFor="assignment-notes">{t.notes}</Label>
         <textarea
+          id="assignment-notes"
+          dir="auto"
           className="w-full min-h-20 rounded-md border border-input bg-background px-3 py-2 text-sm"
           value={f.notes}
           onChange={(e) => setF({ ...f, notes: e.target.value })}
@@ -133,13 +146,14 @@ function AssignmentForm({ id, onDone }: { id?: string; onDone: () => void }) {
 }
 
 function AssignmentsPage() {
-  const { t } = useApp();
+  const { t, lang } = useApp();
   const data = useData();
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | undefined>();
   const sorted = [...data.assignments].sort((a, b) =>
     (a.dueDate || "").localeCompare(b.dueDate || ""),
   );
+  const isRu = lang === "ru";
 
   const badge = (p: Priority) =>
     ({
@@ -198,7 +212,9 @@ function AssignmentsPage() {
                   {t[a.priority]}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{a.title}</div>
+                  <div className="font-medium truncate" dir="auto">
+                    {a.title}
+                  </div>
                   <div className="text-xs text-muted-foreground truncate">
                     {course?.title || t.none} {a.dueDate && `· ${a.dueDate}`} ·{" "}
                     {a.status.replace("_", " ")}
@@ -208,6 +224,9 @@ function AssignmentsPage() {
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label={
+                    isRu ? `Редактировать задание «${a.title}»` : `Edit assignment “${a.title}”`
+                  }
                   onClick={() => {
                     setEditId(a.id);
                     setOpen(true);
@@ -218,6 +237,9 @@ function AssignmentsPage() {
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label={
+                    isRu ? `Удалить задание «${a.title}»` : `Delete assignment “${a.title}”`
+                  }
                   onClick={() => {
                     if (confirm(t.confirm + "?")) store.deleteAssignment(a.id);
                   }}
