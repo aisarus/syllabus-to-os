@@ -54,7 +54,7 @@ export async function executeAIRequest<TInput, TResult>(
     const inflight = inflightByKey.get(key);
     if (inflight) {
       assertMatchingInput(inflight.inputHash, inputHash);
-      const value = (await inflight.promise) as TResult;
+      const value = (await withTimeout(inflight.promise, policy.timeoutMs)) as TResult;
       return {
         value,
         requestId,
@@ -109,33 +109,21 @@ export async function executeAIRequest<TInput, TResult>(
 
   if (key) inflightByKey.set(key, { inputHash, requestId, promise: operationPromise });
 
-  try {
-    const value = await withTimeout(settledOperation, policy.timeoutMs);
-    const shouldCache = options.shouldCacheResult ?? defaultShouldCacheResult;
-    if (key && shouldCache(value)) {
-      cacheCompleted(
-        key,
-        {
-          inputHash,
-          requestId,
-          value,
-          expiresAt: now() + policy.idempotencyTtlMs,
-        },
-        estimateSerializedBytes,
-      );
-    }
-    return { value, requestId, replayed: false };
-  } catch (error) {
-    if (
-      key &&
-      error instanceof AIExecutionError &&
-      error.code === "AI_TIMEOUT" &&
-      inflightByKey.get(key)?.requestId === requestId
-    ) {
-      inflightByKey.delete(key);
-    }
-    throw error;
+  const value = await withTimeout(settledOperation, policy.timeoutMs);
+  const shouldCache = options.shouldCacheResult ?? defaultShouldCacheResult;
+  if (key && shouldCache(value)) {
+    cacheCompleted(
+      key,
+      {
+        inputHash,
+        requestId,
+        value,
+        expiresAt: now() + policy.idempotencyTtlMs,
+      },
+      estimateSerializedBytes,
+    );
   }
+  return { value, requestId, replayed: false };
 }
 
 async function runWithRetries<TResult>(options: {

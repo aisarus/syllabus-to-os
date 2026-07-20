@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
   aiErrorResponse,
+  aiResultResponse,
   parseAIJsonRequest,
   safeAIInternalErrorResponse,
   syllabusParseInputSchema,
@@ -251,14 +252,12 @@ export const Route = createFileRoute("/api/ai/parse-syllabus")({
                 });
 
               const result = await generateGeminiJSON<unknown>(prompt, SCHEMA_DESC);
-              if (!result.ok) {
-                return { ok: false as const, error: "AI provider request failed." };
-              }
+              if (!result.ok) return result;
 
               const warnings: string[] = [];
               const draft = validateAndClean(result.data, body.fileName ?? "", warnings);
               if (!draft) {
-                return { ok: false as const, error: "AI returned an invalid response." };
+                return { ok: false as const, error: "schema" };
               }
 
               return {
@@ -269,16 +268,7 @@ export const Route = createFileRoute("/api/ai/parse-syllabus")({
               };
             },
           });
-          const response = execution.value.ok
-            ? Response.json(execution.value)
-            : aiErrorResponse(
-                execution.value.error.includes("invalid response")
-                  ? "INVALID_PROVIDER_RESPONSE"
-                  : "PROVIDER_ERROR",
-                execution.value.error,
-                502,
-              );
-          return withAIExecutionHeaders(response, execution);
+          return withAIExecutionHeaders(aiResultResponse(execution.value), execution);
         } catch (error) {
           if (error instanceof AIExecutionError) return aiExecutionErrorResponse(error, requestId);
           return withAIExecutionHeaders(safeAIInternalErrorResponse(), {
