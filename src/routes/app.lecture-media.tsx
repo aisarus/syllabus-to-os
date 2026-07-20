@@ -252,8 +252,25 @@ function LectureMediaPage() {
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="rounded-xl border border-border bg-surface p-4 md:p-6">
           <div
-            className="cursor-pointer rounded-xl border border-dashed border-primary/40 bg-primary/5 p-8 text-center"
+            className="cursor-pointer rounded-xl border border-dashed border-primary/40 bg-primary/5 p-8 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            role="button"
+            tabIndex={busy ? -1 : 0}
+            aria-disabled={busy}
+            aria-label={
+              file
+                ? isRu
+                  ? `Выбрать другую запись. Сейчас выбрано: ${file.name}`
+                  : `Choose another recording. Currently selected: ${file.name}`
+                : isRu
+                  ? "Выбрать или перетащить запись лекции"
+                  : "Choose or drop a lecture recording"
+            }
             onClick={() => !busy && inputRef.current?.click()}
+            onKeyDown={(event) => {
+              if (busy || (event.key !== "Enter" && event.key !== " ")) return;
+              event.preventDefault();
+              inputRef.current?.click();
+            }}
             onDragOver={(event) => event.preventDefault()}
             onDrop={(event) => {
               event.preventDefault();
