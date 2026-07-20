@@ -122,14 +122,22 @@ export function AIDraftModal(props: AIDraftModalProps) {
         {state === "idle" && children}
 
         {state === "loading" && (
-          <div className="py-10 text-center text-sm text-muted-foreground">
+          <div
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            className="py-10 text-center text-sm text-muted-foreground"
+          >
             <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />
             {t.aiThinking}
           </div>
         )}
 
         {state === "error" && (
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm"
+          >
             <div className="flex items-start gap-2">
               <AlertCircle className="mt-0.5 h-4 w-4 text-destructive" />
               <div>
@@ -143,7 +151,7 @@ export function AIDraftModal(props: AIDraftModalProps) {
         )}
 
         {state === "saved" && (
-          <div className="space-y-3">
+          <div role="status" aria-live="polite" aria-atomic="true" className="space-y-3">
             <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-5 text-sm">
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-300" />
@@ -166,7 +174,10 @@ export function AIDraftModal(props: AIDraftModalProps) {
         {state === "ready" && (
           <div className="space-y-3">
             {resolvedNotFound && (
-              <div className="rounded-md border border-orange-500/40 bg-orange-500/10 p-3 text-xs text-orange-100">
+              <div
+                role="alert"
+                className="rounded-md border border-orange-500/40 bg-orange-500/10 p-3 text-xs text-orange-100"
+              >
                 <div className="flex items-start gap-2">
                   <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
                   <p>
@@ -178,7 +189,10 @@ export function AIDraftModal(props: AIDraftModalProps) {
               </div>
             )}
             {warnings && warnings.length > 0 && (
-              <div className="space-y-1 rounded-md border border-yellow-500/40 bg-yellow-500/10 p-2 text-xs">
+              <div
+                role="alert"
+                className="space-y-1 rounded-md border border-yellow-500/40 bg-yellow-500/10 p-2 text-xs"
+              >
                 <div className="font-medium text-yellow-300">{t.aiWarnings}</div>
                 <ul className="list-disc ps-5 text-muted-foreground">
                   {warnings.map((warning, index) => (
