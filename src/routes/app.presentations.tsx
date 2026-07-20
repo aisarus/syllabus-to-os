@@ -13,15 +13,22 @@ export const Route = createFileRoute("/app/presentations")({
 });
 
 function PresentationsPage() {
-  const { t } = useApp();
+  const { t, lang } = useApp();
   const data = useData();
   const [title, setTitle] = useState("");
+  const isRu = lang === "ru";
 
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader title={t.presentations} actions={<AIGenerateButton kind="presentation" />} />
       <div className="flex gap-2 mb-4">
-        <Input placeholder={t.title} value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Input
+          dir="auto"
+          aria-label={t.title}
+          placeholder={t.title}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
         <Button
           onClick={() => {
             store.createOutline({ title: title || "Untitled outline" });
@@ -61,6 +68,9 @@ function PresentationsPage() {
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label={
+                    isRu ? `Удалить презентацию «${o.title}»` : `Delete presentation “${o.title}”`
+                  }
                   onClick={() => {
                     if (confirm(t.confirm + "?")) store.deleteOutline(o.id);
                   }}
