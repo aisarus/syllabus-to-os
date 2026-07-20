@@ -123,23 +123,29 @@ export function AIAssignmentBreakdownButton({ assignmentId }: { assignmentId: st
         {state === "ready" && draft && (
           <div className="space-y-3">
             <div>
-              <Label>{t.aiEstimatedTime}</Label>
+              <Label htmlFor="ai-assignment-estimated-time">{t.aiEstimatedTime}</Label>
               <Input
+                id="ai-assignment-estimated-time"
+                dir="auto"
                 value={draft.estimatedTime}
                 onChange={(e) => setDraft({ ...draft, estimatedTime: e.target.value })}
               />
             </div>
             <div>
-              <Label>{t.aiSteps}</Label>
+              <Label htmlFor="ai-assignment-steps">{t.aiSteps}</Label>
               <textarea
+                id="ai-assignment-steps"
+                dir="auto"
                 className="w-full min-h-[140px] rounded-md border border-input bg-background p-2 text-sm font-mono"
                 value={draft.steps.join("\n")}
                 onChange={(e) => setDraft({ ...draft, steps: e.target.value.split("\n") })}
               />
             </div>
             <div>
-              <Label>{t.aiChecklist}</Label>
+              <Label htmlFor="ai-assignment-checklist">{t.aiChecklist}</Label>
               <textarea
+                id="ai-assignment-checklist"
+                dir="auto"
                 className="w-full min-h-[100px] rounded-md border border-input bg-background p-2 text-sm font-mono"
                 value={draft.checklist.join("\n")}
                 onChange={(e) => setDraft({ ...draft, checklist: e.target.value.split("\n") })}
@@ -290,16 +296,20 @@ export function AITopicExplainButton({
         {state === "ready" && draft && (
           <div className="space-y-3">
             <div>
-              <Label>{t.aiShortExplanation}</Label>
+              <Label htmlFor="ai-topic-short-explanation">{t.aiShortExplanation}</Label>
               <textarea
+                id="ai-topic-short-explanation"
+                dir="auto"
                 className="w-full min-h-[80px] rounded-md border border-input bg-background p-2 text-sm"
                 value={draft.shortExplanation}
                 onChange={(e) => setDraft({ ...draft, shortExplanation: e.target.value })}
               />
             </div>
             <div>
-              <Label>{t.aiDetailedExplanation}</Label>
+              <Label htmlFor="ai-topic-detailed-explanation">{t.aiDetailedExplanation}</Label>
               <textarea
+                id="ai-topic-detailed-explanation"
+                dir="auto"
                 className="w-full min-h-[220px] rounded-md border border-input bg-background p-2 text-sm font-mono"
                 value={draft.detailedExplanation}
                 onChange={(e) => setDraft({ ...draft, detailedExplanation: e.target.value })}
@@ -314,8 +324,12 @@ export function AITopicExplainButton({
                       key={i}
                       className="rounded-md border border-border bg-background p-2 text-xs"
                     >
-                      <div className="font-semibold">{k.term}</div>
-                      <div className="text-muted-foreground">{k.explanation}</div>
+                      <div className="font-semibold" dir="auto">
+                        {k.term}
+                      </div>
+                      <div className="text-muted-foreground" dir="auto">
+                        {k.explanation}
+                      </div>
                     </div>
                   ))}
                 </div>
