@@ -5,6 +5,14 @@ import {
   safeAIInternalErrorResponse,
   syllabusParseInputSchema,
 } from "@/lib/server/ai-api-contract";
+import {
+  AIExecutionError,
+  aiExecutionErrorResponse,
+  createAIRequestId,
+  executeAIRequest,
+  readIdempotencyKey,
+  withAIExecutionHeaders,
+} from "@/lib/server/ai-execution-control";
 import { generateGeminiJSON, getGeminiModelName, isGeminiConfigured } from "@/lib/server/gemini";
 
 // POST /api/ai/parse-syllabus
@@ -205,54 +213,78 @@ export const Route = createFileRoute("/api/ai/parse-syllabus")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const requestId = createAIRequestId(request);
         const parsed = await parseAIJsonRequest(request, syllabusParseInputSchema);
-        if (!parsed.ok) return parsed.response;
+        if (!parsed.ok) {
+          return withAIExecutionHeaders(parsed.response, { requestId, replayed: false });
+        }
         const body = parsed.data;
 
         if (!isGeminiConfigured()) {
-          return aiErrorResponse("PROVIDER_UNAVAILABLE", "AI is not configured.", 503);
+          return withAIExecutionHeaders(
+            aiErrorResponse("PROVIDER_UNAVAILABLE", "AI is not configured.", 503),
+            { requestId, replayed: false },
+          );
         }
 
         try {
-          const sheets = (body.sheets ?? []).map((sheet) => ({
-            name: sheet.name,
-            rows: sheet.rows.slice(0, 400).map((row) => row.slice(0, 20)),
-          }));
+          const execution = await executeAIRequest({
+            operation: "syllabus",
+            input: body,
+            idempotencyKey: readIdempotencyKey(request),
+            dependencies: { createRequestId: () => requestId },
+            handler: async () => {
+              const sheets = (body.sheets ?? []).map((sheet) => ({
+                name: sheet.name,
+                rows: sheet.rows.slice(0, 400).map((row) => row.slice(0, 20)),
+              }));
 
-          const prompt =
-            SYSTEM_INSTRUCTION +
-            "\n\nRefine the deterministic syllabus draft below. Input follows as JSON:\n\n" +
-            JSON.stringify({
-              fileName: body.fileName ?? "",
-              locale: body.locale ?? "ru",
-              deterministicDraft: body.deterministicDraft ?? null,
-              ignoredRows: body.ignoredRows ?? [],
-              sheets,
-            });
+              const prompt =
+                SYSTEM_INSTRUCTION +
+                "\n\nRefine the deterministic syllabus draft below. Input follows as JSON:\n\n" +
+                JSON.stringify({
+                  fileName: body.fileName ?? "",
+                  locale: body.locale ?? "ru",
+                  deterministicDraft: body.deterministicDraft ?? null,
+                  ignoredRows: body.ignoredRows ?? [],
+                  sheets,
+                });
 
-          const result = await generateGeminiJSON<unknown>(prompt, SCHEMA_DESC);
-          if (!result.ok) {
-            return aiErrorResponse("PROVIDER_ERROR", "AI provider request failed.", 502);
-          }
+              const result = await generateGeminiJSON<unknown>(prompt, SCHEMA_DESC);
+              if (!result.ok) {
+                return { ok: false as const, error: "AI provider request failed." };
+              }
 
-          const warnings: string[] = [];
-          const draft = validateAndClean(result.data, body.fileName ?? "", warnings);
-          if (!draft) {
-            return aiErrorResponse(
-              "INVALID_PROVIDER_RESPONSE",
-              "AI returned an invalid response.",
-              502,
-            );
-          }
+              const warnings: string[] = [];
+              const draft = validateAndClean(result.data, body.fileName ?? "", warnings);
+              if (!draft) {
+                return { ok: false as const, error: "AI returned an invalid response." };
+              }
 
-          return Response.json({
-            ok: true,
-            draft,
-            warnings,
-            model: getGeminiModelName(),
+              return {
+                ok: true as const,
+                draft,
+                warnings,
+                model: getGeminiModelName(),
+              };
+            },
           });
-        } catch {
-          return safeAIInternalErrorResponse();
+          const response = execution.value.ok
+            ? Response.json(execution.value)
+            : aiErrorResponse(
+                execution.value.error.includes("invalid response")
+                  ? "INVALID_PROVIDER_RESPONSE"
+                  : "PROVIDER_ERROR",
+                execution.value.error,
+                502,
+              );
+          return withAIExecutionHeaders(response, execution);
+        } catch (error) {
+          if (error instanceof AIExecutionError) return aiExecutionErrorResponse(error, requestId);
+          return withAIExecutionHeaders(safeAIInternalErrorResponse(), {
+            requestId,
+            replayed: false,
+          });
         }
       },
     },
