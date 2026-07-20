@@ -12,21 +12,35 @@ import {
   TRANSCRIPTION_FORM_BODY_BYTES,
   transcriptionMetadataSchema,
 } from "@/lib/server/ai-api-contract";
+import {
+  AIExecutionError,
+  aiExecutionErrorResponse,
+  createAIRequestId,
+  executeAIRequest,
+  readIdempotencyKey,
+  withAIExecutionHeaders,
+} from "@/lib/server/ai-execution-control";
 import { transcribeWithConfiguredProvider } from "@/lib/server/automatic-transcription-provider";
 
 export const Route = createFileRoute("/api/ai/transcribe-long-media")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const requestId = createAIRequestId(request);
         const parsedForm = await parseAIFormDataRequest(request, {
           maxBytes: TRANSCRIPTION_FORM_BODY_BYTES,
         });
-        if (!parsedForm.ok) return parsedForm.response;
+        if (!parsedForm.ok) {
+          return withAIExecutionHeaders(parsedForm.response, { requestId, replayed: false });
+        }
         const form = parsedForm.data;
         const file = form.get("file");
 
         if (!(file instanceof File)) {
-          return aiErrorResponse("INVALID_INPUT", "A media file is required.", 400);
+          return withAIExecutionHeaders(
+            aiErrorResponse("INVALID_INPUT", "A media file is required.", 400),
+            { requestId, replayed: false },
+          );
         }
 
         const metadata = transcriptionMetadataSchema.safeParse({
@@ -37,11 +51,14 @@ export const Route = createFileRoute("/api/ai/transcribe-long-media")({
           requestSpeakerLabels: stringValue(form.get("requestSpeakerLabels")) !== "false",
         });
         if (!metadata.success) {
-          return aiErrorResponse(
-            "INVALID_INPUT",
-            "Transcription metadata does not match the expected schema.",
-            400,
-            formatAIValidationDetails(metadata.error.issues),
+          return withAIExecutionHeaders(
+            aiErrorResponse(
+              "INVALID_INPUT",
+              "Transcription metadata does not match the expected schema.",
+              400,
+              formatAIValidationDetails(metadata.error.issues),
+            ),
+            { requestId, replayed: false },
           );
         }
 
@@ -50,25 +67,46 @@ export const Route = createFileRoute("/api/ai/transcribe-long-media")({
           MAX_AUTOMATIC_TRANSCRIPTION_BYTES,
         );
         if (!validation.ok) {
-          return aiErrorResponse("PAYLOAD_TOO_LARGE", validation.message, 413);
+          return withAIExecutionHeaders(
+            aiErrorResponse("PAYLOAD_TOO_LARGE", validation.message, 413),
+            { requestId, replayed: false },
+          );
         }
 
         try {
-          const result = await transcribeWithConfiguredProvider({
-            file,
-            language: metadata.data.language,
-            requestSpeakerLabels: metadata.data.requestSpeakerLabels,
-            durationSeconds: metadata.data.durationSeconds,
-            signal: request.signal,
+          const execution = await executeAIRequest({
+            operation: "transcription",
+            input: {
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              metadata: metadata.data,
+            },
+            idempotencyKey: readIdempotencyKey(request),
+            estimatedCost: Math.max(1, Math.ceil(file.size / 1_000_000)),
+            dependencies: { createRequestId: () => requestId },
+            handler: async () => {
+              const result = await transcribeWithConfiguredProvider({
+                file,
+                language: metadata.data.language,
+                requestSpeakerLabels: metadata.data.requestSpeakerLabels,
+                durationSeconds: metadata.data.durationSeconds,
+                signal: request.signal,
+              });
+              return {
+                ...result,
+                materialId: metadata.data.materialId,
+                sourceUploadId: metadata.data.sourceUploadId,
+              };
+            },
           });
-          if (!result.ok) return aiResultResponse(result);
-          return Response.json({
-            ...result,
-            materialId: metadata.data.materialId,
-            sourceUploadId: metadata.data.sourceUploadId,
+          return withAIExecutionHeaders(aiResultResponse(execution.value), execution);
+        } catch (error) {
+          if (error instanceof AIExecutionError) return aiExecutionErrorResponse(error, requestId);
+          return withAIExecutionHeaders(safeAIInternalErrorResponse(), {
+            requestId,
+            replayed: false,
           });
-        } catch {
-          return safeAIInternalErrorResponse();
         }
       },
     },
