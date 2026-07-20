@@ -11,6 +11,7 @@ import {
   type AIExecutionPolicy,
   type AIExecutionResult,
 } from "./ai-execution-types.ts";
+import { runWithAIProviderSignal } from "./ai-provider-signal-context.ts";
 import {
   activeByOperation,
   assertMatchingInput,
@@ -145,12 +146,14 @@ async function runWithRetries<TResult>(options: {
   for (let attempt = 0; ; attempt += 1) {
     throwIfAborted(options.signal);
     try {
-      const value = await options.handler({
-        requestId: options.requestId,
-        operation: options.operation,
-        attempt,
-        signal: options.signal,
-      });
+      const value = await runWithAIProviderSignal(options.signal, () =>
+        options.handler({
+          requestId: options.requestId,
+          operation: options.operation,
+          attempt,
+          signal: options.signal,
+        }),
+      );
       throwIfAborted(options.signal);
       if (attempt < options.policy.maxRetries && options.isTransientResult(value)) {
         await waitForAbort(

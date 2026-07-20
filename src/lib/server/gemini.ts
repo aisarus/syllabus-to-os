@@ -7,6 +7,8 @@
 // The exported names are kept as `Gemini*` for backward compatibility with
 // existing callers, but the provider is the Lovable AI Gateway.
 
+import { currentAIProviderSignal } from "./ai-provider-signal-context.ts";
+
 export const DEFAULT_GEMINI_MODEL = "google/gemini-3-flash-preview";
 const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
@@ -95,7 +97,7 @@ async function requestJSON<T>(
         response_format: { type: "json_object" },
         messages: [{ role: "user", content }],
       }),
-      signal: options.signal,
+      signal: options.signal ?? currentAIProviderSignal(),
     });
 
     if (!response.ok) {

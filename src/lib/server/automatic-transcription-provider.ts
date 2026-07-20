@@ -1,3 +1,4 @@
+import { currentAIProviderSignal } from "./ai-provider-signal-context.ts";
 import {
   MAX_AUTOMATIC_TRANSCRIPTION_BYTES,
   normalizeAutomaticSegments,
@@ -112,7 +113,7 @@ export async function transcribeWithConfiguredProvider(input: {
       method: "POST",
       headers: { Authorization: `Bearer ${key}` },
       body: form,
-      signal: input.signal,
+      signal: currentAIProviderSignal() ?? input.signal,
     });
     const requestId = response.headers.get("x-request-id") ?? undefined;
     const rawText = await response.text();
