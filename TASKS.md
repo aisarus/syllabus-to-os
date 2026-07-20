@@ -1,10 +1,10 @@
 # Lamdan — P0 Implementation Tasks and Production Readiness Ledger
 
 <!-- LAMDAN_EXECUTION_LEDGER
-baseline_sha: 2af218a92622db2ce04337e9095c78e72782a456
-baseline_pr: 81
+baseline_sha: ed11ca59c0c9a0ab8029822e5d283656536e4442
+baseline_pr: 85
 active_phase: production-phase-0-stabilization
-active_task: S3-003
+active_task: S4-001
 active_pr: none
 external_blockers: live-ocr,golden-quiz,licensed-lecture-evaluation
 -->
@@ -43,51 +43,54 @@ A task is complete only when its applicable contracts/evals pass on the same hea
 
 - **Status:** [x]
 - **Merged:** PRs #80 and #81
-- **Evidence:** all 14 POST routes use bounded execution; both status routes expose request IDs; concurrent duplicates invoke the provider once; timeout, rate, concurrency, cost, retry and replay behavior have deterministic regressions.
 
 ## S3-003 — Real cancellation propagation and late-result rejection
 
+- **Status:** [x]
+- **Merged:** PRs #83 and #85
+- **Evidence:** client cancellation and operation timeout abort the execution signal; Lovable/Gemini and OpenAI transcription fetch paths consume the composed signal; aborted work is not retried or cached; late completion cannot become a successful replay.
+
+## S4-001 — Accessibility baseline and executable one-course pilot harness
+
 - **Status:** [ ]
 - **Priority:** active P0 production blocker
-- **Depends on:** S3-002
-- **Active task:** `S3-003`
+- **Depends on:** S1-001 through S3-003
+- **Active task:** `S4-001`
 - **Current PR:** none
 
 ### Problem
 
-Timeout currently bounds the HTTP response, but not every provider adapter is proven to stop its underlying work. A cancelled or timed-out operation must not continue consuming provider capacity, become eligible for retry, enter the idempotency cache or publish a late draft.
+The core study capabilities exist, but production readiness also requires keyboard-operable navigation, predictable focus, mixed RTL/LTR support and a pilot procedure that can produce repeatable evidence. The current checklist must not be treated as a completed pilot.
 
 ### Scope
 
-- create one composed AbortSignal for client cancellation and operation timeout;
-- pass that signal through generic JSON routes, syllabus, OCR and transcription provider adapters;
-- classify abort separately from transient provider failure;
-- never retry after cancellation;
-- reject and discard completion produced after abort;
-- preserve existing review-first Apply/Save boundaries;
-- add deterministic abort-before-provider, abort-during-provider and late-completion regressions.
+- audit keyboard reachability and visible focus across the core shell and student study loop;
+- verify dialog focus trap, restoration and Escape behavior;
+- correct mixed Hebrew/Russian/English directionality with explicit `dir` behavior where needed;
+- remove critical contrast and undersized metadata blockers in core paths;
+- add deterministic accessibility contracts and targeted browser checks where the local environment supports them;
+- convert `PILOT.md` into a reproducible harness with setup, fixtures, expected results, evidence paths and explicit external blockers.
 
 ### Acceptance criteria
 
-- provider work observes abort for every supported AI operation;
-- timeout aborts the provider operation rather than only returning a 504;
-- a cancelled operation is not retried or cached;
-- a late provider result cannot become an HTTP success or saved draft;
-- a second request after completed cancellation can run normally;
-- relevant contracts/evals and available type/lint/build gates pass on one head.
+- every primary shell action and core study-flow control is reachable and usable without a pointer;
+- focus is visible and returns to the invoking control after modal/dialog close;
+- Escape closes dismissible overlays without discarding approved data;
+- mixed RTL/LTR content remains readable and correctly aligned;
+- critical automated accessibility violations are absent from the tested shell surfaces;
+- the pilot can be followed from an empty workspace with exact expected results and evidence locations;
+- P1-006/P1-007/provider-dependent steps remain marked blocked until real licensed inputs exist.
 
 ### Explicit exclusions
 
-- distributed job cancellation across multiple server instances;
-- a new background queue or Redis;
-- broad UI redesign;
-- authentication/backend redesign;
-- new AI product features.
+- broad visual redesign;
+- new student-facing AI features;
+- declaring P1-008 complete without live evidence;
+- IndexedDB migration or cloud backend work.
 
-## Queued stabilization tasks
+## Queued data task
 
-1. `S4-001` — accessibility baseline and executable one-course pilot harness.
-2. `D1-001` — versioned local schemas and IndexedDB migration after stabilization is green.
+1. `D1-001` — versioned local schemas and IndexedDB migration after stabilization is green.
 
 # External evidence gates
 
@@ -112,9 +115,9 @@ Timeout currently bounds the HTTP response, but not every provider adapter is pr
 
 # Current execution order
 
-**Active task:** `S3-003 real cancellation propagation and late-result rejection`  
+**Active task:** `S4-001 accessibility baseline and executable one-course pilot harness`  
 **Active PR:** none
 
-1. Complete S3-003.
-2. Complete S4-001.
-3. Begin versioned schemas and IndexedDB only after stabilization is green.
+1. Complete S4-001.
+2. Begin versioned schemas and IndexedDB only after stabilization is green.
+3. Run P1-006, P1-007 and P1-008 when licensed inputs and a connected deployment are available.
