@@ -103,7 +103,8 @@ for (const marker of [
 }
 for (const marker of [
   'createFileRoute("/api/ai/transcribe-long-media")',
-  "request.formData()",
+  "parseAIFormDataRequest",
+  "transcriptionMetadataSchema",
   "validateAutomaticTranscriptionFile",
   "transcribeWithConfiguredProvider",
   "request.signal",
@@ -177,7 +178,7 @@ for (const marker of [
   requireMarker(evals, marker, `Automatic transcription deterministic proof is missing: ${marker}`);
 }
 for (const marker of [
-  "explicit consent",
+  "Explicit consent",
   "cancelled",
   "review_ready",
   'status === "draft"',

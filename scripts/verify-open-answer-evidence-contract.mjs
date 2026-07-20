@@ -93,8 +93,9 @@ for (const marker of [
 
 for (const marker of [
   'createFileRoute("/api/ai/review-open-answer")',
-  "runOpenAnswerReviewGeneration(body)",
-  "Invalid JSON body",
+  "openAnswerReviewInputSchema",
+  "handleAIJsonRequest",
+  "runOpenAnswerReviewGeneration",
 ]) {
   requireMarker(apiRoute, marker, `Open-answer API route is missing: ${marker}`);
 }

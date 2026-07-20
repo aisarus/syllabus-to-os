@@ -3,62 +3,73 @@ import {
   MAX_AUTOMATIC_TRANSCRIPTION_BYTES,
   validateAutomaticTranscriptionFile,
 } from "@/lib/automatic-transcription";
+import {
+  aiErrorResponse,
+  aiResultResponse,
+  formatAIValidationDetails,
+  parseAIFormDataRequest,
+  safeAIInternalErrorResponse,
+  TRANSCRIPTION_FORM_BODY_BYTES,
+  transcriptionMetadataSchema,
+} from "@/lib/server/ai-api-contract";
 import { transcribeWithConfiguredProvider } from "@/lib/server/automatic-transcription-provider";
 
 export const Route = createFileRoute("/api/ai/transcribe-long-media")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        let form: FormData;
-        try {
-          form = await request.formData();
-        } catch {
-          return Response.json(
-            { ok: false, error: "Invalid multipart form body." },
-            { status: 400 },
-          );
-        }
-
+        const parsedForm = await parseAIFormDataRequest(request, {
+          maxBytes: TRANSCRIPTION_FORM_BODY_BYTES,
+        });
+        if (!parsedForm.ok) return parsedForm.response;
+        const form = parsedForm.data;
         const file = form.get("file");
-        const materialId = stringValue(form.get("materialId"));
-        const sourceUploadId = stringValue(form.get("sourceUploadId"));
-        const durationSeconds = numberValue(form.get("durationSeconds"));
-        const language = normalizeLanguage(stringValue(form.get("language")));
-        const requestSpeakerLabels = stringValue(form.get("requestSpeakerLabels")) !== "false";
 
         if (!(file instanceof File)) {
-          return Response.json({ ok: false, error: "A media file is required." }, { status: 400 });
+          return aiErrorResponse("INVALID_INPUT", "A media file is required.", 400);
         }
-        if (!materialId || !sourceUploadId) {
-          return Response.json(
-            { ok: false, error: "materialId and sourceUploadId are required." },
-            { status: 400 },
+
+        const metadata = transcriptionMetadataSchema.safeParse({
+          materialId: stringValue(form.get("materialId")),
+          sourceUploadId: stringValue(form.get("sourceUploadId")),
+          durationSeconds: numberValue(form.get("durationSeconds")),
+          language: normalizeLanguage(stringValue(form.get("language"))),
+          requestSpeakerLabels: stringValue(form.get("requestSpeakerLabels")) !== "false",
+        });
+        if (!metadata.success) {
+          return aiErrorResponse(
+            "INVALID_INPUT",
+            "Transcription metadata does not match the expected schema.",
+            400,
+            formatAIValidationDetails(metadata.error.issues),
           );
         }
+
         const validation = validateAutomaticTranscriptionFile(
           file,
           MAX_AUTOMATIC_TRANSCRIPTION_BYTES,
         );
         if (!validation.ok) {
-          return Response.json({ ok: false, error: validation.message }, { status: 413 });
+          return aiErrorResponse("PAYLOAD_TOO_LARGE", validation.message, 413);
         }
 
-        const result = await transcribeWithConfiguredProvider({
-          file,
-          language,
-          requestSpeakerLabels,
-          durationSeconds,
-          signal: request.signal,
-        });
-        const status = result.ok ? 200 : /not configured/i.test(result.error ?? "") ? 503 : 502;
-        return Response.json(
-          {
+        try {
+          const result = await transcribeWithConfiguredProvider({
+            file,
+            language: metadata.data.language,
+            requestSpeakerLabels: metadata.data.requestSpeakerLabels,
+            durationSeconds: metadata.data.durationSeconds,
+            signal: request.signal,
+          });
+          if (!result.ok) return aiResultResponse(result);
+          return Response.json({
             ...result,
-            materialId,
-            sourceUploadId,
-          },
-          { status },
-        );
+            materialId: metadata.data.materialId,
+            sourceUploadId: metadata.data.sourceUploadId,
+          });
+        } catch {
+          return safeAIInternalErrorResponse();
+        }
       },
     },
   },

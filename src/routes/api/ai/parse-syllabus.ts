@@ -1,17 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+  aiErrorResponse,
+  parseAIJsonRequest,
+  safeAIInternalErrorResponse,
+  syllabusParseInputSchema,
+} from "@/lib/server/ai-api-contract";
 import { generateGeminiJSON, getGeminiModelName, isGeminiConfigured } from "@/lib/server/gemini";
 
 // POST /api/ai/parse-syllabus
 // Uses Google Gemini to refine a deterministic syllabus draft.
 // GEMINI_API_KEY is read only server-side and never leaves this file.
-
-interface Body {
-  fileName?: string;
-  sheets?: { name: string; rows: string[][] }[];
-  deterministicDraft?: unknown;
-  ignoredRows?: unknown;
-  locale?: "ru" | "en";
-}
 
 const SYSTEM_INSTRUCTION = `You are parsing an Israeli academic syllabus or university program table.
 
@@ -207,54 +205,55 @@ export const Route = createFileRoute("/api/ai/parse-syllabus")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const parsed = await parseAIJsonRequest(request, syllabusParseInputSchema);
+        if (!parsed.ok) return parsed.response;
+        const body = parsed.data;
+
         if (!isGeminiConfigured()) {
-          return Response.json({ ok: false, error: "Lovable AI is not configured" });
+          return aiErrorResponse("PROVIDER_UNAVAILABLE", "AI is not configured.", 503);
         }
 
-        let body: Body;
         try {
-          body = (await request.json()) as Body;
-        } catch {
-          return Response.json({ ok: false, error: "Invalid JSON body" }, { status: 400 });
-        }
+          const sheets = (body.sheets ?? []).map((sheet) => ({
+            name: sheet.name,
+            rows: sheet.rows.slice(0, 400).map((row) => row.slice(0, 20)),
+          }));
 
-        const sheets = (body.sheets ?? []).map((s) => ({
-          name: s.name,
-          rows: (s.rows ?? []).slice(0, 400).map((r) => r.slice(0, 20)),
-        }));
+          const prompt =
+            SYSTEM_INSTRUCTION +
+            "\n\nRefine the deterministic syllabus draft below. Input follows as JSON:\n\n" +
+            JSON.stringify({
+              fileName: body.fileName ?? "",
+              locale: body.locale ?? "ru",
+              deterministicDraft: body.deterministicDraft ?? null,
+              ignoredRows: body.ignoredRows ?? [],
+              sheets,
+            });
 
-        const prompt =
-          SYSTEM_INSTRUCTION +
-          "\n\nRefine the deterministic syllabus draft below. Input follows as JSON:\n\n" +
-          JSON.stringify({
-            fileName: body.fileName ?? "",
-            locale: body.locale ?? "ru",
-            deterministicDraft: body.deterministicDraft ?? null,
-            ignoredRows: body.ignoredRows ?? [],
-            sheets,
-          });
+          const result = await generateGeminiJSON<unknown>(prompt, SCHEMA_DESC);
+          if (!result.ok) {
+            return aiErrorResponse("PROVIDER_ERROR", "AI provider request failed.", 502);
+          }
 
-        const res = await generateGeminiJSON<unknown>(prompt, SCHEMA_DESC);
-        if (!res.ok) {
+          const warnings: string[] = [];
+          const draft = validateAndClean(result.data, body.fileName ?? "", warnings);
+          if (!draft) {
+            return aiErrorResponse(
+              "INVALID_PROVIDER_RESPONSE",
+              "AI returned an invalid response.",
+              502,
+            );
+          }
+
           return Response.json({
-            ok: false,
-            error: res.error,
-            details: res.details,
+            ok: true,
+            draft,
+            warnings,
             model: getGeminiModelName(),
           });
+        } catch {
+          return safeAIInternalErrorResponse();
         }
-
-        const warnings: string[] = [];
-        const draft = validateAndClean(res.data, body.fileName ?? "", warnings);
-        if (!draft) {
-          return Response.json({
-            ok: false,
-            error: "Gemini returned invalid JSON",
-            details: "Failed schema validation",
-          });
-        }
-
-        return Response.json({ ok: true, draft, warnings, model: getGeminiModelName() });
       },
     },
   },
