@@ -1,10 +1,10 @@
 # Lamdan implementation plans
 
 <!-- LAMDAN_EXECUTION_LEDGER
-baseline_sha: 1ceca678359e1e0d5e6eb333300a8b34b1d5f1c2
-baseline_pr: 78
+baseline_sha: 2af218a92622db2ce04337e9095c78e72782a456
+baseline_pr: 81
 active_phase: production-phase-0-stabilization
-active_task: S3-002
+active_task: S3-003
 active_pr: none
 external_blockers: live-ocr,golden-quiz,licensed-lecture-evaluation
 -->
@@ -13,48 +13,48 @@ This file records the active implementation sequence. Product intent remains in 
 
 ## Active plan — Production readiness Phase 0
 
-**Baseline:** `main` at `1ceca678359e1e0d5e6eb333300a8b34b1d5f1c2` / PR #78
-**Active task:** `S3-002 request IDs, resource controls and idempotency`
+**Baseline:** `main` at `2af218a92622db2ce04337e9095c78e72782a456` / PR #81  
+**Active task:** `S3-003 real cancellation propagation and late-result rejection`  
 **Active PR:** none
 
 ### Sequence
 
-1. Add one server-only execution policy registry keyed by AI operation.
-2. Generate or validate a request ID and return it in every shared response header.
-3. Acquire an operation-specific concurrency slot before provider invocation.
-4. Enforce timeout and estimated-cost ceilings without changing successful payloads.
-5. Retry only classified transient failures with bounded attempts/backoff.
-6. Deduplicate concurrent and completed requests by validated idempotency key.
-7. Add deterministic contracts for timeout, concurrency, retry and duplicate suppression.
-8. Run affected AI/OCR/syllabus/transcription contracts, typecheck, lint and build.
+1. Inventory provider adapters and record which already accept an AbortSignal.
+2. Compose client cancellation with operation timeout in the execution controller.
+3. Propagate the composed signal through generic JSON handlers, syllabus and transcription.
+4. Stop retries immediately when the signal aborts.
+5. Reject late completion and keep aborted results out of the idempotency cache.
+6. Preserve request IDs and expose a stable cancellation error response.
+7. Add deterministic cancellation and late-result regressions.
+8. Run all affected AI/OCR/syllabus/transcription contracts and available static/type/build gates.
 
 ### Explicit exclusions
 
-- no Redis, queue service or distributed limiter;
-- no complete cancellation UI in this slice;
+- no Redis or distributed job cancellation;
+- no new background queue;
 - no authentication/cloud-backend redesign;
-- no new AI feature;
+- no broad UI redesign or new AI feature;
 - no IndexedDB migration.
 
 ### Acceptance gate
 
-- duplicate expensive requests invoke the provider once;
-- operation limits reject before provider invocation;
-- timeouts return stable safe errors and suppress late completion;
-- retries occur only for transient failures;
-- request IDs are stable and observable;
-- all relevant local gates are green on one head.
+- cancellation reaches every supported provider adapter;
+- timed-out work is actively aborted;
+- aborted operations are not retried, cached or published;
+- late completion cannot turn into success;
+- normal retry after settled cancellation remains possible;
+- all applicable local gates are green on one head.
 
 ## Completed stabilization slices
 
 1. `S1-001` — durable-before-publish persistence, PR #75.
 2. `S2-001` — explicit workspace repository, PR #76.
 3. `S3-001` — shared AI validation/error contracts, PR #78.
+4. `S3-002` — bounded execution and route integration, PRs #80–#81.
 
-## Subsequent Phase 0 slices
+## Subsequent Phase 0 slice
 
-1. `S3-003` — full cancellation propagation and late-result rejection.
-2. `S4-001` — accessibility baseline and executable pilot harness.
+1. `S4-001` — accessibility baseline and executable pilot harness.
 
 ## External validation plan — P1-005 to P1-008
 
