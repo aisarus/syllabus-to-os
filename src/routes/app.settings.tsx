@@ -79,9 +79,9 @@ function SettingsPage() {
       <div className="space-y-4">
         <section className="rounded-lg border border-border bg-surface p-6 space-y-4">
           <div>
-            <Label>{t.language}</Label>
+            <Label htmlFor="settings-language">{t.language}</Label>
             <Select value={lang} onValueChange={(value) => setLang(value as Lang)}>
-              <SelectTrigger className="mt-1">
+              <SelectTrigger id="settings-language" className="mt-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -91,9 +91,9 @@ function SettingsPage() {
             </Select>
           </div>
           <div>
-            <Label>{t.theme}</Label>
+            <Label htmlFor="settings-theme">{t.theme}</Label>
             <Select value={theme} onValueChange={(value) => setTheme(value as "dark" | "light")}>
-              <SelectTrigger className="mt-1">
+              <SelectTrigger id="settings-theme" className="mt-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -116,6 +116,9 @@ function SettingsPage() {
             </div>
             <div className="flex items-center gap-2">
               <span
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
                 className={`rounded px-2 py-1 text-xs ${
                   diagnosticState === "loading"
                     ? "bg-sky-500/15 text-sky-300"
@@ -152,7 +155,10 @@ function SettingsPage() {
           </div>
 
           {diagnosticState === "error" && (
-            <div className="rounded-md border border-red-500/25 bg-red-500/5 p-3 text-xs text-red-200">
+            <div
+              role="alert"
+              className="rounded-md border border-red-500/25 bg-red-500/5 p-3 text-xs text-red-200"
+            >
               <strong>{isRu ? "Не удалось проверить AI" : "AI status check failed"}</strong>
               <p className="mt-1 break-words text-muted-foreground">
                 {aiStatus?.error ||
