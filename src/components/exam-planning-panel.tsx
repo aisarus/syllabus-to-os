@@ -9,6 +9,24 @@ import type { AppData } from "@/lib/store";
 
 const WEEKDAYS_RU = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_NAMES_RU = [
+  "Воскресенье",
+  "Понедельник",
+  "Вторник",
+  "Среда",
+  "Четверг",
+  "Пятница",
+  "Суббота",
+];
+const WEEKDAY_NAMES_EN = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 
 export function ExamPlanningPanel({
   core,
@@ -144,27 +162,37 @@ export function ExamPlanningPanel({
             <span className="text-xs text-muted-foreground">
               {isRu ? "Доступные дни" : "Available weekdays"}
             </span>
-            <div className="mt-2 grid grid-cols-7 gap-1">
-              {(isRu ? WEEKDAYS_RU : WEEKDAYS_EN).map((label, day) => (
-                <button
-                  key={label}
-                  type="button"
-                  className={`rounded-md border px-1 py-2 text-xs ${
-                    availableWeekdays.includes(day)
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground"
-                  }`}
-                  onClick={() =>
-                    setAvailableWeekdays((current) =>
-                      current.includes(day)
-                        ? current.filter((item) => item !== day)
-                        : [...current, day].sort(),
-                    )
-                  }
-                >
-                  {label}
-                </button>
-              ))}
+            <div
+              className="mt-2 grid grid-cols-7 gap-1"
+              role="group"
+              aria-label={isRu ? "Доступные дни недели" : "Available weekdays"}
+            >
+              {(isRu ? WEEKDAYS_RU : WEEKDAYS_EN).map((label, day) => {
+                const selected = availableWeekdays.includes(day);
+                const accessibleName = (isRu ? WEEKDAY_NAMES_RU : WEEKDAY_NAMES_EN)[day];
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    aria-label={accessibleName}
+                    aria-pressed={selected}
+                    className={`rounded-md border px-1 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                      selected
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground"
+                    }`}
+                    onClick={() =>
+                      setAvailableWeekdays((current) =>
+                        current.includes(day)
+                          ? current.filter((item) => item !== day)
+                          : [...current, day].sort(),
+                      )
+                    }
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
