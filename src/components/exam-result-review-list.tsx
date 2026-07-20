@@ -30,7 +30,7 @@ export function ExamResultReviewList({
   return (
     <section className="rounded-2xl border border-border bg-surface p-5 md:p-6">
       <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
-        <div>
+        <div role="status" aria-live="polite" aria-atomic="true">
           <div className="text-[10px] uppercase tracking-[0.17em] text-red-200">
             {isRu ? "Разбор результата" : "Result review"}
           </div>
@@ -92,7 +92,7 @@ export function ExamResultReviewList({
 
       {correctRows.length > 0 && (
         <details className="mt-5 rounded-xl border border-border bg-background p-4">
-          <summary className="cursor-pointer text-sm font-medium">
+          <summary className="cursor-pointer rounded-sm text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
             {isRu
               ? `Правильные ответы этой попытки · ${correctRows.length}`
               : `Correct answers in this attempt · ${correctRows.length}`}
