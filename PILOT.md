@@ -3,127 +3,158 @@
 **Task:** P1-008  
 **Status:** blocked until P1-006 live OCR and P1-007 live golden quiz validation pass.
 
-This document is both the execution checklist and the durable record of evidence. Use one real Israeli course and do not replace failures with demo data.
+This is an executable evidence harness, not a claim that the pilot has passed. Use one real Israeli course, keep private/licensed assets outside git, and do not replace failed live steps with demo data.
 
-## Pilot identity
+## 0. Create the pilot session
 
-- Course:
-- Institution:
-- Pilot date:
-- Browser/device:
-- App commit:
-- AI model and prompt versions:
-- Source-pack permission/provenance:
+Start Lamdan from the exact commit being tested, then create an evidence directory **outside the repository**:
+
+```bash
+node scripts/run-pilot-preflight.mjs \
+  --base-url http://127.0.0.1:3000 \
+  --course "<course name>" \
+  --institution "<institution>" \
+  --evidence-dir ../lamdan-pilot-evidence/<session-id> \
+  --commit "$(git rev-parse HEAD)" \
+  --browser-device "<browser, version, viewport/device>" \
+  --provenance "<permission and source-pack provenance>"
+```
+
+The command must create `00-preflight/pilot-session.json` containing the exact app commit, provider snapshots, evidence plan and external-gate state.
+
+Set a live gate to ready only when the required licensed input is genuinely available:
+
+```bash
+export LAMDAN_PILOT_LIVE_OCR_READY=1
+export LAMDAN_PILOT_GOLDEN_QUIZ_READY=1
+export LAMDAN_PILOT_LICENSED_LECTURE_READY=1
+```
+
+Unset variables remain `blocked`. Do not mark P1-006, P1-007 or P1-008 complete from deterministic mocks.
+
+## Required evidence format
+
+For each numbered stage create the named `result.json` with:
+
+```json
+{
+  "status": "pass | fail | blocked",
+  "startedAt": "ISO timestamp",
+  "finishedAt": "ISO timestamp",
+  "expected": [],
+  "observed": [],
+  "evidence": [],
+  "failures": [],
+  "appCommit": "exact Git SHA"
+}
+```
+
+Screenshots, exported JSON and recordings referenced by `evidence` stay in the external evidence directory. Never commit private course assets.
 
 ## Before starting
 
 - [ ] Full ZIP backup of any existing Lamdan workspace downloaded.
 - [ ] Empty local workspace confirmed.
-- [ ] Desktop viewport checked.
-- [ ] Mobile-width viewport checked.
-- [ ] AI status shows the expected connected provider.
-- [ ] Private assets are outside git.
+- [ ] Desktop and mobile-width viewports recorded in `pilot-session.json`.
+- [ ] AI and transcription provider snapshots reviewed.
+- [ ] Source-pack permission/provenance recorded.
+- [ ] Private assets confirmed outside git.
+- [ ] Keyboard-only navigation reaches the skip link, mobile drawer and primary course actions.
 
-## End-to-end script
-
-### 1. Syllabus → course
+## 1. Syllabus → course
 
 - [ ] Import a real digital or reviewed photographed syllabus.
 - [ ] Correct title, code, credits, semester and instructor.
 - [ ] Review topics/weeks, readings, assessments and grading.
-- [ ] Confirm exactly one course is created.
-- [ ] Reimport and confirm no duplicate course/topics.
+- [ ] Reimport the same syllabus.
 
-Evidence / failures:
+**Expected result:** exactly one reviewed course; reimport creates no duplicate course or topics; uncertain fields remain reviewable rather than silently invented.  
+**Evidence file:** `01-syllabus/result.json`.
 
-### 2. Course pack intake
+## 2. Course pack intake
 
-- [ ] Upload at least one PDF/DOCX.
-- [ ] Upload one single photo.
-- [ ] Create one multi-page photo material.
-- [ ] Include Hebrew plus at least one mixed RTL/LTR source.
-- [ ] Confirm one failed/unsupported file does not stop the queue.
-- [ ] Confirm exact duplicate warning.
+- [ ] Upload at least one PDF or DOCX.
+- [ ] Upload one single photo and one multi-page photo material.
+- [ ] Include Hebrew and one mixed RTL/LTR source.
+- [ ] Include one unsupported or intentionally failed file.
+- [ ] Upload an exact duplicate.
 
-Evidence / failures:
+**Expected result:** one failed item does not stop the queue; duplicate warning is explicit; successful sources remain attached to the intended course.  
+**Evidence file:** `02-intake/result.json`.
 
-### 3. OCR review
+## 3. OCR review — P1-006 gate
 
+- [ ] Confirm `externalGates.liveOcr` is `ready`; otherwise mark this stage `blocked`.
 - [ ] Prepare one image with crop/rotation/contrast.
-- [ ] Run OCR on printed Hebrew.
-- [ ] Run OCR on handwriting or mathematics.
-- [ ] Verify uncertain tokens and normalized mathematics.
-- [ ] Apply only after manual review.
-- [ ] Re-run OCR on one page after outputs already cite its chunks.
-- [ ] Confirm those outputs still open valid source chunks.
+- [ ] Run OCR on printed Hebrew and on handwriting or mathematics.
+- [ ] Review uncertainty and normalized mathematics before Apply.
+- [ ] Re-run one cited page after outputs already reference its chunks.
 
-Evidence / failures:
+**Expected result:** no source chunks change before Apply; cited outputs still open valid chunks after reviewed replacement; unreadable input abstains or requests review.  
+**Evidence file:** `03-ocr/result.json`.
 
-### 4. Study outputs
+## 4. Study outputs — P1-007 quiz gate
 
 - [ ] Generate and edit one note.
 - [ ] Generate and curate at least 20 flashcards.
-- [ ] Generate and review one golden quiz.
-- [ ] Confirm every supported claim/question has valid source links.
-- [ ] Confirm unsupported content is warned or rejected.
+- [ ] Confirm `externalGates.goldenQuiz` is `ready`; otherwise mark the golden-quiz substep `blocked`.
+- [ ] Generate and human-review one golden quiz.
+- [ ] Inspect every claim/question source link.
 
-Evidence / failures:
+**Expected result:** generated output remains draft until explicit Save/Apply; supported content opens exact evidence; unsupported or ambiguous content is warned, rejected or removed during review.  
+**Evidence file:** `04-study-outputs/result.json`.
 
-### 5. Persistence and recovery
+## 5. Persistence and recovery
 
-- [ ] Reload the browser and continue editing.
-- [ ] Confirm no false `Saved` state.
-- [ ] Reorder multi-page images and confirm source links survive.
+- [ ] Reload and continue editing.
+- [ ] Confirm a failed save never appears durable.
+- [ ] Reorder multi-page images and verify source links.
 - [ ] Download a full ZIP.
 - [ ] Clear all data.
-- [ ] Restore the ZIP and verify text, images, OCR drafts and citations.
+- [ ] Restore the ZIP.
 
-Evidence / failures:
+**Expected result:** approved text, images, OCR drafts, quiz/flashcard data and citations survive reload and restore; no dangling source reference remains.  
+**Evidence file:** `05-persistence/result.json`.
 
-### 6. Retrieval and exam preparation
+## 6. Retrieval and exam preparation
 
-- [ ] Search for a Hebrew term with and without niqqud.
-- [ ] Search for content located on a flashcard back and quiz explanation.
+- [ ] Search a Hebrew term with and without niqqud.
+- [ ] Search content on a flashcard back and in a quiz explanation.
 - [ ] Open the exact material/note/quiz result.
-- [ ] Prepare a small exam pack from reviewed sources.
+- [ ] Prepare a small exam pack and complete one mistake-repair loop.
 
-Evidence / failures:
+**Expected result:** search opens the correct entity and evidence; exam results remain frozen/reviewable; missed questions enter the repair flow without replacing the original result.  
+**Evidence file:** `06-retrieval-exam/result.json`.
 
 ## Metrics
 
-| Metric                         | Result |
-| ------------------------------ | ------ |
-| Failed uploads                 |        |
-| Incorrect classifications      |        |
-| Manual OCR corrections         |        |
-| Invented/unsupported AI claims |        |
-| Broken source links            |        |
-| Save/persistence failures      |        |
-| Repeated or confusing steps    |        |
-| Desktop blockers               |        |
-| Mobile blockers                |        |
-| Total time to usable course    |        |
+Write `metrics.json` with at least:
 
-## Findings
+| Metric                         | Required value |
+| ------------------------------ | -------------- |
+| Failed uploads                 | count          |
+| Incorrect classifications      | count          |
+| Manual OCR corrections         | count/blocked  |
+| Invented/unsupported AI claims | count          |
+| Broken source links            | count          |
+| Save/persistence failures      | count          |
+| Repeated or confusing steps    | count          |
+| Keyboard blockers              | count          |
+| Desktop blockers               | count          |
+| Mobile blockers                | count          |
+| Total time to usable course    | duration       |
 
-### Critical blockers
+## Decision
 
-### High-friction steps
+Write `decision.md` with critical blockers, high-friction steps, OCR/quiz failure categories, fixes made during the run and a go/no-go rationale.
 
-### OCR failure categories
+M1 may be marked achieved only when:
 
-### Quiz-quality failure categories
+- [ ] the complete workflow finishes without developer intervention;
+- [ ] no approved data is lost after reload or restore;
+- [ ] no dangling source references remain;
+- [ ] keyboard and mobile critical blockers are fixed;
+- [ ] P1-006 and P1-007 have real licensed evidence;
+- [ ] all critical blockers are fixed.
 
-### Mobile failures
-
-### Fixes completed during pilot
-
-## M1 decision
-
-- [ ] Complete workflow finished without developer intervention.
-- [ ] No approved data lost after reload or restore.
-- [ ] No dangling source references remain.
-- [ ] All critical blockers fixed.
-- [ ] M1 — Useful personal tool may be marked achieved.
-
-Decision and rationale:
+If any required live gate is blocked, the decision must remain **no-go / incomplete**, even when every deterministic stage passes.
