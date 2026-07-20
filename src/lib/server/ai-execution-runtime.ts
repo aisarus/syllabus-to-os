@@ -37,6 +37,7 @@ export async function executeAIRequest<TInput, TResult>(
   const key = normalizeIdempotencyKey(options.operation, options.idempotencyKey);
   const timestamp = now();
 
+  throwIfAborted(options.signal);
   pruneCompleted(timestamp);
 
   if (key) {
@@ -54,7 +55,7 @@ export async function executeAIRequest<TInput, TResult>(
     const inflight = inflightByKey.get(key);
     if (inflight) {
       assertMatchingInput(inflight.inputHash, inputHash);
-      const value = (await withTimeout(inflight.promise, policy.timeoutMs)) as TResult;
+      const value = (await waitForAbort(inflight.promise, options.signal)) as TResult;
       return {
         value,
         requestId,
@@ -90,26 +91,31 @@ export async function executeAIRequest<TInput, TResult>(
   consumeRateBudget(options.operation, timestamp, policy);
   activeByOperation.set(options.operation, active + 1);
 
+  const cancellation = createExecutionCancellation(options.signal, policy.timeoutMs);
   const operationPromise = runWithRetries({
     operation: options.operation,
     handler: options.handler,
     requestId,
     policy,
     sleep,
+    signal: cancellation.signal,
     isTransientError,
     isTransientResult,
   });
   const settledOperation = operationPromise.finally(() => {
+    cancellation.dispose();
     activeByOperation.set(
       options.operation,
       Math.max(0, (activeByOperation.get(options.operation) ?? 1) - 1),
     );
     if (key && inflightByKey.get(key)?.requestId === requestId) inflightByKey.delete(key);
   });
+  const controlledOperation = waitForAbort(settledOperation, cancellation.signal);
 
-  if (key) inflightByKey.set(key, { inputHash, requestId, promise: operationPromise });
+  if (key) inflightByKey.set(key, { inputHash, requestId, promise: controlledOperation });
 
-  const value = await withTimeout(settledOperation, policy.timeoutMs);
+  const value = await controlledOperation;
+  throwIfAborted(cancellation.signal);
   const shouldCache = options.shouldCacheResult ?? defaultShouldCacheResult;
   if (key && shouldCache(value)) {
     cacheCompleted(
@@ -132,41 +138,90 @@ async function runWithRetries<TResult>(options: {
   requestId: string;
   policy: AIExecutionPolicy;
   sleep: (ms: number) => Promise<void>;
+  signal: AbortSignal;
   isTransientError: (error: unknown) => boolean;
   isTransientResult: (value: unknown) => boolean;
 }): Promise<TResult> {
   for (let attempt = 0; ; attempt += 1) {
+    throwIfAborted(options.signal);
     try {
       const value = await options.handler({
         requestId: options.requestId,
         operation: options.operation,
         attempt,
+        signal: options.signal,
       });
+      throwIfAborted(options.signal);
       if (attempt < options.policy.maxRetries && options.isTransientResult(value)) {
-        await options.sleep(options.policy.retryBackoffMs * 2 ** attempt);
+        await waitForAbort(
+          options.sleep(options.policy.retryBackoffMs * 2 ** attempt),
+          options.signal,
+        );
         continue;
       }
       return value;
     } catch (error) {
+      if (isAbortError(error) || options.signal.aborted) throw abortReason(options.signal);
       if (attempt >= options.policy.maxRetries || !options.isTransientError(error)) throw error;
-      await options.sleep(options.policy.retryBackoffMs * 2 ** attempt);
+      await waitForAbort(
+        options.sleep(options.policy.retryBackoffMs * 2 ** attempt),
+        options.signal,
+      );
     }
   }
 }
 
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(
-      () => reject(new AIExecutionError("AI_TIMEOUT", "AI operation timed out.", 504)),
-      timeoutMs,
-    );
+interface ExecutionCancellation {
+  signal: AbortSignal;
+  dispose(): void;
+}
+
+function createExecutionCancellation(
+  externalSignal: AbortSignal | undefined,
+  timeoutMs: number,
+): ExecutionCancellation {
+  const controller = new AbortController();
+  const onExternalAbort = () => controller.abort(abortReason(externalSignal));
+  if (externalSignal?.aborted) onExternalAbort();
+  else externalSignal?.addEventListener("abort", onExternalAbort, { once: true });
+
+  const timer = setTimeout(() => {
+    controller.abort(new AIExecutionError("AI_TIMEOUT", "AI operation timed out.", 504));
+  }, timeoutMs);
+
+  return {
+    signal: controller.signal,
+    dispose() {
+      clearTimeout(timer);
+      externalSignal?.removeEventListener("abort", onExternalAbort);
+    },
+  };
+}
+
+async function waitForAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  throwIfAborted(signal);
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(abortReason(signal));
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(resolve, reject).finally(() => signal.removeEventListener("abort", onAbort));
   });
-  try {
-    return await Promise.race([promise, timeout]);
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) throw abortReason(signal);
+}
+
+function abortReason(signal?: AbortSignal): AIExecutionError {
+  if (signal?.reason instanceof AIExecutionError) return signal.reason;
+  return new AIExecutionError("AI_CANCELLED", "AI request cancelled.", 499);
+}
+
+function isAbortError(error: unknown): boolean {
+  return (
+    (error instanceof DOMException && error.name === "AbortError") ||
+    (error instanceof Error && error.name === "AbortError")
+  );
 }
 
 function normalizeIdempotencyKey(
@@ -219,6 +274,7 @@ function defaultTransientResult(value: unknown): boolean {
 }
 
 function defaultTransientError(error: unknown): boolean {
+  if (isAbortError(error)) return false;
   if (!error || typeof error !== "object") return false;
   const record = error as { status?: unknown; code?: unknown };
   if (typeof record.status === "number" && [408, 429, 500, 502, 503, 504].includes(record.status))

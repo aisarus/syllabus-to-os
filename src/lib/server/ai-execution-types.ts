@@ -21,6 +21,7 @@ export type AIExecutionErrorCode =
   | "AI_RATE_LIMIT"
   | "AI_COST_LIMIT"
   | "AI_TIMEOUT"
+  | "AI_CANCELLED"
   | "IDEMPOTENCY_CONFLICT"
   | "INVALID_IDEMPOTENCY_KEY";
 
@@ -39,6 +40,7 @@ export interface AIExecutionContext {
   requestId: string;
   operation: AIExecutionOperation;
   attempt: number;
+  signal: AbortSignal;
 }
 
 export interface AIExecutionResult<T> {
@@ -61,6 +63,7 @@ export interface AIExecutionOptions<TInput, TResult> {
   input: TInput;
   handler: (context: AIExecutionContext) => Promise<TResult>;
   idempotencyKey?: string | null;
+  signal?: AbortSignal;
   estimatedCost?: number;
   policy?: Partial<AIExecutionPolicy>;
   shouldCacheResult?: (value: TResult) => boolean;

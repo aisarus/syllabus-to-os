@@ -23,6 +23,10 @@ export type GeminiResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string; details?: string };
 
+export interface GeminiRequestOptions {
+  signal?: AbortSignal;
+}
+
 interface TextContentPart {
   type: "text";
   text: string;
@@ -39,9 +43,11 @@ type UserContent = string | Array<TextContentPart | ImageContentPart>;
 export async function generateGeminiJSON<T = unknown>(
   prompt: string,
   schemaDescription: string,
+  options: GeminiRequestOptions = {},
 ): Promise<GeminiResult<T>> {
   return requestJSON<T>(
     `${prompt}\n\nReturn ONLY a strict JSON object. No markdown, no commentary.\n\nExpected schema (informal):\n${schemaDescription}`,
+    options,
   );
 }
 
@@ -50,20 +56,27 @@ export async function generateGeminiVisionJSON<T = unknown>(
   prompt: string,
   schemaDescription: string,
   imageDataUrl: string,
+  options: GeminiRequestOptions = {},
 ): Promise<GeminiResult<T>> {
   if (!/^data:image\/(?:jpeg|png|webp);base64,/i.test(imageDataUrl)) {
     return { ok: false, error: "Unsupported image payload" };
   }
-  return requestJSON<T>([
-    {
-      type: "text",
-      text: `${prompt}\n\nReturn ONLY a strict JSON object. No markdown, no commentary.\n\nExpected schema (informal):\n${schemaDescription}`,
-    },
-    { type: "image_url", image_url: { url: imageDataUrl } },
-  ]);
+  return requestJSON<T>(
+    [
+      {
+        type: "text",
+        text: `${prompt}\n\nReturn ONLY a strict JSON object. No markdown, no commentary.\n\nExpected schema (informal):\n${schemaDescription}`,
+      },
+      { type: "image_url", image_url: { url: imageDataUrl } },
+    ],
+    options,
+  );
 }
 
-async function requestJSON<T>(content: UserContent): Promise<GeminiResult<T>> {
+async function requestJSON<T>(
+  content: UserContent,
+  options: GeminiRequestOptions = {},
+): Promise<GeminiResult<T>> {
   const key = process.env.LOVABLE_API_KEY?.trim();
   if (!key) return { ok: false, error: "Lovable AI is not configured" };
   const model = getGeminiModelName();
@@ -82,6 +95,7 @@ async function requestJSON<T>(content: UserContent): Promise<GeminiResult<T>> {
         response_format: { type: "json_object" },
         messages: [{ role: "user", content }],
       }),
+      signal: options.signal,
     });
 
     if (!response.ok) {
@@ -119,6 +133,7 @@ async function requestJSON<T>(content: UserContent): Promise<GeminiResult<T>> {
     }
     return { ok: true, data: parsed.value as T };
   } catch (error) {
+    if (isAbortError(error)) throw error;
     const message = (error as Error).message || "AI call failed";
     return { ok: false, error: "AI call failed", details: message };
   }
@@ -140,4 +155,11 @@ function safeParseJSON(text: string): { ok: true; value: unknown } | { ok: false
     }
   }
   return { ok: false };
+}
+
+function isAbortError(error: unknown): boolean {
+  return (
+    (error instanceof DOMException && error.name === "AbortError") ||
+    (error instanceof Error && error.name === "AbortError")
+  );
 }
