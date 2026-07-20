@@ -105,14 +105,21 @@ export function MaterialIntakeReviewDialog({
         <div className="grid gap-5 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
           <div className="space-y-4">
             <div>
-              <Label>{isRu ? "Название" : "Title"}</Label>
-              <Input value={title} onChange={(event) => setTitle(event.target.value)} />
+              <Label htmlFor="material-review-title">{isRu ? "Название" : "Title"}</Label>
+              <Input
+                id="material-review-title"
+                dir="auto"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+              />
             </div>
 
             <div>
-              <Label>{isRu ? "Тип материала" : "Material type"}</Label>
+              <Label htmlFor="material-review-type">
+                {isRu ? "Тип материала" : "Material type"}
+              </Label>
               <Select value={type} onValueChange={(value) => setType(value as MaterialType)}>
-                <SelectTrigger>
+                <SelectTrigger id="material-review-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -136,7 +143,7 @@ export function MaterialIntakeReviewDialog({
             </div>
 
             <div>
-              <Label>{isRu ? "Курс" : "Course"}</Label>
+              <Label htmlFor="material-review-course">{isRu ? "Курс" : "Course"}</Label>
               <Select
                 value={courseId}
                 onValueChange={(value) => {
@@ -144,7 +151,7 @@ export function MaterialIntakeReviewDialog({
                   setTopicId("_none");
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger id="material-review-course">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -159,9 +166,9 @@ export function MaterialIntakeReviewDialog({
             </div>
 
             <div>
-              <Label>{isRu ? "Тема" : "Topic"}</Label>
+              <Label htmlFor="material-review-topic">{isRu ? "Тема" : "Topic"}</Label>
               <Select value={topicId} onValueChange={setTopicId} disabled={courseId === "_none"}>
-                <SelectTrigger>
+                <SelectTrigger id="material-review-topic">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -176,8 +183,15 @@ export function MaterialIntakeReviewDialog({
             </div>
 
             <div>
-              <Label>{isRu ? "Теги через запятую" : "Comma-separated tags"}</Label>
-              <Input value={tags} onChange={(event) => setTags(event.target.value)} />
+              <Label htmlFor="material-review-tags">
+                {isRu ? "Теги через запятую" : "Comma-separated tags"}
+              </Label>
+              <Input
+                id="material-review-tags"
+                dir="auto"
+                value={tags}
+                onChange={(event) => setTags(event.target.value)}
+              />
             </div>
 
             <div className="rounded-md border border-border bg-background p-3 text-xs">
@@ -194,7 +208,10 @@ export function MaterialIntakeReviewDialog({
             </div>
 
             {warning && (
-              <div className="flex gap-2 rounded-md border border-yellow-500/25 bg-yellow-500/5 p-3 text-xs text-yellow-100">
+              <div
+                role="alert"
+                className="flex gap-2 rounded-md border border-yellow-500/25 bg-yellow-500/5 p-3 text-xs text-yellow-100"
+              >
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{warning}</span>
               </div>
@@ -202,7 +219,10 @@ export function MaterialIntakeReviewDialog({
           </div>
 
           <div className="min-w-0">
-            <Label className="mb-2 flex items-center gap-1.5">
+            <Label
+              htmlFor={prepared.isVisualSource ? undefined : "material-review-extracted-text"}
+              className="mb-2 flex items-center gap-1.5"
+            >
               {prepared.isVisualSource ? (
                 <FileImage className="h-4 w-4" />
               ) : (
@@ -232,6 +252,7 @@ export function MaterialIntakeReviewDialog({
               )
             ) : (
               <textarea
+                id="material-review-extracted-text"
                 readOnly
                 dir="auto"
                 className="min-h-[430px] w-full resize-y rounded-md border border-input bg-background p-3 font-mono text-sm leading-relaxed"
