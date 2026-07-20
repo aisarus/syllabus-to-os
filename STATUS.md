@@ -1,10 +1,10 @@
 # Lamdan — Current execution status
 
 <!-- LAMDAN_EXECUTION_LEDGER
-baseline_sha: 2af218a92622db2ce04337e9095c78e72782a456
-baseline_pr: 81
+baseline_sha: ed11ca59c0c9a0ab8029822e5d283656536e4442
+baseline_pr: 85
 active_phase: production-phase-0-stabilization
-active_task: S3-003
+active_task: S4-001
 active_pr: none
 external_blockers: live-ocr,golden-quiz,licensed-lecture-evaluation
 -->
@@ -13,25 +13,26 @@ Last updated: 2026-07-20
 
 ## Current milestone
 
-**Production readiness Phase 0 — cancellable and trustworthy AI execution**
+**Production readiness Phase 0 — accessible student workflow and executable pilot**
 
-The verified runtime baseline is `main` through commit `2af218a92622db2ce04337e9095c78e72782a456` / PR #81.
+The verified runtime baseline is `main` through commit `ed11ca59c0c9a0ab8029822e5d283656536e4442` / PR #85.
 
-**Active task:** `S3-003 real cancellation propagation and late-result rejection`  
+**Active task:** `S4-001 accessibility baseline and executable one-course pilot harness`  
 **Active PR:** none
 
-Lamdan now validates all AI inputs through one runtime boundary and applies process-local request IDs, operation budgets, transient-only retry and bounded idempotency to every AI route. S3-003 must make cancellation real across the complete request → controller → provider chain rather than merely hiding a late response.
+Lamdan now has durable-before-publish workspace persistence, an explicit repository boundary, shared AI validation, bounded execution, idempotency and end-to-end provider cancellation. The next slice must make the existing study workflow reliably operable by keyboard and turn the current pilot checklist into reproducible evidence rather than adding another product feature.
 
 ## Completed stabilization slices
 
 - `S1-001` durable-before-publish workspace persistence — PR #75.
 - `S2-001` explicit `WorkspaceRepository` and import-order independence — PR #76.
-- `S3-001` shared AI request validation and redacted error contracts — PR #78.
-- `S3-002` bounded AI execution engine and route integration — PRs #80 and #81.
+- `S3-001` shared AI validation and redacted error contracts — PR #78.
+- `S3-002` request IDs, resource controls and bounded idempotency — PRs #80–#81.
+- `S3-003` provider cancellation and late-result rejection — PRs #83 and #85.
 
 ## Current product state
 
-Lamdan remains a late MVP / early closed alpha with source-linked materials, reviewed OCR and transcription drafts, Study Pack, Quiz Studio, Exam Engine, long-media backup/restore and explicit durable workspace persistence. Generated academic content remains draft-only until explicit Apply/Save.
+Lamdan remains a late MVP / early closed alpha with source-linked materials, reviewed OCR and transcription drafts, Study Pack, Quiz Studio, Exam Engine, long-media backup/restore and explicit Apply/Save trust boundaries.
 
 ## External milestone blockers
 
@@ -47,12 +48,11 @@ Lamdan remains a late MVP / early closed alpha with source-linked materials, rev
 
 ## Next execution targets
 
-**Active task:** `S3-003 real cancellation propagation and late-result rejection`
+**Active task:** `S4-001 accessibility baseline and executable one-course pilot harness`
 
-1. Propagate one AbortSignal from every AI request through the execution controller to the provider adapter.
-2. Abort provider work when the client disconnects, the user cancels or the operation timeout expires.
-3. Reject late completion after abort and prevent it from entering idempotency cache or any persisted draft path.
-4. Preserve retry semantics only before cancellation and never retry an aborted operation.
-5. Add deterministic cancellation and late-result regressions for generic JSON, syllabus and transcription paths.
-6. Complete `S4-001` accessibility and executable pilot work after service stabilization.
-7. Run `P1-006`, `P1-007` and `P1-008` when licensed inputs and a connected deployment are available.
+1. Audit the core shell and study loop for keyboard reachability, visible focus, focus restoration and Escape behavior.
+2. Fix mixed Hebrew/Russian/English directionality and minimum contrast/text-size blockers in core paths.
+3. Add deterministic accessibility contracts for the shell, dialogs and primary study surfaces.
+4. Convert `PILOT.md` into a reproducible harness with setup, fixtures, expected results and evidence locations.
+5. Keep live OCR, golden quiz and licensed lecture quality explicitly blocked rather than replacing them with demo claims.
+6. Begin versioned schemas and IndexedDB only after the stabilization acceptance gates are green.
