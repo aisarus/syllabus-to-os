@@ -32,6 +32,7 @@ export async function handleControlledAIJsonRequest<T>(
       operation,
       input: parsed.data,
       idempotencyKey: readIdempotencyKey(request),
+      signal: request.signal,
       estimatedCost: options.estimatedCost,
       policy: options.policy,
       dependencies: { createRequestId: () => requestId },
