@@ -239,8 +239,9 @@ function CreateQuizForm({ onDone }: { onDone: () => void }) {
   return (
     <div className="space-y-4">
       <div>
-        <Label>{isRu ? "Название" : "Title"}</Label>
+        <Label htmlFor="create-quiz-title">{isRu ? "Название" : "Title"}</Label>
         <Input
+          id="create-quiz-title"
           dir="auto"
           className="mt-1"
           value={title}
@@ -256,7 +257,7 @@ function CreateQuizForm({ onDone }: { onDone: () => void }) {
             setMaterialId("_none");
           }}
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label={isRu ? "Курс" : "Course"}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -269,7 +270,7 @@ function CreateQuizForm({ onDone }: { onDone: () => void }) {
           </SelectContent>
         </Select>
         <Select value={topicId} onValueChange={setTopicId} disabled={courseId === "_none"}>
-          <SelectTrigger>
+          <SelectTrigger aria-label={isRu ? "Тема" : "Topic"}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -282,7 +283,7 @@ function CreateQuizForm({ onDone }: { onDone: () => void }) {
           </SelectContent>
         </Select>
         <Select value={materialId} onValueChange={setMaterialId}>
-          <SelectTrigger>
+          <SelectTrigger aria-label={isRu ? "Материал" : "Material"}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
