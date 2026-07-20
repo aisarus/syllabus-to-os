@@ -1,10 +1,10 @@
 # Lamdan — P0 Implementation Tasks and Production Readiness Ledger
 
 <!-- LAMDAN_EXECUTION_LEDGER
-baseline_sha: 1ceca678359e1e0d5e6eb333300a8b34b1d5f1c2
-baseline_pr: 78
+baseline_sha: 2af218a92622db2ce04337e9095c78e72782a456
+baseline_pr: 81
 active_phase: production-phase-0-stabilization
-active_task: S3-002
+active_task: S3-003
 active_pr: none
 external_blockers: live-ocr,golden-quiz,licensed-lecture-evaluation
 -->
@@ -20,7 +20,7 @@ This is the canonical executable task ledger. Product intent lives in `ROADMAP.m
 
 ## Global definition of done
 
-A task is complete only when applicable contracts/evals, typecheck, lint and build pass on the same head; skipped environment checks remain blockers rather than successes.
+A task is complete only when its applicable contracts/evals pass on the same head, approved data and source relationships remain valid, generated output stays draft-only until explicit Apply/Save, and skipped environment-dependent checks remain named blockers rather than successes.
 
 # Production readiness execution
 
@@ -38,53 +38,56 @@ A task is complete only when applicable contracts/evals, typecheck, lint and bui
 
 - **Status:** [x]
 - **Merged:** PR #78
-- **Evidence:** all 16 routes inventoried; 14 POST routes use shared runtime parsing; malformed and oversized requests fail before provider invocation; internal/provider errors are redacted; success responses remain compatible.
 
 ## S3-002 — Request IDs, resource controls and idempotency
 
+- **Status:** [x]
+- **Merged:** PRs #80 and #81
+- **Evidence:** all 14 POST routes use bounded execution; both status routes expose request IDs; concurrent duplicates invoke the provider once; timeout, rate, concurrency, cost, retry and replay behavior have deterministic regressions.
+
+## S3-003 — Real cancellation propagation and late-result rejection
+
 - **Status:** [ ]
 - **Priority:** active P0 production blocker
-- **Depends on:** S3-001
-- **Active task:** `S3-002`
+- **Depends on:** S3-002
+- **Active task:** `S3-003`
 - **Current PR:** none
 
 ### Problem
 
-Validated requests can still consume provider capacity without a common execution budget. The service lacks stable request IDs, bounded concurrency, operation timeouts, explicit transient retry rules, cost ceilings and duplicate-request protection.
+Timeout currently bounds the HTTP response, but not every provider adapter is proven to stop its underlying work. A cancelled or timed-out operation must not continue consuming provider capacity, become eligible for retry, enter the idempotency cache or publish a late draft.
 
 ### Scope
 
-- attach a stable request ID to every shared AI response and header;
-- define per-operation timeout, concurrency and estimated-cost budgets;
-- retry only classified transient provider failures with bounded backoff;
-- reject work when a local process-level rate or concurrency budget is exhausted;
-- accept validated idempotency keys and reuse the first completed result;
-- prevent concurrent duplicate execution for the same idempotency key;
-- add deterministic clocks/providers for tests without introducing Redis or another service.
+- create one composed AbortSignal for client cancellation and operation timeout;
+- pass that signal through generic JSON routes, syllabus, OCR and transcription provider adapters;
+- classify abort separately from transient provider failure;
+- never retry after cancellation;
+- reject and discard completion produced after abort;
+- preserve existing review-first Apply/Save boundaries;
+- add deterministic abort-before-provider, abort-during-provider and late-completion regressions.
 
 ### Acceptance criteria
 
-- every shared AI response includes the same request ID in body/error metadata or response header;
-- timed-out work returns a stable error and cannot publish a late result;
-- concurrency above the configured operation limit is rejected before provider invocation;
-- non-transient errors are never retried;
-- a repeated idempotency key invokes the provider once and returns the cached result;
-- failed requests do not poison an idempotency key permanently;
-- relevant contracts/evals, `npm run typecheck`, `npm run lint` and `npm run build` pass on one head.
+- provider work observes abort for every supported AI operation;
+- timeout aborts the provider operation rather than only returning a 504;
+- a cancelled operation is not retried or cached;
+- a late provider result cannot become an HTTP success or saved draft;
+- a second request after completed cancellation can run normally;
+- relevant contracts/evals and available type/lint/build gates pass on one head.
 
 ### Explicit exclusions
 
-- distributed rate limiting or Redis;
-- cross-instance durable idempotency before the backend phase;
-- complete UI cancellation propagation, reserved for S3-003;
+- distributed job cancellation across multiple server instances;
+- a new background queue or Redis;
+- broad UI redesign;
 - authentication/backend redesign;
 - new AI product features.
 
 ## Queued stabilization tasks
 
-1. `S3-003` — real AbortSignal propagation and late-result rejection across all provider jobs.
-2. `S4-001` — accessibility baseline and executable one-course pilot harness.
-3. `D1-001` — versioned schemas and IndexedDB migration only after stabilization is green.
+1. `S4-001` — accessibility baseline and executable one-course pilot harness.
+2. `D1-001` — versioned local schemas and IndexedDB migration after stabilization is green.
 
 # External evidence gates
 
@@ -109,10 +112,9 @@ Validated requests can still consume provider capacity without a common executio
 
 # Current execution order
 
-**Active task:** `S3-002 request IDs, resource controls and idempotency`
+**Active task:** `S3-003 real cancellation propagation and late-result rejection`  
 **Active PR:** none
 
-1. Complete S3-002.
-2. Complete S3-003.
-3. Complete S4-001.
-4. Begin versioned local schemas and IndexedDB only after stabilization is green.
+1. Complete S3-003.
+2. Complete S4-001.
+3. Begin versioned schemas and IndexedDB only after stabilization is green.
