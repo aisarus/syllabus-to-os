@@ -40,8 +40,10 @@ function ProgramPage() {
       {(creating || program) && (
         <div className="rounded-lg border border-border bg-surface p-6 space-y-4">
           <div>
-            <Label>{t.programName}</Label>
+            <Label htmlFor="program-name">{t.programName}</Label>
             <Input
+              id="program-name"
+              dir="auto"
               value={program?.name ?? form.name}
               onChange={(e) =>
                 program
@@ -52,8 +54,10 @@ function ProgramPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>{t.institution}</Label>
+              <Label htmlFor="program-institution">{t.institution}</Label>
               <Input
+                id="program-institution"
+                dir="auto"
                 value={program?.institution ?? form.institution}
                 onChange={(e) =>
                   program
@@ -63,8 +67,10 @@ function ProgramPage() {
               />
             </div>
             <div>
-              <Label>{t.degree}</Label>
+              <Label htmlFor="program-degree">{t.degree}</Label>
               <Input
+                id="program-degree"
+                dir="auto"
                 value={program?.degree ?? form.degree}
                 onChange={(e) =>
                   program
@@ -74,8 +80,9 @@ function ProgramPage() {
               />
             </div>
             <div>
-              <Label>{t.years}</Label>
+              <Label htmlFor="program-years">{t.years}</Label>
               <Input
+                id="program-years"
                 type="number"
                 value={program?.years ?? form.years}
                 onChange={(e) => {
@@ -89,8 +96,10 @@ function ProgramPage() {
               />
             </div>
             <div>
-              <Label>{t.semesters}</Label>
+              <Label htmlFor="program-semesters">{t.semesters}</Label>
               <Input
+                id="program-semesters"
+                dir="auto"
                 value={program ? program.semesters.join(", ") : form.semesters}
                 onChange={(e) => {
                   const sems = e.target.value
