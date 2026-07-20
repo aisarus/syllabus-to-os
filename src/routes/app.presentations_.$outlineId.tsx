@@ -69,6 +69,8 @@ function OutlineEditor() {
       <PageHeader
         title={
           <Input
+            aria-label={t.title}
+            dir="auto"
             value={outline.title}
             onChange={(e) => store.updateOutline(outline.id, { title: e.target.value })}
             className="text-2xl md:text-3xl font-bold bg-transparent border-transparent hover:border-input p-0 h-auto"
@@ -102,21 +104,26 @@ function OutlineEditor() {
               <Button
                 size="icon"
                 variant="ghost"
+                aria-label={`${t.delete} ${t.slide} ${idx + 1}`}
                 onClick={() => store.deleteSlide(outline.id, s.id)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>
             <div>
-              <Label>{t.title}</Label>
+              <Label htmlFor={`slide-${s.id}-title`}>{t.title}</Label>
               <Input
+                id={`slide-${s.id}-title`}
+                dir="auto"
                 value={s.title}
                 onChange={(e) => store.updateSlide(outline.id, s.id, { title: e.target.value })}
               />
             </div>
             <div>
-              <Label>{t.bullets}</Label>
+              <Label htmlFor={`slide-${s.id}-bullets`}>{t.bullets}</Label>
               <textarea
+                id={`slide-${s.id}-bullets`}
+                dir="auto"
                 className="w-full min-h-[100px] rounded-md border border-input bg-background p-3 text-sm"
                 value={s.bullets.join("\n")}
                 onChange={(e) =>
@@ -126,8 +133,10 @@ function OutlineEditor() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <Label>{t.speakerNotes}</Label>
+                <Label htmlFor={`slide-${s.id}-speaker-notes`}>{t.speakerNotes}</Label>
                 <textarea
+                  id={`slide-${s.id}-speaker-notes`}
+                  dir="auto"
                   className="w-full min-h-[80px] rounded-md border border-input bg-background p-3 text-sm"
                   value={s.speakerNotes ?? ""}
                   onChange={(e) =>
@@ -136,8 +145,10 @@ function OutlineEditor() {
                 />
               </div>
               <div>
-                <Label>{t.sourceQuote}</Label>
+                <Label htmlFor={`slide-${s.id}-source-quote`}>{t.sourceQuote}</Label>
                 <textarea
+                  id={`slide-${s.id}-source-quote`}
+                  dir="auto"
                   className="w-full min-h-[80px] rounded-md border border-input bg-background p-3 text-sm"
                   value={s.sourceQuote ?? ""}
                   onChange={(e) =>
