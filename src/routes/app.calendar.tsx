@@ -95,17 +95,22 @@ function EventForm({ id, onDone }: { id?: string; onDone: () => void }) {
   return (
     <div className="space-y-3">
       <div>
-        <Label>{t.title}</Label>
-        <Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
+        <Label htmlFor="calendar-title">{t.title}</Label>
+        <Input
+          id="calendar-title"
+          dir="auto"
+          value={f.title}
+          onChange={(e) => setF({ ...f, title: e.target.value })}
+        />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>{t.eventType}</Label>
+          <Label htmlFor="calendar-type">{t.eventType}</Label>
           <Select
             value={f.type}
             onValueChange={(v) => setF({ ...f, type: v as CalendarEventType })}
           >
-            <SelectTrigger>
+            <SelectTrigger id="calendar-type">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -118,24 +123,27 @@ function EventForm({ id, onDone }: { id?: string; onDone: () => void }) {
           </Select>
         </div>
         <div>
-          <Label>{t.date}</Label>
+          <Label htmlFor="calendar-date">{t.date}</Label>
           <Input
+            id="calendar-date"
             type="date"
             value={f.date}
             onChange={(e) => setF({ ...f, date: e.target.value })}
           />
         </div>
         <div>
-          <Label>{t.startTime}</Label>
+          <Label htmlFor="calendar-start-time">{t.startTime}</Label>
           <Input
+            id="calendar-start-time"
             type="time"
             value={f.startTime}
             onChange={(e) => setF({ ...f, startTime: e.target.value })}
           />
         </div>
         <div>
-          <Label>{t.endTime}</Label>
+          <Label htmlFor="calendar-end-time">{t.endTime}</Label>
           <Input
+            id="calendar-end-time"
             type="time"
             value={f.endTime}
             onChange={(e) => setF({ ...f, endTime: e.target.value })}
@@ -143,9 +151,9 @@ function EventForm({ id, onDone }: { id?: string; onDone: () => void }) {
         </div>
       </div>
       <div>
-        <Label>{t.linkedCourse}</Label>
+        <Label htmlFor="calendar-course">{t.linkedCourse}</Label>
         <Select value={f.courseId} onValueChange={(v) => setF({ ...f, courseId: v })}>
-          <SelectTrigger>
+          <SelectTrigger id="calendar-course">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -159,8 +167,10 @@ function EventForm({ id, onDone }: { id?: string; onDone: () => void }) {
         </Select>
       </div>
       <div>
-        <Label>{t.notes}</Label>
+        <Label htmlFor="calendar-notes">{t.notes}</Label>
         <textarea
+          id="calendar-notes"
+          dir="auto"
           className="w-full min-h-16 rounded-md border border-input bg-background px-3 py-2 text-sm"
           value={f.notes}
           onChange={(e) => setF({ ...f, notes: e.target.value })}
@@ -177,12 +187,12 @@ function EventForm({ id, onDone }: { id?: string; onDone: () => void }) {
 }
 
 function CalendarPage() {
-  const { t } = useApp();
+  const { t, lang } = useApp();
   const data = useData();
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | undefined>();
+  const isRu = lang === "ru";
 
-  // Combine calendar events with assignment deadlines (virtual)
   const combined = useMemo(() => {
     const items: Array<{
       key: string;
@@ -192,7 +202,7 @@ function CalendarPage() {
       startTime?: string;
       courseId?: string;
       notes?: string;
-      real?: string; // event id if real
+      real?: string;
     }> = data.calendarEvents.map((e) => ({
       key: e.id,
       title: e.title,
@@ -294,7 +304,9 @@ function CalendarPage() {
                         {typeLabel(t, e.type)}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{e.title}</div>
+                        <div className="font-medium truncate" dir="auto">
+                          {e.title}
+                        </div>
                         <div className="text-xs text-muted-foreground truncate">
                           {e.startTime && <span className="me-2">{e.startTime}</span>}
                           {course?.title || ""}
@@ -306,6 +318,9 @@ function CalendarPage() {
                           <Button
                             size="icon"
                             variant="ghost"
+                            aria-label={
+                              isRu ? `Редактировать событие «${e.title}»` : `Edit event “${e.title}”`
+                            }
                             onClick={() => {
                               setEditId(e.real);
                               setOpen(true);
@@ -316,6 +331,9 @@ function CalendarPage() {
                           <Button
                             size="icon"
                             variant="ghost"
+                            aria-label={
+                              isRu ? `Удалить событие «${e.title}»` : `Delete event “${e.title}”`
+                            }
                             onClick={() => {
                               if (confirm(t.confirm + "?")) store.deleteEvent(e.real!);
                             }}
