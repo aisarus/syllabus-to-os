@@ -174,11 +174,13 @@ for (const marker of [
 }
 
 requireMarker(ocrRoute, 'createFileRoute("/api/ai/ocr-image")', "OCR API route is missing.");
-requireMarker(
-  ocrRoute,
-  "runOCRGeneration(body)",
-  "OCR API route no longer uses the trusted OCR pipeline.",
-);
+for (const marker of ["ocrGenerationInputSchema", "handleAIJsonRequest", "runOCRGeneration"]) {
+  requireMarker(
+    ocrRoute,
+    marker,
+    `OCR API route no longer uses the trusted OCR pipeline: ${marker}`,
+  );
+}
 
 for (const marker of [
   "generateGeminiVisionJSON",

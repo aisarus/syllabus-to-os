@@ -82,8 +82,9 @@ for (const marker of [
 
 for (const marker of [
   'createFileRoute("/api/ai/extract-concepts")',
-  "runConceptExtractionGeneration(body)",
-  "Invalid JSON body",
+  "conceptExtractionInputSchema",
+  "handleAIJsonRequest",
+  "runConceptExtractionGeneration",
 ]) {
   requireMarker(apiRoute, marker, `Concept extraction API route is missing: ${marker}`);
 }
