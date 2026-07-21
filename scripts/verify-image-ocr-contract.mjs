@@ -171,7 +171,7 @@ for (const marker of [
   "requiresReview=true",
   "A confident invented answer is forbidden",
   "validateOCRDraft",
-  'type AIExecutionContext',
+  "import type { AIExecutionContext }",
   'context?: Pick<AIExecutionContext, "signal">',
   "signal: context?.signal",
 ]) {
