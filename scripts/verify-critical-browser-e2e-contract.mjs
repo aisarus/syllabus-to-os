@@ -130,8 +130,8 @@ for (const marker of [
 
 requireMarker(
   status,
-  "critical browser end-to-end",
-  "STATUS.md does not record the critical browser execution target.",
+  "AppShell Accessibility E2E",
+  "STATUS.md does not record the targeted AppShell browser evidence.",
 );
 
 if (failures.length > 0) {
