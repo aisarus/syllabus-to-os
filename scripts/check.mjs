@@ -11,6 +11,7 @@ const checks = [
   "verify:quiz-studio-contract",
   "verify:detail-route-contract",
   "verify:core-ui-audit",
+  "verify:app-shell-accessibility-contract",
   "verify:evaluation-fixtures",
   "verify:image-ocr-contract",
   "verify:image-preprocessing-contract",
