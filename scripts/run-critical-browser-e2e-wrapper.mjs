@@ -5,6 +5,7 @@ const timeout = setTimeout(() => {
 }, timeoutMilliseconds);
 
 try {
+  process.env.LAM_DAN_APP_SHELL_E2E_ARTIFACT_DIR ??= "critical-e2e-artifacts/app-shell";
   await import("./run-app-shell-accessibility-browser-e2e.mjs");
   await import("./run-critical-browser-e2e.mjs");
   await import("./run-source-reference-deletion-browser-e2e.mjs");
