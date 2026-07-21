@@ -1,0 +1,46 @@
+name: Workspace Backup Verification
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify workspace backup contract, evals and browser restore
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies from lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Verify workspace backup contract
+        run: npm run verify:workspace-backup-contract
+
+      - name: Run workspace backup deterministic evaluations
+        run: npm run eval:workspace-backup
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Run workspace backup browser E2E
+        run: npm run e2e:workspace-backup
