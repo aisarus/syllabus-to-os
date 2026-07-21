@@ -1,0 +1,37 @@
+name: Study Command Center Verification
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify study command contract and evaluations
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies from lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Verify study command center contract
+        run: npm run verify:study-command-center-contract
+
+      - name: Run study command center evaluations
+        run: npm run eval:study-command
