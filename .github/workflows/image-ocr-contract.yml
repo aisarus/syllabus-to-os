@@ -23,4 +23,15 @@ jobs:
           node-version: 22
 
       - name: Run image OCR contract
-        run: npm run verify:image-ocr-contract
+        run: |
+          set -o pipefail
+          npm run verify:image-ocr-contract 2>&1 | tee image-ocr-contract-output.txt
+
+      - name: Upload image OCR contract output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-ocr-contract-output
+          path: image-ocr-contract-output.txt
+          if-no-files-found: error
+          retention-days: 7
