@@ -171,9 +171,17 @@ for (const marker of [
   "requiresReview=true",
   "A confident invented answer is forbidden",
   "validateOCRDraft",
+  'type AIExecutionContext',
+  'context?: Pick<AIExecutionContext, "signal">',
+  "signal: context?.signal",
 ]) {
   requireMarker(ocrServer, marker, `OCR server trust contract is missing: ${marker}`);
 }
+forbidMarker(
+  ocrServer,
+  "export async function runOCRGeneration(input: OCRGenerationInput)",
+  "OCR generation must accept the controlled execution signal instead of discarding request cancellation.",
+);
 
 requireMarker(ocrRoute, 'createFileRoute("/api/ai/ocr-image")', "OCR API route is missing.");
 for (const marker of [
@@ -190,11 +198,17 @@ for (const marker of [
     `OCR API route no longer uses the controlled trusted OCR pipeline: ${marker}`,
   );
 }
+forbidMarker(
+  ocrRoute,
+  "handleAIJsonRequest",
+  "OCR API route must not regress to the legacy uncontrolled AI JSON handler.",
+);
 for (const marker of [
   "parseAIJsonRequest(request, schema, { maxBytes: options.maxBytes })",
   "executeAIRequest",
   "readIdempotencyKey(request)",
   "signal: request.signal",
+  "handler: (context) => handler(parsed.data, context)",
   "withAIExecutionHeaders",
 ]) {
   requireMarker(
@@ -208,6 +222,7 @@ for (const marker of [
   "generateGeminiVisionJSON",
   'type: "image_url"',
   "Unsupported image payload",
+  "signal: options.signal ?? currentAIProviderSignal()",
 ]) {
   requireMarker(gemini, marker, `AI gateway multimodal boundary is missing: ${marker}`);
 }
@@ -230,5 +245,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Durable image intake, controlled OCR execution, OCR/HTR review, lifecycle cleanup, routing and backup honesty passed.",
+  "Durable image intake, controlled and cancellable OCR execution, OCR/HTR review, lifecycle cleanup, routing and backup honesty passed.",
 );
