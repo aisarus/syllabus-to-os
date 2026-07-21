@@ -1,0 +1,59 @@
+name: Workspace Backup Verification
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify workspace backup contract, evals and browser restore
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies from lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Verify workspace backup contract
+        run: npm run verify:workspace-backup-contract
+
+      - name: Run workspace backup deterministic evaluations
+        id: workspace_backup_eval
+        run: npm run eval:workspace-backup 2>&1 | tee workspace-backup-eval-output.txt
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Run workspace backup browser E2E
+        id: workspace_backup_e2e
+        run: npm run e2e:workspace-backup 2>&1 | tee workspace-backup-e2e-output.txt
+
+      - name: Upload workspace backup diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-backup-diagnostics
+          path: |
+            workspace-backup-eval-output.txt
+            workspace-backup-e2e-output.txt
+          if-no-files-found: ignore
+          retention-days: 7
