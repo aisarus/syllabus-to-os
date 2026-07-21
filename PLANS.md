@@ -52,6 +52,7 @@ This file records the active implementation sequence. Product intent remains in 
 3. `S3-001` — shared AI validation/error contracts, PR #78.
 4. `S3-002` — bounded execution and route integration, PRs #80–#81.
 5. `S3-003` — provider cancellation and late-result rejection, PRs #83 and #85.
+6. Workspace backup v2 — checksum-verified full-workspace export/import with preview, merge/replace semantics, deterministic evaluations and browser rollback proof.
 
 ## Subsequent data slice
 
