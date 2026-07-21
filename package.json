@@ -14,6 +14,7 @@
     "pilot:preflight": "node scripts/run-pilot-preflight.mjs",
     "eval": "node scripts/run-evals.mjs --manifest evals/manifest.json",
     "eval:ocr": "node scripts/run-evals.mjs --manifest evals/manifest.json --suite ocr",
+    "eval:ocr-cancellation": "bun scripts/run-ocr-cancellation-evals.mjs",
     "eval:ocr:live": "node scripts/run-private-ocr-provider.mjs",
     "eval:json": "node scripts/run-evals.mjs --manifest evals/manifest.json --json",
     "eval:golden-quiz": "node scripts/run-golden-quiz-evals.mjs",

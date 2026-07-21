@@ -14,6 +14,7 @@ const checks = [
   "verify:app-shell-accessibility-contract",
   "verify:evaluation-fixtures",
   "verify:image-ocr-contract",
+  "eval:ocr-cancellation",
   "verify:image-preprocessing-contract",
   "verify:ocr-region-overlay-contract",
   "verify:visual-backup-contract",
