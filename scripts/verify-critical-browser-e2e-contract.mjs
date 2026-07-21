@@ -35,10 +35,10 @@ for (const marker of [
 
 for (const marker of [
   "Emulation.setDeviceMetricsOverride",
-  'width: 390',
-  'height: 844',
-  'Input.dispatchKeyEvent',
-  'document.activeElement?.classList.contains(\'content-skip-link\')',
+  "width: 390",
+  "height: 844",
+  "Input.dispatchKeyEvent",
+  "document.activeElement?.classList.contains('content-skip-link')",
   "lamdan-main-content",
   "lamdan-mobile-navigation",
   'await page.key("Tab", 8)',
@@ -50,6 +50,7 @@ for (const marker of [
 }
 
 for (const marker of [
+  'LAM_DAN_APP_SHELL_E2E_ARTIFACT_DIR ??= "critical-e2e-artifacts/app-shell"',
   'import("./run-app-shell-accessibility-browser-e2e.mjs")',
   'import("./run-critical-browser-e2e.mjs")',
   "LAM_DAN_E2E_TIMEOUT_MS",
@@ -95,5 +96,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Critical AppShell keyboard, material, OCR, flashcard, quiz and full-backup browser flows are wired to bounded real-Chromium execution with failure artifacts.",
+  "Critical AppShell keyboard, material, OCR, flashcard, quiz and full-backup browser flows are wired to bounded real-Chromium execution with preserved failure artifacts.",
 );
