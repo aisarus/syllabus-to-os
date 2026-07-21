@@ -17,6 +17,7 @@ const [
   ocrClient,
   ocrServer,
   ocrRoute,
+  aiExecutionHttp,
   gemini,
   roadmap,
 ] = await Promise.all([
@@ -34,6 +35,7 @@ const [
   read("src/lib/ocr-client.ts"),
   read("src/lib/server/ocr-generation.ts"),
   read("src/routes/api/ai/ocr-image.ts"),
+  read("src/lib/server/ai-execution-http.ts"),
   read("src/lib/server/gemini.ts"),
   read("ROADMAP.md"),
 ]);
@@ -174,11 +176,31 @@ for (const marker of [
 }
 
 requireMarker(ocrRoute, 'createFileRoute("/api/ai/ocr-image")', "OCR API route is missing.");
-for (const marker of ["ocrGenerationInputSchema", "handleAIJsonRequest", "runOCRGeneration"]) {
+for (const marker of [
+  "ocrGenerationInputSchema",
+  "handleControlledAIJsonRequest",
+  '"ocr"',
+  "runOCRGeneration",
+  "OCR_AI_JSON_BODY_BYTES",
+  "maxBytes: OCR_AI_JSON_BODY_BYTES",
+]) {
   requireMarker(
     ocrRoute,
     marker,
-    `OCR API route no longer uses the trusted OCR pipeline: ${marker}`,
+    `OCR API route no longer uses the controlled trusted OCR pipeline: ${marker}`,
+  );
+}
+for (const marker of [
+  "parseAIJsonRequest(request, schema, { maxBytes: options.maxBytes })",
+  "executeAIRequest",
+  "readIdempotencyKey(request)",
+  "signal: request.signal",
+  "withAIExecutionHeaders",
+]) {
+  requireMarker(
+    aiExecutionHttp,
+    marker,
+    `Controlled AI HTTP boundary is missing OCR safety behavior: ${marker}`,
   );
 }
 
@@ -208,5 +230,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Durable image intake, OCR/HTR review, page-aware lifecycle cleanup, non-nested routing and backup honesty passed.",
+  "Durable image intake, controlled OCR execution, OCR/HTR review, lifecycle cleanup, routing and backup honesty passed.",
 );
