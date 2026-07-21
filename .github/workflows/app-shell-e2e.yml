@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies from lockfile
         run: bun install --frozen-lockfile
 
+      - name: Verify targeted browser E2E contract
+        run: npm run verify:critical-browser-e2e-contract
+
       - name: Build production bundle
         run: npm run build
 
