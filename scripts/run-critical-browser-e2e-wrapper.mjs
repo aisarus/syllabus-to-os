@@ -5,6 +5,7 @@ const timeout = setTimeout(() => {
 }, timeoutMilliseconds);
 
 try {
+  await import("./run-app-shell-accessibility-browser-e2e.mjs");
   await import("./run-critical-browser-e2e.mjs");
   await import("./run-source-reference-deletion-browser-e2e.mjs");
   await import("./run-multipage-replacement-browser-e2e.mjs");
