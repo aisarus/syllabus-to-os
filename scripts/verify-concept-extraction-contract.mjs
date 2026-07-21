@@ -7,6 +7,9 @@ const [
   client,
   server,
   apiRoute,
+  executionHttp,
+  executionRuntime,
+  provider,
   workspace,
   courseRoute,
   evals,
@@ -15,13 +18,14 @@ const [
   checkScript,
   workflow,
   docs,
-  status,
-  plans,
 ] = await Promise.all([
   read("src/lib/concept-extraction.ts"),
   read("src/lib/concept-extraction-client.ts"),
   read("src/lib/server/concept-extraction-generation.ts"),
   read("src/routes/api/ai/extract-concepts.ts"),
+  read("src/lib/server/ai-execution-http.ts"),
+  read("src/lib/server/ai-execution-runtime.ts"),
+  read("src/lib/server/gemini.ts"),
   read("src/components/concept-extraction-review.tsx"),
   read("src/routes/app.courses_.$courseId.tsx"),
   read("scripts/run-concept-extraction-evals.mjs"),
@@ -30,8 +34,6 @@ const [
   read("scripts/check.mjs"),
   read(".github/workflows/ci.yml"),
   read("docs/CONCEPT_EVIDENCE_MODEL.md"),
-  read("STATUS.md"),
-  read("PLANS.md"),
 ]);
 
 const failures = [];
@@ -83,10 +85,35 @@ for (const marker of [
 for (const marker of [
   'createFileRoute("/api/ai/extract-concepts")',
   "conceptExtractionInputSchema",
-  "handleAIJsonRequest",
+  "handleControlledAIJsonRequest",
+  '"concept-extraction"',
   "runConceptExtractionGeneration",
 ]) {
   requireMarker(apiRoute, marker, `Concept extraction API route is missing: ${marker}`);
+}
+if (apiRoute.includes("handleAIJsonRequest")) {
+  failures.push("Concept extraction API route regressed to the legacy uncontrolled handler.");
+}
+
+for (const marker of [
+  "type AIExecutionContext",
+  "signal: request.signal",
+  "handler: (context) => handler(parsed.data, context)",
+]) {
+  requireMarker(executionHttp, marker, `Controlled AI HTTP boundary is missing: ${marker}`);
+}
+for (const marker of [
+  "runWithAIProviderSignal",
+  "signal: cancellation.signal",
+  "options.handler({",
+]) {
+  requireMarker(executionRuntime, marker, `AI execution runtime is missing: ${marker}`);
+}
+for (const marker of [
+  "currentAIProviderSignal",
+  "signal: options.signal ?? currentAIProviderSignal()",
+]) {
+  requireMarker(provider, marker, `Provider cancellation bridge is missing: ${marker}`);
 }
 
 for (const marker of [
@@ -156,17 +183,11 @@ for (const marker of [
 ]) {
   requireMarker(workflow, marker, `CI reviewed concept extraction gate is missing: ${marker}`);
 }
-for (const [content, marker, file] of [
-  [docs, "Reviewed concept extraction", "docs/CONCEPT_EVIDENCE_MODEL.md"],
-  [status, "Reviewed concept extraction", "STATUS.md"],
-  [plans, "Reviewed concept extraction", "PLANS.md"],
-]) {
-  requireMarker(
-    content,
-    marker,
-    `${file} is missing reviewed concept extraction status: ${marker}`,
-  );
-}
+requireMarker(
+  docs,
+  "Reviewed concept extraction",
+  "docs/CONCEPT_EVIDENCE_MODEL.md is missing reviewed concept extraction documentation.",
+);
 
 if (failures.length > 0) {
   console.error("Reviewed concept extraction contract verification failed:\n");
@@ -174,4 +195,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Reviewed source-grounded concept extraction contract passed.");
+console.log(
+  "Reviewed source-grounded concept extraction, controlled provider cancellation, deterministic evaluations, browser proof and CI wiring are present.",
+);
