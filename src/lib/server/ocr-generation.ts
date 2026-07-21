@@ -5,6 +5,7 @@ import {
   type OCRDraft,
   type OCRSourceStyle,
 } from "../ocr-contract";
+import type { AIExecutionContext } from "./ai-execution-control";
 import { generateGeminiVisionJSON, getGeminiModelName, isGeminiConfigured } from "./gemini";
 
 const MAX_IMAGE_DATA_URL_CHARS = 12_000_000;
@@ -25,7 +26,10 @@ export type OCRGenerationResponse =
     }
   | { ok: false; error: string; details?: string };
 
-export async function runOCRGeneration(input: OCRGenerationInput): Promise<OCRGenerationResponse> {
+export async function runOCRGeneration(
+  input: OCRGenerationInput,
+  context?: Pick<AIExecutionContext, "signal">,
+): Promise<OCRGenerationResponse> {
   const locale = input.locale ?? "ru";
   const sourceStyle = input.sourceStyle ?? "mixed";
   const validationError = validateInput(input, locale);
@@ -54,7 +58,9 @@ export async function runOCRGeneration(input: OCRGenerationInput): Promise<OCRGe
     }>
   }`;
 
-  const response = await generateGeminiVisionJSON<unknown>(prompt, schema, input.imageDataUrl);
+  const response = await generateGeminiVisionJSON<unknown>(prompt, schema, input.imageDataUrl, {
+    signal: context?.signal,
+  });
   if (!response.ok) return response;
 
   const draft = normalizeOCRDraft(response.data, {
