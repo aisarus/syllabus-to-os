@@ -1,6 +1,9 @@
 name: AppShell Accessibility E2E
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 
@@ -38,7 +41,7 @@ jobs:
         run: npm run build
 
       - name: Run targeted AppShell browser E2E
-        run: node scripts/run-app-shell-accessibility-browser-e2e-wrapper.mjs 2>&1 | tee app-shell-e2e-output.txt
+        run: npm run e2e:app-shell 2>&1 | tee app-shell-e2e-output.txt
 
       - name: Upload AppShell failure diagnostics
         if: failure()
