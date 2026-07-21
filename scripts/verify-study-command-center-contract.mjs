@@ -2,14 +2,17 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [engine, dashboard, styles, roadmap, tasks, status] = await Promise.all([
-  read("src/lib/study-command-center.ts"),
-  read("src/routes/app.dashboard.tsx"),
-  read("src/study-command-center.css"),
-  read("ROADMAP.md"),
-  read("TASKS.md"),
-  read("STATUS.md"),
-]);
+const [engine, dashboard, styles, evaluation, packageJson, checkScript, workflow, roadmap] =
+  await Promise.all([
+    read("src/lib/study-command-center.ts"),
+    read("src/routes/app.dashboard.tsx"),
+    read("src/study-command-center.css"),
+    read("scripts/run-study-command-center-evals.mjs"),
+    read("package.json"),
+    read("scripts/check.mjs"),
+    read(".github/workflows/ci.yml"),
+    read("ROADMAP.md"),
+  ]);
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
@@ -52,13 +55,33 @@ for (const marker of [
   requireMarker(styles, marker, `Study command center styling is missing: ${marker}`);
 }
 
-for (const [content, marker, file] of [
-  [roadmap, "Academic Autopilot", "ROADMAP.md"],
-  [roadmap, "Study Command Center", "ROADMAP.md"],
-  [tasks, "P1-011", "TASKS.md"],
-  [status, "P1-011", "STATUS.md"],
+for (const marker of [
+  'assert.equal(command.focus.kind, "assignment")',
+  'assert.equal(command.focus.urgency, "critical")',
+  'assert.equal(command.metrics.dueCards, 12)',
+  'assert.ok(command.risks.some((risk) => risk.id === "exam-risk:exam-1"))',
+  'assert.equal(command.focus.kind, "build_study_pack")',
+  'assert.equal(command.focus.kind, "intake")',
+  "assert.ok(plan.reduce((total, item) => total + item.allocatedMinutes, 0) <= 20)",
+  'assert.equal(plan[0].action.id, "long")',
 ]) {
-  requireMarker(content, marker, `${file} is missing roadmap alignment marker: ${marker}`);
+  requireMarker(evaluation, marker, `Study command evaluation is missing: ${marker}`);
+}
+
+for (const marker of ['"eval:study-command"', '"verify:study-command-center-contract"']) {
+  requireMarker(packageJson, marker, `package.json is missing: ${marker}`);
+}
+for (const marker of ["verify:study-command-center-contract", "eval:study-command"]) {
+  requireMarker(checkScript, marker, `npm run check is missing: ${marker}`);
+}
+for (const marker of [
+  "Verify study command center contract",
+  "Run study command center evaluations",
+]) {
+  requireMarker(workflow, marker, `CI is missing: ${marker}`);
+}
+for (const marker of ["Academic Autopilot", "Study Command Center", "P1-011"]) {
+  requireMarker(roadmap, marker, `ROADMAP.md is missing product intent marker: ${marker}`);
 }
 
 if (failures.length > 0) {
@@ -67,4 +90,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Study command center contract passed.");
+console.log(
+  "Study command center engine, dashboard, responsive styling, executable scenarios and CI wiring are present.",
+);
