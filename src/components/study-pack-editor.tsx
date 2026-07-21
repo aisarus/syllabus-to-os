@@ -31,16 +31,21 @@ export function StudyPackEditor({
 
       <section className="space-y-3 rounded-lg border border-border bg-surface p-4">
         <div>
-          <Label>{isRu ? "Название комплекта" : "Pack title"}</Label>
+          <Label htmlFor="study-pack-title">{isRu ? "Название комплекта" : "Pack title"}</Label>
           <Input
+            id="study-pack-title"
             className="mt-1"
+            dir="auto"
             value={draft.title}
             onChange={(event) => update({ title: event.target.value })}
           />
         </div>
         <div>
-          <Label>{isRu ? "Ориентация" : "Orientation"}</Label>
+          <Label htmlFor="study-pack-orientation">
+            {isRu ? "Ориентация" : "Orientation"}
+          </Label>
           <Textarea
+            id="study-pack-orientation"
             className="mt-1 min-h-28"
             dir="auto"
             value={draft.orientation}
@@ -48,18 +53,25 @@ export function StudyPackEditor({
           />
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Clock3 className="h-4 w-4" />
+          <Clock3 className="h-4 w-4" aria-hidden="true" />
+          <Label htmlFor="study-pack-estimated-minutes" className="sr-only">
+            {isRu ? "Длительность учебного маршрута в минутах" : "Study route duration in minutes"}
+          </Label>
           <Input
+            id="study-pack-estimated-minutes"
             type="number"
             min={10}
             max={120}
             className="h-8 w-24"
+            aria-describedby="study-pack-estimated-minutes-help"
             value={draft.estimatedMinutes}
             onChange={(event) =>
               update({ estimatedMinutes: Math.max(10, Number(event.target.value) || 10) })
             }
           />
-          {isRu ? "минут на весь маршрут" : "minutes for the full route"}
+          <span id="study-pack-estimated-minutes-help">
+            {isRu ? "минут на весь маршрут" : "minutes for the full route"}
+          </span>
         </div>
       </section>
 
