@@ -5,7 +5,7 @@ baseline_sha: ed11ca59c0c9a0ab8029822e5d283656536e4442
 baseline_pr: 85
 active_phase: production-phase-0-stabilization
 active_task: S4-001
-active_pr: 104
+active_pr: none
 external_blockers: live-ocr,golden-quiz,licensed-lecture-evaluation
 -->
 
@@ -18,7 +18,7 @@ Last updated: 2026-07-21
 The verified runtime baseline is `main` through commit `ed11ca59c0c9a0ab8029822e5d283656536e4442` / PR #85.
 
 **Active task:** `S4-001 accessibility baseline and executable one-course pilot harness`  
-**Active PR:** #104
+**Active PR:** none
 
 Lamdan now has durable-before-publish workspace persistence, an explicit repository boundary, shared AI validation, bounded execution, idempotency and end-to-end provider cancellation. The next slice must make the existing study workflow reliably operable by keyboard and turn the current pilot checklist into reproducible evidence rather than adding another product feature.
 
