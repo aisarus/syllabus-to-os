@@ -66,6 +66,11 @@ requireMarker(
 );
 requireMarker(
   packageJson,
+  '"e2e:app-shell": "node scripts/run-app-shell-accessibility-browser-e2e.mjs"',
+  "package.json does not expose the targeted AppShell browser runner.",
+);
+requireMarker(
+  packageJson,
   '"verify:critical-browser-e2e-contract"',
   "package.json does not expose the browser E2E contract.",
 );
@@ -96,5 +101,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Critical AppShell keyboard, material, OCR, flashcard, quiz and full-backup browser flows are wired to bounded real-Chromium execution with preserved failure artifacts.",
+  "Critical AppShell keyboard, material, OCR, flashcard, quiz and full-backup browser flows are exposed, wired to bounded real-Chromium execution and preserve failure artifacts.",
 );
