@@ -36,7 +36,7 @@
     "eval:lecture-restore": "bun scripts/run-lecture-restore-evals.mjs",
     "eval:pilot-preflight": "node scripts/run-pilot-preflight-evals.mjs",
     "e2e:critical": "node scripts/run-critical-browser-e2e-wrapper.mjs",
-    "e2e:app-shell": "node scripts/run-app-shell-accessibility-browser-e2e.mjs",
+    "e2e:app-shell": "node scripts/run-app-shell-accessibility-browser-e2e-wrapper.mjs",
     "e2e:question-evidence": "node scripts/run-question-evidence-browser-e2e.mjs",
     "e2e:workspace-backup": "node scripts/run-workspace-backup-browser-e2e.mjs",
     "e2e:concept-extraction": "node scripts/run-concept-extraction-browser-e2e.mjs",
