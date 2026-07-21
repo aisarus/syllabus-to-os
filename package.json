@@ -56,6 +56,7 @@
     "verify:quiz-studio-contract": "node scripts/verify-quiz-studio-contract.mjs",
     "verify:detail-route-contract": "node scripts/verify-detail-route-contract.mjs",
     "verify:core-ui-audit": "node scripts/verify-core-ui-audit.mjs",
+    "verify:app-shell-accessibility-contract": "node scripts/verify-app-shell-accessibility-contract.mjs",
     "verify:evaluation-fixtures": "node scripts/verify-evaluation-fixtures.mjs",
     "verify:image-ocr-contract": "node scripts/verify-image-ocr-contract.mjs",
     "verify:image-preprocessing-contract": "node scripts/verify-image-preprocessing-contract.mjs",
