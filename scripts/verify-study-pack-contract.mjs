@@ -13,9 +13,11 @@ const [
   persistence,
   materialRoute,
   helpers,
+  evaluation,
+  packageJson,
+  checkScript,
+  workflow,
   roadmap,
-  tasks,
-  status,
 ] = await Promise.all([
   read("src/lib/ai.ts"),
   read("src/lib/server/study-pack-generation.ts"),
@@ -27,9 +29,11 @@ const [
   read("src/lib/study-pack-persistence.ts"),
   read("src/routes/app.materials_.$materialId.tsx"),
   read("src/lib/study-pack.ts"),
+  read("scripts/run-study-pack-evals.mjs"),
+  read("package.json"),
+  read("scripts/check.mjs"),
+  read(".github/workflows/ci.yml"),
   read("ROADMAP.md"),
-  read("TASKS.md"),
-  read("STATUS.md"),
 ]);
 
 const failures = [];
@@ -132,12 +136,30 @@ for (const marker of [
   requireMarker(helpers, marker, `Study Pack helper contract is missing: ${marker}`);
 }
 
-for (const [content, marker, file] of [
-  [roadmap, "Phase 6 — Lecture-to-Study-Pack", "ROADMAP.md"],
-  [tasks, "P1-012 — Lecture-to-Study-Pack", "TASKS.md"],
-  [status, "P1-012", "STATUS.md"],
+for (const marker of [
+  "assert.deepEqual(validateStudyPackDraft(validDraft), [])",
+  'invalidDraft.questions[0].options = ["same", "same", "third", "fourth"]',
+  'assert.ok(validateStudyPackDraft(invalidDraft).includes("question:0"))',
+  'assert.deepEqual(collectStudyPackSourceIds(validDraft), ["chunk-a", "chunk-b"])',
+  "assert.match(note, /Study route/)",
+  "assert.match(note, /does not automatically prove mastery/)",
+  "assert.match(copy, /Diagnostic questions/)",
+  "assert.match(copy, /Answer: Relevant among retrieved/)",
 ]) {
-  requireMarker(content, marker, `${file} is missing Study Pack status marker: ${marker}`);
+  requireMarker(evaluation, marker, `Study Pack evaluation is missing: ${marker}`);
+}
+
+for (const marker of ['"eval:study-pack"', '"verify:study-pack-contract"']) {
+  requireMarker(packageJson, marker, `package.json is missing: ${marker}`);
+}
+for (const marker of ["verify:study-pack-contract", "eval:study-pack"]) {
+  requireMarker(checkScript, marker, `npm run check is missing: ${marker}`);
+}
+for (const marker of ["Verify Study Pack contract", "Run Study Pack evaluations"]) {
+  requireMarker(workflow, marker, `CI is missing: ${marker}`);
+}
+for (const marker of ["Phase 6 — Lecture-to-Study-Pack", "P1-012"]) {
+  requireMarker(roadmap, marker, `ROADMAP.md is missing Study Pack product intent: ${marker}`);
 }
 
 if (failures.length > 0) {
@@ -146,4 +168,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Study Pack contract passed.");
+console.log(
+  "Study Pack trust boundaries, review/save flow, atomic persistence, continuation paths, executable scenarios and CI wiring are present.",
+);
