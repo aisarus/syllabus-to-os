@@ -1,0 +1,68 @@
+name: Concept Extraction Verification
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: concept-extraction-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Contract, cancellation, eval, build and browser E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies from lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Verify reviewed concept extraction contract
+        run: npm run verify:concept-extraction-contract
+
+      - name: Run concept extraction cancellation evaluation
+        run: bun scripts/run-concept-extraction-cancellation-evals.mjs 2>&1 | tee concept-extraction-cancellation-output.txt
+
+      - name: Run reviewed concept extraction evaluations
+        run: npm run eval:concept-extraction 2>&1 | tee concept-extraction-eval-output.txt
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Run reviewed concept extraction browser E2E
+        run: npm run e2e:concept-extraction 2>&1 | tee concept-extraction-e2e-output.txt
+
+      - name: Upload concept extraction diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: concept-extraction-diagnostics
+          path: |
+            concept-extraction-cancellation-output.txt
+            concept-extraction-eval-output.txt
+            concept-extraction-e2e-output.txt
+          if-no-files-found: ignore
+          retention-days: 7
