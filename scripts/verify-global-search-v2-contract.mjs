@@ -2,13 +2,13 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [engine, route, packageJson, checkScript, workflow, status] = await Promise.all([
+const [engine, route, evaluation, packageJson, checkScript, workflow] = await Promise.all([
   read("src/lib/global-search.ts"),
   read("src/routes/app.search.tsx"),
+  read("scripts/run-global-search-evals.mjs"),
   read("package.json"),
   read("scripts/check.mjs"),
   read(".github/workflows/ci.yml"),
-  read("STATUS.md"),
 ]);
 
 const failures = [];
@@ -47,6 +47,20 @@ for (const marker of [
   requireMarker(route, marker, `Global search route is missing: ${marker}`);
 }
 
+for (const marker of [
+  'normalizeSearchText("מְבוֹא לְמֵידָע")',
+  'parseGlobalSearchQuery(\'"information retrieval" precision\')',
+  'searchWorkspace(data, "מבוא מידע")',
+  'searchWorkspace(data, "precision bronze")',
+  'searchWorkspace(data, \'"precision and recall"\')',
+  'searchWorkspace(data, "age", { courseId: "course_info" })',
+  'searchWorkspace(data, "retrieved items", { kinds: ["flashcard"] })',
+  'findSearchRanges("מְבוֹא לְמֵידָע", ["מבוא"])',
+  'assert.deepEqual(firstRun, secondRun, "Ranking must be deterministic.")',
+]) {
+  requireMarker(evaluation, marker, `Global search evaluation is missing: ${marker}`);
+}
+
 for (const marker of ['"eval:global-search"', '"verify:global-search-v2-contract"']) {
   requireMarker(packageJson, marker, `package.json is missing: ${marker}`);
 }
@@ -56,11 +70,6 @@ for (const marker of ["verify:global-search-v2-contract", "eval:global-search"])
 for (const marker of ["Verify global search v2 contract", "Run global search v2 evaluations"]) {
   requireMarker(workflow, marker, `CI is missing: ${marker}`);
 }
-requireMarker(
-  status,
-  "P1-004 Add local-first global search v2",
-  "STATUS.md is not updated for search v2.",
-);
 
 if (failures.length > 0) {
   console.error("Global search v2 contract verification failed:\n");
@@ -69,5 +78,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Ranked multilingual local search, URL state, course/type filters, contextual snippets and deterministic evaluations are wired.",
+  "Ranked multilingual local search, URL state, course/type filters, contextual snippets and deterministic evaluation coverage are wired.",
 );
