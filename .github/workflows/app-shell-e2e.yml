@@ -1,0 +1,52 @@
+name: AppShell Accessibility E2E
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: app-shell-e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  app-shell-e2e:
+    name: Build and run AppShell keyboard E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies from lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Run targeted AppShell browser E2E
+        run: npm run e2e:app-shell 2>&1 | tee app-shell-e2e-output.txt
+
+      - name: Upload AppShell failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-shell-e2e-diagnostics
+          path: |
+            app-shell-e2e-output.txt
+            app-shell-e2e-artifacts
+          if-no-files-found: ignore
+          retention-days: 7
