@@ -34,7 +34,16 @@ jobs:
         run: npm run verify:concept-extraction-contract
 
       - name: Run reviewed concept extraction evaluations
-        run: npm run eval:concept-extraction
+        run: npm run eval:concept-extraction 2>&1 | tee concept-extraction-eval-output.txt
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Upload concept extraction diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: concept-extraction-diagnostics
+          path: concept-extraction-eval-output.txt
+          if-no-files-found: ignore
+          retention-days: 7
