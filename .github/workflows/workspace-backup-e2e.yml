@@ -44,13 +44,16 @@ jobs:
         run: npm run build
 
       - name: Run workspace backup browser E2E
-        run: npm run e2e:workspace-backup
+        id: workspace_backup_e2e
+        run: npm run e2e:workspace-backup 2>&1 | tee workspace-backup-e2e-output.txt
 
       - name: Upload workspace backup diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: workspace-backup-diagnostics
-          path: workspace-backup-eval-output.txt
+          path: |
+            workspace-backup-eval-output.txt
+            workspace-backup-e2e-output.txt
           if-no-files-found: ignore
           retention-days: 7
