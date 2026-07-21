@@ -2,14 +2,16 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [runner, wrapper, packageJson, checkScript, workflow, status] = await Promise.all([
-  read("scripts/run-critical-browser-e2e.mjs"),
-  read("scripts/run-critical-browser-e2e-wrapper.mjs"),
-  read("package.json"),
-  read("scripts/check.mjs"),
-  read(".github/workflows/ci.yml"),
-  read("STATUS.md"),
-]);
+const [runner, appShellRunner, wrapper, packageJson, checkScript, workflow, status] =
+  await Promise.all([
+    read("scripts/run-critical-browser-e2e.mjs"),
+    read("scripts/run-app-shell-accessibility-browser-e2e.mjs"),
+    read("scripts/run-critical-browser-e2e-wrapper.mjs"),
+    read("package.json"),
+    read("scripts/check.mjs"),
+    read(".github/workflows/ci.yml"),
+    read("STATUS.md"),
+  ]);
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
@@ -30,7 +32,25 @@ for (const marker of [
 ]) {
   requireMarker(runner, marker, `Critical browser runner is missing: ${marker}`);
 }
+
 for (const marker of [
+  "Emulation.setDeviceMetricsOverride",
+  'width: 390',
+  'height: 844',
+  'Input.dispatchKeyEvent',
+  'document.activeElement?.classList.contains(\'content-skip-link\')',
+  "lamdan-main-content",
+  "lamdan-mobile-navigation",
+  'await page.key("Tab", 8)',
+  'await page.key("Escape")',
+  "focus restoration",
+  "app-shell-e2e-artifacts",
+]) {
+  requireMarker(appShellRunner, marker, `AppShell browser runner is missing: ${marker}`);
+}
+
+for (const marker of [
+  'import("./run-app-shell-accessibility-browser-e2e.mjs")',
   'import("./run-critical-browser-e2e.mjs")',
   "LAM_DAN_E2E_TIMEOUT_MS",
   "process.exit(process.exitCode ?? 0)",
@@ -75,5 +95,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Critical material, OCR, flashcard, quiz and full-backup browser flows are wired to bounded real-Chromium execution with failure artifacts.",
+  "Critical AppShell keyboard, material, OCR, flashcard, quiz and full-backup browser flows are wired to bounded real-Chromium execution with failure artifacts.",
 );
