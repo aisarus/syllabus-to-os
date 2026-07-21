@@ -115,6 +115,7 @@ for (const marker of [
   "- main",
   "pull_request:",
   "workflow_dispatch:",
+  "npm run verify:critical-browser-e2e-contract",
   "npm run build",
   "npm run e2e:app-shell",
   "app-shell-e2e-output.txt",
@@ -140,5 +141,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Critical and targeted AppShell browser flows are exposed through bounded npm commands, run in real Chromium on PRs and main, and preserve failure artifacts.",
+  "Critical and targeted AppShell browser flows are exposed through bounded npm commands, self-verify their CI wiring, run in real Chromium on PRs and main, and preserve failure artifacts.",
 );
