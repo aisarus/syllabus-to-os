@@ -2,16 +2,27 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const read = (path) => readFile(resolve(process.cwd(), path), "utf8");
-const [runner, appShellRunner, wrapper, packageJson, checkScript, workflow, status] =
-  await Promise.all([
-    read("scripts/run-critical-browser-e2e.mjs"),
-    read("scripts/run-app-shell-accessibility-browser-e2e.mjs"),
-    read("scripts/run-critical-browser-e2e-wrapper.mjs"),
-    read("package.json"),
-    read("scripts/check.mjs"),
-    read(".github/workflows/ci.yml"),
-    read("STATUS.md"),
-  ]);
+const [
+  runner,
+  appShellRunner,
+  appShellWrapper,
+  wrapper,
+  packageJson,
+  checkScript,
+  workflow,
+  appShellWorkflow,
+  status,
+] = await Promise.all([
+  read("scripts/run-critical-browser-e2e.mjs"),
+  read("scripts/run-app-shell-accessibility-browser-e2e.mjs"),
+  read("scripts/run-app-shell-accessibility-browser-e2e-wrapper.mjs"),
+  read("scripts/run-critical-browser-e2e-wrapper.mjs"),
+  read("package.json"),
+  read("scripts/check.mjs"),
+  read(".github/workflows/ci.yml"),
+  read(".github/workflows/app-shell-e2e.yml"),
+  read("STATUS.md"),
+]);
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
@@ -50,6 +61,15 @@ for (const marker of [
 }
 
 for (const marker of [
+  "LAM_DAN_APP_SHELL_E2E_TIMEOUT_MS",
+  'import("./run-app-shell-accessibility-browser-e2e.mjs")',
+  "process.exit(124)",
+  "process.exit(process.exitCode ?? 0)",
+]) {
+  requireMarker(appShellWrapper, marker, `Bounded AppShell entrypoint is missing: ${marker}`);
+}
+
+for (const marker of [
   'LAM_DAN_APP_SHELL_E2E_ARTIFACT_DIR ??= "critical-e2e-artifacts/app-shell"',
   'import("./run-app-shell-accessibility-browser-e2e.mjs")',
   'import("./run-critical-browser-e2e.mjs")',
@@ -66,8 +86,8 @@ requireMarker(
 );
 requireMarker(
   packageJson,
-  '"e2e:app-shell": "node scripts/run-app-shell-accessibility-browser-e2e.mjs"',
-  "package.json does not expose the targeted AppShell browser runner.",
+  '"e2e:app-shell": "node scripts/run-app-shell-accessibility-browser-e2e-wrapper.mjs"',
+  "package.json does not expose the bounded targeted AppShell browser runner.",
 );
 requireMarker(
   packageJson,
@@ -79,6 +99,7 @@ requireMarker(
   '"verify:critical-browser-e2e-contract"',
   "npm run check does not verify the browser E2E contract.",
 );
+
 for (const marker of [
   "Verify critical browser E2E contract",
   "Run critical browser E2E",
@@ -88,6 +109,24 @@ for (const marker of [
 ]) {
   requireMarker(workflow, marker, `CI does not preserve the critical browser gate: ${marker}`);
 }
+
+for (const marker of [
+  "push:",
+  "- main",
+  "pull_request:",
+  "workflow_dispatch:",
+  "npm run build",
+  "npm run e2e:app-shell",
+  "app-shell-e2e-output.txt",
+  "app-shell-e2e-artifacts",
+]) {
+  requireMarker(
+    appShellWorkflow,
+    marker,
+    `Targeted AppShell CI workflow is missing: ${marker}`,
+  );
+}
+
 requireMarker(
   status,
   "critical browser end-to-end",
@@ -101,5 +140,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Critical AppShell keyboard, material, OCR, flashcard, quiz and full-backup browser flows are exposed, wired to bounded real-Chromium execution and preserve failure artifacts.",
+  "Critical and targeted AppShell browser flows are exposed through bounded npm commands, run in real Chromium on PRs and main, and preserve failure artifacts.",
 );
