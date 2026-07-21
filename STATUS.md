@@ -29,6 +29,7 @@ Lamdan now has durable-before-publish workspace persistence, an explicit reposit
 - `S3-001` shared AI validation and redacted error contracts — PR #78.
 - `S3-002` request IDs, resource controls and bounded idempotency — PRs #80–#81.
 - `S3-003` provider cancellation and late-result rejection — PRs #83 and #85.
+- Workspace backup v2 — checksum-verified full-workspace archive, preview, merge/replace semantics and rollback evidence are implemented and guarded by deterministic and browser contracts.
 - `S4-001` AppShell Accessibility E2E — real Chromium verifies the skip link, mobile drawer initial focus, Tab and Shift+Tab wrapping, Escape dismissal and focus restoration through a bounded targeted workflow.
 
 ## Current product state
