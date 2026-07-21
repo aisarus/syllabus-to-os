@@ -37,10 +37,20 @@ jobs:
         run: npm run verify:workspace-backup-contract
 
       - name: Run workspace backup deterministic evaluations
-        run: npm run eval:workspace-backup
+        id: workspace_backup_eval
+        run: npm run eval:workspace-backup 2>&1 | tee workspace-backup-eval-output.txt
 
       - name: Build production bundle
         run: npm run build
 
       - name: Run workspace backup browser E2E
         run: npm run e2e:workspace-backup
+
+      - name: Upload workspace backup diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-backup-diagnostics
+          path: workspace-backup-eval-output.txt
+          if-no-files-found: ignore
+          retention-days: 7
