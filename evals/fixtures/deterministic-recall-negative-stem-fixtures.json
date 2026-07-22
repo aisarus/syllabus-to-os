@@ -5,23 +5,44 @@
     {
       "id": "ru_false_stem_collision",
       "locale": "ru",
-      "prompt": "Что такое капитал?",
-      "response": "капитан",
-      "expectedMatch": false
+      "input": {
+        "title": "Капитал",
+        "aliases": [],
+        "explanation": "Капитал — ресурс для производства и инвестиций.",
+        "response": "Капитан командует кораблём."
+      },
+      "expected": {
+        "passed": false,
+        "forbiddenMatchedTerms": ["капитал"]
+      }
     },
     {
       "id": "en_false_stem_collision",
       "locale": "en",
-      "prompt": "Define economy",
-      "response": "economical",
-      "expectedMatch": false
+      "input": {
+        "title": "Economy",
+        "aliases": [],
+        "explanation": "Economy describes production distribution and consumption.",
+        "response": "Economical choices reduce waste."
+      },
+      "expected": {
+        "passed": false,
+        "forbiddenMatchedTerms": ["economy"]
+      }
     },
     {
       "id": "he_false_stem_collision",
       "locale": "he",
-      "prompt": "מה זה ספר?",
-      "response": "סיפור",
-      "expectedMatch": false
+      "input": {
+        "title": "ספר",
+        "aliases": [],
+        "explanation": "ספר הוא יצירה כתובה עם מידע ופרקים.",
+        "response": "סיפור קצר מתאר דמות ועלילה."
+      },
+      "expected": {
+        "passed": false,
+        "forbiddenMatchedTerms": ["ספר"]
+      }
     }
   ]
 }
