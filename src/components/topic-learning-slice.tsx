@@ -7,6 +7,8 @@ import { conceptStore, useConceptEvidenceData } from "@/lib/concept-store";
 import { useData } from "@/lib/store";
 import { evaluateTopicRecall, type TopicRecallResult } from "@/lib/topic-learning-slice";
 
+const RECALL_SOURCE = "Deterministic topic recall";
+
 export function TopicLearningSlice({ courseId }: { courseId: string }) {
   const { lang } = useApp();
   const isRu = lang === "ru";
@@ -42,6 +44,15 @@ export function TopicLearningSlice({ courseId }: { courseId: string }) {
 
   const selectedTopicId = concept.topicId ?? "";
   const selectedTopic = topics.find((topic) => topic.id === selectedTopicId);
+  const latestVerified = evidence.evidenceEvents
+    .filter(
+      (event) =>
+        event.conceptId === concept.id &&
+        event.kind === "recall" &&
+        event.sourceLabel === RECALL_SOURCE,
+    )
+    .slice()
+    .sort((left, right) => right.occurredAt - left.occurredAt)[0];
 
   const verify = () => {
     const evaluation = evaluateTopicRecall({
@@ -56,7 +67,7 @@ export function TopicLearningSlice({ courseId }: { courseId: string }) {
       kind: "recall",
       outcome: evaluation.passed ? "success" : "failure",
       sourceType: "manual",
-      sourceLabel: "Deterministic topic recall",
+      sourceLabel: RECALL_SOURCE,
       mistakeKind: evaluation.passed ? undefined : "retrieval",
       note: evaluation.explanation,
       score: evaluation.score,
@@ -83,6 +94,26 @@ export function TopicLearningSlice({ courseId }: { courseId: string }) {
               ? "Прогресс обновляется только после детерминированной проверки ответа."
               : "Progress updates only after deterministic answer verification."}
           </p>
+          {latestVerified && (
+            <div
+              className="mt-3 inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs"
+              data-persisted-topic-progress={latestVerified.outcome}
+            >
+              {latestVerified.outcome === "success" ? (
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+              ) : (
+                <XCircle className="h-3.5 w-3.5 text-destructive" />
+              )}
+              {latestVerified.outcome === "success"
+                ? isRu
+                  ? "Подтверждённый прогресс"
+                  : "Verified progress"
+                : isRu
+                  ? "Последняя проверка не пройдена"
+                  : "Last check failed"}
+              {latestVerified.score != null ? ` · ${latestVerified.score}%` : ""}
+            </div>
+          )}
         </div>
         <select
           className="h-10 rounded-md border border-input bg-background px-3 text-sm"
