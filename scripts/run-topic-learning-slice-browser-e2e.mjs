@@ -83,7 +83,8 @@ class Page {
       } catch {}
       await sleep(120);
     }
-    throw new Error(`Timed out waiting for: ${expression}`);
+    const context = await this.evaluate(`({ url: location.href, title: document.title, text: document.body?.innerText?.slice(0, 1200) ?? "", storageKeys: Object.keys(localStorage) })`).catch(() => null);
+    throw new Error(`Timed out waiting for: ${expression}\nPage context: ${JSON.stringify(context)}`);
   }
   waitForText(text, timeout = 20_000) {
     return this.waitFor(`document.body?.innerText.includes(${JSON.stringify(text)})`, timeout);
