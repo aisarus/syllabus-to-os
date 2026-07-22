@@ -8,48 +8,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: topic-learning-slice-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-jobs:
-  apply-empty-course-fix:
-    if: github.event_name == 'pull_request' && github.head_ref == 'fix/topic-learning-ci-pipefail'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out feature branch
-        uses: actions/checkout@v4
-        with:
-          ref: fix/topic-learning-ci-pipefail
-
-      - name: Stabilize course materials and remove patch job
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          component = Path('src/components/course-workspace.tsx')
-          text = component.read_text()
-          old = '  const materials = data.materials.filter((material) => material.courseId === courseId);'
-          new = '''  const materials = useMemo(
-            () => data.materials.filter((material) => material.courseId === courseId),
-            [data.materials, courseId],
-          );'''
-          if old not in text:
-              raise SystemExit('course materials declaration was not found')
-          component.write_text(text.replace(old, new, 1))
-
-          Path('.github/workflows/topic-learning-slice.yml').write_text('''name: Topic Learning Slice
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
-
-permissions:
   contents: read
 
 concurrency:
@@ -57,65 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
-    name: Eval, types, build and browser persistence
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies from lockfile
-        run: bun install --frozen-lockfile
-
-      - name: Run deterministic topic learning evaluations
-        run: |
-          set -o pipefail
-          npm run eval:topic-learning 2>&1 | tee topic-learning-eval-output.txt
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Build production bundle
-        run: npm run build
-
-      - name: Run topic learning browser E2E
-        run: |
-          set -o pipefail
-          node scripts/run-topic-learning-slice-browser-e2e.mjs 2>&1 | tee topic-learning-browser-output.txt
-
-      - name: Upload diagnostics
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: topic-learning-slice-diagnostics
-          path: |
-            topic-learning-eval-output.txt
-            topic-learning-browser-output.txt
-          if-no-files-found: ignore
-          retention-days: 7
-''')
-          PY
-
-      - name: Commit root fix
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/components/course-workspace.tsx .github/workflows/topic-learning-slice.yml
-          git commit -m "fix: stabilize empty course materials"
-          git push origin HEAD:fix/topic-learning-ci-pipefail
-
   verify:
     name: Eval, types, build and browser persistence
     runs-on: ubuntu-latest
