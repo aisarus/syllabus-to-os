@@ -51,6 +51,7 @@
     "e2e:lecture-backup": "node scripts/run-lecture-restore-browser-e2e.mjs",
     "e2e:lecture-restore": "node scripts/run-lecture-restore-browser-e2e.mjs",
     "fix:course-workspace-accessibility": "node scripts/apply-course-workspace-accessibility-patch.mjs",
+    "test:course-workspace-accessibility-fixtures": "node scripts/verify-course-workspace-accessibility-patterns.mjs && node scripts/verify-course-workspace-accessibility-patch-fixtures.mjs && node scripts/verify-course-workspace-accessibility-applicator-fixtures.mjs",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify:ai-source-contract": "node scripts/verify-ai-source-contract.mjs",
     "verify:syllabus-review-contract": "node scripts/verify-syllabus-review-contract.mjs",
