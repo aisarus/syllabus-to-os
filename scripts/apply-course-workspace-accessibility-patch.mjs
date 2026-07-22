@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const patchPath = "patches/s4-001-course-workspace-accessibility.patch";
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function runGitApply(args) {
   return spawnSync("git", ["apply", ...args, patchPath], {
@@ -10,9 +11,40 @@ function runGitApply(args) {
   });
 }
 
+function runContract() {
+  return spawnSync(npmCommand, ["run", "verify:course-workspace-contract"], {
+    cwd: process.cwd(),
+    env: process.env,
+    encoding: "utf8",
+  });
+}
+
 function printResult(result) {
   if (result.stdout) process.stdout.write(result.stdout);
   if (result.stderr) process.stderr.write(result.stderr);
+}
+
+function verifyContract({ rollbackOnFailure }) {
+  const contract = runContract();
+  if (!contract.error && contract.status === 0) return;
+
+  printResult(contract);
+  if (contract.error) console.error(contract.error);
+
+  if (rollbackOnFailure) {
+    const rollback = runGitApply(["--reverse"]);
+    if (rollback.error || rollback.status !== 0) {
+      console.error("CourseWorkspace contract failed and automatic patch rollback also failed.");
+      if (rollback.error) console.error(rollback.error);
+      printResult(rollback);
+      process.exit(1);
+    }
+    console.error("CourseWorkspace contract failed; the accessibility patch was rolled back.");
+  } else {
+    console.error("CourseWorkspace accessibility patch is present, but its contract verification failed.");
+  }
+
+  process.exit(contract.status ?? 1);
 }
 
 const forward = runGitApply(["--check"]);
@@ -31,7 +63,8 @@ if (forward.status === 0) {
     printResult(apply);
     process.exit(apply.status ?? 1);
   }
-  console.log("CourseWorkspace accessibility patch applied.");
+  verifyContract({ rollbackOnFailure: true });
+  console.log("CourseWorkspace accessibility patch applied and contract verified.");
   process.exit(0);
 }
 
@@ -42,7 +75,8 @@ if (reverse.error) {
 }
 
 if (reverse.status === 0) {
-  console.log("CourseWorkspace accessibility patch is already applied; no changes made.");
+  verifyContract({ rollbackOnFailure: false });
+  console.log("CourseWorkspace accessibility patch is already applied and contract verified; no changes made.");
   process.exit(0);
 }
 
