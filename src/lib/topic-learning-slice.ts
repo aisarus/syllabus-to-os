@@ -9,6 +9,8 @@ export interface TopicRecallResult {
   passed: boolean;
   score: number;
   matchedTerms: string[];
+  exactMatches: string[];
+  normalizedMatches: string[];
   missingTerms: string[];
   explanation: string;
 }
@@ -77,7 +79,7 @@ function recallMatchKeys(token: string): string[] {
   const hebrew = token.match(/^[א-ת]+$/u) ? token : "";
   if (hebrew.length >= 4) {
     const withoutPrefix = /^[בכלמוהש]/u.test(hebrew) && hebrew.length >= 5 ? hebrew.slice(1) : hebrew;
-    keys.add(withoutPrefix);
+    if (withoutPrefix.length >= 4) keys.add(withoutPrefix);
     for (const candidate of [hebrew, withoutPrefix]) {
       for (const suffix of ["ים", "ות"]) {
         if (candidate.endsWith(suffix) && candidate.length - suffix.length >= 3) {
@@ -93,21 +95,29 @@ function recallMatchKeys(token: string): string[] {
 export function evaluateTopicRecall(input: TopicRecallInput): TopicRecallResult {
   const expected = buildRecallTerms(input);
   const responseTerms = normalizeRecallText(input.response);
+  const responseTermSet = new Set(responseTerms);
   const responseKeys = new Set(responseTerms.flatMap(recallMatchKeys));
-  const matchedTerms = expected.filter((term) =>
-    recallMatchKeys(term).some((key) => responseKeys.has(key)),
+  const exactMatches = expected.filter((term) => responseTermSet.has(term));
+  const exactSet = new Set(exactMatches);
+  const normalizedMatches = expected.filter(
+    (term) => !exactSet.has(term) && recallMatchKeys(term).some((key) => responseKeys.has(key)),
   );
-  const missingTerms = expected.filter((term) => !matchedTerms.includes(term));
+  const matchedTerms = [...exactMatches, ...normalizedMatches];
+  const matchedSet = new Set(matchedTerms);
+  const missingTerms = expected.filter((term) => !matchedSet.has(term));
   const score = expected.length === 0 ? 0 : Math.round((matchedTerms.length / expected.length) * 100);
   const passed = expected.length >= 2 && matchedTerms.length >= 2 && score >= 50;
+  const matchBreakdown = `Точно: ${exactMatches.length}; по словоформе: ${normalizedMatches.length}.`;
 
   return {
     passed,
     score,
     matchedTerms,
+    exactMatches,
+    normalizedMatches,
     missingTerms,
     explanation: passed
-      ? `Ответ подтверждён: найдено ${matchedTerms.length} из ${expected.length} ключевых терминов.`
-      : `Ответ пока не подтверждён: найдено ${matchedTerms.length} из ${expected.length} ключевых терминов. Добавь пропущенные идеи своими словами.`,
+      ? `Ответ подтверждён: найдено ${matchedTerms.length} из ${expected.length} ключевых терминов. ${matchBreakdown}`
+      : `Ответ пока не подтверждён: найдено ${matchedTerms.length} из ${expected.length} ключевых терминов. ${matchBreakdown} Добавь пропущенные идеи своими словами.`,
   };
 }
