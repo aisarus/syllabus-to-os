@@ -1,10 +1,14 @@
 import { spawnSync } from "node:child_process";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const patchPath = "patches/s4-001-course-workspace-accessibility.patch";
+const scriptDirectory = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(scriptDirectory, "..");
+const patchPath = join(repoRoot, "patches/s4-001-course-workspace-accessibility.patch");
 
 function runGitApply(extraArgs) {
   return spawnSync("git", ["apply", "--check", ...extraArgs, patchPath], {
-    cwd: process.cwd(),
+    cwd: repoRoot,
     env: process.env,
     encoding: "utf8",
   });
