@@ -1,4 +1,4 @@
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -149,7 +149,7 @@ const fixtures = [
         const content = readFileSync(join(fixture.root, "src/components/course-workspace.tsx"), "utf8");
         assert(result.status === 1, `expected exit 1, received ${result.status}: ${result.stderr}`);
         assert(content === conflict, "conflict state changed the target file");
-        assert(!readFileSync, "unreachable");
+        assert(!existsSync(contractMarker), "conflict state unexpectedly ran the contract");
       } finally {
         rmSync(fixture.root, { recursive: true, force: true });
       }
