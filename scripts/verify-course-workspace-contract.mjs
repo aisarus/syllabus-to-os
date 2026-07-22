@@ -41,6 +41,18 @@ for (const [marker, message] of [
     'aria-label={isRu ? "Тема для загружаемого материала" : "Topic for uploaded material"}',
     "Course Workspace upload-topic selector is missing its localized purpose-specific label.",
   ],
+  [
+    '<strong dir="auto" className="block truncate">',
+    "Course Workspace extracted chunk title is missing its automatic direction boundary.",
+  ],
+  [
+    '<span dir="auto" className="mt-1 block line-clamp-2 text-muted-foreground">',
+    "Course Workspace extracted chunk text is missing its automatic direction boundary.",
+  ],
+  [
+    '<strong dir="auto" className="block truncate text-sm hover:text-primary">',
+    "Course Workspace linked material title is missing its automatic direction boundary.",
+  ],
 ]) {
   requireMarker(workspace, marker, message);
 }
