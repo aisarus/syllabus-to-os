@@ -63,13 +63,13 @@ function recallMatchKeys(token: string): string[] {
   }
 
   const russian = token.match(/^[а-яё]+$/u) ? token : "";
-  if (russian.length >= 5) {
+  if (russian.length >= 4) {
     for (const suffix of [
       "иями", "ями", "ами", "ого", "ему", "ому", "ыми", "ими", "ий", "ый", "ой",
       "ая", "яя", "ое", "ее", "ые", "ие", "ую", "юю", "ам", "ям", "ах", "ях",
       "ов", "ев", "ом", "ем", "ы", "и", "а", "я", "у", "ю", "е",
     ]) {
-      if (russian.endsWith(suffix) && russian.length - suffix.length >= 4) {
+      if (russian.endsWith(suffix) && russian.length - suffix.length >= 3) {
         keys.add(russian.slice(0, -suffix.length));
         break;
       }
