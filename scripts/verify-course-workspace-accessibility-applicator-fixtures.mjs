@@ -45,8 +45,8 @@ function createFixture() {
     }, null, 2)}\n`,
   );
 
-  const original = "export const label = \"before\";\n";
-  const patched = "export const label = \"after\";\n";
+  const original = 'export const label = "before";\n';
+  const patched = 'export const label = "after";\n';
   writeFileSync(join(root, "src/components/course-workspace.tsx"), original);
   writeFileSync(
     join(root, "patches/s4-001-course-workspace-accessibility.patch"),
@@ -128,6 +128,28 @@ const fixtures = [
         const content = readFileSync(join(fixture.root, "src/components/course-workspace.tsx"), "utf8");
         assert(result.status === 9, `expected exit 9, received ${result.status}: ${result.stderr}`);
         assert(content === fixture.patched, "already-applied contract failure changed the target file");
+      } finally {
+        rmSync(fixture.root, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: "conflict refuses without changing file",
+    execute() {
+      const fixture = createFixture();
+      try {
+        const conflict = 'export const label = "conflict";\n';
+        const contractMarker = join(fixture.root, "contract-ran.txt");
+        writeFileSync(join(fixture.root, "src/components/course-workspace.tsx"), conflict);
+        writeFileSync(
+          join(fixture.root, "scripts/contract-stub.mjs"),
+          `import { writeFileSync } from "node:fs";\nwriteFileSync(${JSON.stringify(contractMarker)}, "ran");\n`,
+        );
+        const result = runApplicator(fixture.root, 0);
+        const content = readFileSync(join(fixture.root, "src/components/course-workspace.tsx"), "utf8");
+        assert(result.status === 1, `expected exit 1, received ${result.status}: ${result.stderr}`);
+        assert(content === conflict, "conflict state changed the target file");
+        assert(!readFileSync, "unreachable");
       } finally {
         rmSync(fixture.root, { recursive: true, force: true });
       }
