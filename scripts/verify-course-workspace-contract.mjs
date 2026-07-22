@@ -32,6 +32,19 @@ for (const marker of [
   requireMarker(workspace, marker, `Course Workspace is missing required behavior: ${marker}`);
 }
 
+for (const [marker, message] of [
+  [
+    'aria-label={isRu ? "Название новой темы" : "New topic title"}',
+    "Course Workspace topic creation input is missing its localized purpose-specific label.",
+  ],
+  [
+    'aria-label={isRu ? "Тема для загружаемого материала" : "Topic for uploaded material"}',
+    "Course Workspace upload-topic selector is missing its localized purpose-specific label.",
+  ],
+]) {
+  requireMarker(workspace, marker, message);
+}
+
 for (const kind of ["note", "flashcards", "quiz"]) {
   requireMarker(
     workspace,
