@@ -242,9 +242,18 @@ async function main() {
     })()`);
     assert(afterEnglishVerify === 1, "English verification of the same response must not duplicate evidence");
 
+    await page.reload();
+    await page.waitFor(`document.querySelector('[data-persisted-topic-progress="success"]')`);
+    await page.waitForText("Verified progress");
+    const afterEnglishReload = await page.evaluate(`(() => {
+      const data = JSON.parse(localStorage.getItem("lamdan.concept-evidence.v1"));
+      return data.evidenceEvents.filter((event) => event.sourceLabel === "Deterministic topic recall").length;
+    })()`);
+    assert(afterEnglishReload === 1, "English reload must preserve one verified attempt without duplication");
+
     assert(browserErrors.length === 0, `Browser errors detected: ${browserErrors.join(" | ")}`);
     assert(failedRequests.length === 0, `Failed network requests detected: ${failedRequests.join(" | ")}`);
-    console.log("Topic learning slice browser E2E passed with RU/EN match breakdown, idempotent persistence and clean browser diagnostics.");
+    console.log("Topic learning slice browser E2E passed with RU/EN match breakdown, reload persistence, idempotent evidence and clean browser diagnostics.");
   } finally {
     cdp?.close();
     terminate(chrome);
