@@ -32,6 +32,8 @@ const passed = evaluateTopicRecall({
 assert.equal(passed.passed, true);
 assert.ok(passed.score >= 50);
 assert.ok(passed.matchedTerms.length >= 2);
+assert.ok(passed.exactMatches.length >= 2, "exact matches must be reported separately");
+assert.match(passed.explanation, /Точно: \d+; по словоформе: \d+\./);
 
 const failed = evaluateTopicRecall({
   title: "Судебный контроль",
@@ -76,6 +78,7 @@ const russianInflection = evaluateTopicRecall({
   response: "Независимыми судами ограничивается исполнительная власть.",
 });
 assert.equal(russianInflection.passed, true, "Russian inflections should match deterministically");
+assert.ok(russianInflection.normalizedMatches.length > 0, "Russian normalized matches must be exposed");
 
 const englishInflection = evaluateTopicRecall({
   title: "Judicial review",
@@ -84,6 +87,7 @@ const englishInflection = evaluateTopicRecall({
   response: "An independent court limits executive decision making.",
 });
 assert.equal(englishInflection.passed, true, "English inflections should match deterministically");
+assert.ok(englishInflection.normalizedMatches.length > 0, "English normalized matches must be exposed");
 
 const hebrewInflection = evaluateTopicRecall({
   title: "פיקוח שיפוטי",
@@ -92,6 +96,35 @@ const hebrewInflection = evaluateTopicRecall({
   response: "הפיקוח השיפוטי מגבילים את הממשלה.",
 });
 assert.equal(hebrewInflection.passed, true, "Hebrew prefixes and plurals should match deterministically");
+assert.ok(hebrewInflection.normalizedMatches.length > 0, "Hebrew normalized matches must be exposed");
+
+const russianFalseStem = evaluateTopicRecall({
+  title: "Правовой контроль",
+  aliases: [],
+  explanation: "Правовые нормы регулируют контроль.",
+  response: "Право контролирует.",
+});
+assert.equal(russianFalseStem.passed, false, "RU related words must not become false stem matches");
+assert.equal(russianFalseStem.normalizedMatches.includes("правовой"), false);
+
+const englishFalseStem = evaluateTopicRecall({
+  title: "Policy analysis",
+  aliases: [],
+  explanation: "Policy analysis compares decisions.",
+  response: "A police analyst compares data.",
+});
+assert.equal(englishFalseStem.passed, false, "EN lookalike words must not become false stem matches");
+assert.equal(englishFalseStem.normalizedMatches.includes("policy"), false);
+assert.equal(englishFalseStem.normalizedMatches.includes("analysis"), false);
+
+const hebrewFalseStem = evaluateTopicRecall({
+  title: "שלום ציבורי",
+  aliases: [],
+  explanation: "שלום ציבורי דורש אמון.",
+  response: "לום ציבור.",
+});
+assert.equal(hebrewFalseStem.passed, false, "HE prefix-like substrings must not become false matches");
+assert.equal(hebrewFalseStem.normalizedMatches.includes("שלום"), false);
 
 const now = Date.now();
 const normalizedEvidence = normalizeConceptEvidenceData({
