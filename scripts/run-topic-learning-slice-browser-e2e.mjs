@@ -200,6 +200,7 @@ async function main() {
     })()`);
     await page.clickText("Проверить ответ");
     await page.waitFor(`document.querySelector('[data-topic-recall-result="passed"]')`);
+    await page.waitFor(`document.querySelector('[data-topic-recall-match-breakdown]')?.textContent?.includes('Совпало точно:') && document.querySelector('[data-topic-recall-match-breakdown]')?.textContent?.includes('По словоформе:')`);
     await page.clickText("Проверить ответ");
     await sleep(100);
 
