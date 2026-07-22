@@ -22,11 +22,25 @@ The upload-topic `SelectTrigger` has no associated `<Label>`, `aria-label`, or `
 
 Impact: the displayed selected value does not consistently describe the control purpose.
 
+## Verified non-findings
+
+### AI draft dialog focus and Escape behavior
+
+Files:
+
+- `src/components/ai-generate-dialog-impl.tsx`
+- `src/components/ai-draft-modal.tsx`
+- `src/components/ui/dialog.tsx`
+
+The representative AI generation flow renders through `AIDraftModal`, which uses the shared Radix `Dialog`, `DialogContent`, and `DialogTitle` primitives. Close requests from Escape, overlay interaction, the close button, and the visible cancel/close action converge on `requestClose`, preserving the unsaved-draft confirmation path.
+
+No additional focus-trap, focus-return, Escape, or dialog-title blocker was confirmed by this structural inspection. Runtime keyboard verification remains separate evidence and is not claimed here.
+
 ## Next bounded implementation
 
-1. Add localized `aria-label` values to only these two controls.
+1. Add localized `aria-label` values to only the two confirmed CourseWorkspace controls.
 2. Preserve layout, storage behavior, keyboard behavior, and visible copy.
-3. Add a structural regression contract that checks both purpose-specific labels.
+3. Use the existing structural regression contract for both purpose-specific labels.
 4. Run the structural contract, typecheck, and the existing targeted CourseWorkspace or topic-learning browser check if available.
 
 ## Exclusions
