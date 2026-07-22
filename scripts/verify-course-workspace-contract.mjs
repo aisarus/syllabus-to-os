@@ -35,20 +35,15 @@ for (const marker of [
   requireMarker(workspace, marker, `Course Workspace is missing required behavior: ${marker}`);
 }
 
-for (const [marker, message] of [
+for (const [pattern, message] of [
   [
-    'aria-label={isRu ? "Название новой темы" : "New topic title"}',
+    /<Input(?=[^>]*\bvalue=\{newTopic\})(?=[^>]*\baria-label=\{isRu \? "Название новой темы" : "New topic title"\})[^>]*\/?\s*>/,
     "Course Workspace topic creation input is missing its localized purpose-specific label.",
   ],
   [
-    'aria-label={isRu ? "Тема для загружаемого материала" : "Topic for uploaded material"}',
+    /<SelectTrigger(?=[^>]*\baria-label=\{isRu \? "Тема для загружаемого материала" : "Topic for uploaded material"\})[^>]*>/,
     "Course Workspace upload-topic selector is missing its localized purpose-specific label.",
   ],
-]) {
-  requireMarker(workspace, marker, message);
-}
-
-for (const [pattern, message] of [
   [
     /<strong(?=[^>]*\bdir="auto")(?=[^>]*\bclassName="[^"]*\bblock\b[^"]*\btruncate\b[^"]*")[^>]*>\s*\{chunk\.title/,
     "Course Workspace extracted chunk title is missing its automatic direction boundary.",
