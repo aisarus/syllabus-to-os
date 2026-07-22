@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { normalizeConceptEvidenceData } from "../src/lib/concept-evidence.ts";
 import {
   buildRecallTerms,
   buildTopicRecallAttemptKey,
@@ -91,5 +92,52 @@ const hebrewInflection = evaluateTopicRecall({
   response: "הפיקוח השיפוטי מגבילים את הממשלה.",
 });
 assert.equal(hebrewInflection.passed, true, "Hebrew prefixes and plurals should match deterministically");
+
+const now = Date.now();
+const normalizedEvidence = normalizeConceptEvidenceData({
+  version: 1,
+  concepts: [
+    {
+      id: "con_loop",
+      courseId: "crs_loop",
+      title: "Judicial review",
+      aliases: [],
+      sourceChunkIds: [],
+      flashcardIds: [],
+      quizQuestionIds: [],
+      createdAt: now,
+      updatedAt: now,
+    },
+  ],
+  evidenceEvents: [
+    {
+      id: "legacy_manual",
+      conceptId: "con_loop",
+      kind: "explanation",
+      outcome: "success",
+      sourceType: "manual",
+      sourceLabel: "Legacy self-recorded evidence",
+      occurredAt: now,
+    },
+    {
+      id: "deterministic_recall",
+      conceptId: "con_loop",
+      kind: "recall",
+      outcome: "success",
+      sourceType: "deterministic_recall",
+      sourceId: attemptKey,
+      sourceLabel: "Deterministic topic recall",
+      prompt: "Explain judicial review",
+      response: "Independent courts limit executive decisions",
+      score: 75,
+      occurredAt: now + 1,
+    },
+  ],
+});
+assert.deepEqual(
+  normalizedEvidence.evidenceEvents.map((event) => event.sourceType),
+  ["manual", "deterministic_recall"],
+  "legacy manual and new deterministic recall events must both survive normalization",
+);
 
 console.log("Topic learning slice deterministic evaluations passed.");
