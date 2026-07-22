@@ -1,9 +1,11 @@
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
-const repoRoot = process.cwd();
+const scriptDirectory = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(scriptDirectory, "..");
 const applicatorSource = readFileSync(
   join(repoRoot, "scripts/apply-course-workspace-accessibility-patch.mjs"),
   "utf8",
