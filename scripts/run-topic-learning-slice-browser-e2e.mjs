@@ -218,14 +218,32 @@ async function main() {
     await page.reload();
     await page.waitFor(`document.querySelector('[data-persisted-topic-progress="success"]')`);
     await page.waitForText("Подтверждённый прогресс");
+
+    await page.evaluate(`localStorage.setItem("lamdan.lang", "en")`);
+    await page.reload();
+    await page.waitForText("Topic learning check");
+    await page.evaluate(`(() => {
+      const textarea = [...document.querySelectorAll("textarea")].find((item) => item.placeholder?.includes("Answer without looking back"));
+      if (!textarea) throw new Error("English recall textarea not found");
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
+      setter.call(textarea, "Судебный контроль — проверка решений независимыми судами.");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    })()`);
+    await page.clickText("Verify answer");
+    await page.waitFor(`document.querySelector('[data-topic-recall-result="passed"]')`);
+    await page.waitFor(`document.querySelector('[data-topic-recall-match-breakdown]')?.textContent?.includes('Exact matches:') && document.querySelector('[data-topic-recall-match-breakdown]')?.textContent?.includes('Normalized forms:')`);
+    await page.reload();
+    await page.waitFor(`document.querySelector('[data-persisted-topic-progress="success"]')`);
+    await page.waitForText("Verified progress");
+
     const afterReload = await page.evaluate(`(() => {
       const data = JSON.parse(localStorage.getItem("lamdan.concept-evidence.v1"));
       return data.evidenceEvents.filter((event) => event.sourceLabel === "Deterministic topic recall").length;
     })()`);
-    assert(afterReload === 1, "Reload must not duplicate the verified attempt");
+    assert(afterReload === 1, "Language switch and reload must not duplicate the verified attempt");
     assert(browserErrors.length === 0, `Browser errors detected: ${browserErrors.join(" | ")}`);
     assert(failedRequests.length === 0, `Failed network requests detected: ${failedRequests.join(" | ")}`);
-    console.log("Topic learning slice browser E2E passed with idempotent persistence and clean browser diagnostics.");
+    console.log("Topic learning slice browser E2E passed with RU/EN match transparency, idempotent persistence and clean browser diagnostics.");
   } finally {
     cdp?.close();
     terminate(chrome);
