@@ -1,11 +1,15 @@
 import { spawnSync } from "node:child_process";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const patchPath = "patches/s4-001-course-workspace-accessibility.patch";
+const scriptDirectory = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(scriptDirectory, "..");
+const patchPath = join(repoRoot, "patches/s4-001-course-workspace-accessibility.patch");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function runGitApply(args) {
   return spawnSync("git", ["apply", ...args, patchPath], {
-    cwd: process.cwd(),
+    cwd: repoRoot,
     env: process.env,
     encoding: "utf8",
   });
@@ -13,7 +17,7 @@ function runGitApply(args) {
 
 function runContract() {
   return spawnSync(npmCommand, ["run", "verify:course-workspace-contract"], {
-    cwd: process.cwd(),
+    cwd: repoRoot,
     env: process.env,
     encoding: "utf8",
   });
