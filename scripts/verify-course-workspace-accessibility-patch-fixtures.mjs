@@ -6,7 +6,10 @@ import { spawnSync } from "node:child_process";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, "..");
-const verifierPath = resolve(repoRoot, "scripts/verify-course-workspace-accessibility-patch.mjs");
+const verifierSource = readFileSync(
+  resolve(repoRoot, "scripts/verify-course-workspace-accessibility-patch.mjs"),
+  "utf8",
+);
 const patchSource = readFileSync(
   resolve(repoRoot, "patches/s4-001-course-workspace-accessibility.patch"),
   "utf8",
@@ -82,6 +85,12 @@ const fixtureRoot = mkdtempSync(join(tmpdir(), "lamdan-a11y-patch-"));
 try {
   mkdirSync(join(fixtureRoot, "src/components"), { recursive: true });
   mkdirSync(join(fixtureRoot, "patches"), { recursive: true });
+  mkdirSync(join(fixtureRoot, "scripts"), { recursive: true });
+  const verifierPath = join(
+    fixtureRoot,
+    "scripts/verify-course-workspace-accessibility-patch.mjs",
+  );
+  writeFileSync(verifierPath, verifierSource);
   writeFileSync(
     join(fixtureRoot, "patches/s4-001-course-workspace-accessibility.patch"),
     patchSource,
