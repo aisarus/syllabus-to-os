@@ -116,7 +116,7 @@ function coreFixture() {
     version: 1,
     programs: [],
     courses: [{ id: "crs_loop", title: "Learning Loop", status: "in_progress", order: 0, createdAt: now }],
-    topics: [{ id: "top_loop", courseId: "crs_loop", title: "Checks and balances", order: 0, createdAt: now }],
+    topics: [{ id: "top_loop", courseId: "crs_loop", title: "Checks and balances", status: "not_started", order: 0, createdAt: now }],
     notes: [], flashcards: [], quizzes: [], quizQuestions: [], quizAttempts: [], assignments: [],
     materials: [], materialChunks: [], materialOutputs: [], presentationOutlines: [], calendarEvents: [],
     studySessions: [], syllabusImports: [],
@@ -187,6 +187,7 @@ async function main() {
       localStorage.setItem("lamdan.lang", "ru");
       localStorage.setItem("lamdan.theme", "dark");
     })()`);
+    await page.reload();
 
     await page.navigate("/app/courses/crs_loop");
     await page.waitForText("Короткая проверка темы");
