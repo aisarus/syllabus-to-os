@@ -178,7 +178,7 @@ async function main() {
       page.send("Log.enable"),
       page.send("Network.enable"),
     ]);
-    await page.waitFor("document.readyState === 'complete'");
+    await page.navigate("/app/dashboard");
 
     await page.evaluate(`(() => {
       localStorage.clear();
