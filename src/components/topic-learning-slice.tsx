@@ -82,7 +82,7 @@ export function TopicLearningSlice({ courseId }: { courseId: string }) {
       conceptId: concept.id,
       kind: "recall",
       outcome: evaluation.passed ? "success" : "failure",
-      sourceType: "manual",
+      sourceType: "deterministic_recall",
       sourceId,
       sourceLabel: RECALL_SOURCE,
       mistakeKind: evaluation.passed ? undefined : "retrieval",

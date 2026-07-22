@@ -206,12 +206,13 @@ async function main() {
     const beforeReload = await page.evaluate(`(() => {
       const data = JSON.parse(localStorage.getItem("lamdan.concept-evidence.v1"));
       const events = data.evidenceEvents.filter((event) => event.sourceLabel === "Deterministic topic recall");
-      return { count: events.length, outcome: events[0]?.outcome, score: events[0]?.score, sourceId: events[0]?.sourceId };
+      return { count: events.length, outcome: events[0]?.outcome, score: events[0]?.score, sourceId: events[0]?.sourceId, sourceType: events[0]?.sourceType };
     })()`);
     assert(beforeReload.count === 1, "Repeated verification of the same response must remain one evidence event");
     assert(beforeReload.outcome === "success", "Verified recall must persist success");
     assert(beforeReload.score >= 50, "Verified recall must persist deterministic score");
     assert(beforeReload.sourceId?.startsWith("topic-recall:con_loop:"), "Verified recall must persist a stable attempt key");
+    assert(beforeReload.sourceType === "deterministic_recall", "Verified recall must persist the dedicated source type");
 
     await page.reload();
     await page.waitFor(`document.querySelector('[data-persisted-topic-progress="success"]')`);

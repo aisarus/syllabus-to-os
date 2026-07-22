@@ -10,4 +10,4 @@ Persistence invariant:
 - a meaningfully different response remains a new attempt;
 - the browser proof must finish without uncaught exceptions, error-level browser logs, or non-cancelled failed network requests.
 
-The event remains compatible with the existing `lamdan.concept-evidence.v1` schema by using the current `manual` source type plus a stable `topic-recall:*` source identifier.
+New verified events use the backward-compatible `deterministic_recall` source type plus a stable `topic-recall:*` source identifier. Existing `manual` events remain valid and unchanged during normalization.

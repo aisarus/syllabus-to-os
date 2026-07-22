@@ -22,6 +22,7 @@ const STOP_WORDS = new Set([
 export function normalizeRecallText(value: string): string[] {
   return value
     .normalize("NFKC")
+    .replace(/[\u0591-\u05c7]/gu, "")
     .toLocaleLowerCase()
     .replace(/[\p{P}\p{S}]+/gu, " ")
     .split(/\s+/)
@@ -46,11 +47,57 @@ export function buildTopicRecallAttemptKey(conceptId: string, response: string):
   return `topic-recall:${conceptId}:${(hash >>> 0).toString(36)}`;
 }
 
+function recallMatchKeys(token: string): string[] {
+  const keys = new Set([token]);
+
+  const english = token.match(/^[a-z]+$/) ? token : "";
+  if (english.length >= 5) {
+    if (english.endsWith("ies") && english.length > 5) keys.add(`${english.slice(0, -3)}y`);
+    for (const suffix of ["ing", "ed", "es", "s"]) {
+      if (english.endsWith(suffix) && english.length - suffix.length >= 4) {
+        keys.add(english.slice(0, -suffix.length));
+      }
+    }
+  }
+
+  const russian = token.match(/^[а-яё]+$/u) ? token : "";
+  if (russian.length >= 5) {
+    for (const suffix of [
+      "иями", "ями", "ами", "ого", "ему", "ому", "ыми", "ими", "ий", "ый", "ой",
+      "ая", "яя", "ое", "ее", "ые", "ие", "ую", "юю", "ам", "ям", "ах", "ях",
+      "ов", "ев", "ом", "ем", "ы", "и", "а", "я", "у", "ю", "е",
+    ]) {
+      if (russian.endsWith(suffix) && russian.length - suffix.length >= 4) {
+        keys.add(russian.slice(0, -suffix.length));
+        break;
+      }
+    }
+  }
+
+  const hebrew = token.match(/^[א-ת]+$/u) ? token : "";
+  if (hebrew.length >= 4) {
+    const withoutPrefix = /^[בכלמוהש]/u.test(hebrew) && hebrew.length >= 5 ? hebrew.slice(1) : hebrew;
+    keys.add(withoutPrefix);
+    for (const candidate of [hebrew, withoutPrefix]) {
+      for (const suffix of ["ים", "ות"]) {
+        if (candidate.endsWith(suffix) && candidate.length - suffix.length >= 3) {
+          keys.add(candidate.slice(0, -suffix.length));
+        }
+      }
+    }
+  }
+
+  return [...keys];
+}
+
 export function evaluateTopicRecall(input: TopicRecallInput): TopicRecallResult {
   const expected = buildRecallTerms(input);
-  const responseTerms = new Set(normalizeRecallText(input.response));
-  const matchedTerms = expected.filter((term) => responseTerms.has(term));
-  const missingTerms = expected.filter((term) => !responseTerms.has(term));
+  const responseTerms = normalizeRecallText(input.response);
+  const responseKeys = new Set(responseTerms.flatMap(recallMatchKeys));
+  const matchedTerms = expected.filter((term) =>
+    recallMatchKeys(term).some((key) => responseKeys.has(key)),
+  );
+  const missingTerms = expected.filter((term) => !matchedTerms.includes(term));
   const score = expected.length === 0 ? 0 : Math.round((matchedTerms.length / expected.length) * 100);
   const passed = expected.length >= 2 && matchedTerms.length >= 2 && score >= 50;
 
