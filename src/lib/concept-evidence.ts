@@ -42,6 +42,7 @@ export interface ConceptEvidenceEvent {
     | "quiz_attempt"
     | "quiz_question_answer"
     | "open_answer_review"
+    | "deterministic_recall"
     | "manual";
   sourceId?: string;
   attemptId?: string;
@@ -144,6 +145,7 @@ function normalizeEvent(raw: unknown): ConceptEvidenceEvent | null {
       "quiz_attempt",
       "quiz_question_answer",
       "open_answer_review",
+      "deterministic_recall",
       "manual",
     ].includes(sourceType)
   ) {
@@ -153,9 +155,16 @@ function normalizeEvent(raw: unknown): ConceptEvidenceEvent | null {
   const attemptId = optionalString(value.attemptId);
   const questionId = optionalString(value.questionId);
   if (sourceType === "quiz_question_answer" && (!attemptId || !questionId)) return null;
+  const sourceId = optionalString(value.sourceId);
   const reviewMode = optionalString(value.reviewMode) as OpenAnswerReviewMode | undefined;
   const prompt = optionalString(value.prompt);
   const response = optionalString(value.response);
+  if (
+    sourceType === "deterministic_recall" &&
+    (!sourceId || !prompt || !response || kind !== "recall" || outcome === "mixed")
+  ) {
+    return null;
+  }
   if (
     sourceType === "open_answer_review" &&
     (!prompt || !response || !["explanation", "application"].includes(kind) || outcome === "mixed")
@@ -168,7 +177,7 @@ function normalizeEvent(raw: unknown): ConceptEvidenceEvent | null {
     kind,
     outcome,
     sourceType,
-    sourceId: optionalString(value.sourceId),
+    sourceId,
     attemptId,
     questionId,
     sourceLabel: optionalString(value.sourceLabel),

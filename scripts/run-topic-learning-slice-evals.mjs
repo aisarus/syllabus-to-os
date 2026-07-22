@@ -68,4 +68,28 @@ assert.notEqual(
   "meaningfully different responses must remain separate attempts",
 );
 
+const russianInflection = evaluateTopicRecall({
+  title: "Судебный контроль",
+  aliases: [],
+  explanation: "Независимые суды ограничивают исполнительную власть.",
+  response: "Независимыми судами ограничивается исполнительная власть.",
+});
+assert.equal(russianInflection.passed, true, "Russian inflections should match deterministically");
+
+const englishInflection = evaluateTopicRecall({
+  title: "Judicial review",
+  aliases: [],
+  explanation: "Independent courts limit executive decisions.",
+  response: "An independent court limits executive decision making.",
+});
+assert.equal(englishInflection.passed, true, "English inflections should match deterministically");
+
+const hebrewInflection = evaluateTopicRecall({
+  title: "פיקוח שיפוטי",
+  aliases: [],
+  explanation: "פיקוח שיפוטי מגביל ממשלה.",
+  response: "הפיקוח השיפוטי מגבילים את הממשלה.",
+});
+assert.equal(hebrewInflection.passed, true, "Hebrew prefixes and plurals should match deterministically");
+
 console.log("Topic learning slice deterministic evaluations passed.");
