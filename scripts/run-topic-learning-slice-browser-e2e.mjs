@@ -15,6 +15,7 @@ class Cdp {
     this.socket = socket;
     this.nextId = 1;
     this.pending = new Map();
+    this.listeners = new Map();
     socket.addEventListener("message", (event) => this.onMessage(event.data));
   }
   static async connect(url) {
@@ -32,9 +33,17 @@ class Cdp {
       this.socket.send(JSON.stringify({ id, method, params, sessionId }));
     });
   }
+  on(method, listener) {
+    const current = this.listeners.get(method) ?? [];
+    current.push(listener);
+    this.listeners.set(method, current);
+  }
   onMessage(raw) {
     const message = JSON.parse(String(raw));
-    if (!message.id) return;
+    if (!message.id) {
+      for (const listener of this.listeners.get(message.method) ?? []) listener(message.params ?? {});
+      return;
+    }
     const pending = this.pending.get(message.id);
     if (!pending) return;
     this.pending.delete(message.id);
@@ -135,6 +144,8 @@ async function main() {
   let preview;
   let chrome;
   let cdp;
+  const browserErrors = [];
+  const failedRequests = [];
   try {
     preview = spawn(npmCommand, ["run", "preview", "--", "--host", HOST, "--port", String(APP_PORT)], {
       cwd: process.cwd(), env: process.env, stdio: "ignore", detached: process.platform !== "win32",
@@ -147,10 +158,25 @@ async function main() {
     ], { stdio: "ignore", detached: process.platform !== "win32" });
     const version = await waitForJson(`http://${HOST}:${DEBUG_PORT}/json/version`, 30_000);
     cdp = await Cdp.connect(version.webSocketDebuggerUrl);
+    cdp.on("Runtime.exceptionThrown", (params) => {
+      browserErrors.push(params.exceptionDetails?.exception?.description ?? params.exceptionDetails?.text ?? "Runtime exception");
+    });
+    cdp.on("Log.entryAdded", (params) => {
+      if (params.entry?.level === "error") browserErrors.push(params.entry.text ?? "Browser log error");
+    });
+    cdp.on("Network.loadingFailed", (params) => {
+      if (!params.canceled) failedRequests.push(`${params.errorText ?? "request failed"}:${params.requestId ?? "unknown"}`);
+    });
+
     const { targetId } = await cdp.send("Target.createTarget", { url: `${BASE_URL}/app/dashboard` });
     const { sessionId } = await cdp.send("Target.attachToTarget", { targetId, flatten: true });
     const page = new Page(cdp, sessionId);
-    await Promise.all([page.send("Page.enable"), page.send("Runtime.enable")]);
+    await Promise.all([
+      page.send("Page.enable"),
+      page.send("Runtime.enable"),
+      page.send("Log.enable"),
+      page.send("Network.enable"),
+    ]);
     await page.waitFor("document.readyState === 'complete'");
 
     await page.evaluate(`(() => {
@@ -174,14 +200,18 @@ async function main() {
     })()`);
     await page.clickText("Проверить ответ");
     await page.waitFor(`document.querySelector('[data-topic-recall-result="passed"]')`);
+    await page.clickText("Проверить ответ");
+    await sleep(100);
+
     const beforeReload = await page.evaluate(`(() => {
       const data = JSON.parse(localStorage.getItem("lamdan.concept-evidence.v1"));
       const events = data.evidenceEvents.filter((event) => event.sourceLabel === "Deterministic topic recall");
-      return { count: events.length, outcome: events[0]?.outcome, score: events[0]?.score };
+      return { count: events.length, outcome: events[0]?.outcome, score: events[0]?.score, sourceId: events[0]?.sourceId };
     })()`);
-    assert(beforeReload.count === 1, "Verification must persist exactly one evidence event");
+    assert(beforeReload.count === 1, "Repeated verification of the same response must remain one evidence event");
     assert(beforeReload.outcome === "success", "Verified recall must persist success");
     assert(beforeReload.score >= 50, "Verified recall must persist deterministic score");
+    assert(beforeReload.sourceId?.startsWith("topic-recall:con_loop:"), "Verified recall must persist a stable attempt key");
 
     await page.reload();
     await page.waitFor(`document.querySelector('[data-persisted-topic-progress="success"]')`);
@@ -191,7 +221,9 @@ async function main() {
       return data.evidenceEvents.filter((event) => event.sourceLabel === "Deterministic topic recall").length;
     })()`);
     assert(afterReload === 1, "Reload must not duplicate the verified attempt");
-    console.log("Topic learning slice browser E2E passed.");
+    assert(browserErrors.length === 0, `Browser errors detected: ${browserErrors.join(" | ")}`);
+    assert(failedRequests.length === 0, `Failed network requests detected: ${failedRequests.join(" | ")}`);
+    console.log("Topic learning slice browser E2E passed with idempotent persistence and clean browser diagnostics.");
   } finally {
     cdp?.close();
     terminate(chrome);
