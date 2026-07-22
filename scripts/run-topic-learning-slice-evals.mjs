@@ -79,6 +79,10 @@ const russianInflection = evaluateTopicRecall({
 });
 assert.equal(russianInflection.passed, true, "Russian inflections should match deterministically");
 assert.ok(russianInflection.normalizedMatches.length > 0, "Russian normalized matches must be exposed");
+assert.ok(
+  russianInflection.normalizedMatches.includes("суды"),
+  "short Russian plural 'суды' must match the inflected response 'судами'",
+);
 
 const englishInflection = evaluateTopicRecall({
   title: "Judicial review",
