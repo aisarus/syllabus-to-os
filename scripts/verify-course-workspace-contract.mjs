@@ -37,11 +37,11 @@ for (const marker of [
 
 for (const [pattern, message] of [
   [
-    /<Input(?=[^>]*\bvalue=\{newTopic\})(?=[^>]*\baria-label=\{isRu \? "Название новой темы" : "New topic title"\})[^>]*\/?\s*>/,
+    /<Input(?=[^>]*\bvalue=\{newTopic\})(?=[^>]*\baria-label=\{\s*isRu\s*\?\s*"Название новой темы"\s*:\s*"New topic title"\s*\})[^>]*\/?\s*>/,
     "Course Workspace topic creation input is missing its localized purpose-specific label.",
   ],
   [
-    /<SelectTrigger(?=[^>]*\baria-label=\{isRu \? "Тема для загружаемого материала" : "Topic for uploaded material"\})[^>]*>/,
+    /<SelectTrigger(?=[^>]*\baria-label=\{\s*isRu\s*\?\s*"Тема для загружаемого материала"\s*:\s*"Topic for uploaded material"\s*\})[^>]*>/,
     "Course Workspace upload-topic selector is missing its localized purpose-specific label.",
   ],
   [
