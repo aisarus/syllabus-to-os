@@ -83,7 +83,8 @@ class Page {
       } catch {}
       await sleep(120);
     }
-    throw new Error(`Timed out waiting for: ${expression}`);
+    const context = await this.evaluate(`({ url: location.href, title: document.title, text: document.body?.innerText?.slice(0, 1200) ?? "", storageKeys: Object.keys(localStorage) })`).catch(() => null);
+    throw new Error(`Timed out waiting for: ${expression}\nPage context: ${JSON.stringify(context)}`);
   }
   waitForText(text, timeout = 20_000) {
     return this.waitFor(`document.body?.innerText.includes(${JSON.stringify(text)})`, timeout);
@@ -116,7 +117,7 @@ function coreFixture() {
     version: 1,
     programs: [],
     courses: [{ id: "crs_loop", title: "Learning Loop", status: "in_progress", order: 0, createdAt: now }],
-    topics: [{ id: "top_loop", courseId: "crs_loop", title: "Checks and balances", order: 0, createdAt: now }],
+    topics: [{ id: "top_loop", courseId: "crs_loop", title: "Checks and balances", status: "not_started", order: 0, createdAt: now }],
     notes: [], flashcards: [], quizzes: [], quizQuestions: [], quizAttempts: [], assignments: [],
     materials: [], materialChunks: [], materialOutputs: [], presentationOutlines: [], calendarEvents: [],
     studySessions: [], syllabusImports: [],
@@ -177,7 +178,7 @@ async function main() {
       page.send("Log.enable"),
       page.send("Network.enable"),
     ]);
-    await page.waitFor("document.readyState === 'complete'");
+    await page.navigate("/app/dashboard");
 
     await page.evaluate(`(() => {
       localStorage.clear();
@@ -187,6 +188,7 @@ async function main() {
       localStorage.setItem("lamdan.lang", "ru");
       localStorage.setItem("lamdan.theme", "dark");
     })()`);
+    await page.reload();
 
     await page.navigate("/app/courses/crs_loop");
     await page.waitForText("Короткая проверка темы");
