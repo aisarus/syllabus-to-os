@@ -67,9 +67,9 @@ function createFixture() {
   return { root, original, patched };
 }
 
-function runApplicator(root, contractExit) {
+function runApplicator(root, contractExit, invocationCwd = root) {
   const node = process.execPath;
-  return run(node, ["scripts/apply-course-workspace-accessibility-patch.mjs"], root, {
+  return run(node, [join(root, "scripts/apply-course-workspace-accessibility-patch.mjs")], invocationCwd, {
     CONTRACT_EXIT: String(contractExit),
   });
 }
@@ -85,6 +85,22 @@ const fixtures = [
         assert(result.status === 0, `expected exit 0, received ${result.status}: ${result.stderr}`);
         assert(content === fixture.patched, "successful application did not leave patched content");
       } finally {
+        rmSync(fixture.root, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: "applies when invoked outside repository cwd",
+    execute() {
+      const fixture = createFixture();
+      const invocationCwd = mkdtempSync(join(tmpdir(), "course-workspace-invocation-"));
+      try {
+        const result = runApplicator(fixture.root, 0, invocationCwd);
+        const content = readFileSync(join(fixture.root, "src/components/course-workspace.tsx"), "utf8");
+        assert(result.status === 0, `expected exit 0, received ${result.status}: ${result.stderr}`);
+        assert(content === fixture.patched, "external-cwd invocation did not leave patched content");
+      } finally {
+        rmSync(invocationCwd, { recursive: true, force: true });
         rmSync(fixture.root, { recursive: true, force: true });
       }
     },
