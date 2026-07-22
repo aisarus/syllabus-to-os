@@ -55,7 +55,10 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
         .sort((a, b) => a.order - b.order),
     [data.topics, courseId],
   );
-  const materials = data.materials.filter((material) => material.courseId === courseId);
+  const materials = useMemo(
+  () => data.materials.filter((material) => material.courseId === courseId),
+  [data.materials, courseId],
+);
   const notes = data.notes.filter((note) => note.courseId === courseId);
   const cards = data.flashcards.filter((card) => card.courseId === courseId);
   const quizzes = data.quizzes.filter((quiz) => quiz.courseId === courseId);
