@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "purpose": "negative fixtures for deterministic recall normalization checks",
+  "cases": [
+    {
+      "id": "ru_false_stem_collision",
+      "locale": "ru",
+      "prompt": "Что такое капитал?",
+      "response": "капитан",
+      "expectedMatch": false
+    },
+    {
+      "id": "en_false_stem_collision",
+      "locale": "en",
+      "prompt": "Define economy",
+      "response": "economical",
+      "expectedMatch": false
+    },
+    {
+      "id": "he_false_stem_collision",
+      "locale": "he",
+      "prompt": "מה זה ספר?",
+      "response": "סיפור",
+      "expectedMatch": false
+    }
+  ]
+}
