@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { normalizeConceptEvidenceData } from "../src/lib/concept-evidence.ts";
 import {
   buildRecallTerms,
@@ -130,6 +131,29 @@ const hebrewFalseStem = evaluateTopicRecall({
 assert.equal(hebrewFalseStem.passed, false, "HE prefix-like substrings must not become false matches");
 assert.equal(hebrewFalseStem.normalizedMatches.includes("שלום"), false);
 
+const negativeFixturePath = new URL(
+  "../evals/fixtures/deterministic-recall-negative-stem-fixtures.json",
+  import.meta.url,
+);
+const negativeFixture = JSON.parse(await readFile(negativeFixturePath, "utf8"));
+assert.equal(negativeFixture.version, 1, "negative fixture schema version must stay supported");
+assert.ok(Array.isArray(negativeFixture.cases), "negative fixture cases must be an array");
+for (const testCase of negativeFixture.cases) {
+  const result = evaluateTopicRecall(testCase.input);
+  assert.equal(
+    result.passed,
+    testCase.expected.passed,
+    `${testCase.id}: unexpected recall pass state`,
+  );
+  for (const term of testCase.expected.forbiddenMatchedTerms ?? []) {
+    assert.equal(
+      result.matchedTerms.includes(term),
+      false,
+      `${testCase.id}: forbidden term '${term}' was matched`,
+    );
+  }
+}
+
 const now = Date.now();
 const normalizedEvidence = normalizeConceptEvidenceData({
   version: 1,
@@ -177,4 +201,6 @@ assert.deepEqual(
   "legacy manual and new deterministic recall events must both survive normalization",
 );
 
-console.log("Topic learning slice deterministic evaluations passed.");
+console.log(
+  `Topic learning slice deterministic evaluations passed (${negativeFixture.cases.length} fixture cases).`,
+);
