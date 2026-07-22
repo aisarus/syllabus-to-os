@@ -5,7 +5,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/lib/app-context";
 import { conceptStore, useConceptEvidenceData } from "@/lib/concept-store";
 import { useData } from "@/lib/store";
-import { evaluateTopicRecall, type TopicRecallResult } from "@/lib/topic-learning-slice";
+import {
+  buildTopicRecallAttemptKey,
+  evaluateTopicRecall,
+  type TopicRecallResult,
+} from "@/lib/topic-learning-slice";
 
 const RECALL_SOURCE = "Deterministic topic recall";
 
@@ -55,24 +59,37 @@ export function TopicLearningSlice({ courseId }: { courseId: string }) {
     .sort((left, right) => right.occurredAt - left.occurredAt)[0];
 
   const verify = () => {
+    const trimmedResponse = response.trim();
     const evaluation = evaluateTopicRecall({
       title: concept.title,
       aliases: concept.aliases,
       explanation: concept.description ?? "",
-      response,
+      response: trimmedResponse,
     });
     setResult(evaluation);
+
+    const sourceId = buildTopicRecallAttemptKey(concept.id, trimmedResponse);
+    const alreadyRecorded = evidence.evidenceEvents.some(
+      (event) =>
+        event.conceptId === concept.id &&
+        event.kind === "recall" &&
+        event.sourceLabel === RECALL_SOURCE &&
+        event.sourceId === sourceId,
+    );
+    if (alreadyRecorded) return;
+
     conceptStore.recordEvidence({
       conceptId: concept.id,
       kind: "recall",
       outcome: evaluation.passed ? "success" : "failure",
       sourceType: "manual",
+      sourceId,
       sourceLabel: RECALL_SOURCE,
       mistakeKind: evaluation.passed ? undefined : "retrieval",
       note: evaluation.explanation,
       score: evaluation.score,
       prompt: isRu ? `Объясни своими словами: ${concept.title}` : `Explain in your own words: ${concept.title}`,
-      response: response.trim(),
+      response: trimmedResponse,
     });
   };
 

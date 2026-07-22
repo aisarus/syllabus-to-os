@@ -36,6 +36,16 @@ export function buildRecallTerms(input: Omit<TopicRecallInput, "response">): str
   return Array.from(new Set(ordered)).slice(0, 8);
 }
 
+export function buildTopicRecallAttemptKey(conceptId: string, response: string): string {
+  const normalized = normalizeRecallText(response).join(" ");
+  let hash = 2166136261;
+  for (const character of `${conceptId}\u0000${normalized}`) {
+    hash ^= character.codePointAt(0) ?? 0;
+    hash = Math.imul(hash, 16777619);
+  }
+  return `topic-recall:${conceptId}:${(hash >>> 0).toString(36)}`;
+}
+
 export function evaluateTopicRecall(input: TopicRecallInput): TopicRecallResult {
   const expected = buildRecallTerms(input);
   const responseTerms = new Set(normalizeRecallText(input.response));

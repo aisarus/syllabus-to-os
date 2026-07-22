@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
-import { buildRecallTerms, evaluateTopicRecall, normalizeRecallText } from "../src/lib/topic-learning-slice.ts";
+import {
+  buildRecallTerms,
+  buildTopicRecallAttemptKey,
+  evaluateTopicRecall,
+  normalizeRecallText,
+} from "../src/lib/topic-learning-slice.ts";
 
 assert.deepEqual(normalizeRecallText("Судебный контроль — это проверка решений судами."), [
   "судебный",
@@ -44,5 +49,23 @@ const deterministicAgain = evaluateTopicRecall({
   response: "Судебный контроль — проверка решений независимыми судами.",
 });
 assert.deepEqual(deterministicAgain, passed, "verification must be deterministic for identical input");
+
+const attemptKey = buildTopicRecallAttemptKey(
+  "con_loop",
+  "Судебный контроль — проверка решений независимыми судами.",
+);
+assert.equal(
+  buildTopicRecallAttemptKey(
+    "con_loop",
+    "  судебный контроль, проверка решений независимыми судами! ",
+  ),
+  attemptKey,
+  "equivalent normalized responses must map to one persisted attempt",
+);
+assert.notEqual(
+  buildTopicRecallAttemptKey("con_loop", "Судебный контроль ограничивает власть."),
+  attemptKey,
+  "meaningfully different responses must remain separate attempts",
+);
 
 console.log("Topic learning slice deterministic evaluations passed.");
