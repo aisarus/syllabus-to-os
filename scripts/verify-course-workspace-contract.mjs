@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
+  extractedChunkTextDirectionPattern,
+  extractedChunkTitleDirectionPattern,
+  linkedMaterialTitleDirectionPattern,
   topicInputPattern,
   uploadTopicPattern,
 } from "./course-workspace-accessibility-patterns.mjs";
@@ -49,15 +52,15 @@ for (const [pattern, message] of [
     "Course Workspace upload-topic selector is missing its localized purpose-specific label.",
   ],
   [
-    /<strong(?=[^>]*\bdir="auto")(?=[^>]*\bclassName="[^"]*\bblock\b[^"]*\btruncate\b[^"]*")[^>]*>\s*\{chunk\.title/,
+    extractedChunkTitleDirectionPattern,
     "Course Workspace extracted chunk title is missing its automatic direction boundary.",
   ],
   [
-    /<span(?=[^>]*\bdir="auto")(?=[^>]*\bclassName="[^"]*\bline-clamp-2\b[^"]*")[^>]*>\s*\{chunk\.text\}/,
+    extractedChunkTextDirectionPattern,
     "Course Workspace extracted chunk text is missing its automatic direction boundary.",
   ],
   [
-    /<strong(?=[^>]*\bdir="auto")(?=[^>]*\bclassName="[^"]*\btruncate\b[^"]*\bhover:text-primary\b[^"]*")[^>]*>\s*\{material\.title\}/,
+    linkedMaterialTitleDirectionPattern,
     "Course Workspace linked material title is missing its automatic direction boundary.",
   ],
 ]) {
