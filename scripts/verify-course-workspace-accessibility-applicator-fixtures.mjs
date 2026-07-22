@@ -1,0 +1,137 @@
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { spawnSync } from "node:child_process";
+
+const repoRoot = process.cwd();
+const applicatorSource = readFileSync(
+  join(repoRoot, "scripts/apply-course-workspace-accessibility-patch.mjs"),
+  "utf8",
+);
+
+function run(command, args, cwd, env = {}) {
+  return spawnSync(command, args, {
+    cwd,
+    env: { ...process.env, ...env },
+    encoding: "utf8",
+  });
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+function createFixture() {
+  const root = mkdtempSync(join(tmpdir(), "course-workspace-applicator-"));
+  mkdirSync(join(root, "scripts"), { recursive: true });
+  mkdirSync(join(root, "patches"), { recursive: true });
+  mkdirSync(join(root, "src/components"), { recursive: true });
+
+  writeFileSync(join(root, "scripts/apply-course-workspace-accessibility-patch.mjs"), applicatorSource);
+  writeFileSync(
+    join(root, "scripts/contract-stub.mjs"),
+    'process.exit(Number.parseInt(process.env.CONTRACT_EXIT || "0", 10));\n',
+  );
+  writeFileSync(
+    join(root, "package.json"),
+    `${JSON.stringify({
+      private: true,
+      type: "module",
+      scripts: {
+        "verify:course-workspace-contract": "node scripts/contract-stub.mjs",
+      },
+    }, null, 2)}\n`,
+  );
+
+  const original = "export const label = \"before\";\n";
+  const patched = "export const label = \"after\";\n";
+  writeFileSync(join(root, "src/components/course-workspace.tsx"), original);
+  writeFileSync(
+    join(root, "patches/s4-001-course-workspace-accessibility.patch"),
+    [
+      "diff --git a/src/components/course-workspace.tsx b/src/components/course-workspace.tsx",
+      "--- a/src/components/course-workspace.tsx",
+      "+++ b/src/components/course-workspace.tsx",
+      "@@ -1 +1 @@",
+      '-export const label = "before";',
+      '+export const label = "after";',
+      "",
+    ].join("\n"),
+  );
+
+  const gitInit = run("git", ["init", "-q"], root);
+  assert(gitInit.status === 0, `git init failed: ${gitInit.stderr}`);
+
+  return { root, original, patched };
+}
+
+function runApplicator(root, contractExit) {
+  const node = process.execPath;
+  return run(node, ["scripts/apply-course-workspace-accessibility-patch.mjs"], root, {
+    CONTRACT_EXIT: String(contractExit),
+  });
+}
+
+const fixtures = [
+  {
+    name: "applies and verifies",
+    execute() {
+      const fixture = createFixture();
+      try {
+        const result = runApplicator(fixture.root, 0);
+        const content = readFileSync(join(fixture.root, "src/components/course-workspace.tsx"), "utf8");
+        assert(result.status === 0, `expected exit 0, received ${result.status}: ${result.stderr}`);
+        assert(content === fixture.patched, "successful application did not leave patched content");
+      } finally {
+        rmSync(fixture.root, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: "already applied stays unchanged",
+    execute() {
+      const fixture = createFixture();
+      try {
+        writeFileSync(join(fixture.root, "src/components/course-workspace.tsx"), fixture.patched);
+        const result = runApplicator(fixture.root, 0);
+        const content = readFileSync(join(fixture.root, "src/components/course-workspace.tsx"), "utf8");
+        assert(result.status === 0, `expected exit 0, received ${result.status}: ${result.stderr}`);
+        assert(content === fixture.patched, "already-applied state changed the target file");
+      } finally {
+        rmSync(fixture.root, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: "contract failure rolls back new patch",
+    execute() {
+      const fixture = createFixture();
+      try {
+        const result = runApplicator(fixture.root, 7);
+        const content = readFileSync(join(fixture.root, "src/components/course-workspace.tsx"), "utf8");
+        assert(result.status === 7, `expected exit 7, received ${result.status}: ${result.stderr}`);
+        assert(content === fixture.original, "contract failure did not restore original content");
+      } finally {
+        rmSync(fixture.root, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: "already applied contract failure preserves file",
+    execute() {
+      const fixture = createFixture();
+      try {
+        writeFileSync(join(fixture.root, "src/components/course-workspace.tsx"), fixture.patched);
+        const result = runApplicator(fixture.root, 9);
+        const content = readFileSync(join(fixture.root, "src/components/course-workspace.tsx"), "utf8");
+        assert(result.status === 9, `expected exit 9, received ${result.status}: ${result.stderr}`);
+        assert(content === fixture.patched, "already-applied contract failure changed the target file");
+      } finally {
+        rmSync(fixture.root, { recursive: true, force: true });
+      }
+    },
+  },
+];
+
+for (const fixture of fixtures) fixture.execute();
+console.log(`CourseWorkspace accessibility applicator fixtures passed: ${fixtures.length}/${fixtures.length}.`);
