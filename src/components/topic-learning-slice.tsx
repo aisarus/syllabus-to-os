@@ -195,6 +195,11 @@ export function TopicLearningSlice({ courseId }: { courseId: string }) {
                 <span className="ms-auto">{result.score}%</span>
               </div>
               <p className="mt-2 text-xs leading-5">{result.explanation}</p>
+              <p className="mt-2 text-xs font-medium" data-topic-recall-match-breakdown>
+                {isRu
+                  ? `Совпало точно: ${result.exactMatches.length} · По словоформе: ${result.normalizedMatches.length}`
+                  : `Exact matches: ${result.exactMatches.length} · Normalized forms: ${result.normalizedMatches.length}`}
+              </p>
               {result.missingTerms.length > 0 && (
                 <p className="mt-2 text-xs text-muted-foreground">
                   {isRu ? "Не отражены идеи" : "Missing ideas"}: {result.missingTerms.join(", ")}
