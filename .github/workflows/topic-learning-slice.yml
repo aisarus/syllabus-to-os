@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: topic-learning-slice-${{ github.workflow }}-${{ github.ref }}
@@ -23,6 +23,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -37,6 +40,40 @@ jobs:
       - name: Install dependencies from lockfile
         run: bun install --frozen-lockfile
 
+      - name: Add English browser proof
+        if: github.head_ref == 'test/recall-breakdown-en-browser-proof'
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/run-topic-learning-slice-browser-e2e.mjs')
+          text = path.read_text()
+          old = '''    assert(afterReload === 1, "Reload must not duplicate the verified attempt");
+'''
+          new = old + '''
+    await page.evaluate(`localStorage.setItem("lamdan.lang", "en")`);
+    await page.reload();
+    await page.waitForText("Topic learning check");
+    await page.evaluate(`(() => {
+      const textarea = [...document.querySelectorAll("textarea")].find((item) => item.placeholder?.includes("Answer without looking back"));
+      if (!textarea) throw new Error("English recall textarea not found");
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
+      setter.call(textarea, "Судебный контроль — проверка решений независимыми судами.");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    })()`);
+    await page.clickText("Verify answer");
+    await page.waitFor(`document.querySelector('[data-topic-recall-match-breakdown]')?.textContent?.includes('Exact matches:') && document.querySelector('[data-topic-recall-match-breakdown]')?.textContent?.includes('Normalized forms:')`);
+    const afterEnglishVerify = await page.evaluate(`(() => {
+      const data = JSON.parse(localStorage.getItem("lamdan.concept-evidence.v1"));
+      return data.evidenceEvents.filter((event) => event.sourceLabel === "Deterministic topic recall").length;
+    })()`);
+    assert(afterEnglishVerify === 1, "English verification of the same response must not duplicate evidence");
+'''
+          if new not in text:
+              if old not in text:
+                  raise SystemExit('reload assertion locator missing')
+              path.write_text(text.replace(old, new, 1))
+          PY
+
       - name: Run deterministic topic learning evaluations
         run: node --experimental-strip-types scripts/run-topic-learning-slice-evals.mjs 2>&1 | tee topic-learning-eval-output.txt
 
@@ -48,6 +85,19 @@ jobs:
 
       - name: Run topic learning browser E2E
         run: node scripts/run-topic-learning-slice-browser-e2e.mjs 2>&1 | tee topic-learning-browser-output.txt
+
+      - name: Commit English browser proof
+        if: github.head_ref == 'test/recall-breakdown-en-browser-proof'
+        run: |
+          git config user.name "aegis-recovery"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts/run-topic-learning-slice-browser-e2e.mjs
+          if git diff --cached --quiet; then
+            echo "No browser proof diff."
+            exit 0
+          fi
+          git commit -m "test: prove English recall match breakdown"
+          git push origin HEAD:test/recall-breakdown-en-browser-proof
 
       - name: Upload diagnostics
         if: failure()
