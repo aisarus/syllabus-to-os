@@ -1,5 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import {
+  topicInputPattern,
+  uploadTopicPattern,
+} from "./course-workspace-accessibility-patterns.mjs";
 
 const workspace = await readFile(
   resolve(process.cwd(), "src/components/course-workspace.tsx"),
@@ -37,11 +41,11 @@ for (const marker of [
 
 for (const [pattern, message] of [
   [
-    /<Input(?=[^>]*\bvalue=\{newTopic\})(?=[^>]*\baria-label=\{\s*isRu\s*\?\s*"Название новой темы"\s*:\s*"New topic title"\s*\})[^>]*\/?\s*>/,
+    topicInputPattern,
     "Course Workspace topic creation input is missing its localized purpose-specific label.",
   ],
   [
-    /<SelectTrigger(?=[^>]*\baria-label=\{\s*isRu\s*\?\s*"Тема для загружаемого материала"\s*:\s*"Topic for uploaded material"\s*\})[^>]*>/,
+    uploadTopicPattern,
     "Course Workspace upload-topic selector is missing its localized purpose-specific label.",
   ],
   [
