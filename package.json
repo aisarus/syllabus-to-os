@@ -27,6 +27,7 @@
     "eval:concept-extraction": "node --experimental-strip-types scripts/run-concept-extraction-evals.mjs",
     "eval:open-answer-evidence": "node --experimental-strip-types scripts/run-open-answer-evidence-evals.mjs",
     "eval:per-question-evidence": "node --experimental-strip-types scripts/run-per-question-evidence-evals.mjs",
+    "eval:topic-learning": "node --experimental-strip-types scripts/run-topic-learning-slice-evals.mjs",
     "eval:visual-backup": "node --experimental-strip-types scripts/run-visual-backup-evals.mjs",
     "eval:workspace-backup": "node --experimental-strip-types scripts/run-workspace-backup-evals.mjs",
     "eval:long-media": "node --experimental-strip-types scripts/run-long-media-evals.mjs",
