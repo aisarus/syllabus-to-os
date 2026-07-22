@@ -24,7 +24,7 @@ Impact: the displayed selected value does not consistently describe the control 
 
 ## Verified non-findings
 
-### AI draft dialog focus and Escape behavior
+### AI draft dialog close-path structure
 
 Files:
 
@@ -32,9 +32,9 @@ Files:
 - `src/components/ai-draft-modal.tsx`
 - `src/components/ui/dialog.tsx`
 
-The representative AI generation flow renders through `AIDraftModal`, which uses the shared Radix `Dialog`, `DialogContent`, and `DialogTitle` primitives. Close requests from Escape, overlay interaction, the close button, and the visible cancel/close action converge on `requestClose`, preserving the unsaved-draft confirmation path.
+The representative AI generation flow renders through `AIDraftModal`, which uses the shared Radix `Dialog`, `DialogContent`, and `DialogTitle` primitives. Structural inspection confirms that close requests emitted through the dialog `onOpenChange` path and the visible cancel/close action converge on `requestClose`, preserving the unsaved-draft confirmation path.
 
-No additional focus-trap, focus-return, Escape, or dialog-title blocker was confirmed by this structural inspection. Runtime keyboard verification remains separate evidence and is not claimed here.
+No additional Escape or dialog-title blocker was confirmed structurally. Focus trapping, focus restoration, and keyboard behavior remain runtime-only evidence and are not claimed by this inventory step.
 
 ## Next bounded implementation
 
