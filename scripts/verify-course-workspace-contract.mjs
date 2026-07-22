@@ -14,6 +14,9 @@ const failures = [];
 const requireMarker = (content, marker, message) => {
   if (!content.includes(marker)) failures.push(message);
 };
+const requirePattern = (content, pattern, message) => {
+  if (!pattern.test(content)) failures.push(message);
+};
 
 for (const marker of [
   "uncoveredTopics",
@@ -41,20 +44,25 @@ for (const [marker, message] of [
     'aria-label={isRu ? "Тема для загружаемого материала" : "Topic for uploaded material"}',
     "Course Workspace upload-topic selector is missing its localized purpose-specific label.",
   ],
+]) {
+  requireMarker(workspace, marker, message);
+}
+
+for (const [pattern, message] of [
   [
-    '<strong dir="auto" className="block truncate">',
+    /<strong(?=[^>]*\bdir="auto")(?=[^>]*\bclassName="[^"]*\bblock\b[^"]*\btruncate\b[^"]*")[^>]*>\s*\{chunk\.title/,
     "Course Workspace extracted chunk title is missing its automatic direction boundary.",
   ],
   [
-    '<span dir="auto" className="mt-1 block line-clamp-2 text-muted-foreground">',
+    /<span(?=[^>]*\bdir="auto")(?=[^>]*\bclassName="[^"]*\bline-clamp-2\b[^"]*")[^>]*>\s*\{chunk\.text\}/,
     "Course Workspace extracted chunk text is missing its automatic direction boundary.",
   ],
   [
-    '<strong dir="auto" className="block truncate text-sm hover:text-primary">',
+    /<strong(?=[^>]*\bdir="auto")(?=[^>]*\bclassName="[^"]*\btruncate\b[^"]*\bhover:text-primary\b[^"]*")[^>]*>\s*\{material\.title\}/,
     "Course Workspace linked material title is missing its automatic direction boundary.",
   ],
 ]) {
-  requireMarker(workspace, marker, message);
+  requirePattern(workspace, pattern, message);
 }
 
 for (const kind of ["note", "flashcards", "quiz"]) {
