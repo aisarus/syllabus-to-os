@@ -20,7 +20,7 @@ diff --git a/src/components/course-workspace.tsx b/src/components/course-workspa
                    <SelectValue />
                  </SelectTrigger>
                  <SelectContent>
-@@ -525,10 +528,10 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
+@@ -525,9 +528,9 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
                            }
                          >
 -                          <strong className="block truncate">
