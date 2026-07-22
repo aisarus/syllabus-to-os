@@ -1,9 +1,11 @@
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
-const repoRoot = process.cwd();
+const scriptDirectory = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(scriptDirectory, "..");
 const verifierPath = resolve(repoRoot, "scripts/verify-course-workspace-accessibility-patch.mjs");
 const patchSource = readFileSync(
   resolve(repoRoot, "patches/s4-001-course-workspace-accessibility.patch"),
@@ -59,12 +61,20 @@ function run(command, args, cwd) {
   return spawnSync(command, args, { cwd, encoding: "utf8" });
 }
 
+function formatFailure(result) {
+  const parts = [];
+  if (result.error) parts.push(String(result.error));
+  if (result.stdout) parts.push(result.stdout);
+  if (result.stderr) parts.push(result.stderr);
+  return parts.join("\n").trim();
+}
+
 function assertState(name, result, expectedStatus, expectedText) {
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
-  if (result.status !== expectedStatus || !output.includes(expectedText)) {
-    console.error(`[${name}] expected status ${expectedStatus} and text: ${expectedText}`);
-    if (output) process.stderr.write(output);
-    process.exit(1);
+  if (result.error || result.status !== expectedStatus || !output.includes(expectedText)) {
+    throw new Error(
+      `[${name}] expected status ${expectedStatus} and text: ${expectedText}\n${formatFailure(result)}`,
+    );
   }
 }
 
@@ -81,8 +91,7 @@ try {
   writeFileSync(componentPath, originalSource);
   const init = run("git", ["init", "-q"], fixtureRoot);
   if (init.error || init.status !== 0) {
-    console.error(init.error ?? init.stderr);
-    process.exit(1);
+    throw new Error(`git init failed:\n${formatFailure(init)}`);
   }
 
   assertState(
@@ -98,8 +107,7 @@ try {
     fixtureRoot,
   );
   if (apply.error || apply.status !== 0) {
-    console.error(apply.error ?? apply.stderr);
-    process.exit(1);
+    throw new Error(`git apply failed:\n${formatFailure(apply)}`);
   }
   assertState(
     "already-applied",
