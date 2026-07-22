@@ -6,6 +6,7 @@ import { ConceptEvidenceWorkspace } from "@/components/concept-evidence-workspac
 import { ConceptExtractionReview } from "@/components/concept-extraction-review";
 import { ConceptOpenAnswerReview } from "@/components/concept-open-answer-review";
 import { CourseWorkspace } from "@/components/course-workspace";
+import { TopicLearningSlice } from "@/components/topic-learning-slice";
 import { useApp } from "@/lib/app-context";
 import "@/course-experience.css";
 
@@ -24,6 +25,8 @@ function CoursePage() {
       <div className="course-experience__workspace">
         <CourseWorkspace courseId={courseId} />
       </div>
+
+      <TopicLearningSlice courseId={courseId} />
 
       <div className="course-experience__risk">
         <ConceptEvidenceRiskSummary courseId={courseId} />
