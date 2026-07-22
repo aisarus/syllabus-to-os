@@ -38,7 +38,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run deterministic topic learning evaluations
-        run: node --experimental-strip-types scripts/run-topic-learning-slice-evals.mjs 2>&1 | tee topic-learning-eval-output.txt
+        run: npm run eval:topic-learning 2>&1 | tee topic-learning-eval-output.txt
 
       - name: Typecheck
         run: npm run typecheck
