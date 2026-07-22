@@ -15,6 +15,14 @@ const patchSource = readFileSync(
   "utf8",
 );
 
+const expectedMarkers = [
+  'aria-label={isRu ? "Название новой темы" : "New topic title"}',
+  'aria-label={isRu ? "Тема для загружаемого материала" : "Topic for uploaded material"}',
+  '<strong dir="auto" className="block truncate">',
+  '<span dir="auto" className="mt-1 block line-clamp-2 text-muted-foreground">',
+  '<strong dir="auto" className="block truncate text-sm hover:text-primary">',
+];
+
 function buildSource() {
   const lines = Array.from({ length: 253 }, () => "// fixture filler");
   lines.push(
@@ -72,6 +80,10 @@ function formatFailure(result) {
   return parts.join("\n").trim();
 }
 
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
 function assertState(name, result, expectedStatus, expectedText) {
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
   if (result.error || result.status !== expectedStatus || !output.includes(expectedText)) {
@@ -118,6 +130,10 @@ try {
   if (apply.error || apply.status !== 0) {
     throw new Error(`git apply failed:\n${formatFailure(apply)}`);
   }
+  const patchedSource = readFileSync(componentPath, "utf8");
+  for (const marker of expectedMarkers) {
+    assert(patchedSource.includes(marker), `applied patch is missing marker: ${marker}`);
+  }
   assertState(
     "already-applied",
     run(process.execPath, [verifierPath], fixtureRoot),
@@ -125,15 +141,17 @@ try {
     "CourseWorkspace accessibility patch is already applied.",
   );
 
-  writeFileSync(componentPath, originalSource.replace("value={newTopic}", "value={newTopic.trim()}"));
+  const conflictSource = originalSource.replace("value={newTopic}", "value={newTopic.trim()}");
+  writeFileSync(componentPath, conflictSource);
   assertState(
     "conflict",
     run(process.execPath, [verifierPath], fixtureRoot),
     1,
     "CourseWorkspace accessibility patch is neither cleanly applicable nor already applied.",
   );
+  assert(readFileSync(componentPath, "utf8") === conflictSource, "conflict verification changed source");
 } finally {
   rmSync(fixtureRoot, { recursive: true, force: true });
 }
 
-console.log("CourseWorkspace accessibility patch verifier fixtures passed: 3/3.");
+console.log("CourseWorkspace accessibility patch verifier fixtures passed: 3/3 with 5/5 markers.");
