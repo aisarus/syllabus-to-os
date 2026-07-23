@@ -135,6 +135,32 @@ const fixtures = [
     },
   },
   {
+    name: "rollback failure returns generic failure",
+    execute() {
+      const fixture = createFixture();
+      try {
+        const componentPath = join(fixture.root, "src/components/course-workspace.tsx");
+        writeFileSync(
+          join(fixture.root, "scripts/contract-stub.mjs"),
+          `import { writeFileSync } from "node:fs";\nwriteFileSync(${JSON.stringify(componentPath)}, 'export const label = "contract-modified";\\n');\nprocess.exit(7);\n`,
+        );
+        const result = runApplicator(fixture.root, 0);
+        const content = readFileSync(componentPath, "utf8");
+        assert(result.status === 1, `expected exit 1, received ${result.status}: ${result.stderr}`);
+        assert(
+          result.stderr.includes("automatic patch rollback also failed"),
+          `missing rollback failure diagnostic: ${result.stderr}`,
+        );
+        assert(
+          content === 'export const label = "contract-modified";\n',
+          "rollback failure unexpectedly changed contract-modified content",
+        );
+      } finally {
+        rmSync(fixture.root, { recursive: true, force: true });
+      }
+    },
+  },
+  {
     name: "already applied contract failure preserves file",
     execute() {
       const fixture = createFixture();
