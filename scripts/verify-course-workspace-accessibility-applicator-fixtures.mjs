@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, "..");
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const applicatorSource = readFileSync(
   join(repoRoot, "scripts/apply-course-workspace-accessibility-patch.mjs"),
   "utf8",
@@ -40,6 +41,8 @@ function createFixture() {
       private: true,
       type: "module",
       scripts: {
+        "fix:course-workspace-accessibility":
+          "node scripts/apply-course-workspace-accessibility-patch.mjs",
         "verify:course-workspace-contract": "node scripts/contract-stub.mjs",
       },
     }, null, 2)}\n`,
@@ -74,7 +77,27 @@ function runApplicator(root, contractExit, invocationCwd = root) {
   });
 }
 
+function runNpmAlias(root, contractExit) {
+  return run(npmCommand, ["run", "fix:course-workspace-accessibility"], root, {
+    CONTRACT_EXIT: String(contractExit),
+  });
+}
+
 const fixtures = [
+  {
+    name: "npm alias applies and verifies",
+    execute() {
+      const fixture = createFixture();
+      try {
+        const result = runNpmAlias(fixture.root, 0);
+        const content = readFileSync(join(fixture.root, "src/components/course-workspace.tsx"), "utf8");
+        assert(result.status === 0, `expected exit 0, received ${result.status}: ${result.stderr}`);
+        assert(content === fixture.patched, "npm alias did not leave patched content");
+      } finally {
+        rmSync(fixture.root, { recursive: true, force: true });
+      }
+    },
+  },
   {
     name: "applies and verifies",
     execute() {
