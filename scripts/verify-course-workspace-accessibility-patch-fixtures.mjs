@@ -84,6 +84,10 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+function countOccurrences(source, marker) {
+  return source.split(marker).length - 1;
+}
+
 function assertState(name, result, expectedStatus, expectedText) {
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
   if (result.error || result.status !== expectedStatus || !output.includes(expectedText)) {
@@ -132,7 +136,8 @@ try {
   }
   const patchedSource = readFileSync(componentPath, "utf8");
   for (const marker of expectedMarkers) {
-    assert(patchedSource.includes(marker), `applied patch is missing marker: ${marker}`);
+    const count = countOccurrences(patchedSource, marker);
+    assert(count === 1, `applied patch expected marker exactly once, found ${count}: ${marker}`);
   }
   assertState(
     "already-applied",
@@ -154,4 +159,4 @@ try {
   rmSync(fixtureRoot, { recursive: true, force: true });
 }
 
-console.log("CourseWorkspace accessibility patch verifier fixtures passed: 3/3 with 5/5 markers.");
+console.log("CourseWorkspace accessibility patch verifier fixtures passed: 3/3 with 5/5 unique markers.");
