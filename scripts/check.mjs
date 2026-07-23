@@ -1,13 +1,9 @@
 import { spawnSync } from "node:child_process";
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-const directChecks = [
-  "scripts/verify-course-workspace-accessibility-patterns.mjs",
-  "scripts/verify-course-workspace-accessibility-patch.mjs",
-  "scripts/verify-course-workspace-accessibility-patch-fixtures.mjs",
-  "scripts/verify-course-workspace-accessibility-applicator-fixtures.mjs",
-];
+const directChecks = ["scripts/verify-course-workspace-accessibility-patch.mjs"];
 const checks = [
+  "test:course-workspace-accessibility-fixtures",
   "verify:docs",
   "verify:ai-source-contract",
   "verify:syllabus-review-contract",
