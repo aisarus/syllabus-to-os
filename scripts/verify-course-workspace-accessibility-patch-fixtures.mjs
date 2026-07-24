@@ -152,6 +152,12 @@ try {
     0,
     "CourseWorkspace accessibility patch is already applied.",
   );
+  assertState(
+    "already-applied-external-cwd",
+    run(process.execPath, [verifierPath], invocationRoot),
+    0,
+    "CourseWorkspace accessibility patch is already applied.",
+  );
 
   const conflictSource = originalSource.replace("value={newTopic}", "value={newTopic.trim()}");
   writeFileSync(componentPath, conflictSource);
@@ -161,10 +167,16 @@ try {
     1,
     "CourseWorkspace accessibility patch is neither cleanly applicable nor already applied.",
   );
+  assertState(
+    "conflict-external-cwd",
+    run(process.execPath, [verifierPath], invocationRoot),
+    1,
+    "CourseWorkspace accessibility patch is neither cleanly applicable nor already applied.",
+  );
   assert(readFileSync(componentPath, "utf8") === conflictSource, "conflict verification changed source");
 } finally {
   rmSync(invocationRoot, { recursive: true, force: true });
   rmSync(fixtureRoot, { recursive: true, force: true });
 }
 
-console.log("CourseWorkspace accessibility patch verifier fixtures passed: 4/4 with 5/5 unique markers.");
+console.log("CourseWorkspace accessibility patch verifier fixtures passed: 6/6 with 5/5 unique markers.");
