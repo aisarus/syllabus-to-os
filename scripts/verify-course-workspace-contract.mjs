@@ -1,18 +1,31 @@
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  extractedChunkTextDirectionPattern,
+  extractedChunkTitleDirectionPattern,
+  linkedMaterialTitleDirectionPattern,
+  topicInputPattern,
+  uploadTopicPattern,
+} from "./course-workspace-accessibility-patterns.mjs";
 
+const scriptDirectory = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(scriptDirectory, "..");
 const workspace = await readFile(
-  resolve(process.cwd(), "src/components/course-workspace.tsx"),
+  resolve(repoRoot, "src/components/course-workspace.tsx"),
   "utf8",
 );
 const route = await readFile(
-  resolve(process.cwd(), "src/routes/app.courses_.$courseId.tsx"),
+  resolve(repoRoot, "src/routes/app.courses_.$courseId.tsx"),
   "utf8",
 );
 
 const failures = [];
 const requireMarker = (content, marker, message) => {
   if (!content.includes(marker)) failures.push(message);
+};
+const requirePattern = (content, pattern, message) => {
+  if (!pattern.test(content)) failures.push(message);
 };
 
 for (const marker of [
@@ -30,6 +43,31 @@ for (const marker of [
   "без процентов, таймеров и искусственного прогресса",
 ]) {
   requireMarker(workspace, marker, `Course Workspace is missing required behavior: ${marker}`);
+}
+
+for (const [pattern, message] of [
+  [
+    topicInputPattern,
+    "Course Workspace topic creation input is missing its localized purpose-specific label.",
+  ],
+  [
+    uploadTopicPattern,
+    "Course Workspace upload-topic selector is missing its localized purpose-specific label.",
+  ],
+  [
+    extractedChunkTitleDirectionPattern,
+    "Course Workspace extracted chunk title is missing its automatic direction boundary.",
+  ],
+  [
+    extractedChunkTextDirectionPattern,
+    "Course Workspace extracted chunk text is missing its automatic direction boundary.",
+  ],
+  [
+    linkedMaterialTitleDirectionPattern,
+    "Course Workspace linked material title is missing its automatic direction boundary.",
+  ],
+]) {
+  requirePattern(workspace, pattern, message);
 }
 
 for (const kind of ["note", "flashcards", "quiz"]) {
