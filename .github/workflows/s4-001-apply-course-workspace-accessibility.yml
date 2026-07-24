@@ -1,0 +1,40 @@
+name: Apply S4-001 CourseWorkspace accessibility patch
+
+on:
+  push:
+    branches:
+      - s4-001-course-workspace-labels
+    paths:
+      - .github/workflows/s4-001-apply-course-workspace-accessibility.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: s4-001-course-workspace-labels
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply patch and verify contract
+        run: npm run fix:course-workspace-accessibility
+
+      - name: Commit component fix
+        run: |
+          if git diff --quiet -- src/components/course-workspace.tsx; then
+            echo "CourseWorkspace patch was already applied."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/course-workspace.tsx
+          git commit -m "fix(a11y): label and isolate CourseWorkspace content"
+          git push origin HEAD:s4-001-course-workspace-labels
