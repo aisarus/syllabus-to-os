@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   extractedChunkTextDirectionPattern,
   extractedChunkTitleDirectionPattern,
@@ -8,12 +9,14 @@ import {
   uploadTopicPattern,
 } from "./course-workspace-accessibility-patterns.mjs";
 
+const scriptDirectory = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(scriptDirectory, "..");
 const workspace = await readFile(
-  resolve(process.cwd(), "src/components/course-workspace.tsx"),
+  resolve(repoRoot, "src/components/course-workspace.tsx"),
   "utf8",
 );
 const route = await readFile(
-  resolve(process.cwd(), "src/routes/app.courses_.$courseId.tsx"),
+  resolve(repoRoot, "src/routes/app.courses_.$courseId.tsx"),
   "utf8",
 );
 
