@@ -253,6 +253,7 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <Input
                 value={newTopic}
+                aria-label={isRu ? "Название новой темы" : "New topic title"}
                 onChange={(event) => setNewTopic(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") addTopic();
@@ -387,7 +388,9 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
             </p>
             <div className="mt-3 space-y-3">
               <Select value={uploadTopicId} onValueChange={setUploadTopicId}>
-                <SelectTrigger>
+                <SelectTrigger
+                  aria-label={isRu ? "Тема для загружаемого материала" : "Topic for uploaded material"}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -522,10 +525,10 @@ export function CourseWorkspace({ courseId }: { courseId: string }) {
                             )
                           }
                         >
-                          <strong className="block truncate">
+                          <strong dir="auto" className="block truncate">
                             {chunk.title || `${isRu ? "Фрагмент" : "Chunk"} ${chunk.order + 1}`}
                           </strong>
-                          <span className="mt-1 block line-clamp-2 text-muted-foreground">
+                          <span dir="auto" className="mt-1 block line-clamp-2 text-muted-foreground">
                             {chunk.text}
                           </span>
                         </button>
@@ -710,7 +713,9 @@ function MaterialRow({ material, topics }: { material: Material; topics: Topic[]
         params={{ materialId: material.id }}
         className="min-w-0 flex-1"
       >
-        <strong className="block truncate text-sm hover:text-primary">{material.title}</strong>
+        <strong dir="auto" className="block truncate text-sm hover:text-primary">
+          {material.title}
+        </strong>
         <span className="text-[10px] uppercase text-muted-foreground">
           {material.type} · {material.processingStatus}
         </span>
