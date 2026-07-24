@@ -98,6 +98,7 @@ function assertState(name, result, expectedStatus, expectedText) {
 }
 
 const fixtureRoot = mkdtempSync(join(tmpdir(), "lamdan-a11y-patch-"));
+const invocationRoot = mkdtempSync(join(tmpdir(), "lamdan-a11y-patch-invocation-"));
 try {
   mkdirSync(join(fixtureRoot, "src/components"), { recursive: true });
   mkdirSync(join(fixtureRoot, "patches"), { recursive: true });
@@ -122,6 +123,12 @@ try {
   assertState(
     "ready",
     run(process.execPath, [verifierPath], fixtureRoot),
+    0,
+    "CourseWorkspace accessibility patch is ready to apply.",
+  );
+  assertState(
+    "ready-external-cwd",
+    run(process.execPath, [verifierPath], invocationRoot),
     0,
     "CourseWorkspace accessibility patch is ready to apply.",
   );
@@ -156,7 +163,8 @@ try {
   );
   assert(readFileSync(componentPath, "utf8") === conflictSource, "conflict verification changed source");
 } finally {
+  rmSync(invocationRoot, { recursive: true, force: true });
   rmSync(fixtureRoot, { recursive: true, force: true });
 }
 
-console.log("CourseWorkspace accessibility patch verifier fixtures passed: 3/3 with 5/5 unique markers.");
+console.log("CourseWorkspace accessibility patch verifier fixtures passed: 4/4 with 5/5 unique markers.");
