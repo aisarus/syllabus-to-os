@@ -15,6 +15,10 @@ Read the project contracts before implementation:
 - `STATUS.md` — current evidence and blockers;
 - `PILOT.md` — one-course release-validation script.
 
+## Portfolio case study
+
+For an employer-facing explanation of the product evolution, AI-native development process, reliability work, evidence and known limits, see [`docs/portfolio/LAMDAN-PORTFOLIO-HANDOFF.md`](docs/portfolio/LAMDAN-PORTFOLIO-HANDOFF.md).
+
 ## Local setup
 
 The repository uses `bun.lock` as its dependency lockfile.
