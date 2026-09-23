@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const checks = [
+  "verify:course-workspace-accessibility-patch",
+  "test:course-workspace-accessibility-fixtures",
   "verify:docs",
   "verify:ai-source-contract",
   "verify:syllabus-review-contract",
